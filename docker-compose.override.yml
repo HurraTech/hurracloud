@@ -1,0 +1,11 @@
+version: '2.2'
+services:
+  indexer:
+    image: aimannajjar/hurracloud:indexer-v1
+    build:
+      context: .
+      dockerfile: Indexer.Dockerfile
+    volumes:
+      - ./indexer:/usr/share/hurracloud/indexer
+      - ./volumes/indices:/usr/share/hurracloud/indexer/indices
+      - ./volumes/sources:/usr/share/hurracloud/indexer/sources

@@ -1,0 +1,14 @@
+inline_files: # files that can be returned as "inline" content-disposition for view action
+  allowed_mimes:
+    - application/pdf
+    - image/jpeg
+    - image/gif
+    - image/png
+    - image/svg+xml
+    - image/tiff
+    - image/bmp
+    - image/webp
+    - image/x-icon
+    - text/css
+    - text/csv
+    - text/plain    

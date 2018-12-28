@@ -1,0 +1,91 @@
+# ansible-playbook -i 192.168.1.2, deploy.yml
+---
+- hosts: all
+  user: root
+  tasks:
+  - name: Install Packages
+    apk:
+      name:
+      - docker
+      - py-pip
+      state: latest
+      update_cache: yes
+      repository: 
+      - http://mirror.math.princeton.edu/pub/alpinelinux/latest-stable/community
+      - http://mirror.math.princeton.edu/pub/alpinelinux/latest-stable/main
+
+  - name: Install Pacakges [compose]
+    pip:
+      name: docker-compose
+
+  - name: Configure System (swapoff)
+    command: swapoff -a
+
+  - name: Conifugre System (minimize swappiness)
+    sysctl:
+      name: vm.swappiness
+      value: 0
+      state: present
+      sysctl_file: /etc/sysctl.d/01-hurracloud.conf
+      reload: yes
+
+  - name: Conifugre System (minimize swappiness)
+    sysctl:
+      name: vm.max_map_count
+      value: 262144
+      state: present
+      sysctl_file: /etc/sysctl.d/01-hurracloud.conf
+      reload: yes      
+
+
+#### Deploy Application
+  - name: Deploy Application
+    file:
+      name: /usr/share/hurracloud
+      state: directory
+      owner: root
+      group: root
+
+  - name: Create Directory Structure
+    file:
+      state: directory
+      name: 
+      - /usr/share/hurracloud
+      - /usr/share/hurracloud/indexer
+      - /usr/share/hurracloud/indexer/logs
+      - /usr/share/hurracloud/indexer/indices
+      owner: root
+      group: root
+
+
+  # - name: Deploy Application
+  #   file:
+  #     state: directory
+  #     name: /usr/share/hurracloud/data
+  #     owner: root
+  #     group: root
+      
+  - name: Deploy Application
+    template:
+      src: docker-compose.yml
+      dest: /usr/share/hurracloud
+      owner: root
+      group: root
+
+  - name: Start Docker
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: Log into DockerHub
+    docker_login:
+      username: aimannajjar
+      password: PHJ3iphUPHgFqpkh6feJNaR4fedjTm5dNRqqEfQ
+
+##### Create new index
+
+  # - include_tasks: create_index.yml 
+  #   vars: 
+  #     index_name: hurradrive
+  #     data: /mnt/HurraDrive
