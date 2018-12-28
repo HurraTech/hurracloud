@@ -66,6 +66,7 @@
       - /usr/share/hurracloud/zahif
       - /usr/share/hurracloud/zahif/logs
       - /usr/share/hurracloud/zahif/indices
+      - /usr/share/hurracloud/jawhar/db
 
   - name: Create Directory Structure (sources)
     file:

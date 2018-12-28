@@ -10,9 +10,10 @@ do
     index=${index##*/}
     [ "${index}" == "_default" ] && continue
     echo "Going to start indexer for index ${index}"
-    bin/fscrawler --config_dir ${INDEXER_HOME}/indices ${index} --debug &> ${INDEXER_HOME}/logs/${index}
+    bin/fscrawler --config_dir ${INDEXER_HOME}/indices ${index} --debug &> ${INDEXER_HOME}/logs/${index} &
 done
 
+echo "Waiting for index changes"
 inotifywait -m ${INDEXER_HOME}/indices -e create |
     while read path action file; do
         echo "Running indexer for '$file' (appeared in directory '$path' via '$action') "

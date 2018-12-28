@@ -23,8 +23,8 @@ services:
   zahif:
     image: aimannajjar/hurracloud:zahif-v1
     volumes:
-      - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
-      - /usr/share/hurracloud/zahif/logs:/usr/share/hurracloud/zahif/logs
+      - ./zahif/indices:/usr/share/hurracloud/zahif/indices
+      - ./zahif/logs:/usr/share/hurracloud/zahif/logs
       - /mnt:/usr/share/hurracloud/zahif/sources      
     networks:
       - hurracloud
@@ -32,7 +32,8 @@ services:
   jawhar:
     image: aimannajjar/hurracloud:jawhar-v1
     volumes:
-      - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
+      - ./zahif/indices:/usr/share/hurracloud/zahif/indices
+      - ./jawhar/db:/usr/share/hurracloud/jawhar/db
       - /mnt:/usr/share/hurracloud/jawhar/sources
     networks:
       - hurracloud

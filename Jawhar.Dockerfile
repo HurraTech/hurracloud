@@ -1,7 +1,7 @@
 FROM ruby:2.5-slim
 
 RUN mkdir -p /usr/share/hurracloud/jawhar
-RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs libmagic-dev libsqlite3-dev
+RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs libmagic-dev libsqlite3-dev sqlite3
 
 WORKDIR /usr/share/hurracloud/jawhar
 COPY jawhar/Gemfile .

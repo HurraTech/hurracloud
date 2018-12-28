@@ -1,0 +1,2 @@
+class IndexController < ApiController
+end

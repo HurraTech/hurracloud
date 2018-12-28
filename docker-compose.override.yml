@@ -12,10 +12,7 @@ services:
       context: .
       dockerfile: Zahif.Dockerfile
     volumes:
-      - ./zahif:/usr/share/hurracloud/zahif
-      - ./dev-volumes/usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
-      - ./dev-volumes/usr/share/hurracloud/zahif/sources:/usr/share/hurracloud/zahif/sources
-      - ./dev-volumes/usr/share/hurracloud/zahif/logs:/usr/share/hurracloud/zahif/logs
+      - ./zahif/start.sh:/usr/share/hurracloud/zahif/start.sh
 
   jawhar:
     image: aimannajjar/hurracloud:jawhar-v1
@@ -24,7 +21,6 @@ services:
       dockerfile: Jawhar.Dockerfile
     volumes:
       - ./jawhar:/usr/share/hurracloud/jawhar
-      - ./dev-volumes/usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
     networks:
       - hurracloud
     ports:
