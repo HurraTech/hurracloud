@@ -26,7 +26,7 @@ class HomePage extends React.Component {
   }
 
   render() {
-    onNewSearch = this.onNewSearch.bind(this);
+    const onNewSearch = this.onNewSearch.bind(this);
     return (
       <Layout onNewSearch={onNewSearch}>
         <SearchPage searchTerms={this.state.searchQuery} />
