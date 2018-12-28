@@ -101,7 +101,7 @@ class Content extends React.Component {
       },
       () => {
         axios
-          .get(`http://localhost:5000/files/is_viewable${path}`)
+          .get(`http://192.168.1.2:5000/files/is_viewable${path}`)
           .then(res => {
             this.setState({ isAjaxInProgress: false }, () => {
               const isViewable = res.data.is_viewable;
@@ -112,7 +112,7 @@ class Content extends React.Component {
                   isPreviewOpen: false,
                 });
               } else {
-                window.location = `http://localhost:5000/files/download${path}`;
+                window.location = `http://192.168.1.2:5000/files/download${path}`;
               }
             });
           });

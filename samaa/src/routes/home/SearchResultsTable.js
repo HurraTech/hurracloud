@@ -169,7 +169,7 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Donwload File">
               <IconButton
-                href={`http://localhost:5000/files/download${
+                href={`http://192.168.1.2:5000/files/download${
                   cellData._source.path.virtual
                 }`}
               >
@@ -192,7 +192,7 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Open in New Window">
               <IconButton
-                href={`http://localhost:5000/files/view${
+                href={`http://192.168.1.2:5000/files/view${
                   cellData._source.path.virtual
                 }`}
                 target="_blank"

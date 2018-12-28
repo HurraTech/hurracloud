@@ -1,5 +1,5 @@
 #!/bin/sh
-INDEXER_HOME=/usr/share/hurracloud/indexer
+INDEXER_HOME=/usr/share/hurracloud/zahif
 mkdir -p ${INDEXER_HOME}/indices
 mkdir -p ${INDEXER_HOME}/logs
 export JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk

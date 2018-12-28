@@ -278,7 +278,7 @@ class PrimarySearchAppBar extends React.Component {
               color="inherit"
               noWrap
             >
-              HurraCloud
+              Samaa
             </Typography>
             <div className={classes.search}>
               <div className={classes.searchIcon}>

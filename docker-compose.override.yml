@@ -1,14 +1,21 @@
 version: '2.2'
 services:
+version: '2.2'
+services:
+  elasticsearch:
+    ports:
+      - 9200:9200
+    
   zahif:
-    image: aimannajjar/hurracloud:indexer-v1
+    image: aimannajjar/hurracloud:zahif-v1
     build:
       context: .
-      dockerfile: Indexer.Dockerfile
+      dockerfile: Zahif.Dockerfile
     volumes:
       - ./zahif:/usr/share/hurracloud/zahif
-      - ./data/indices:/usr/share/hurracloud/zahif/indices
-      - ./data/sources:/usr/share/hurracloud/zahif/sources
+      - ./dev-volumes/usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
+      - ./dev-volumes/usr/share/hurracloud/zahif/sources:/usr/share/hurracloud/zahif/sources
+      - ./dev-volumes/usr/share/hurracloud/zahif/logs:/usr/share/hurracloud/zahif/logs
 
   jawhar:
     image: aimannajjar/hurracloud:jawhar-v1
@@ -16,9 +23,12 @@ services:
       context: .
       dockerfile: Jawhar.Dockerfile
     volumes:
-      - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
+      - ./jawhar:/usr/share/hurracloud/jawhar
+      - ./dev-volumes/usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
     networks:
       - hurracloud
+    ports:
+      - 5000:3000
 
   samaa:
     image: aimannajjar/hurracloud:samaa-v1
@@ -27,10 +37,10 @@ services:
       dockerfile: Samaa.Dockerfile
       args:
         - BUILD_DEV=1
+    user: root
     volumes:
       - ./samaa:/usr/src/samaa
-    command: sh -c "yarn install && yarn start"
-    
+    command: sh -c "yarn install && yarn start"    
     ports:
       - 3000:3000
     networks:

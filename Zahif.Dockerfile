@@ -5,7 +5,7 @@ RUN apk add tesseract-ocr \
         -X http://mirror.math.princeton.edu/pub/alpinelinux/edge/community \
         -X http://mirror.math.princeton.edu/pub/alpinelinux/edge/main
 
-WORKDIR /usr/share/hurracloud/indexer
-ADD indexer ./
+WORKDIR /usr/share/hurracloud/zahif
+ADD zahif ./
 
 CMD sh start.sh

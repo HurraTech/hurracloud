@@ -17,13 +17,11 @@ services:
         hard: -1
     volumes:
       - esdata1:/usr/share/elasticsearch/data
-    ports:
-      - 9200:9200
     networks:
       - hurracloud
 
   zahif:
-    image: aimannajjar/hurracloud:indexer-v1
+    image: aimannajjar/hurracloud:zahif-v1
     volumes:
       - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
       - /usr/share/hurracloud/zahif/logs:/usr/share/hurracloud/zahif/logs
@@ -35,6 +33,7 @@ services:
     image: aimannajjar/hurracloud:jawhar-v1
     volumes:
       - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
+      - /mnt:/usr/share/hurracloud/jawhar/sources
     networks:
       - hurracloud
 

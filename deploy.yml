@@ -8,6 +8,7 @@
       name:
       - docker
       - py-pip
+      - rsync
       state: latest
       update_cache: yes
       repository: 
@@ -31,12 +32,20 @@
 
   - name: Conifugre System (minimize swappiness)
     sysctl:
-      name: vm.max_map_count
-      value: 262144
+      name: fs.inotify.max_user_watches
+      value: 524288
       state: present
       sysctl_file: /etc/sysctl.d/01-hurracloud.conf
       reload: yes      
 
+  - name: Conifugre System (user watches)
+    sysctl:
+      name: vm.swappiness
+      value: 0
+      state: present
+      sysctl_file: /etc/sysctl.d/01-hurracloud.conf
+      reload: yes
+      
 
 #### Deploy Application
   - name: Deploy Application
@@ -49,14 +58,22 @@
   - name: Create Directory Structure
     file:
       state: directory
-      name: 
-      - /usr/share/hurracloud
-      - /usr/share/hurracloud/indexer
-      - /usr/share/hurracloud/indexer/logs
-      - /usr/share/hurracloud/indexer/indices
+      name: "{{ item }}"
       owner: root
       group: root
+    with_items:
+      - /usr/share/hurracloud
+      - /usr/share/hurracloud/zahif
+      - /usr/share/hurracloud/zahif/logs
+      - /usr/share/hurracloud/zahif/indices
 
+  - name: Create Directory Structure (sources)
+    file:
+      state: link
+      src: /mnt
+      dest: /usr/share/hurracloud/zahif/sources
+      owner: root
+      group: root
 
   # - name: Deploy Application
   #   file:

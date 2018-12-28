@@ -5,7 +5,7 @@ class FilesController < ApplicationController
     after_action :allow_iframe_cors, only: :proxy
 
     def proxy
-        file = "/Users/aimannajjar/hurradrive/#{params[:path]}"
+        file = "/usr/share/hurracloud/jawhar/sources/HurraDrive/#{params[:path]}"
         
         disposition = :attachment # file will be downloaded by browser
         if ! ["view", "download", "is_viewable"].include?(params[:file_action])
@@ -31,7 +31,7 @@ class FilesController < ApplicationController
 
     private
     def allow_iframe_cors
-        response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+        response.headers['Access-Control-Allow-Origin'] = 'http://192.168.1.2:3000'
         response.headers['Access-Control-Allow-Methods'] = 'GET'
         response.headers.except! 'X-Frame-Options'
       end    
