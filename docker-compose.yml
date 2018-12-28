@@ -22,14 +22,28 @@ services:
     networks:
       - hurracloud
 
-  indexer:
+  zahif:
     image: aimannajjar/hurracloud:indexer-v1
     volumes:
-      - /usr/share/hurracloud/indexer/indices:/usr/share/hurracloud/indexer/indices
-      - /usr/share/hurracloud/indexer/logs:/usr/share/hurracloud/indexer/logs
-      - /mnt:/usr/share/hurracloud/indexer/sources      
+      - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
+      - /usr/share/hurracloud/zahif/logs:/usr/share/hurracloud/zahif/logs
+      - /mnt:/usr/share/hurracloud/zahif/sources      
     networks:
       - hurracloud
+
+  jawhar:
+    image: aimannajjar/hurracloud:jawhar-v1
+    volumes:
+      - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
+    networks:
+      - hurracloud
+
+  samaa:
+    image: aimannajjar/hurracloud:samaa-v1
+    networks:
+      - hurracloud
+    environment:
+      - NODE_ENV=production
 
 volumes:
   esdata1:

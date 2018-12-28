@@ -1,11 +1,41 @@
 version: '2.2'
 services:
-  indexer:
+  zahif:
     image: aimannajjar/hurracloud:indexer-v1
     build:
       context: .
       dockerfile: Indexer.Dockerfile
     volumes:
-      - ./indexer:/usr/share/hurracloud/indexer
-      - ./volumes/indices:/usr/share/hurracloud/indexer/indices
-      - ./volumes/sources:/usr/share/hurracloud/indexer/sources
+      - ./zahif:/usr/share/hurracloud/zahif
+      - ./data/indices:/usr/share/hurracloud/zahif/indices
+      - ./data/sources:/usr/share/hurracloud/zahif/sources
+
+  jawhar:
+    image: aimannajjar/hurracloud:jawhar-v1
+    build:
+      context: .
+      dockerfile: Jawhar.Dockerfile
+    volumes:
+      - /usr/share/hurracloud/zahif/indices:/usr/share/hurracloud/zahif/indices
+    networks:
+      - hurracloud
+
+  samaa:
+    image: aimannajjar/hurracloud:samaa-v1
+    build:
+      context: .
+      dockerfile: Samaa.Dockerfile
+      args:
+        - BUILD_DEV=1
+    volumes:
+      - ./samaa:/usr/src/samaa
+    command: sh -c "yarn install && yarn start"
+    
+    ports:
+      - 3000:3000
+    networks:
+      - hurracloud
+    environment:
+      - NODE_ENV=development
+
+      
