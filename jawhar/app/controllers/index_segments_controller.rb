@@ -1,0 +1,2 @@
+class IndexSegmentsController < ApplicationController
+end

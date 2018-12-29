@@ -4,5 +4,8 @@ Rails.application.routes.draw do
   delete 'files/:file_action/*path', to: 'files#proxy', format: false
   put 'files/:file_action/*path', to: 'files#proxy', format: false
 
-  resources :index, format: :json
+  resources :sources, format: :json
+  resources :indices, format: :json do
+    resources :index_semgents, format: :json
+  end
 end

@@ -5,3 +5,4 @@
 #
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
+Source.create(name: 'HurraDrive', url: 'file:///mnt/HurraDrive', source_type: :removable_media)
