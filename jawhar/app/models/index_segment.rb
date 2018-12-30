@@ -36,7 +36,7 @@ class IndexSegment < ApplicationRecord
   end
 
   def progress
-    return 100 if self.size.to_f == 0
+    return 100 if (self.size.to_f == 0 or self.current_status == "completed")
     ((self.indexed_count / self.size.to_f) * 100).round(2)
   end
 
