@@ -6,7 +6,7 @@ require 'json'
 #
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
-excludes = [ "*/~*", "*\\.yfull", "*YNAB", "*\\.kdbx", "*\\.kdb", "*\\.y4backup", "*\\.ydiff", "*/\\.DS_Store", "*/\\.*" ]
+excludes = [ "*/~*", "*\\.yfull", "*YNAB*", "*\\.kdbx", "*\\.kdb", "*\\.y4backup", "*\\.ydiff", "*/\\.DS_Store", "*/\\.*" ]
 settings = { excludes: excludes}
 settings.to_json
 Source.create(name: 'HurraDrive', url: 'file:///mnt/HurraDrive', source_type: :removable_media )

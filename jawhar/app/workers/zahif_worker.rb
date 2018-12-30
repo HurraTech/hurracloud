@@ -25,8 +25,9 @@ class ZahifWorker
             end
         end
         for segment in index.index_segments
-            ZahifWorker.perform_async('index_segment', :index_segment_id => segment.id)
             segment.current_status = :scheduled
+            segment.save()
+            ZahifWorker.perform_async('index_segment', :index_segment_id => segment.id)
         end
     when 'index_segment'
         index_segment_id = params['index_segment_id']
