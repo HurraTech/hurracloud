@@ -1,2 +1,2 @@
-class IndexSegmentsController < ApplicationController
+class IndexSegmentsController < ApiController
 end

@@ -6,6 +6,6 @@ Rails.application.routes.draw do
 
   resources :sources, format: :json
   resources :indices, format: :json do
-    resources :index_semgents, format: :json
+    resources :index_segments, format: :json
   end
 end

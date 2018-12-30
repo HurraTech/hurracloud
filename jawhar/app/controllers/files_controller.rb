@@ -5,7 +5,7 @@ class FilesController < ApplicationController
     after_action :allow_iframe_cors, only: :proxy
 
     def proxy
-        file = "/usr/share/hurracloud/jawhar/sources/HurraDrive/#{params[:path]}"
+        file = "/#{params[:path]}"
         
         disposition = :attachment # file will be downloaded by browser
         if ! ["view", "download", "is_viewable"].include?(params[:file_action])

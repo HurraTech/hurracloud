@@ -22,6 +22,10 @@ class ApiController < ApplicationController
         end
     end
 
+    def show
+        respond_with get_resource
+    end
+
     private 
     def inject_resource(resource=nil)
         resource ||= resource_class.find(params[:id]) or render json: { error: "not found"}                

@@ -83,7 +83,7 @@ class Content extends React.Component {
       this.setState({
         isPreviewOpen: true,
         isInlineViewerOpen: false,
-        openedFile: this.state.items[index]._source.path.virtual,
+        openedFile: this.state.items[index]._source.path.real,
         previewedContent: preview_content,
         previewedTitle: this.state.items[index]._source.file.filename,
       });
@@ -91,7 +91,7 @@ class Content extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index]._source.path.virtual;
+    const path = this.state.items[index]._source.path.real;
     this.setState(
       {
         isAjaxInProgress: true,
@@ -244,7 +244,7 @@ class Content extends React.Component {
       }
 
       axios
-        .post('http://192.168.1.2:9200/hurradrive/_search', query)
+        .post('http://192.168.1.2:9200/hurradrive_*/_search', query)
         .then(res => {
           const results = res.data.hits.hits;
           this.setState(
