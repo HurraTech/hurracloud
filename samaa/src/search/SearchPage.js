@@ -192,12 +192,12 @@ class Content extends React.Component {
   }
 
   search(from = 0, to = SIZE) {
-    let query = this.state.q || '';
+    const query = this.state.q || '';
     return new Promise((resolve, reject) => {
       axios
         .get(`http://192.168.1.2:5000/search?q=${query}&from=${from}&to=${to}`)
         .then(res => {
-          let response = res.data
+          const response = res.data;
           this.setState(
             {
               totalResults: Math.min(1000, response.total),
