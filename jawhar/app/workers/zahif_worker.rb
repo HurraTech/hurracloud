@@ -53,11 +53,16 @@ class ZahifWorker
         fscrawler_index_dir = "#{fscrawler_config_dir}/segment_#{index_segment_id}"
         FileUtils.mkdir_p fscrawler_index_dir
         File.write("#{fscrawler_index_dir}/_settings.json", index_segment.fscrawler_settings)
+        File.write("#{fscrawler_index_dir}/log4j.xml", index_segment.fscrawler_log4j_config)
         index_segment.current_status = index_segment.has_been_indexed? ? :indexing : :initial_indexing
+        index_segment.last_run_started_at = Time.now
         index_segment.save()
-        system({"JAVA_HOME" => "/usr/lib/jvm/java-8-openjdk-amd64/jre/"}, 'bin/fscrawler', "segment_#{index_segment_id}", '--debug', '--restart', '--loop', '1', '--config_dir', fscrawler_config_dir)
+        system({"JAVA_HOME" => "/usr/lib/jvm/java-8-openjdk-amd64/jre/",
+                "FS_JAVA_OPTS" => "-Xmx512m -Xms512m -Dlog4j.configurationFile=#{fscrawler_index_dir}/log4j.xml"},
+                'bin/fscrawler', "segment_#{index_segment_id}", '--loop', '1', '--config_dir', fscrawler_config_dir)
         index_segment.current_status = :completed
         index_segment.last_run = Time.now
+        index_segment.last_duration_seconds = (index_segment.last_run - index_segment.last_run_started_at)
         index_segment.save()
     end
   end

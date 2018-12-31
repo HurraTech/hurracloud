@@ -8,6 +8,7 @@ class IndexSegment < ApplicationRecord
   has_many :child_segments, :class_name => 'IndexSegment', :foreign_key => 'parent_segment_id'
 
   FSCRAWLER_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_template.json.erb'))
+  FSCRAWLER_LOG4J_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_log4j.xml.erb'))
 
   def fscrawler_settings
     name = es_index_name
@@ -21,6 +22,15 @@ class IndexSegment < ApplicationRecord
     }
     excludes = excludes.concat(self.index.index_settings['excludes'] || [])
     ERB.new(FSCRAWLER_TEMPLATE).result(binding)
+  end
+
+  def fscrawler_settings_json
+    ActiveSupport::JSON.decode(fscrawler_settings)
+  end  
+
+  def fscrawler_log4j_config
+    log_file = "/usr/share/hurracloud/zahif/logs/segment-#{self.id}.log"
+    ERB.new(FSCRAWLER_LOG4J_TEMPLATE).result(binding)
   end
 
   def es_index_name
@@ -45,10 +55,6 @@ class IndexSegment < ApplicationRecord
     return 0 unless es.indices.exists? index: self.es_index_name
     (es.count index: self.es_index_name)["count"] || 0
   end
-
-  def fscrawler_settings_json
-    ActiveSupport::JSON.decode(fscrawler_settings)
-  end  
 
   def find_parent
     return if self.is_root?

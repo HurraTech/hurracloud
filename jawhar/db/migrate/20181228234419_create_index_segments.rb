@@ -5,6 +5,8 @@ class CreateIndexSegments < ActiveRecord::Migration[5.1]
       t.references :parent_segment, foreign_key: {to_table: :index_segments}
       t.string :relative_path
       t.timestamp :last_run
+      t.timestamp :last_run_started_at
+      t.integer :last_duration_seconds
       t.integer :current_status
       t.integer :size
       t.integer :total_size
