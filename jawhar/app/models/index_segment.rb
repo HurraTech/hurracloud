@@ -46,8 +46,8 @@ class IndexSegment < ApplicationRecord
   end
 
   def progress
-    return 100 if (self.size.to_f == 0 or self.current_status == "completed")
-    ((self.indexed_count / self.size.to_f) * 100).round(2)
+    return 100 if (self.actual_count.to_f == 0 or self.current_status == "completed")
+    ((self.indexed_count / self.actual_count.to_f) * 100).round(2)
   end
 
   def indexed_count
@@ -75,18 +75,61 @@ class IndexSegment < ApplicationRecord
   end
 
   def update_counts
-    puts "Updating count for #{self.relative_path}"
-    children_total_size = self.child_segments.map(&:total_size).inject(0, &:+)
-    self.size = self.total_size - children_total_size - self.child_segments.length
-    puts "Children total size is #{children_total_size}, my net size is #{self.size}"
+    puts "Updating count / size for #{self.relative_path}"
+    children_total_count = self.child_segments.map(&:total_count).inject(0, &:+)
+    self.actual_count = self.total_count - children_total_count - self.child_segments.length
+    if self.actual_count == 0
+        self.actual_size = 0
+        return
+    end
+
+    children_total_size = self.child_segments.map(&:total_size).inject(0, &:+)    
+    self.actual_size = self.total_size - children_total_size
   end
 
   def normalized_relative_path
     "/#{self.is_root? ? "" : self.relative_path}"
   end
 
+  def size_weight
+    (self.actual_size.to_f || 0) / (self.index.size || 1)
+  end
+
+  def count_weight
+    (self.actual_count.to_f || 0) / (self.index.count || 1)
+  end
+
+  def average_file_size
+    return 0 if self.actual_count == 0
+    self.actual_size / self.actual_count.to_f
+  end
+
+  def eta_minutes
+    return 0 if self.current_status == "completed"
+    return -1 if ["scheduled", "init"].include?(self.current_status)
+    elapsed = Time.now - self.last_run_started_at
+    (((elapsed.to_f / self.progress) * (100-self.progress).to_f) / 60).round(0)
+  end
+
+  def average_file_size_weight
+    index_avg_file_size = self.index.size.to_f / self.index.count
+    self.average_file_size.to_f / index_avg_file_size
+  end
+
+  def relative_indexing_duration(now)
+    finish_time = self.current_status == "completed" ? self.last_run : now
+    start_time = ["init", "scheduled"].include?(self.current_status) ?  now : self.last_run_started_at
+    (finish_time - start_time) / 60
+  end
+
+  def indexing_duration_minutes
+    relative_indexing_duration(Time.now).round(0)
+  end
+
   def as_json(options={})
-    super(options.merge!(methods: [:indexed_count, :progress]))
+    super(options.merge!(methods: [:indexed_count, :progress, :eta_minutes,
+                                   :size_weight, :count_weight, :average_file_size,
+                                   :average_file_size_weight, :indexing_duration_minutes]))
   end
 
   

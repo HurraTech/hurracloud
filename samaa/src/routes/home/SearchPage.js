@@ -194,66 +194,17 @@ class Content extends React.Component {
   search(from = 0, to = SIZE) {
     let query = this.state.q || '';
     return new Promise((resolve, reject) => {
-      if (query.trim() == '') {
-        query = {
-          query: {
-            match_all: {},
-          },
-          sort: [{ 'file.created': { order: 'desc' } }],
-          from,
-          size: to - from,
-        };
-      } else {
-        query = {
-          query: {
-            bool: {
-              should: [
-                {
-                  multi_match: {
-                    query: `${query}`,
-                    fields: [
-                      'file.filename^4',
-                      'content',
-                      'path.real.fulltext^2',
-                    ],
-                  },
-                },
-                {
-                  wildcard: {
-                    'file.filename': {
-                      value: `*${query}*`,
-                      boost: 3,
-                    },
-                  },
-                },
-              ],
-            },
-          },
-          sort: [{ _score: { order: 'desc' } }],
-          from,
-          size: to - from + 1,
-          highlight: {
-            pre_tags: ['<em class="highlight">'],
-            post_tags: ['</em>'],
-            fragment_size: 0,
-            fields: {
-              content: {},
-            },
-          },
-        };
-      }
-
       axios
-        .post('http://192.168.1.2:9200/hurradrive_*/_search', query)
+        .get(`http://192.168.1.2:5000/search?q=${query}&from=${from}&to=${to}`)
         .then(res => {
-          const results = res.data.hits.hits;
+          let response = res.data
           this.setState(
             {
-              totalResults: Math.min(1000, res.data.hits.total),
-              items: this.state.items.concat(results),
+              totalResults: Math.min(1000, response.total),
+              items: this.state.items.concat(response.hits),
             },
             () => {
-              resolve(results);
+              resolve(response.hits);
             },
           );
         });

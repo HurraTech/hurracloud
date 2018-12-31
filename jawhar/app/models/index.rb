@@ -13,29 +13,26 @@ class Index < ApplicationRecord
         "/usr/share/hurracloud/jawhar/sources/#{self.source.name}/"
     end
 
+    def root_segment
+        self.index_segments[0]
+    end
+
     def progress
-        return 100 if self.size.to_f == 0
-        ## TODO: Alternative algorithm factoring in slowness rate
-        # now = Time.now
-        # total_elapsed_minutes = self.index_segments.map{ |s| 
-        #     finish_time = s.current_status == "completed" ? s.last_run : now
-        #     start_time = ["init", "scheduled"].include?(s.current_status) ?  now : s.last_run_started_at
-        #     puts "Segment ID: #{s.id} (status #{s.current_status} #{["init", "scheduled"].include?(s.current_status)}), start time: #{start_time}, finish time: #{finish_time}"
-        #     (finish_time - start_time) / 60
-        # }.inject(0,&:+)
-        # self.index_segments.map{ |segment| 
-        #     weight = segment.size / self.size.to_f
-        #     finish_time = segment.current_status == "completed" ? segment.last_run : now
-        #     start_time = ["init", "scheduled"].include?(segment.current_status) ?  now : segment.last_run_started_at
-        #     minutes_since_start_run = (finish_time - start_time) / 60
-        #     puts "Segment ID: #{segment.id}, weight: #{weight}, mins since last run : #{minutes_since_start_run}, total elapsed minutes: #{total_elapsed_minutes}"
-        #     slowness_weight = minutes_since_start_run / total_elapsed_minutes
-        #     segment.progress * ((weight + slowness_weight) / 2)
-        # }.inject(0, &:+).round(2)
+        return 100 if self.count.to_f == 0
+        now = Time.now
+        total_elapsed_minutes = self.index_segments.map{ |s| s.relative_indexing_duration(now) }.inject(0, &:+)
+        total_etas = self.index_segments.map(&:eta_minutes).inject(0, &:+)
         self.index_segments.map{ |segment| 
-            weight = (segment.size || 0) / self.size.to_f
-            segment.progress * weight
+            count_weight = (segment.actual_count || 0) / self.count.to_f
+            size_weight = (segment.actual_size || 0) / self.size.to_f
+            # slowness_weight = segment.relative_indexing_duration(now) / total_elapsed_minutes
+            slowness_weight = segment.eta_minutes / total_etas.to_f
+            segment.progress * ((count_weight + size_weight + slowness_weight*2) / 4)
         }.inject(0, &:+).round(2)
+    end
+
+    def eta_minutes
+        self.index_segments.sort_by { |s| s.indexing_duration_minutes }.reverse[0].eta_minutes
     end
 
     def indexed_count
@@ -46,8 +43,12 @@ class Index < ApplicationRecord
         ActiveSupport::JSON.decode(self.settings)
     end
 
+    def es_wildcard_name
+        "#{self.name.gsub(/[\/\-_\. ]/, '_').downcase}_*"
+    end
+
     def as_json(options={})
-        super(options.merge!(methods: [:progress, :indexed_count]))
+        super(options.merge!(methods: [:progress, :indexed_count, :eta_minutes]))
       end
     
 end

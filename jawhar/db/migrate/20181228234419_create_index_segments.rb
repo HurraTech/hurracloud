@@ -8,7 +8,9 @@ class CreateIndexSegments < ActiveRecord::Migration[5.1]
       t.timestamp :last_run_started_at
       t.integer :last_duration_seconds
       t.integer :current_status
-      t.integer :size
+      t.integer :actual_count
+      t.integer :total_count
+      t.integer :actual_size
       t.integer :total_size
       t.timestamps
     end
@@ -16,3 +18,5 @@ class CreateIndexSegments < ActiveRecord::Migration[5.1]
     add_index :index_segments, ["index_id", "relative_path"], :unique => true  
   end
 end
+
+

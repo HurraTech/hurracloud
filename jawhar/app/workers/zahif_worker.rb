@@ -17,11 +17,18 @@ class ZahifWorker
                 relative_path = "#{subdirectory.sub("#{index.full_path}", '')}/"
                 count = Dir[File.join(subdirectory, "**", "*")].count
                 if count > SEGMENT_CONTENT_THRESHOLD
-                    puts "Creating segment for #{subdirectory} (size=#{count})"
-                    segment = IndexSegment.new(index: index, relative_path: relative_path, current_status: :init, total_size: count)
+                    puts "Creating segment for #{subdirectory} (count=#{count})"
+                    segment = IndexSegment.where(index: index, relative_path: relative_path).first_or_create { |s| 
+                        s.current_status = :init
+                        s.total_count = count
+                        s.total_size = `du -s #{Shellwords.escape(subdirectory)} | cut -f 1`
+                    }
+                    segment.total_size = `du -s #{Shellwords.escape(subdirectory)} | cut -f 1`
+                    puts "Size of segment in bytes is #{segment.total_size}"
                     segment.save!
                     if segment.is_root? 
                         index.size = segment.total_size
+                        index.count = segment.total_count
                         index.save!
                     end
                 end

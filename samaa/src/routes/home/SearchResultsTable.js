@@ -151,7 +151,7 @@ class SearchResultsTable extends React.PureComponent {
             <Highlighter
               searchWords={this.state.searchTerms}
               autoEscape
-              textToHighlight={cellData._source.path.virtual}
+              textToHighlight={cellData._source.path.display}
             />
           </TableCell>
         );
@@ -263,7 +263,7 @@ class SearchResultsTable extends React.PureComponent {
               [classes.noClick]: onRowClick == null,
             })}
             variant="body"
-            style={{ height: rowHeight }}
+            style={{ height: rowHeight, paddingRight: '10px' }}
             padding="none"
             align="right"
           >
