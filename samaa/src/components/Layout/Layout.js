@@ -29,7 +29,8 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import BrowserIcon from '@material-ui/icons/Folder';
 import SettingsIcon from '@material-ui/icons/Settings';
-import history from '../../history'
+import history from '../../history';
+
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -188,17 +189,16 @@ class PrimarySearchAppBar extends React.Component {
     });
   };
 
-
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
       if (this.props.onNewSearch) {
         this.props.onNewSearch(event.target.value);
       }
-      history.push({ 
-        pathname: "/search", 
+      history.push({
+        pathname: '/search',
         search: `?q=${event.target.value}`,
-        state: { searchTerms: event.target.value } 
-      })
+        state: { searchTerms: event.target.value },
+      });
     }
   };
 
@@ -362,7 +362,6 @@ class PrimarySearchAppBar extends React.Component {
           </div>
           <Divider />
           <List>
-            
             {['Browser', 'Search'].map((text, index) => (
               <ListItem
                 button
@@ -370,10 +369,14 @@ class PrimarySearchAppBar extends React.Component {
                 selected={history.location.pathname == `/${text.toLowerCase()}`}
               >
                 <ListItemIcon>
-                  {index % 2 === 0 ? <BrowserIcon /> : <SearchIcon /> } 
+                  {index % 2 === 0 ? <BrowserIcon /> : <SearchIcon />}
                 </ListItemIcon>
-                <a href={`/${text.toLowerCase()}`} onClick={this.transition.bind(this)} style={{textDecoration: 'none'}}>
-                  <ListItemText primary={text}  />
+                <a
+                  href={`/${text.toLowerCase()}`}
+                  onClick={this.transition.bind(this)}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <ListItemText primary={text} />
                 </a>
               </ListItem>
             ))}

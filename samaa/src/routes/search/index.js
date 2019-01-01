@@ -10,15 +10,15 @@
 import React from 'react';
 import Layout from '../../components/Layout/Layout';
 import SearchPage from './SearchPage';
-import QueryString from 'query-string'
-import history from '../../history'
+import QueryString from 'query-string';
+import history from '../../history';
 
 class HomePage extends React.Component {
   constructor(props) {
     super(props);
-    const queryString = QueryString.parse(history.location.search)
+    const queryString = QueryString.parse(history.location.search);
     this.state = {
-      searchQuery: queryString.q
+      searchQuery: queryString.q,
     };
   }
 

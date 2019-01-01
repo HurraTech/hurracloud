@@ -77,7 +77,7 @@ class SearchResultsTable extends React.PureComponent {
       query: this.props.query || '',
       loadedRowCount: 0,
       loadedRowsMap: {},
-      searchTerms: (this.props.query || '').split(" "),
+      searchTerms: (this.props.query || '').split(' '),
       loadingRowCount: 0,
     };
 
@@ -92,7 +92,7 @@ class SearchResultsTable extends React.PureComponent {
     if (this.props.query != nextProps.query) {
       this.setState(
         {
-          searchTerms: nextProps.query.split(" "),
+          searchTerms: nextProps.query.split(' '),
           query: nextProps.query,
         },
         this._clearData,

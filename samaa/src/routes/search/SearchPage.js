@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
 import axios from 'axios';
-import QuickPreview from './QuickPreview';
-import FilePreview from './FilePreview';
+import QuickPreview from '../../components/QuickPreview';
+import FilePreview from '../../components/FilePreview';
 import SearchResultsTable from './SearchResultsTable';
 import ProgressIndicator from '../../components/ProgressIndicator';
 
@@ -34,7 +34,7 @@ const styles = theme => ({
 });
 
 class Content extends React.Component {
-  constructor(props) {    
+  constructor(props) {
     super(props);
     this.state = {
       error: null,
@@ -160,7 +160,7 @@ class Content extends React.Component {
             {
               totalResults: Math.min(1000, response.total),
               items: this.state.items.concat(response.hits),
-              isAjaxInProgress: false
+              isAjaxInProgress: false,
             },
             () => {
               resolve(response.hits);

@@ -1,19 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
-import IconButton from '@material-ui/core/IconButton';
 import { withStyles } from '@material-ui/core/styles';
-import SearchIcon from '@material-ui/icons/Search';
-import InstantSearchIcon from '@material-ui/icons/Sync';
-import InstantSearchIconDisabled from '@material-ui/icons/SyncDisabled';
 import axios from 'axios';
-import QuickPreview from './QuickPreview';
-import FilePreview from './FilePreview';
+import FilePreview from '../../components/FilePreview';
 import { throttle, debounce } from 'throttle-debounce';
 import BrowserTable from './BroswerTable';
 import ProgressIndicator from '../../components/ProgressIndicator';
@@ -99,8 +89,8 @@ class Content extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index].name
-    const type = this.state.items[index].type
+    const path = this.state.items[index].name;
+    const type = this.state.items[index].type;
     this.setState(
       {
         isAjaxInProgress: true,
@@ -109,23 +99,18 @@ class Content extends React.Component {
         openedFile: '',
       },
       () => {
-        const requestedPath = `${this.state.path}/${path}`
-        if (type == "folder" || type.indexOf("source_") == 0) {
+        const requestedPath = `${this.state.path}/${path}`;
+        if (type == 'folder' || type.indexOf('source_') == 0) {
           this.browse(requestedPath).then(() => {
-
             this.setState({
               path: requestedPath,
               isAjaxInProgress: false,
               isInlineViewerOpen: false,
               isPreviewOpen: false,
               openedFile: '',
-            })
-    
-          })
-        }
-        else 
-        {
-    
+            });
+          });
+        } else {
           axios
             .get(`http://192.168.1.2:5000/files/is_viewable/${requestedPath}`)
             .then(res => {
@@ -153,28 +138,25 @@ class Content extends React.Component {
 
   browse(path) {
     return new Promise((resolve, reject) => {
-      axios
-        .get(`http://192.168.1.2:5000/files/browse/${path}`)
-        .then(res => {
-          const response = res.data;
-          this.setState(
-            {
-              items: response.contents,
-            },
-            () => {
-              resolve(response.contents);
-            },
-          );
-        });
+      axios.get(`http://192.168.1.2:5000/files/browse/${path}`).then(res => {
+        const response = res.data;
+        this.setState(
+          {
+            items: response.contents,
+          },
+          () => {
+            resolve(response.contents);
+          },
+        );
+      });
     });
   }
 
   render() {
-    const { classes } = this.props;    
+    const { classes } = this.props;
     const { items } = this.state;
     return (
       <Paper className={classes.paper}>
-
         <FilePreview
           open={this.state.isInlineViewerOpen}
           onCloseClick={this.handlePreviewCloseClick.bind(this)}
@@ -216,7 +198,6 @@ class Content extends React.Component {
                 dataKey: 'file',
                 content: 'downloadButton',
               },
-
             ]}
           />
         </div>

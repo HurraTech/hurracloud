@@ -113,7 +113,7 @@ class BrowserTable extends React.PureComponent {
     row,
   }) => {
     const { columns, classes, rowHeight, onRowClick, theme } = this.props;
-    const {primary, secondary} = theme.palette.text;
+    const { primary, secondary } = theme.palette.text;
     if (!cellData) {
       return (
         <TableCell
@@ -138,25 +138,48 @@ class BrowserTable extends React.PureComponent {
               classes.tableCellBold,
             )}
             variant="body"
-            style={{ height: rowHeight, color: cellData.name == '..' ? '#960000' : 'black' }}
+            style={{
+              height: rowHeight,
+              color: cellData.name == '..' ? '#960000' : 'black',
+            }}
             onClick={() => this.props.onFilenameClick(rowIndex)}
           >
             <span
-              className={cellData.type == "source_drive" ? 'far fa-hdd fa-2x' : `fiv-sqo fiv-icon-blank fiv-icon-${cellData.type}`}
+              className={
+                cellData.type == 'source_drive'
+                  ? 'far fa-hdd fa-2x'
+                  : `fiv-sqo fiv-icon-blank fiv-icon-${cellData.type}`
+              }
               style={{ marginRight: '0.5em' }}
             >
-              {cellData.name == '..' && <i class="fas fa-arrow-left fa-xs" style={{ fontSize: "0.4em", paddingBottom: '0.8em', paddingLeft:'0.3em', color: '#af9600' }}></i>}
+              {cellData.name == '..' && (
+                <i
+                  className="fas fa-arrow-left fa-xs"
+                  style={{
+                    fontSize: '0.4em',
+                    paddingBottom: '0.8em',
+                    paddingLeft: '0.3em',
+                    color: '#af9600',
+                  }}
+                />
+              )}
             </span>
-            {cellData.name == '..' ? "Back" : cellData.name}
+            {cellData.name == '..' ? 'Back' : cellData.name}
           </TableCell>
         );
       }
       case 'downloadButton': {
-        if (cellData.type == "folder" || cellData.type.indexOf("source_") == 0)
-          return <TableCell style={{ height: rowHeight }} variant="body" className={classNames(classes.tableCell, classes.flexContainer, {
-            [classes.noClick]: onRowClick == null,
-          })} />
-        return (          
+        if (cellData.type == 'folder' || cellData.type.indexOf('source_') == 0)
+          return (
+            <TableCell
+              style={{ height: rowHeight }}
+              variant="body"
+              className={classNames(classes.tableCell, classes.flexContainer, {
+                [classes.noClick]: onRowClick == null,
+              })}
+            />
+          );
+        return (
           <TableCell
             component="div"
             className={classNames(classes.tableCell, classes.flexContainer, {
@@ -167,9 +190,7 @@ class BrowserTable extends React.PureComponent {
             padding="none"
           >
             <Tooltip title="Donwload File">
-              <IconButton
-                href={`http://192.168.1.2:5000/files/download`}
-              >
+              <IconButton href="http://192.168.1.2:5000/files/download">
                 <DownloadIcon color="inherit" color="primary" />
               </IconButton>
             </Tooltip>
@@ -189,7 +210,7 @@ class BrowserTable extends React.PureComponent {
           >
             <Tooltip title="Open in New Window">
               <IconButton
-                href={`http://192.168.1.2:5000/files/view`}
+                href="http://192.168.1.2:5000/files/view"
                 target="_blank"
               >
                 <OpenIcon color="inherit" color="primary" />
@@ -210,7 +231,8 @@ class BrowserTable extends React.PureComponent {
             padding="none"
             align="right"
           >
-            {cellData.type.indexOf("source_") != 0 && prettyBytes(cellData.filesize)}
+            {cellData.type.indexOf('source_') != 0 &&
+              prettyBytes(cellData.filesize)}
           </TableCell>
         );
       }
@@ -226,9 +248,7 @@ class BrowserTable extends React.PureComponent {
             padding="none"
             align="right"
           >
-            <Moment format="YYYY/MM/DD hh:mm a ">
-              
-            </Moment>
+            <Moment format="YYYY/MM/DD hh:mm a " />
           </TableCell>
         );
       }
