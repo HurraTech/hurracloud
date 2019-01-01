@@ -45,7 +45,7 @@ class FilePreview extends React.Component {
         PaperComponent={PaperComponent}
       >
         <Iframe
-          url={`http://192.168.1.2:5000/files/view${this.state.file}`}
+          url={`http://192.168.1.2:5000/files/view/${this.state.file}`}
           width="100%"
           height="100vh"
           display="initial"

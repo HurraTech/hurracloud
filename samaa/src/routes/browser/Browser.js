@@ -15,7 +15,7 @@ import axios from 'axios';
 import QuickPreview from './QuickPreview';
 import FilePreview from './FilePreview';
 import { throttle, debounce } from 'throttle-debounce';
-import SearchResultsTable from './SearchResultsTable';
+import BrowserTable from './BroswerTable';
 import ProgressIndicator from '../../components/ProgressIndicator';
 
 const SIZE = 30;
@@ -56,13 +56,21 @@ class Content extends React.Component {
       isInlineViewerOpen: false,
       previewedTitle: '',
       isAjaxInProgress: false,
+      path: '',
       items: [],
-      q: this.props.searchQuery,
-      totalResults: 0,
+
       searchTerms: [],
     };
     this.searchDebounced = debounce(500, this.search);
     this.searchThrottled = throttle(500, this.search);
+  }
+
+  handlePreviewCloseClick() {
+    this.setState({
+      isPreviewOpen: false,
+      isInlineViewerOpen: false,
+      openedFile: '',
+    });
   }
 
   handlePreviewClick = index => {
@@ -83,7 +91,7 @@ class Content extends React.Component {
       this.setState({
         isPreviewOpen: true,
         isInlineViewerOpen: false,
-        openedFile: this.state.items[index]._source.path.real,
+        openedFile: `${this.state.path}/${this.state.items[index].name}`,
         previewedContent: preview_content,
         previewedTitle: this.state.items[index]._source.file.filename,
       });
@@ -91,7 +99,8 @@ class Content extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index]._source.path.real;
+    const path = this.state.items[index].name
+    const type = this.state.items[index].type
     this.setState(
       {
         isAjaxInProgress: true,
@@ -100,111 +109,61 @@ class Content extends React.Component {
         openedFile: '',
       },
       () => {
-        axios
-          .get(`http://192.168.1.2:5000/files/is_viewable${path}`)
-          .then(res => {
-            this.setState({ isAjaxInProgress: false }, () => {
-              const isViewable = res.data.is_viewable;
-              if (isViewable) {
-                this.setState({
-                  openedFile: path,
-                  isInlineViewerOpen: true,
-                  isPreviewOpen: false,
-                });
-              } else {
-                window.location = `http://192.168.1.2:5000/files/download${path}`;
-              }
+        const requestedPath = `${this.state.path}/${path}`
+        if (type == "folder" || type.indexOf("source_") == 0) {
+          this.browse(requestedPath).then(() => {
+
+            this.setState({
+              path: requestedPath,
+              isAjaxInProgress: false,
+              isInlineViewerOpen: false,
+              isPreviewOpen: false,
+              openedFile: '',
+            })
+    
+          })
+        }
+        else 
+        {
+    
+          axios
+            .get(`http://192.168.1.2:5000/files/is_viewable/${requestedPath}`)
+            .then(res => {
+              this.setState({ isAjaxInProgress: false }, () => {
+                const isViewable = res.data.is_viewable;
+                if (isViewable) {
+                  this.setState({
+                    openedFile: requestedPath,
+                    isInlineViewerOpen: true,
+                    isPreviewOpen: false,
+                  });
+                } else {
+                  window.location = `http://192.168.1.2:5000/files/download/${requestedPath}`;
+                }
+              });
             });
-          });
+        }
       },
     );
   };
-
-  componentWillReceiveProps(nextProps) {
-    console.log(this._searchBar);
-    this.searchWrapper(nextProps.searchTerms, this.search);
-    // this._searchBar.value = nextProps.searchTerms
-  }
 
   componentDidMount() {
-    this.search();
+    this.browse('/');
   }
 
-  handlePreviewCloseClick() {
-    this.setState({
-      isPreviewOpen: false,
-      isInlineViewerOpen: false,
-      openedFile: '',
-    });
-  }
-
-  toggleInstantSearch() {
-    this.setState({
-      isInstantSearchEnabled: !this.state.isInstantSearchEnabled,
-    });
-  }
-
-  onSearchBarChange = event => {
-    if (!this.state.isInstantSearchEnabled) return;
-    let searchFunction;
-    if (event.target.value.length < 5) {
-      searchFunction = this.searchThrottled;
-    } else {
-      searchFunction = this.searchDebounced;
-    }
-    this.searchWrapper(event.target.value, searchFunction);
-  };
-
-  onSearchBarKeyPress = event => {
-    if (event.key === 'Enter') {
-      this.searchWrapper(event.target.value, this.search);
-    }
-  };
-
-  searchWrapper = (query, searchFunction) => {
-    this.setState(
-      {
-        q: query,
-        isPreviewOpen: false,
-        isInlineViewerOpen: false,
-        items: [],
-        totalResults: 0,
-        searchTerms: query.split(' '),
-        openedFile: '',
-      },
-      searchFunction,
-    );
-  };
-
-  onLoadMore(from, to) {
-    return new Promise((resolve, reject) => {
-      this.setState(
-        {
-          isPreviewOpen: false,
-          isInlineViewerOpen: false,
-          openedFile: '',
-        },
-        () => {
-          resolve(this.search(from, to));
-        },
-      );
-    });
-  }
-
-  search(from = 0, to = SIZE) {
-    const query = this.state.q || '';
+  browse(path) {
     return new Promise((resolve, reject) => {
       axios
-        .get(`http://192.168.1.2:5000/search?q=${query}&from=${from}&to=${to}`)
+        .get(`http://192.168.1.2:5000/files/browse/${path}`)
         .then(res => {
           const response = res.data;
+          console.log(response)
           this.setState(
             {
-              totalResults: Math.min(1000, response.total),
-              items: this.state.items.concat(response.hits),
+              items: response.contents,
             },
             () => {
-              resolve(response.hits);
+              resolve(response.contents);
             },
           );
         });
@@ -212,97 +171,25 @@ class Content extends React.Component {
   }
 
   render() {
-    const { classes } = this.props;
-    let instantSearchIcon = (
-      <InstantSearchIcon
-        className={classes.block}
-        color="secondary"
-        onClick={this.toggleInstantSearch.bind(this)}
-      />
-    );
-    if (!this.state.isInstantSearchEnabled) {
-      instantSearchIcon = (
-        <InstantSearchIconDisabled
-          className={classes.block}
-          color="inherit"
-          onClick={this.toggleInstantSearch.bind(this)}
-        />
-      );
-    }
-
+    const { classes } = this.props;    
     const { items } = this.state;
     return (
       <Paper className={classes.paper}>
-        <QuickPreview
-          open={this.state.isPreviewOpen}
-          onCloseClick={this.handlePreviewCloseClick.bind(this)}
-          content={this.state.previewedContent}
-          title={`Preview (${this.state.previewedTitle})`}
-        />
+
         <FilePreview
           open={this.state.isInlineViewerOpen}
           onCloseClick={this.handlePreviewCloseClick.bind(this)}
           file={this.state.openedFile}
         />
-        {/* <AppBar className={classes.searchBar} position="static" color="default" elevation={0}>
-          <Toolbar variant="dense">
-            <Grid container spacing={16} alignItems="center">
-              <Grid item>
-                <SearchIcon className={classes.block} color="inherit" />
-              </Grid>
-              <Grid item xs>
-                <TextField
-                  fullWidth
-                  placeholder="Search your files"
-                  ref={(child) => { this._searchBar = child }}
-                  InputProps={{
-                    disableUnderline: true,
-                    className: classes.searchInput,
-                  }}
-                  onChange={this.onSearchBarChange}
-                  onKeyPress={this.onSearchBarKeyPress}
-                />
-              </Grid>
-              <Grid item>
-                <Tooltip title={this.state.isInstantSearchEnabled ? "Instant Search Enabled (click to disable)" :
-                         "Instant Search Disabled (click to enable)" }>
-                  <IconButton>
-                    {instantSearchIcon}
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-            </Grid>
-          </Toolbar>
-        </AppBar> */}
         <div className={classes.contentWrapper}>
-          <SearchResultsTable
-            rowCount={this.state.totalResults}
+          <BrowserTable
+            rowCount={this.state.items.length}
             rowGetter={({ index }) => ({ file: items[index] })}
             onPreviewClick={this.handlePreviewClick}
             onFilenameClick={this.handleFilenameClick}
             classes={classes.table}
-            onLoadMore={this.onLoadMore.bind(this)}
             searchTerms={this.state.searchTerms}
-            query={this.state.q}
             columns={[
-              {
-                width: 40,
-                label: '',
-                dataKey: 'file',
-                content: 'downloadButton',
-              },
-              {
-                width: 40,
-                label: '',
-                dataKey: 'file',
-                content: 'openButton',
-              },
-              {
-                width: 40,
-                label: '',
-                dataKey: 'file',
-                content: 'previewButton',
-              },
               {
                 width: 200,
                 flexGrow: 1.0,
@@ -324,6 +211,13 @@ class Content extends React.Component {
                 content: 'created',
                 numeric: true,
               },
+              {
+                width: 40,
+                label: '',
+                dataKey: 'file',
+                content: 'downloadButton',
+              },
+
             ]}
           />
         </div>

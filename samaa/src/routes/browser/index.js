@@ -9,7 +9,8 @@
 
 import React from 'react';
 import Layout from '../../components/Layout/Layout';
-import SearchPage from './SearchPage';
+import Browser from './Browser';
+import history from '../../history';
 
 class HomePage extends React.Component {
   constructor(props) {
@@ -19,17 +20,10 @@ class HomePage extends React.Component {
     };
   }
 
-  onNewSearch(query) {
-    this.setState({
-      searchQuery: query,
-    });
-  }
-
   render() {
-    const onNewSearch = this.onNewSearch.bind(this);
     return (
-      <Layout onNewSearch={onNewSearch}>
-        <SearchPage searchTerms={this.state.searchQuery} />
+      <Layout>
+        <Browser searchTerms={this.state.searchQuery} />
       </Layout>
     );
   }

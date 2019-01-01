@@ -1,14 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
-import IconButton from '@material-ui/core/IconButton';
 import { withStyles } from '@material-ui/core/styles';
-import SearchIcon from '@material-ui/icons/Search';
 import InstantSearchIcon from '@material-ui/icons/Sync';
 import InstantSearchIconDisabled from '@material-ui/icons/SyncDisabled';
 import axios from 'axios';
@@ -17,7 +10,8 @@ import FilePreview from './FilePreview';
 import { throttle, debounce } from 'throttle-debounce';
 import SearchResultsTable from './SearchResultsTable';
 import ProgressIndicator from '../../components/ProgressIndicator';
-
+import history from '../../history'
+import QueryString from 'query-string'
 const SIZE = 30;
 
 const styles = theme => ({
@@ -44,7 +38,7 @@ const styles = theme => ({
 });
 
 class Content extends React.Component {
-  constructor(props) {
+  constructor(props) {    
     super(props);
     this.state = {
       error: null,
@@ -57,9 +51,8 @@ class Content extends React.Component {
       previewedTitle: '',
       isAjaxInProgress: false,
       items: [],
-      q: this.props.searchQuery,
+      query: this.props.searchTerms,
       totalResults: 0,
-      searchTerms: [],
     };
     this.searchDebounced = debounce(500, this.search);
     this.searchThrottled = throttle(500, this.search);
@@ -83,7 +76,7 @@ class Content extends React.Component {
       this.setState({
         isPreviewOpen: true,
         isInlineViewerOpen: false,
-        openedFile: this.state.items[index]._source.path.real,
+        openedFile: this.state.items[index]._source.path,
         previewedContent: preview_content,
         previewedTitle: this.state.items[index]._source.file.filename,
       });
@@ -91,7 +84,7 @@ class Content extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index]._source.path.real;
+    const path = this.state.items[index]._source.path;
     this.setState(
       {
         isAjaxInProgress: true,
@@ -101,7 +94,7 @@ class Content extends React.Component {
       },
       () => {
         axios
-          .get(`http://192.168.1.2:5000/files/is_viewable${path}`)
+          .get(`http://192.168.1.2:5000/files/is_viewable/${path}`)
           .then(res => {
             this.setState({ isAjaxInProgress: false }, () => {
               const isViewable = res.data.is_viewable;
@@ -112,7 +105,7 @@ class Content extends React.Component {
                   isPreviewOpen: false,
                 });
               } else {
-                window.location = `http://192.168.1.2:5000/files/download${path}`;
+                window.location = `http://192.168.1.2:5000/files/download/${path}`;
               }
             });
           });
@@ -121,14 +114,19 @@ class Content extends React.Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    console.log(this._searchBar);
     this.searchWrapper(nextProps.searchTerms, this.search);
-    // this._searchBar.value = nextProps.searchTerms
   }
 
   componentDidMount() {
-    this.search();
+    this.search()
   }
+
+  // componentShouldUpdate(props, nextProps) {
+  //   console.log("Should I ")
+  //   if (props.searchTerms == nextProps.searchTerms)
+  //     return false
+  //   return true
+  // }
 
   handlePreviewCloseClick() {
     this.setState({
@@ -138,38 +136,16 @@ class Content extends React.Component {
     });
   }
 
-  toggleInstantSearch() {
-    this.setState({
-      isInstantSearchEnabled: !this.state.isInstantSearchEnabled,
-    });
-  }
-
-  onSearchBarChange = event => {
-    if (!this.state.isInstantSearchEnabled) return;
-    let searchFunction;
-    if (event.target.value.length < 5) {
-      searchFunction = this.searchThrottled;
-    } else {
-      searchFunction = this.searchDebounced;
-    }
-    this.searchWrapper(event.target.value, searchFunction);
-  };
-
-  onSearchBarKeyPress = event => {
-    if (event.key === 'Enter') {
-      this.searchWrapper(event.target.value, this.search);
-    }
-  };
-
   searchWrapper = (query, searchFunction) => {
+    
     this.setState(
       {
         q: query,
         isPreviewOpen: false,
+        isAjaxInProgress: true,
         isInlineViewerOpen: false,
         items: [],
         totalResults: 0,
-        searchTerms: query.split(' '),
         openedFile: '',
       },
       searchFunction,
@@ -202,6 +178,7 @@ class Content extends React.Component {
             {
               totalResults: Math.min(1000, response.total),
               items: this.state.items.concat(response.hits),
+              isAjaxInProgress: false
             },
             () => {
               resolve(response.hits);
@@ -213,22 +190,6 @@ class Content extends React.Component {
 
   render() {
     const { classes } = this.props;
-    let instantSearchIcon = (
-      <InstantSearchIcon
-        className={classes.block}
-        color="secondary"
-        onClick={this.toggleInstantSearch.bind(this)}
-      />
-    );
-    if (!this.state.isInstantSearchEnabled) {
-      instantSearchIcon = (
-        <InstantSearchIconDisabled
-          className={classes.block}
-          color="inherit"
-          onClick={this.toggleInstantSearch.bind(this)}
-        />
-      );
-    }
 
     const { items } = this.state;
     return (
@@ -244,36 +205,6 @@ class Content extends React.Component {
           onCloseClick={this.handlePreviewCloseClick.bind(this)}
           file={this.state.openedFile}
         />
-        {/* <AppBar className={classes.searchBar} position="static" color="default" elevation={0}>
-          <Toolbar variant="dense">
-            <Grid container spacing={16} alignItems="center">
-              <Grid item>
-                <SearchIcon className={classes.block} color="inherit" />
-              </Grid>
-              <Grid item xs>
-                <TextField
-                  fullWidth
-                  placeholder="Search your files"
-                  ref={(child) => { this._searchBar = child }}
-                  InputProps={{
-                    disableUnderline: true,
-                    className: classes.searchInput,
-                  }}
-                  onChange={this.onSearchBarChange}
-                  onKeyPress={this.onSearchBarKeyPress}
-                />
-              </Grid>
-              <Grid item>
-                <Tooltip title={this.state.isInstantSearchEnabled ? "Instant Search Enabled (click to disable)" :
-                         "Instant Search Disabled (click to enable)" }>
-                  <IconButton>
-                    {instantSearchIcon}
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-            </Grid>
-          </Toolbar>
-        </AppBar> */}
         <div className={classes.contentWrapper}>
           <SearchResultsTable
             rowCount={this.state.totalResults}
@@ -282,7 +213,6 @@ class Content extends React.Component {
             onFilenameClick={this.handleFilenameClick}
             classes={classes.table}
             onLoadMore={this.onLoadMore.bind(this)}
-            searchTerms={this.state.searchTerms}
             query={this.state.q}
             columns={[
               {

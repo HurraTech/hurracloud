@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, withTheme } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import {
@@ -11,12 +11,10 @@ import {
   Table,
   InfiniteLoader,
 } from 'react-virtualized';
-import Highlighter from 'react-highlight-words';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import Moment from 'react-moment';
 import prettyBytes from 'pretty-bytes';
-import PreviewIcon from '@material-ui/icons/ChromeReaderMode';
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import DownloadIcon from '@material-ui/icons/GetApp';
 import FilterIcon from '@material-ui/icons/FilterList';
@@ -31,7 +29,7 @@ const styles = theme => ({
   flexContainer: {
     display: 'flex',
     alignItems: 'center',
-    boxSizing: 'border-box',
+    // boxSizing: 'border-box',
   },
   tableRow: {
     cursor: 'pointer',
@@ -70,7 +68,7 @@ const styles = theme => ({
   },
 });
 
-class SearchResultsTable extends React.PureComponent {
+class BrowserTable extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -114,7 +112,9 @@ class SearchResultsTable extends React.PureComponent {
     rowIndex,
     row,
   }) => {
-    const { columns, classes, rowHeight, onRowClick } = this.props;
+    const { columns, classes, rowHeight, onRowClick, theme } = this.props;
+    const {primary, secondary} = theme.palette.text;
+    console.log(cellData)
     if (!cellData) {
       return (
         <TableCell
@@ -139,25 +139,25 @@ class SearchResultsTable extends React.PureComponent {
               classes.tableCellBold,
             )}
             variant="body"
-            style={{ height: rowHeight }}
+            style={{ height: rowHeight, color: cellData.name == '..' ? '#960000' : 'black' }}
             onClick={() => this.props.onFilenameClick(rowIndex)}
           >
             <span
-              className={`fiv-cla fiv-icon-blank fiv-icon-${
-                cellData._source.file.extension
-              }`}
+              className={cellData.type == "source_drive" ? 'far fa-hdd fa-2x' : `fiv-sqo fiv-icon-blank fiv-icon-${cellData.type}`}
               style={{ marginRight: '0.5em' }}
-            />
-            <Highlighter
-              searchWords={this.state.searchTerms}
-              autoEscape
-              textToHighlight={cellData._source.path.display}
-            />
+            >
+              {cellData.name == '..' && <i class="fas fa-arrow-left fa-xs" style={{ fontSize: "0.4em", paddingBottom: '0.8em', paddingLeft:'0.3em', color: '#af9600' }}></i>}
+            </span>
+            {cellData.name == '..' ? "Back" : cellData.name}
           </TableCell>
         );
       }
       case 'downloadButton': {
-        return (
+        if (cellData.type == "folder" || cellData.type.indexOf("source_") == 0)
+          return <TableCell style={{ height: rowHeight }} variant="body" className={classNames(classes.tableCell, classes.flexContainer, {
+            [classes.noClick]: onRowClick == null,
+          })} />
+        return (          
           <TableCell
             component="div"
             className={classNames(classes.tableCell, classes.flexContainer, {
@@ -169,9 +169,7 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Donwload File">
               <IconButton
-                href={`http://192.168.1.2:5000/files/download${
-                  cellData._source.path.real
-                }`}
+                href={`http://192.168.1.2:5000/files/download`}
               >
                 <DownloadIcon color="inherit" color="primary" />
               </IconButton>
@@ -192,49 +190,11 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Open in New Window">
               <IconButton
-                href={`http://192.168.1.2:5000/files/view${
-                  cellData._source.path.real
-                }`}
+                href={`http://192.168.1.2:5000/files/view`}
                 target="_blank"
               >
                 <OpenIcon color="inherit" color="primary" />
               </IconButton>
-            </Tooltip>
-          </TableCell>
-        );
-      }
-      case 'previewButton': {
-        const isPreviewAvailable =
-          (cellData.highlight && cellData.highlight.content) ||
-          (cellData._source.content && cellData._source.content.trim() != '');
-
-        return (
-          <TableCell
-            component="div"
-            className={classNames(classes.tableCell, classes.flexContainer, {
-              [classes.noClick]: onRowClick == null,
-            })}
-            variant="body"
-            style={{ height: rowHeight }}
-            padding="none"
-          >
-            <Tooltip
-              title={
-                isPreviewAvailable
-                  ? 'Reader View (text only)'
-                  : 'Reader View not available'
-              }
-            >
-              <div>
-                <IconButton
-                  disabled={!isPreviewAvailable}
-                  color="primary"
-                  disableRipple
-                  onClick={() => this.props.onPreviewClick(rowIndex)}
-                >
-                  <PreviewIcon color="inherit" />
-                </IconButton>
-              </div>
             </Tooltip>
           </TableCell>
         );
@@ -251,7 +211,7 @@ class SearchResultsTable extends React.PureComponent {
             padding="none"
             align="right"
           >
-            {prettyBytes(cellData._source.file.filesize)}
+            {cellData.type.indexOf("source_") != 0 && prettyBytes(cellData.filesize)}
           </TableCell>
         );
       }
@@ -268,7 +228,7 @@ class SearchResultsTable extends React.PureComponent {
             align="right"
           >
             <Moment format="YYYY/MM/DD hh:mm a ">
-              {cellData._source.file.created}
+              
             </Moment>
           </TableCell>
         );
@@ -305,7 +265,7 @@ class SearchResultsTable extends React.PureComponent {
           {[filterIcon, label]}
         </TableSortLabel>
       ) : (
-        [filterIcon, label]
+        [label]
       );
 
     return (
@@ -326,8 +286,8 @@ class SearchResultsTable extends React.PureComponent {
   };
 
   _isRowLoaded({ index }) {
-    const { loadedRowsMap } = this.state;
-    return !!loadedRowsMap[index];
+    // const { loadedRowsMap } = this.state;
+    return true;
   }
 
   _loadMoreRows({ startIndex, stopIndex }) {
@@ -467,7 +427,7 @@ class SearchResultsTable extends React.PureComponent {
   }
 }
 
-SearchResultsTable.propTypes = {
+BrowserTable.propTypes = {
   classes: PropTypes.object.isRequired,
   columns: PropTypes.arrayOf(
     PropTypes.shape({
@@ -484,9 +444,9 @@ SearchResultsTable.propTypes = {
   sort: PropTypes.func,
 };
 
-SearchResultsTable.defaultProps = {
+BrowserTable.defaultProps = {
   headerHeight: 45,
   rowHeight: 40,
 };
 
-export default withStyles(styles)(SearchResultsTable);
+export default withTheme()(withStyles(styles)(BrowserTable));

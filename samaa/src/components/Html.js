@@ -61,14 +61,14 @@ class Html extends React.Component {
             rel="stylesheet"
             href="https://fonts.googleapis.com/icon?family=Material+Icons"
           />
-          <link rel="stylesheet" href="/fileicons/file-icon-classic.min.css" />
+          <link rel="stylesheet" href="/fileicons/file-icon-square-o.min.css" />
           <link
             href="/style.css"
             media="screen"
             rel="stylesheet"
             type="text/css"
           />
-
+          <link href="/facss/all.css" rel="stylesheet" />
           {styles.map(style => (
             <style
               key={style.id}

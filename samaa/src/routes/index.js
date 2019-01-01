@@ -17,7 +17,7 @@ const routes = {
   children: [
     {
       path: '',
-      load: () => import(/* webpackChunkName: 'home' */ './search'),
+      load: () => import(/* webpackChunkName: 'home' */ './browser'),
     },
     // Wildcard routes, e.g. { path: '(.*)', ... } (must go last)
     {

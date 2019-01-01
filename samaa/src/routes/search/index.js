@@ -10,12 +10,16 @@
 import React from 'react';
 import Layout from '../../components/Layout/Layout';
 import SearchPage from './SearchPage';
+import QueryString from 'query-string'
+import history from '../../history'
 
 class HomePage extends React.Component {
   constructor(props) {
     super(props);
+    const queryString = QueryString.parse(history.location.search)
+    console.log(`Searching for '${queryString.q || ''}'`)
     this.state = {
-      searchQuery: '',
+      searchQuery: queryString.q || '',
     };
   }
 
@@ -26,9 +30,8 @@ class HomePage extends React.Component {
   }
 
   render() {
-    const onNewSearch = this.onNewSearch.bind(this);
     return (
-      <Layout onNewSearch={onNewSearch}>
+      <Layout onNewSearch={this.onNewSearch.bind(this)}>
         <SearchPage searchTerms={this.state.searchQuery} />
       </Layout>
     );

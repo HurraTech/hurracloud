@@ -74,10 +74,10 @@ class SearchResultsTable extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      searchTerms: [],
       query: '',
       loadedRowCount: 0,
       loadedRowsMap: {},
+      searchTerms: [],
       loadingRowCount: 0,
     };
 
@@ -92,7 +92,7 @@ class SearchResultsTable extends React.PureComponent {
     if (this.props.query != nextProps.query) {
       this.setState(
         {
-          searchTerms: nextProps.searchTerms,
+          searchTerms: nextProps.query.split(" "),
           query: nextProps.query,
         },
         this._clearData,
@@ -130,6 +130,7 @@ class SearchResultsTable extends React.PureComponent {
     }
     switch (cellType) {
       case 'filename': {
+        console.log("Rendering cell, highlither terms are", this.state.query)
         return (
           <TableCell
             component="div"
@@ -143,7 +144,7 @@ class SearchResultsTable extends React.PureComponent {
             onClick={() => this.props.onFilenameClick(rowIndex)}
           >
             <span
-              className={`fiv-cla fiv-icon-blank fiv-icon-${
+              className={`fiv-sqo fiv-icon-blank fiv-icon-${
                 cellData._source.file.extension
               }`}
               style={{ marginRight: '0.5em' }}
@@ -151,7 +152,7 @@ class SearchResultsTable extends React.PureComponent {
             <Highlighter
               searchWords={this.state.searchTerms}
               autoEscape
-              textToHighlight={cellData._source.path.display}
+              textToHighlight={cellData._source.path}
             />
           </TableCell>
         );
@@ -169,8 +170,8 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Donwload File">
               <IconButton
-                href={`http://192.168.1.2:5000/files/download${
-                  cellData._source.path.real
+                href={`http://192.168.1.2:5000/files/download/${
+                  cellData._source.path
                 }`}
               >
                 <DownloadIcon color="inherit" color="primary" />
@@ -192,8 +193,8 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Open in New Window">
               <IconButton
-                href={`http://192.168.1.2:5000/files/view${
-                  cellData._source.path.real
+                href={`http://192.168.1.2:5000/files/view/${
+                  cellData._source.path
                 }`}
                 target="_blank"
               >
@@ -476,7 +477,6 @@ SearchResultsTable.propTypes = {
       width: PropTypes.number.isRequired,
     }),
   ).isRequired,
-  searchTerms: PropTypes.array.isRequired,
   headerHeight: PropTypes.number,
   onRowClick: PropTypes.func,
   rowClassName: PropTypes.string,

@@ -29,7 +29,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import BrowserIcon from '@material-ui/icons/Folder';
 import SettingsIcon from '@material-ui/icons/Settings';
-
+import history from '../../history'
 const drawerWidth = 240;
 
 const styles = theme => ({
@@ -182,7 +182,16 @@ class PrimarySearchAppBar extends React.Component {
 
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
-      this.props.onNewSearch(event.target.value);
+      if (this.props.onNewSearch) {
+        this.props.onNewSearch(event.target.value);
+      }
+      else {
+        history.push({ 
+          pathname: "/search", 
+          search: `?q=${event.target.value}`,
+          state: { searchTerms: event.target.value } 
+        })
+      }
     }
   };
 
@@ -390,7 +399,7 @@ class PrimarySearchAppBar extends React.Component {
 PrimarySearchAppBar.propTypes = {
   classes: PropTypes.object.isRequired,
   theme: PropTypes.object.isRequired,
-  onNewSearch: PropTypes.func.isRequired,
+  onNewSearch: PropTypes.func,
 };
 
 export default withStyles(styles, { withTheme: true })(PrimarySearchAppBar);
