@@ -19,6 +19,7 @@ class Index < ApplicationRecord
 
     def progress
         return 100 if self.count.to_f == 0
+        return 100 if self.index_segments.select{|s| s.current_status != "completed"}.length == 0
         now = Time.now
         total_elapsed_minutes = self.index_segments.map{ |s| s.relative_indexing_duration(now) }.inject(0, &:+)
         total_etas = self.index_segments.map(&:eta_minutes).inject(0, &:+)

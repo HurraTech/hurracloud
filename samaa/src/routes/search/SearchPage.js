@@ -2,16 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
-import InstantSearchIcon from '@material-ui/icons/Sync';
-import InstantSearchIconDisabled from '@material-ui/icons/SyncDisabled';
 import axios from 'axios';
 import QuickPreview from './QuickPreview';
 import FilePreview from './FilePreview';
-import { throttle, debounce } from 'throttle-debounce';
 import SearchResultsTable from './SearchResultsTable';
 import ProgressIndicator from '../../components/ProgressIndicator';
-import history from '../../history'
-import QueryString from 'query-string'
+
 const SIZE = 30;
 
 const styles = theme => ({
@@ -51,11 +47,9 @@ class Content extends React.Component {
       previewedTitle: '',
       isAjaxInProgress: false,
       items: [],
-      query: this.props.searchTerms,
-      totalResults: 0,
+      q: props.searchTerms,
+      totalResults: 1000,
     };
-    this.searchDebounced = debounce(500, this.search);
-    this.searchThrottled = throttle(500, this.search);
   }
 
   handlePreviewClick = index => {
@@ -117,17 +111,6 @@ class Content extends React.Component {
     this.searchWrapper(nextProps.searchTerms, this.search);
   }
 
-  componentDidMount() {
-    this.search()
-  }
-
-  // componentShouldUpdate(props, nextProps) {
-  //   console.log("Should I ")
-  //   if (props.searchTerms == nextProps.searchTerms)
-  //     return false
-  //   return true
-  // }
-
   handlePreviewCloseClick() {
     this.setState({
       isPreviewOpen: false,
@@ -137,7 +120,6 @@ class Content extends React.Component {
   }
 
   searchWrapper = (query, searchFunction) => {
-    
     this.setState(
       {
         q: query,

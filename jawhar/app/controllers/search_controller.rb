@@ -17,29 +17,41 @@ class SearchController < ApplicationController
             };
         else
             query = {
-                query: {
-                    bool: {
-                        should: [
-                        {
-                            multi_match: {
-                            query: q,
-                            fields: [
-                                'file.filename^4',
-                                'content',
-                                'path.real.fulltext^2',
-                            ],
+                "query": {
+                    "function_score": {
+                      "query": {
+                        "bool": {
+                            "should": [{
+                                "multi_match": {
+                                  "query": q,
+                                  "fields": [
+                                      "file.filename^4",
+                                      "content^2",
+                                      "path.virtual^3"
+                                  ]
+                                }
                             },
-                        },
-                        {
-                            wildcard: {
-                            'file.filename': {
-                                value: "*#{query}*",
-                                boost: 3,
-                            },
-                            },
-                        },
-                        ],
-                    },
+                            {
+                                "wildcard": {
+                                "file.filename": {
+                                    "value": "*#{q}*",
+                                    "boost": 3
+                                }
+                                }
+                            }]
+                        }
+                      },
+                      "functions": [
+                          {
+                              "filter": { 
+                                "terms": { 
+                                  "file.extension": ["pdf", "doc", "docx"]
+                                } 
+                              },
+                              "weight": 30
+                          }
+                      ]
+                    }
                 },
                 sort: [{ _score: { order: 'desc' } }],
                 from: from,
@@ -58,7 +70,7 @@ class SearchController < ApplicationController
         es_response = Rails.application.config.es_client.search index: index.es_wildcard_name, body: query   
         hits = es_response["hits"]["hits"]
         hits = hits.map{ |h|
-            h["_source"]["path"]["display"] = h["_source"]["path"]["real"].sub("/usr/share/hurracloud/jawhar/sources/", "")
+            h["_source"]["path"] = h["_source"]["path"]["real"].sub("#{Settings.mounts_path}", "")
             h
         }
         render json: { 

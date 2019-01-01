@@ -74,10 +74,10 @@ class SearchResultsTable extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      query: '',
+      query: this.props.query || '',
       loadedRowCount: 0,
       loadedRowsMap: {},
-      searchTerms: [],
+      searchTerms: (this.props.query || '').split(" "),
       loadingRowCount: 0,
     };
 
@@ -130,7 +130,6 @@ class SearchResultsTable extends React.PureComponent {
     }
     switch (cellType) {
       case 'filename': {
-        console.log("Rendering cell, highlither terms are", this.state.query)
         return (
           <TableCell
             component="div"

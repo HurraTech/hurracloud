@@ -23,7 +23,7 @@ class HomePage extends React.Component {
   render() {
     return (
       <Layout>
-        <Browser searchTerms={this.state.searchQuery} />
+        <Browser />
       </Layout>
     );
   }

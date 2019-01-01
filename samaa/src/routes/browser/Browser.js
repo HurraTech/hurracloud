@@ -157,7 +157,6 @@ class Content extends React.Component {
         .get(`http://192.168.1.2:5000/files/browse/${path}`)
         .then(res => {
           const response = res.data;
-          console.log(response)
           this.setState(
             {
               items: response.contents,

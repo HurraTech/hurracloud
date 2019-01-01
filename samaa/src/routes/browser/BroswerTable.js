@@ -114,7 +114,6 @@ class BrowserTable extends React.PureComponent {
   }) => {
     const { columns, classes, rowHeight, onRowClick, theme } = this.props;
     const {primary, secondary} = theme.palette.text;
-    console.log(cellData)
     if (!cellData) {
       return (
         <TableCell

@@ -17,9 +17,8 @@ class HomePage extends React.Component {
   constructor(props) {
     super(props);
     const queryString = QueryString.parse(history.location.search)
-    console.log(`Searching for '${queryString.q || ''}'`)
     this.state = {
-      searchQuery: queryString.q || '',
+      searchQuery: queryString.q
     };
   }
 

@@ -180,18 +180,25 @@ class PrimarySearchAppBar extends React.Component {
     this.setState({ open: false });
   };
 
+  transition = event => {
+    event.preventDefault();
+    history.push({
+      pathname: event.currentTarget.pathname,
+      search: event.currentTarget.search,
+    });
+  };
+
+
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
       if (this.props.onNewSearch) {
         this.props.onNewSearch(event.target.value);
       }
-      else {
-        history.push({ 
-          pathname: "/search", 
-          search: `?q=${event.target.value}`,
-          state: { searchTerms: event.target.value } 
-        })
-      }
+      history.push({ 
+        pathname: "/search", 
+        search: `?q=${event.target.value}`,
+        state: { searchTerms: event.target.value } 
+      })
     }
   };
 
@@ -217,7 +224,6 @@ class PrimarySearchAppBar extends React.Component {
     const { classes, theme } = this.props;
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
     const renderMenu = (
       <Menu
         anchorEl={anchorEl}
@@ -287,7 +293,7 @@ class PrimarySearchAppBar extends React.Component {
               color="inherit"
               noWrap
             >
-              Samaa
+              HurraCloud
             </Typography>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
@@ -356,16 +362,19 @@ class PrimarySearchAppBar extends React.Component {
           </div>
           <Divider />
           <List>
-            {['Search', 'Browse'].map((text, index) => (
+            
+            {['Browser', 'Search'].map((text, index) => (
               <ListItem
                 button
                 key={text}
-                selected={this.state.currentPage == index}
+                selected={history.location.pathname == `/${text.toLowerCase()}`}
               >
                 <ListItemIcon>
-                  {index % 2 === 0 ? <SearchIcon /> : <BrowserIcon />}
+                  {index % 2 === 0 ? <BrowserIcon /> : <SearchIcon /> } 
                 </ListItemIcon>
-                <ListItemText primary={text} />
+                <a href={`/${text.toLowerCase()}`} onClick={this.transition.bind(this)} style={{textDecoration: 'none'}}>
+                  <ListItemText primary={text}  />
+                </a>
               </ListItem>
             ))}
           </List>
