@@ -270,8 +270,9 @@ class PrimarySearchAppBar extends React.Component {
       </Menu>
     );
 
-    return (
+    return (      
       <div className={classes.root}>
+        <CssBaseline />
         <AppBar
           position="fixed"
           className={classNames(classes.appBar, {
@@ -362,14 +363,24 @@ class PrimarySearchAppBar extends React.Component {
           </div>
           <Divider />
           <List>
-            {['Browser', 'Search'].map((text, index) => (
+            {['Browser', 'Search', 'Settings'].map((text, index) => (
               <ListItem
                 button
                 key={text}
                 selected={history.location.pathname == `/${text.toLowerCase()}`}
               >
                 <ListItemIcon>
-                  {index % 2 === 0 ? <BrowserIcon /> : <SearchIcon />}
+                  {(() => {
+                    switch(text)
+                    {
+                      case "Search":
+                        return <SearchIcon />
+                      case "Browser":
+                        return <BrowserIcon />
+                      case "Settings":
+                        return <SettingsIcon />
+                    }
+                  })()}
                 </ListItemIcon>
                 <a
                   href={`/${text.toLowerCase()}`}
@@ -380,19 +391,6 @@ class PrimarySearchAppBar extends React.Component {
                 </a>
               </ListItem>
             ))}
-          </List>
-          <Divider />
-          <List>
-            <ListItem
-              button
-              key="Settings"
-              selected={this.state.currentPage == 2}
-            >
-              <ListItemIcon>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </ListItem>
           </List>
         </Drawer>
         <main

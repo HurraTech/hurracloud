@@ -10,7 +10,7 @@ COPY ./samaa/yarn.lock .
 RUN [ -z "${BUILD_DEV}" ] && yarn install --production --no-progress ||  yarn install
 
 # Copy application files
-COPY ./samaa/build .
+# COPY ./samaa/build .
 
 # Run the container under "node" user by default
 USER node

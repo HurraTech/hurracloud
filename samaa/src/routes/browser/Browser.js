@@ -8,8 +8,6 @@ import { throttle, debounce } from 'throttle-debounce';
 import BrowserTable from './BroswerTable';
 import ProgressIndicator from '../../components/ProgressIndicator';
 
-const SIZE = 30;
-
 const styles = theme => ({
   paper: {
     maxWidth: '100%',

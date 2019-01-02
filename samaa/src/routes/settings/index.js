@@ -9,29 +9,20 @@
 
 import React from 'react';
 import Layout from '../../components/Layout/Layout';
-import SearchPage from './SearchPage';
-import QueryString from 'query-string';
-import history from '../../history';
+import Settings from './Settings';
 
-class HomePage extends React.Component {
+class SettingsPage extends React.Component {
   constructor(props) {
     super(props);
-    const queryString = QueryString.parse(history.location.search);
     this.state = {
-      searchQuery: queryString.q,
+      searchQuery: '',
     };
-  }
-
-  onNewSearch(query) {
-    this.setState({
-      searchQuery: query,
-    });
   }
 
   render() {
     return (
-      <Layout onNewSearch={this.onNewSearch.bind(this)}>
-        <SearchPage searchTerms={this.state.searchQuery} />
+      <Layout>
+        <Settings />
       </Layout>
     );
   }
@@ -40,8 +31,8 @@ class HomePage extends React.Component {
 async function action() {
   return {
     title: 'HurraCloud',
-    chunks: ['search'],
-    component: <HomePage />,
+    chunks: ['settings'],
+    component: <SettingsPage />,
   };
 }
 
