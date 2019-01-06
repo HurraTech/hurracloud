@@ -15,7 +15,7 @@ import Highlighter from 'react-highlight-words';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import Moment from 'react-moment';
-import prettyBytes from 'pretty-bytes';
+import Utils from '../../utils';
 import PreviewIcon from '@material-ui/icons/ChromeReaderMode';
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import DownloadIcon from '@material-ui/icons/GetApp';
@@ -251,7 +251,7 @@ class SearchResultsTable extends React.PureComponent {
             padding="none"
             align="right"
           >
-            {prettyBytes(cellData._source.file.filesize)}
+            {Utils.humanFileSize(cellData._source.file.filesize)}
           </TableCell>
         );
       }

@@ -33,7 +33,7 @@ class Index < ApplicationRecord
     end
 
     def eta_minutes
-        self.index_segments.sort_by { |s| s.indexing_duration_minutes }.reverse[0].eta_minutes
+        self.index_segments.sort_by { |s| s.eta_minutes }.reverse[0].eta_minutes
     end
 
     def indexed_count

@@ -19,6 +19,7 @@ services:
       - /mnt:/usr/share/hurracloud/jawhar/sources
     networks:
       - hurracloud
+    privileged: true
 
   samaa:
     image: aimannajjar/hurracloud:samaa-v1

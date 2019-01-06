@@ -14,7 +14,7 @@ import {
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import Moment from 'react-moment';
-import prettyBytes from 'pretty-bytes';
+import Utils from '../../utils'
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import DownloadIcon from '@material-ui/icons/GetApp';
 import FilterIcon from '@material-ui/icons/FilterList';
@@ -232,7 +232,7 @@ class BrowserTable extends React.PureComponent {
             align="right"
           >
             {cellData.type.indexOf('source_') != 0 &&
-              prettyBytes(cellData.filesize)}
+              Utils.humanFileSize(cellData.filesize)}
           </TableCell>
         );
       }

@@ -364,6 +364,10 @@ class PrimarySearchAppBar extends React.Component {
           <Divider />
           <List>
             {['Browser', 'Search', 'Settings'].map((text, index) => (
+              <a href={`/${text.toLowerCase()}`}
+              onClick={this.transition.bind(this)}
+              style={{ textDecoration: 'none' }}>
+
               <ListItem
                 button
                 key={text}
@@ -382,14 +386,9 @@ class PrimarySearchAppBar extends React.Component {
                     }
                   })()}
                 </ListItemIcon>
-                <a
-                  href={`/${text.toLowerCase()}`}
-                  onClick={this.transition.bind(this)}
-                  style={{ textDecoration: 'none' }}
-                >
                   <ListItemText primary={text} />
-                </a>
               </ListItem>
+              </a>
             ))}
           </List>
         </Drawer>

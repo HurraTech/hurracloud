@@ -10,6 +10,8 @@ gem 'config'
 gem 'responders'
 gem 'sidekiq'
 gem 'elasticsearch'
+gem 'whenever', require: false
+gem 'sys-filesystem'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.6'

@@ -5,7 +5,6 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import axios from 'axios';
 import AddIcon from '@material-ui/icons/Add';
 import Fab from '@material-ui/core/Fab';
@@ -14,6 +13,8 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import { Typography } from '@material-ui/core';
 import classNames from 'classnames';
+import $ from 'jquery'
+import Utils from '../../utils'
 
 const styles = theme => ({
     root: {
@@ -61,6 +62,10 @@ const styles = theme => ({
         marginRight: '-10px',
         // left: '650px',
         // top: '10px'
+    },
+
+    tableCell: {
+        fontSize: '2em'
     }
 });
 
@@ -83,7 +88,19 @@ class IndexingTable extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            indices: []
+            indices: [],
+            sources: []
+        }
+    }
+
+    static prettyTypeName(name) {
+        switch(name) {
+            case "usb":
+                return "Removable Media (USB)"
+            case "internal_storage":
+                return "Internal Storage"
+            case "system":
+                return "System Storage"
         }
     }
 
@@ -91,20 +108,44 @@ class IndexingTable extends React.Component {
         axios
         .get(`http://192.168.1.2:5000/indices`)
         .then(res => {
-            console.log(res.data)
           this.setState({ 
               indices: res.data
+           }, () => {
+            $(document).ready(function() {
+                $(".meter > span").each(function() {
+                    $(this)
+                        .data("origWidth", $(this).width())
+                        .width(0)
+                        .animate({
+                            width: `${$(this).data("origWidth")}%`
+                        }, 1200, () => {
+                            if ($(this).data("origWidth") == 100)
+                                $(this).parent().hide(0, () => { console.log($(this).siblings()); $(this).parent().siblings(".indexingDone").css('display', 'block') } )
+                        })
+                });
+            });
+                
            });
         });
+
+        axios
+        .get(`http://192.168.1.2:5000/sources`)
+        .then(res => {
+          this.setState({ 
+              sources: res.data
+           });
+        });        
+
+
     }
 
     render() {
         const { classes } = this.props;
-        const { indices } = this.state
+        const { indices, sources } = this.state
         return (
             <Grid container direction="column">
                 <Grid container direction="row" spacing={32} xs={12} justify="space-between">
-                    <Grid item xs={6}>
+                <Grid item xs={12}>
                         <Paper className={classes.root}>
                             <div className={classes.fabWrapper}>
                             <Fab aria-label="Create Index" color="secondary" className={classes.createButton}>
@@ -114,7 +155,7 @@ class IndexingTable extends React.Component {
 
                             <div className={classes.tableDescriptionWrapper}>
                                 <Typography variant="title" className={classes.descriptionTitle}>
-                                Storage
+                                Attached Drives & Accounts
                                 </Typography>
                                 <Typography variant="body" align="justify" className={classes.descriptionContent}>
                                     Your HurraCloud device comes with internal storage. You can also connect external USB devices or connect with online cloud storage such as Google Drive, Dropbox and iCloud
@@ -122,25 +163,71 @@ class IndexingTable extends React.Component {
                             </div>
                             <Table className={classes.table}>
                                     <TableRow>
-                                        <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Media</TableCell>
-                                        <TableCell variant="head" component='div' style={{ height: "20px" }}  className={classNames(classes.tableHeader)} align="right">Size</TableCell>
+                                        <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Name</TableCell>
+                                        <TableCell variant="head" component='div' style={{ height: "20px" }}  className={classNames(classes.tableHeader)} align="left">Capacity</TableCell>
+                                        <TableCell variant="head" component='div' style={{ height: "20px" }}  className={classNames(classes.tableHeader)} align="left">Free Space</TableCell>
+                                        <TableCell variant="head" component='div' style={{ height: "20px" }}  className={classNames(classes.tableHeader)} align="left">Type</TableCell>
                                     </TableRow>
                                 <TableBody>
-                                    {indices.map(index => {
+                                    {sources.map(source => {
+                                        let icon_class = "fab fa-usb"
+                                        if (source.source_type == "system")
+                                            icon_class = "fas fa-database"
+                                        else if (source.source_type == "internal")
+                                            icon_class = "fab fa-hdd"
+                                        let partitions = [];
+                                        let all_mounted = source.metadata.partitions.reduce((all_mounted, partition) => all_mounted && partition.mounted, true)
+                                        let total_free = source.metadata.partitions.reduce((sum, partition) => sum + (partition.available||0), 0)
+                                        if (source.source_type != "system")
+                                            partitions = source.metadata.partitions.map((partition,index) =>{
+                                                let partition_name = partition.LABEL || partition.PARTLABEL || `Partition ${index}`
+                                                return (<TableRow key={source.id}>
+                                                    <TableCell scope="row" className={classes.bodyCell}>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    {partition.mounted ? partition_name : <i>{partition_name}</i>}
+                                                    
+                                                    </TableCell>
+                                                    <TableCell scope="row" className={classes.bodyCell}>
+                                                    {partition.mounted && Utils.humanFileSize(partition.size)}
+                                                    </TableCell>
+                                                    <TableCell scope="row" className={classes.bodyCell}>
+                                                    {partition.mounted && Utils.humanFileSize(partition.available)}
+                                                    </TableCell>
+                                                    <TableCell align="left"  className={classes.bodyCell}>
+                                                    </TableCell>                                                
+                                                </TableRow>)
+                                            })
                                         return (
-                                            <TableRow key={index.id}>
-                                                <TableCell component="th" scope="row" className={classes.bodyCell}>
-                                                    {index.name}
+                                            <>
+                                            <TableRow key={source.id}>
+                                                <TableCell scope="row" className={classes.bodyCell}>
+                                                <div style={{float:'left'}}><span
+                                                className={`${icon_class}`}
+                                                style={{ marginRight: '0.5em' }}
+                                                 />
+                                                 </div> 
+                                                {source.source_type == "system" ? <span style={{fontWeight:500}}>System</span> : source.name}
                                                 </TableCell>
-                                                <TableCell align="right"  className={classes.bodyCell}>{index.source.source_type}</TableCell>
+                                                <TableCell scope="row" className={classes.bodyCell}>
+                                                {Utils.humanFileSize(source.capacity*1024)}
+                                                </TableCell>
+                                                <TableCell>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
+                                                                && Utils.humanFileSize(total_free*1024)}</TableCell>
+                                                <TableCell align="left"  className={classes.bodyCell}>
+                                                 <div style={{paddingTop:'6px'}}>
+                                                    {IndexingTable.prettyTypeName(source.source_type)}
+                                                </div>
+                                                </TableCell>                                                
                                             </TableRow>
+                                            {partitions}
+                                            </>
                                         );
                                     })}
                                 </TableBody>
                             </Table>
                         </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
+                    </Grid>                
+                    <Grid item xs={12}>
                         <Paper className={classes.root}>
                             <div className={classes.fabWrapper}>
                                 <Fab aria-label="Create Index" color="secondary" className={classes.createButton}>
@@ -159,22 +246,39 @@ class IndexingTable extends React.Component {
                             </div>                        
                             <Table className={classes.table}>
                                 <TableRow>
-                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Index Name</TableCell>
-                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Index Source</TableCell>
+                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Name</TableCell>
+                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Data Source</TableCell>
                                     <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)} align="right">Indexed Files</TableCell>
-                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)} align="right">Indexing Progress</TableCell>
+                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)} align="right">Status</TableCell>
                                 </TableRow>
                                 <TableBody>
                                     {indices.map(index => {
                                         return (
                                             <TableRow key={index.id}>
-                                                <TableCell component="th" scope="row">
-                                                    {index.name}
+                                                <TableCell align="left" className={classes.tableCell}>{index.name}</TableCell>
+                                                <TableCell scope="row" className={classes.tableCell}>
+                                                <div style={{float:'left'}}><span
+                                                className={'fab fa-usb fa-2x'}
+                                                style={{ marginRight: '0.5em' }}
+                                                 />
+                                                 </div>
+                                                 <div style={{paddingTop:'6px'}}>
+                                                {index.name}
+                                                </div>
                                                 </TableCell>
-                                                <TableCell align="right">{index.source.source_type}</TableCell>
-                                                <TableCell align="right">{index.indexed_count}</TableCell>
-                                                <TableCell align="right">
-                                                    <LinearProgress variant="determinate" value={(index.progress)} />
+                                                <TableCell align="right" className={classes.tableCell}>{index.indexed_count}</TableCell>
+                                                <TableCell align="right" className={classes.tableCell}>
+                                                    { index.progress < 100 && (<div>
+                                                    <div className="meter orange">
+                                                        <span style={{width: index.progress }}>
+                                                        </span>
+                                                    </div>
+                                                    <div className="indexingDone">
+                                                        <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
+                                                    </div></div>)}
+                                                    { index.progress >= 100 && (<div>
+                                                        <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
+                                                    </div>)}                                                    
                                                 </TableCell>
                                             </TableRow>
                                         );
