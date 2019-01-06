@@ -14,7 +14,7 @@ import {
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import Moment from 'react-moment';
-import Utils from '../../utils'
+import Utils from '../../utils';
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import DownloadIcon from '@material-ui/icons/GetApp';
 import FilterIcon from '@material-ui/icons/FilterList';

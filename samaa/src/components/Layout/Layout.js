@@ -270,7 +270,7 @@ class PrimarySearchAppBar extends React.Component {
       </Menu>
     );
 
-    return (      
+    return (
       <div className={classes.root}>
         <CssBaseline />
         <AppBar
@@ -364,30 +364,32 @@ class PrimarySearchAppBar extends React.Component {
           <Divider />
           <List>
             {['Browser', 'Search', 'Settings'].map((text, index) => (
-              <a href={`/${text.toLowerCase()}`}
-              onClick={this.transition.bind(this)}
-              style={{ textDecoration: 'none' }}>
-
-              <ListItem
-                button
-                key={text}
-                selected={history.location.pathname == `/${text.toLowerCase()}`}
+              <a
+                href={`/${text.toLowerCase()}`}
+                onClick={this.transition.bind(this)}
+                style={{ textDecoration: 'none' }}
               >
-                <ListItemIcon>
-                  {(() => {
-                    switch(text)
-                    {
-                      case "Search":
-                        return <SearchIcon />
-                      case "Browser":
-                        return <BrowserIcon />
-                      case "Settings":
-                        return <SettingsIcon />
-                    }
-                  })()}
-                </ListItemIcon>
+                <ListItem
+                  button
+                  key={text}
+                  selected={
+                    history.location.pathname == `/${text.toLowerCase()}`
+                  }
+                >
+                  <ListItemIcon>
+                    {(() => {
+                      switch (text) {
+                        case 'Search':
+                          return <SearchIcon />;
+                        case 'Browser':
+                          return <BrowserIcon />;
+                        case 'Settings':
+                          return <SettingsIcon />;
+                      }
+                    })()}
+                  </ListItemIcon>
                   <ListItemText primary={text} />
-              </ListItem>
+                </ListItem>
               </a>
             ))}
           </List>
