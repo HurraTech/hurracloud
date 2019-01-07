@@ -1,11 +1,7 @@
-require 'fileutils'
-
-class ZahifWorker
+class ZahifIndexerWorker
   include Sidekiq::Worker
+  sidekiq_options queue: 'indexer'
 
-  SEGMENT_CONTENT_THRESHOLD = 5000
-
-  
   def perform(job, params)
     puts "Got a #{job} job!!! params: #{params}"
     case job
@@ -48,7 +44,7 @@ class ZahifWorker
             segment.update_counts()
             segment.current_status = :scheduled
             segment.save()
-            ZahifWorker.perform_async('index_segment', :index_segment_id => segment.id)
+            ZahifIndexerWorker.perform_async('index_segment', :index_segment_id => segment.id)
         end
     when 'index_segment'
         index_segment_id = params['index_segment_id']

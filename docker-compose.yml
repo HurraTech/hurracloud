@@ -1,22 +1,23 @@
 version: '2.2'
 services:
-  zahif:
-    image: aimannajjar/hurracloud:jawhar-v1
-    volumes:
-      - ./zahif/indices:/usr/share/hurracloud/zahif/indices
-      - ./zahif/logs:/usr/share/hurracloud/zahif/logs
-      - ./jawhar/db:/usr/share/hurracloud/jawhar/db      
-      - /mnt:/usr/share/hurracloud/jawhar/sources      
-    command: bundle exec sidekiq
-    networks:
-      - hurracloud
+  # zahif_indexer:
+  #   image: aimannajjar/hurracloud:jawhar-v1
+  #   volumes:
+  #     - ./zahif/indices:/usr/share/hurracloud/zahif/indices
+  #     - ./zahif/logs:/usr/share/hurracloud/zahif/logs
+  #     - ./jawhar/db:/usr/share/hurracloud/jawhar/db      
+  #     - /mnt:/usr/share/hurracloud/jawhar/sources      
+  #   command: bundle exec sidekiq -q indexer
+  #   networks:
+  #     - hurracloud
 
   jawhar:
     image: aimannajjar/hurracloud:jawhar-v1
     volumes:
       - ./zahif/indices:/usr/share/hurracloud/zahif/indices
       - ./jawhar/db:/usr/share/hurracloud/jawhar/db
-      - /mnt:/usr/share/hurracloud/jawhar/sources
+      - ./jawhar/logs:/usr/share/hurracloud/jawhar/log      
+      - /dev/bus/usb:/dev/bus/usb
     networks:
       - hurracloud
     privileged: true

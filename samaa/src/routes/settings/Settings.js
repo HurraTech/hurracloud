@@ -15,6 +15,13 @@ import { Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import $ from 'jquery'
 import Utils from '../../utils'
+import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
+import MountIcon from '@material-ui/icons/PlayCircleFilledWhiteOutlined'
+import UnmountIcon from '@material-ui/icons/EjectOutlined'
+import IndexIcon from '@material-ui/icons/DescriptionOutlined'
+
+import Tooltip from '@material-ui/core/Tooltip';
 
 const styles = theme => ({
     root: {
@@ -36,6 +43,16 @@ const styles = theme => ({
         fontSize: '11pt'
     },
 
+    iconCell: {
+        maxWidth: '1px',
+        padding: '0px',
+        paddingLeft: '25px'
+    },
+
+    nameCell: {
+        padding: '0px',
+    },
+
     descriptionTitle: {
         fontSize: '13pt',
     },
@@ -47,26 +64,48 @@ const styles = theme => ({
     },
 
     fabWrapper: {
-        // width: '100%',
         padding: 'relative',
         float: 'right',
         marginTop: '-25px',
         marginRight: '35px',
         zIndex: 999
-
     },
 
     createButton: {
         position: 'absolute',
         zIndex: 999,
-        marginRight: '-10px',
-        // left: '650px',
-        // top: '10px'
+        marginRight: '-10px'
     },
 
     tableCell: {
-        fontSize: '2em'
+        fontSize: '2em',
+    },
+  
+    leftIcon: {
+        marginRight: theme.spacing.unit,
+    },
+
+    rightIcon: {
+        marginLeft: theme.spacing.unit,
+    },
+
+    iconSmall: {
+        fontSize: 20,
+    },
+    
+    tableButton: {
+        margin: theme.spacing.unit,
+    },
+
+    partitionRow: {
+        backgroundColor: '#f7f7f7'
+    },
+
+    sourceRow: {
+        backgroundColor: '#e8e8e8',
     }
+    
+
 });
 
 let id = 0;
@@ -102,6 +141,16 @@ class IndexingTable extends React.Component {
             case "system":
                 return "System Storage"
         }
+    }
+
+    handleMountClick(source_id, partition_path) {
+        console.log(source_id, partition_path)
+
+        axios
+        .get(`http://192.168.1.2:5000/sources/${source_id}/mount${partition_path}`)
+        .then(res => {
+            console.log(res)
+        })
     }
 
     componentDidMount() {
@@ -162,12 +211,15 @@ class IndexingTable extends React.Component {
                                 </Typography>
                             </div>
                             <Table className={classes.table}>
+                                <TableHead>
                                     <TableRow>
-                                        <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Name</TableCell>
-                                        <TableCell variant="head" component='div' style={{ height: "20px" }}  className={classNames(classes.tableHeader)} align="left">Capacity</TableCell>
-                                        <TableCell variant="head" component='div' style={{ height: "20px" }}  className={classNames(classes.tableHeader)} align="left">Free Space</TableCell>
-                                        <TableCell variant="head" component='div' style={{ height: "20px" }}  className={classNames(classes.tableHeader)} align="left">Type</TableCell>
+                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.iconCell)} scope="row"></TableCell>
+                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.nameCell)} scope="row">Name</TableCell>
+                                        <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Capacity</TableCell>
+                                        <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Free Space</TableCell>
+                                        <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left" >Type</TableCell>
                                     </TableRow>
+                                </TableHead>
                                 <TableBody>
                                     {sources.map(source => {
                                         let icon_class = "fab fa-usb"
@@ -180,12 +232,12 @@ class IndexingTable extends React.Component {
                                         let total_free = source.metadata.partitions.reduce((sum, partition) => sum + (partition.available||0), 0)
                                         if (source.source_type != "system")
                                             partitions = source.metadata.partitions.map((partition,index) =>{
-                                                let partition_name = partition.LABEL || partition.PARTLABEL || `Partition ${index}`
-                                                return (<TableRow key={source.id}>
-                                                    <TableCell scope="row" className={classes.bodyCell}>
-                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                    {partition.mounted ? partition_name : <i>{partition_name}</i>}
-                                                    
+                                                let partition_name = partition.LABEL
+                                                return (<TableRow key={source.id} className={classes.partitionRow}>
+                                                    <TableCell scope="row" className={classes.iconCell}></TableCell>
+                                                    <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        {partition.mounted ? partition_name : <i>{partition_name}</i>}                                                    
                                                     </TableCell>
                                                     <TableCell scope="row" className={classes.bodyCell}>
                                                     {partition.mounted && Utils.humanFileSize(partition.size)}
@@ -194,19 +246,51 @@ class IndexingTable extends React.Component {
                                                     {partition.mounted && Utils.humanFileSize(partition.available)}
                                                     </TableCell>
                                                     <TableCell align="left"  className={classes.bodyCell}>
+                                                        <div style={{width:'120px', float:'left'}}>
+                                                        { (() => {
+                                                            if (partition.mounted) 
+                                                                return <Tooltip title="Unmounting the drive will make it inaccessible.">
+                                                                            <Button variant="outline" color="primary" size="small">                                                            
+                                                                                <UnmountIcon className={classes.leftIcon}></UnmountIcon>
+                                                                                Unmount
+                                                                            </Button>
+                                                                        </Tooltip>
+                                                            else 
+                                                                return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
+                                                                            <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source.id, partition.path)} }>
+                                                                                <MountIcon className={classes.leftIcon}></MountIcon>
+                                                                                Mount
+                                                                            </Button>
+                                                                        </Tooltip>
+                                                            })()
+                                                        }
+                                                        </div>
+                                                        <div style={{width:'120px', float:'left'}}>
+                                                            <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
+                                                                <Button variant="outline" color="primary" size="small">                                                            
+                                                                    <IndexIcon className={classes.leftIcon}></IndexIcon>
+                                                                    Index
+                                                                </Button>
+                                                            </Tooltip>
+                                                        </div>
+
                                                     </TableCell>                                                
                                                 </TableRow>)
                                             })
                                         return (
                                             <>
-                                            <TableRow key={source.id}>
-                                                <TableCell scope="row" className={classes.bodyCell}>
+                                            <TableRow key={source.id} className={classes.sourceRow}>
+                                                <TableCell scope="row" className={classes.iconCell}>
                                                 <div style={{float:'left'}}><span
                                                 className={`${icon_class}`}
                                                 style={{ marginRight: '0.5em' }}
                                                  />
                                                  </div> 
-                                                {source.source_type == "system" ? <span style={{fontWeight:500}}>System</span> : source.name}
+                                                 </TableCell>
+                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
+                                                 <span style={{fontWeight:500}}>
+                                                {source.source_type == "system" ? "System Drive": source.name}
+                                                </span> 
                                                 </TableCell>
                                                 <TableCell scope="row" className={classes.bodyCell}>
                                                 {Utils.humanFileSize(source.capacity*1024)}
@@ -217,7 +301,7 @@ class IndexingTable extends React.Component {
                                                  <div style={{paddingTop:'6px'}}>
                                                     {IndexingTable.prettyTypeName(source.source_type)}
                                                 </div>
-                                                </TableCell>                                                
+                                                </TableCell>
                                             </TableRow>
                                             {partitions}
                                             </>
@@ -246,10 +330,10 @@ class IndexingTable extends React.Component {
                             </div>                        
                             <Table className={classes.table}>
                                 <TableRow>
-                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Name</TableCell>
-                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)}>Data Source</TableCell>
-                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)} align="right">Indexed Files</TableCell>
-                                    <TableCell variant="head" component='div' style={{ height: "20px" }} className={classNames(classes.tableHeader)} align="right">Status</TableCell>
+                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Name</TableCell>
+                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Data Source</TableCell>
+                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Indexed Files</TableCell>
+                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Status</TableCell>
                                 </TableRow>
                                 <TableBody>
                                     {indices.map(index => {

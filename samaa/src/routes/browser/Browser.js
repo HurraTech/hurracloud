@@ -34,6 +34,7 @@ const styles = theme => ({
 class Content extends React.Component {
   constructor(props) {
     super(props);
+    console.log("Initial path is ", props.path)
     this.state = {
       error: null,
       isInstantSearchEnabled: false,
@@ -44,7 +45,7 @@ class Content extends React.Component {
       isInlineViewerOpen: false,
       previewedTitle: '',
       isAjaxInProgress: false,
-      path: '',
+      path: props.path,
       items: [],
 
       searchTerms: [],
@@ -59,6 +60,14 @@ class Content extends React.Component {
       isInlineViewerOpen: false,
       openedFile: '',
     });
+  }
+
+  componentWillReceiveProps(props, nextProps) {
+    this.setState({
+      path: nextProps.path
+    }, () => {
+      this.browse()
+    })
   }
 
   handlePreviewClick = index => {
@@ -89,19 +98,22 @@ class Content extends React.Component {
   handleFilenameClick = index => {
     const path = this.state.items[index].name;
     const type = this.state.items[index].type;
+    console.log("Current state", this.state)
+    const requestedPath = `${this.state.path}/${path}`;
+    console.log(`Clicked on ${path} of type ${type}`)
     this.setState(
       {
         isAjaxInProgress: true,
         isInlineViewerOpen: false,
         isPreviewOpen: false,
         openedFile: '',
+        path: requestedPath
       },
       () => {
-        const requestedPath = `${this.state.path}/${path}`;
         if (type == 'folder' || type.indexOf('source_') == 0) {
-          this.browse(requestedPath).then(() => {
+          console.log("Requesed path", requestedPath)          
+          this.browse().then(() => {
             this.setState({
-              path: requestedPath,
               isAjaxInProgress: false,
               isInlineViewerOpen: false,
               isPreviewOpen: false,
@@ -131,13 +143,15 @@ class Content extends React.Component {
   };
 
   componentDidMount() {
-    this.browse('/');
+    this.browse();
   }
 
-  browse(path) {
+  browse() {
+    console.log("Making request to ", this.state.path)
     return new Promise((resolve, reject) => {
-      axios.get(`http://192.168.1.2:5000/files/browse/${path}`).then(res => {
+      axios.get(`http://192.168.1.2:5000/files/browse/${this.state.path}`).then(res => {
         const response = res.data;
+        console.log("Response", response)
         this.setState(
           {
             items: response.contents,

@@ -30,24 +30,10 @@ class FilesController < ApplicationController
     end
 
     def browse
-        if params[:source_name].nil?
-            render json: {
-                contents: Source.all().map{ |source|
-                    {
-                        name: source.name,
-                        type: "source_drive",
-                        last_modified: "",
-                        filesize: ""
-                    }
-                }
-            } 
-            return
-        end
-        source_name = params[:source_name]
-        source = Source.where(name: source_name).first() or render json: { error: "not found"}
-        path = "#{Settings.mounts_path}/#{source.name}/#{params[:path]}"
-        path_is_root = params[:path].nil?
-        return if source.nil?
+        source_id = params[:source_id]
+        partition_label = params[:partition_label]
+        source = Source.find(source_id) or render json: { error: "not found"}
+        path = "#{Settings.mounts_path}#{source.id}/#{partition_label}/#{params[:path]}"
         render json: { 
             contents: Dir.entries(path).map {|i|
                 entry_path = "#{path}/#{i}"
@@ -59,7 +45,7 @@ class FilesController < ApplicationController
                     last_modified: File.mtime(entry_path),
                     filesize: File.size(entry_path)
                 }
-            }.select{ |e| e[:name] != '.' }
+            }.select{ |e| e[:name] != '.' && ( !params[:path].nil? || e[:name] != '..') }
              .sort{ |e1,e2| e1[:type] == "folder" ? -1 : 1 }
         }
     end

@@ -6,10 +6,10 @@ services:
     ports:
       - 9200:9200
     
-  zahif:
-    image: aimannajjar/hurracloud:jawhar-v1
-    volumes:
-      - ./jawhar:/usr/share/hurracloud/jawhar
+  # zahif_indexer:
+  #   image: aimannajjar/hurracloud:jawhar-v1
+  #   volumes:
+  #     - ./jawhar:/usr/share/hurracloud/jawhar
 
   jawhar:
     image: aimannajjar/hurracloud:jawhar-v1
@@ -22,7 +22,7 @@ services:
       - hurracloud
     ports:
       - 5000:3000
-    command: sh -c "bundle install && rails s -p 3000 -b '0.0.0.0'"
+    command: sh -c "bundle install && ./bin/start.sh"
 
   samaa:
     image: aimannajjar/hurracloud:samaa-v1

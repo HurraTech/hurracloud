@@ -17,7 +17,8 @@ import MailIcon from '@material-ui/icons/Mail';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import classNames from 'classnames';
-
+import axios from 'axios';
+import Collapse from '@material-ui/core/Collapse';
 import Drawer from '@material-ui/core/Drawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import List from '@material-ui/core/List';
@@ -30,6 +31,9 @@ import ListItemText from '@material-ui/core/ListItemText';
 import BrowserIcon from '@material-ui/icons/Folder';
 import SettingsIcon from '@material-ui/icons/Settings';
 import history from '../../history';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import StarBorder from '@material-ui/icons/StarBorder';
 
 const drawerWidth = 240;
 
@@ -162,6 +166,22 @@ const styles = theme => ({
     }),
     marginLeft: 0,
   },
+
+  nested: {
+    paddingLeft: theme.spacing.unit * 4,
+    maxWidth: `${drawerWidth}px`,
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  },
+
+  sourceNameText: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    maxWidth: `${drawerWidth - 30}px`
+  }
+
 });
 
 class PrimarySearchAppBar extends React.Component {
@@ -171,6 +191,8 @@ class PrimarySearchAppBar extends React.Component {
     open: false,
     searchQuery: '',
     currentPage: 0,
+    sources: [],
+    browserListOpen: true,
   };
 
   handleDrawerOpen = () => {
@@ -181,12 +203,30 @@ class PrimarySearchAppBar extends React.Component {
     this.setState({ open: false });
   };
 
-  transition = event => {
+  handleBrowserClick = () => {
     event.preventDefault();
-    history.push({
-      pathname: event.currentTarget.pathname,
-      search: event.currentTarget.search,
-    });
+    this.setState(state => ({ browserListOpen: !state.browserListOpen }));
+  };
+
+  componentDidMount() {
+    axios
+    .get(`http://192.168.1.2:5000/sources`)
+    .then(res => {
+        const response = res.data;
+        console.log("SOURCES", response)
+        this.setState({ sources: response })
+    });    
+  }
+
+  transition = event => {
+    if (event.currentTarget.pathname )
+    {
+      event.preventDefault();
+      history.push({
+        pathname: event.currentTarget.pathname,
+        search: event.currentTarget.search,
+      });
+    }
   };
 
   onSearchBarKeyPress = event => {
@@ -363,10 +403,11 @@ class PrimarySearchAppBar extends React.Component {
           </div>
           <Divider />
           <List>
-            {['Browser', 'Search', 'Settings'].map((text, index) => (
+            {['Browser', 'Search', 'Settings'].map((text) => (
+              <div>
               <a
                 href={`/${text.toLowerCase()}`}
-                onClick={this.transition.bind(this)}
+                onClick={text == "Browser" ? this.handleBrowserClick.bind(this) : this.transition.bind(this)}
                 style={{ textDecoration: 'none' }}
               >
                 <ListItem
@@ -389,8 +430,41 @@ class PrimarySearchAppBar extends React.Component {
                     })()}
                   </ListItemIcon>
                   <ListItemText primary={text} />
+                  {text == "Browser" && (this.browserListOpen ?<ExpandLess /> : <ExpandMore />) }
                 </ListItem>
               </a>
+              {(() => { 
+                if (text == 'Browser') {
+                  return <Collapse in={this.state.browserListOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>                    
+                     {this.state.sources.map(source => {
+                        let icon_class = "fab fa-usb"
+                        if (source.source_type == "system")
+                          icon_class = "fas fa-database"
+                        else if (source.source_type == "internal")
+                          icon_class = "fab fa-hdd"
+                        return source.metadata.partitions.filter(p => p.mounted).map(partition => {
+                            return <a 
+                            href={`/browse/${source.id}/${partition.LABEL}`}
+                            onClick={this.transition.bind(this)}
+                            style={{ textDecoration: 'none' }}
+                            >       
+                                <ListItem button className={classes.nested}>
+                                    <div style={{float:'left'}}><span
+                                          className={`${icon_class}`}
+                                          style={{ marginRight: '0.5em', width:'10px', }}
+                                          />
+                                          </div> 
+                                <ListItemText inset primary={partition.LABEL} className={classes.sourceNameText} />
+                              </ListItem>
+                              </a>
+                        })
+                     })}
+                  </List>
+                </Collapse>
+                }
+              }).bind(this)()}
+              </div>
             ))}
           </List>
         </Drawer>

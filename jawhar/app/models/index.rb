@@ -6,7 +6,7 @@ class Index < ApplicationRecord
     has_many :index_segments
 
     after_commit on: :create do |index|
-        ZahifWorker.perform_async('initialize_index', :index_id => index.id)
+        ZahifIndexerWorker.perform_async('initialize_index', :index_id => index.id)
     end
 
     def full_path
