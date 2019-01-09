@@ -33,7 +33,6 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import history from '../../history';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import StarBorder from '@material-ui/icons/StarBorder';
 
 const drawerWidth = 240;
 
@@ -227,7 +226,14 @@ class PrimarySearchAppBar extends React.Component {
         search: event.currentTarget.search,
       });
     }
-  };
+  }
+
+  handlePartitionClick = event => {
+    this.transition(event)
+    if (this.props.onPartitionClick) {
+      this.props.onPartitionClick(event.currentTarget.pathname)
+    }
+  }
 
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
@@ -443,10 +449,10 @@ class PrimarySearchAppBar extends React.Component {
                           icon_class = "fas fa-database"
                         else if (source.source_type == "internal")
                           icon_class = "fab fa-hdd"
-                        return source.metadata.partitions.filter(p => p.mounted).map(partition => {
+                        return source.device_partitions.filter(p => p.mounted).map(partition => {
                             return <a 
-                            href={`/browse/${source.id}/${partition.LABEL}`}
-                            onClick={this.transition.bind(this)}
+                            href={`/browse/${source.id}/${partition.label}`}
+                            onClick={this.handlePartitionClick.bind(this)}
                             style={{ textDecoration: 'none' }}
                             >       
                                 <ListItem button className={classes.nested}>
@@ -455,7 +461,7 @@ class PrimarySearchAppBar extends React.Component {
                                           style={{ marginRight: '0.5em', width:'10px', }}
                                           />
                                           </div> 
-                                <ListItemText inset primary={partition.LABEL} className={classes.sourceNameText} />
+                                <ListItemText inset primary={partition.label} className={classes.sourceNameText} />
                               </ListItem>
                               </a>
                         })
@@ -485,6 +491,7 @@ PrimarySearchAppBar.propTypes = {
   classes: PropTypes.object.isRequired,
   theme: PropTypes.object.isRequired,
   onNewSearch: PropTypes.func,
+  onPartitionClick: PropTypes.func
 };
 
 export default withStyles(styles, { withTheme: true })(PrimarySearchAppBar);

@@ -107,8 +107,10 @@ class Content extends React.Component {
     );
   };
 
-  componentWillReceiveProps(nextProps) {
-    this.searchWrapper(nextProps.searchTerms, this.search);
+  componentDidUpdate(prevProps) {
+    if (prevProps.searchTerms != this.props.searchTerms) {
+      this.searchWrapper(this.props.searchTerms, this.search);
+    }
   }
 
   handlePreviewCloseClick() {

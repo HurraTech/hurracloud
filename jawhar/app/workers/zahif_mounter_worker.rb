@@ -10,18 +10,27 @@ class ZahifMounterWorker
     def perform(job, data)
         case job
         when 'mount_partition'    
-            source_id = data["source_id"]
-            partition = data["partition"]
-            puts "Mounting #{partition.inspect}"
-            source = Source.find(source_id)
-            dev_path = partition["path"]
-            label = partition["LABEL"]
-            mount_path = "#{Settings.mounts_path}#{source.id}/#{label}"
+            partition_id = data["partition_id"]
+            partition = DevicePartition.find(partition_id) or return
+            dev_path = partition.deviceFile
+            label = partition.label
+            mount_path = "#{Settings.mounts_path}#{partition.source.id}/#{label}"
             FileUtils.mkdir_p mount_path
             puts "Mounting #{dev_path} #{mount_path}"
             result = `mount #{dev_path} #{mount_path}` 
             puts "Result #{result}"
             ZahifMounterWorker.perform_async('update_sources', {})
+        when 'unmount_partition'    
+            partition_id = data["partition_id"]
+            partition = DevicePartition.find(partition_id) or return
+            dev_path = partition.deviceFile
+            label = partition.label
+            mount_path = "#{Settings.mounts_path}#{partition.source.id}/#{label}"
+            FileUtils.mkdir_p mount_path
+            puts "Unmounting #{dev_path} #{mount_path}"
+            result = `umount #{mount_path}` 
+            puts "Result #{result}"
+            ZahifMounterWorker.perform_async('update_sources', {})   
         when 'update_sources'
             devices = { }
             `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb`.split("\n").each do |line|             
@@ -34,7 +43,7 @@ class ZahifMounterWorker
                                  capacity: (size.to_i) /1024,
                                  path: dev,
                                  partitions: [] }
-                `blkid #{dev}[1-9]*`.split("\n").each_with_index do |line, i|
+                `blkid #{dev}[1-9]*`.split("\n").each_with_index do |line|
                     (path, attributes) = line.split(": ",2)
                     devices[dev][:uuid] = `blkid #{dev} | grep -o 'PTUUID=".[^"]*"' | cut -d '"' -f 2`.chomp()
                     partition = { path: path}
@@ -44,10 +53,12 @@ class ZahifMounterWorker
                         value = match[2]
                         partition[key] = value
                     end
+                    partition["NUMBER"] = path[dev.length()..-1]
 
                     if !partition.key?("LABEL")
-                        partition["LABEL"] = "#{devices[dev][:model]} ##{i+1}"
+                        partition["LABEL"] = "#{devices[dev][:model]} ##{partition["NUMBER"]}"
                     end
+
 
                     mount = Filesystem.mounts.select{ |d| d.name == path }[0]
                     if mount
@@ -82,6 +93,29 @@ class ZahifMounterWorker
         s.capacity = device[:capacity]
         s.name = device[:model]
         s.status = :attached
-        s.metadata = { :partitions => device[:partitions]}
+        device[:partitions].each do |p|
+            if p[:uuid]
+                partitionQuery = DevicePartition.where(source: s, uuid: p[:uuid])
+            else
+                partitionQuery = DevicePartition.where(source: s, label: p["LABEL"])
+            end
+            partition = partitionQuery.first_or_create{ |partition|
+                partition.source = s
+                if p[:uuid]
+                    partition.uuid = p[:uuid]
+                end
+                partition.label = p["LABEL"]
+            }
+            partition.partitionNumber = p["NUMBER"]
+            partition.deviceFile = p[:path]
+            partition.mounted = p[:mounted]
+            partition.filesystem = p["TYPE"]
+            if p[:size]
+                partition.size = p[:size]
+                partition.available = p[:available]
+            end
+            partition.raw = p
+            partition.save()
+        end
     end    
 end

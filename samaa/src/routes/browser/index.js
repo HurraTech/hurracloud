@@ -11,9 +11,19 @@ class BrowserPage extends React.Component {
       path: history.location.pathname.substring("/browse/".length),
     };
   }
+
+  onPartitionClick(path) {
+    console.log("We've been called back! :)", path)
+    this.setState({
+      path: path.substring("/browse/".length)
+    }, () => {
+      console.log("We just set our state to ", this.state.path)
+    })
+  }
+
   render() {
     return (
-      <Layout>
+      <Layout onPartitionClick={this.onPartitionClick.bind(this)}>
         <Browser path={this.state.path} />
       </Layout>
     );

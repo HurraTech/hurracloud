@@ -7,6 +7,7 @@ import FilePreview from '../../components/FilePreview';
 import { throttle, debounce } from 'throttle-debounce';
 import BrowserTable from './BroswerTable';
 import ProgressIndicator from '../../components/ProgressIndicator';
+import history from '../../history';
 
 const styles = theme => ({
   paper: {
@@ -62,12 +63,15 @@ class Content extends React.Component {
     });
   }
 
-  componentWillReceiveProps(props, nextProps) {
-    this.setState({
-      path: nextProps.path
-    }, () => {
-      this.browse()
-    })
+  componentDidUpdate(prevProps) {
+    if (this.props.path !== prevProps.path) {
+      this.setState({
+        path: this.props.path
+      }, () => {
+        console.log("Going to ", this.state.path)
+        this.browse()
+      })
+    }
   }
 
   handlePreviewClick = index => {
@@ -101,6 +105,10 @@ class Content extends React.Component {
     console.log("Current state", this.state)
     const requestedPath = `${this.state.path}/${path}`;
     console.log(`Clicked on ${path} of type ${type}`)
+    history.push({
+      pathname: `/browse/${requestedPath}`
+    });
+  
     this.setState(
       {
         isAjaxInProgress: true,

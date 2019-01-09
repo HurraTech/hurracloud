@@ -50,6 +50,6 @@ class Index < ApplicationRecord
 
     def as_json(options={})
         super(options.merge!(methods: [:progress, :indexed_count, :eta_minutes, :source]))
-      end
+    end
     
 end

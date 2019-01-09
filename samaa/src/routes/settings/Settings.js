@@ -22,6 +22,7 @@ import UnmountIcon from '@material-ui/icons/EjectOutlined'
 import IndexIcon from '@material-ui/icons/DescriptionOutlined'
 
 import Tooltip from '@material-ui/core/Tooltip';
+import IndexDialog from './IndexDialog';
 
 const styles = theme => ({
     root: {
@@ -128,7 +129,9 @@ class IndexingTable extends React.Component {
         super(props)
         this.state = {
             indices: [],
-            sources: []
+            sources: [],
+            indexDialogOpen: false,
+            selectedPartition: {}
         }
     }
 
@@ -143,13 +146,36 @@ class IndexingTable extends React.Component {
         }
     }
 
-    handleMountClick(source_id, partition_path) {
-        console.log(source_id, partition_path)
+    handleMountClick(source_id, partition_id) {
+        console.log(source_id, partition_id)
 
         axios
-        .get(`http://192.168.1.2:5000/sources/${source_id}/mount${partition_path}`)
+        .get(`http://192.168.1.2:5000/sources/${source_id}/mount/${partition_id}`)
         .then(res => {
             console.log(res)
+        })
+    }
+
+    handleUnmountClick(source_id, partition_id) {
+        axios
+        .get(`http://192.168.1.2:5000/sources/${source_id}/unmount/${partition_id}`)
+        .then(res => {
+            console.log(res)
+        })
+    }
+
+    openIndexDialog(partition) {
+        this.setState({
+            indexDialogOpen: true,
+            selectedPartition: partition
+        })
+    }
+
+    cancelIndexDialog() {
+        console.log("Closing index dialog")
+        this.setState({
+            indexDialogOpen: false,
+            selectedPartition: {}
         })
     }
 
@@ -190,189 +216,198 @@ class IndexingTable extends React.Component {
 
     render() {
         const { classes } = this.props;
-        const { indices, sources } = this.state
+        const { indices, sources, indexDialogOpen, selectedPartition } = this.state
         return (
-            <Grid container direction="column">
-                <Grid container direction="row" spacing={32} xs={12} justify="space-between">
-                <Grid item xs={12}>
-                        <Paper className={classes.root}>
-                            <div className={classes.fabWrapper}>
-                            <Fab aria-label="Create Index" color="secondary" className={classes.createButton}>
-                                <AddIcon />
-                            </Fab>
-                            </div>
-
-                            <div className={classes.tableDescriptionWrapper}>
-                                <Typography variant="title" className={classes.descriptionTitle}>
-                                Attached Drives & Accounts
-                                </Typography>
-                                <Typography variant="body" align="justify" className={classes.descriptionContent}>
-                                    Your HurraCloud device comes with internal storage. You can also connect external USB devices or connect with online cloud storage such as Google Drive, Dropbox and iCloud
-                                </Typography>
-                            </div>
-                            <Table className={classes.table}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.iconCell)} scope="row"></TableCell>
-                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.nameCell)} scope="row">Name</TableCell>
-                                        <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Capacity</TableCell>
-                                        <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Free Space</TableCell>
-                                        <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left" >Type</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {sources.map(source => {
-                                        let icon_class = "fab fa-usb"
-                                        if (source.source_type == "system")
-                                            icon_class = "fas fa-database"
-                                        else if (source.source_type == "internal")
-                                            icon_class = "fab fa-hdd"
-                                        let partitions = [];
-                                        let all_mounted = source.metadata.partitions.reduce((all_mounted, partition) => all_mounted && partition.mounted, true)
-                                        let total_free = source.metadata.partitions.reduce((sum, partition) => sum + (partition.available||0), 0)
-                                        if (source.source_type != "system")
-                                            partitions = source.metadata.partitions.map((partition,index) =>{
-                                                let partition_name = partition.LABEL
-                                                return (<TableRow key={source.id} className={classes.partitionRow}>
-                                                    <TableCell scope="row" className={classes.iconCell}></TableCell>
-                                                    <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
-                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        {partition.mounted ? partition_name : <i>{partition_name}</i>}                                                    
-                                                    </TableCell>
-                                                    <TableCell scope="row" className={classes.bodyCell}>
-                                                    {partition.mounted && Utils.humanFileSize(partition.size)}
-                                                    </TableCell>
-                                                    <TableCell scope="row" className={classes.bodyCell}>
-                                                    {partition.mounted && Utils.humanFileSize(partition.available)}
-                                                    </TableCell>
-                                                    <TableCell align="left"  className={classes.bodyCell}>
-                                                        <div style={{width:'120px', float:'left'}}>
-                                                        { (() => {
-                                                            if (partition.mounted) 
-                                                                return <Tooltip title="Unmounting the drive will make it inaccessible.">
-                                                                            <Button variant="outline" color="primary" size="small">                                                            
-                                                                                <UnmountIcon className={classes.leftIcon}></UnmountIcon>
-                                                                                Unmount
-                                                                            </Button>
-                                                                        </Tooltip>
-                                                            else 
-                                                                return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
-                                                                            <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source.id, partition.path)} }>
-                                                                                <MountIcon className={classes.leftIcon}></MountIcon>
-                                                                                Mount
-                                                                            </Button>
-                                                                        </Tooltip>
-                                                            })()
-                                                        }
-                                                        </div>
-                                                        <div style={{width:'120px', float:'left'}}>
-                                                            <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
-                                                                <Button variant="outline" color="primary" size="small">                                                            
-                                                                    <IndexIcon className={classes.leftIcon}></IndexIcon>
-                                                                    Index
-                                                                </Button>
-                                                            </Tooltip>
-                                                        </div>
-
-                                                    </TableCell>                                                
-                                                </TableRow>)
-                                            })
-                                        return (
-                                            <>
-                                            <TableRow key={source.id} className={classes.sourceRow}>
-                                                <TableCell scope="row" className={classes.iconCell}>
-                                                <div style={{float:'left'}}><span
-                                                className={`${icon_class}`}
-                                                style={{ marginRight: '0.5em' }}
-                                                 />
-                                                 </div> 
-                                                 </TableCell>
-                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
-                                                 <span style={{fontWeight:500}}>
-                                                {source.source_type == "system" ? "System Drive": source.name}
-                                                </span> 
-                                                </TableCell>
-                                                <TableCell scope="row" className={classes.bodyCell}>
-                                                {Utils.humanFileSize(source.capacity*1024)}
-                                                </TableCell>
-                                                <TableCell>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
-                                                                && Utils.humanFileSize(total_free*1024)}</TableCell>
-                                                <TableCell align="left"  className={classes.bodyCell}>
-                                                 <div style={{paddingTop:'6px'}}>
-                                                    {IndexingTable.prettyTypeName(source.source_type)}
-                                                </div>
-                                                </TableCell>
-                                            </TableRow>
-                                            {partitions}
-                                            </>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </Paper>
-                    </Grid>                
+            <div>
+                <IndexDialog 
+                    open={indexDialogOpen} 
+                    partitionObject={selectedPartition}
+                    onClose={this.cancelIndexDialog.bind(this)}
+                />
+                <Grid container direction="column">
+                    <Grid container direction="row" spacing={32} xs={12} justify="space-between">
                     <Grid item xs={12}>
-                        <Paper className={classes.root}>
-                            <div className={classes.fabWrapper}>
+                            <Paper className={classes.root}>
+                                <div className={classes.fabWrapper}>
                                 <Fab aria-label="Create Index" color="secondary" className={classes.createButton}>
                                     <AddIcon />
                                 </Fab>
                                 </div>
 
+                                <div className={classes.tableDescriptionWrapper}>
+                                    <Typography variant="title" className={classes.descriptionTitle}>
+                                    Attached Drives & Accounts
+                                    </Typography>
+                                    <Typography variant="body" align="justify" className={classes.descriptionContent}>
+                                        Your HurraCloud device comes with internal storage. You can also connect external USB devices or connect with online cloud storage such as Google Drive, Dropbox and iCloud
+                                    </Typography>
+                                </div>
+                                <Table className={classes.table}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.iconCell)} scope="row"></TableCell>
+                                            <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.nameCell)} scope="row">Name</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Capacity</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Free Space</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left" >Type</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {sources.map(source => {
+                                            let icon_class = "fab fa-usb"
+                                            if (source.source_type == "system")
+                                                icon_class = "fas fa-database"
+                                            else if (source.source_type == "internal")
+                                                icon_class = "fab fa-hdd"
+                                            let partitions = [];
+                                            let all_mounted = source.device_partitions.reduce((all_mounted, partition) => all_mounted && partition.mounted, true)
+                                            let total_free = source.device_partitions.reduce((sum, partition) => sum + (partition.available||0), 0)
+                                            if (source.source_type != "system")
+                                                partitions = source.device_partitions.map((partition) =>{
+                                                    let partition_name = partition.label
+                                                    return (<TableRow key={source.id} className={classes.partitionRow}>
+                                                        <TableCell scope="row" className={classes.iconCell}></TableCell>
+                                                        <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                            {partition.mounted ? partition_name : <i>{partition_name}</i>}                                                    
+                                                        </TableCell>
+                                                        <TableCell scope="row" className={classes.bodyCell}>
+                                                        {partition.mounted && Utils.humanFileSize(partition.size)}
+                                                        </TableCell>
+                                                        <TableCell scope="row" className={classes.bodyCell}>
+                                                        {partition.mounted && Utils.humanFileSize(partition.available)}
+                                                        </TableCell>
+                                                        <TableCell align="left"  className={classes.bodyCell}>
+                                                            <div style={{width:'120px', float:'left'}}>
+                                                            { (() => {
+                                                                if (partition.mounted) 
+                                                                    return <Tooltip title="Unmounting the drive will make it inaccessible.">
+                                                                                <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source.id, partition.id)} }>
+                                                                                    <UnmountIcon className={classes.leftIcon}></UnmountIcon>
+                                                                                    Unmount
+                                                                                </Button>
+                                                                            </Tooltip>
+                                                                else 
+                                                                    return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
+                                                                                <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source.id, partition.id)} }>
+                                                                                    <MountIcon className={classes.leftIcon}></MountIcon>
+                                                                                    Mount
+                                                                                </Button>
+                                                                            </Tooltip>
+                                                                })()
+                                                            }
+                                                            </div>
+                                                            <div style={{width:'120px', float:'left'}}>
+                                                                <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
+                                                                    <Button variant="outline"
+                                                                            color="primary" size="small"
+                                                                            onClick={() => { this.openIndexDialog(partition) }}>
+                                                                        <IndexIcon className={classes.leftIcon}></IndexIcon>
+                                                                        Index
+                                                                    </Button>
+                                                                </Tooltip>
+                                                            </div>
 
-                            <div className={classes.tableDescriptionWrapper}>
-                                <Typography variant="title" className={classes.descriptionTitle}>
-                                Indexes
-                                </Typography>
-                                <Typography variant="body" align="justify" className={classes.descriptionContent}>
-                                    Indexes make your files and data searchable in blazing speed. They take a while to build for the first time, but they are worth it. We promise!
-                                </Typography>
-                            </div>                        
-                            <Table className={classes.table}>
-                                <TableRow>
-                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Name</TableCell>
-                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Data Source</TableCell>
-                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Indexed Files</TableCell>
-                                    <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Status</TableCell>
-                                </TableRow>
-                                <TableBody>
-                                    {indices.map(index => {
-                                        return (
-                                            <TableRow key={index.id}>
-                                                <TableCell align="left" className={classes.tableCell}>{index.name}</TableCell>
-                                                <TableCell scope="row" className={classes.tableCell}>
-                                                <div style={{float:'left'}}><span
-                                                className={'fab fa-usb fa-2x'}
-                                                style={{ marginRight: '0.5em' }}
-                                                 />
-                                                 </div>
-                                                 <div style={{paddingTop:'6px'}}>
-                                                {index.name}
-                                                </div>
-                                                </TableCell>
-                                                <TableCell align="right" className={classes.tableCell}>{index.indexed_count}</TableCell>
-                                                <TableCell align="right" className={classes.tableCell}>
-                                                    { index.progress < 100 && (<div>
-                                                    <div className="meter orange">
-                                                        <span style={{width: index.progress }}>
-                                                        </span>
+                                                        </TableCell>                                                
+                                                    </TableRow>)
+                                                })
+                                            return (
+                                                <>
+                                                <TableRow key={source.id} className={classes.sourceRow}>
+                                                    <TableCell scope="row" className={classes.iconCell}>
+                                                    <div style={{float:'left'}}><span
+                                                    className={`${icon_class}`}
+                                                    style={{ marginRight: '0.5em' }}
+                                                    />
+                                                    </div> 
+                                                    </TableCell>
+                                                    <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
+                                                    <span style={{fontWeight:500}}>
+                                                    {source.source_type == "system" ? "System Drive": source.name}
+                                                    </span> 
+                                                    </TableCell>
+                                                    <TableCell scope="row" className={classes.bodyCell}>
+                                                    {Utils.humanFileSize(source.capacity*1024)}
+                                                    </TableCell>
+                                                    <TableCell>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
+                                                                    && Utils.humanFileSize(total_free*1024)}</TableCell>
+                                                    <TableCell align="left"  className={classes.bodyCell}>
+                                                    <div style={{paddingTop:'6px'}}>
+                                                        {IndexingTable.prettyTypeName(source.source_type)}
                                                     </div>
-                                                    <div className="indexingDone">
-                                                        <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
-                                                    </div></div>)}
-                                                    { index.progress >= 100 && (<div>
-                                                        <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
-                                                    </div>)}                                                    
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </Paper>                        
+                                                    </TableCell>
+                                                </TableRow>
+                                                {partitions}
+                                                </>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </Paper>
+                        </Grid>                
+                        <Grid item xs={12}>
+                            <Paper className={classes.root}>
+                                <div className={classes.fabWrapper}>
+                                    <Fab aria-label="Create Index" color="secondary" className={classes.createButton}>
+                                        <AddIcon />
+                                    </Fab>
+                                    </div>
+
+
+                                <div className={classes.tableDescriptionWrapper}>
+                                    <Typography variant="title" className={classes.descriptionTitle}>
+                                    Indexes
+                                    </Typography>
+                                    <Typography variant="body" align="justify" className={classes.descriptionContent}>
+                                        Indexes make your files and data searchable in blazing speed. They take a while to build for the first time, but they are worth it. We promise!
+                                    </Typography>
+                                </div>                        
+                                <Table className={classes.table}>
+                                    <TableRow>
+                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Name</TableCell>
+                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Data Source</TableCell>
+                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Indexed Files</TableCell>
+                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Status</TableCell>
+                                    </TableRow>
+                                    <TableBody>
+                                        {indices.map(index => {
+                                            return (
+                                                <TableRow key={index.id}>
+                                                    <TableCell align="left" className={classes.tableCell}>{index.name}</TableCell>
+                                                    <TableCell scope="row" className={classes.tableCell}>
+                                                    <div style={{float:'left'}}><span
+                                                    className={'fab fa-usb fa-2x'}
+                                                    style={{ marginRight: '0.5em' }}
+                                                    />
+                                                    </div>
+                                                    <div style={{paddingTop:'6px'}}>
+                                                    {index.name}
+                                                    </div>
+                                                    </TableCell>
+                                                    <TableCell align="right" className={classes.tableCell}>{index.indexed_count}</TableCell>
+                                                    <TableCell align="right" className={classes.tableCell}>
+                                                        { index.progress < 100 && (<div>
+                                                        <div className="meter orange">
+                                                            <span style={{width: index.progress }}>
+                                                            </span>
+                                                        </div>
+                                                        <div className="indexingDone">
+                                                            <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
+                                                        </div></div>)}
+                                                        { index.progress >= 100 && (<div>
+                                                            <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
+                                                        </div>)}                                                    
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </Paper>                        
+                        </Grid>
                     </Grid>
                 </Grid>
-            </Grid>
+            </div>
             );
     }
         

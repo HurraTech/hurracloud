@@ -10,7 +10,8 @@ Rails.application.routes.draw do
   get 'search', to: 'search#search', format: false
 
   resources :sources, :defaults => { :format => 'json' } do
-    get 'mount/*partition_path', to: 'sources#mount_partition'
+    get 'mount/*partition_id', to: 'sources#mount_partition'
+    get 'unmount/*partition_id', to: 'sources#unmount_partition'
   end
   resources :indices, :defaults => { :format => 'json' } do
     resources :index_segments,  :defaults => { :format => 'json' }
