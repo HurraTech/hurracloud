@@ -1,6 +1,4 @@
-version: '2.2'
-services:
-version: '2.2'
+version: '2.3'
 services:
   elasticsearch:
     ports:
@@ -23,6 +21,8 @@ services:
     ports:
       - 5000:3000
     command: sh -c "bundle install && ./bin/start.sh"
+    environment:
+      - HOST_MOUNTS_PATH=/usr/local/src/hurracloud/mounts
 
   samaa:
     image: aimannajjar/hurracloud:samaa-v1

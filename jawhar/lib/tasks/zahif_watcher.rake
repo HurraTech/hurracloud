@@ -1,6 +1,6 @@
-namespace :zahif_watcher do
+namespace :zahif do
     desc "Updates data sources"
-    task :update_data_sources => :environment do
+    task :update => :environment do
         ZahifMounterWorker.perform_async('update_sources', {})
     end  
 end

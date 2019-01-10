@@ -1,18 +1,22 @@
 class ZahifIndexerWorker
   include Sidekiq::Worker
   sidekiq_options queue: 'indexer'
-
+  
+  SEGMENT_CONTENT_THRESHOLD = 500
   def perform(job, params)
     puts "Got a #{job} job!!! params: #{params}"
     case job
     when 'initialize_index'
         index_id = params['index_id']
         index = Index.find(index_id)
+        puts "Let's traverse #{index.full_path}"
+        i = 0
         Find.find("#{index.full_path}") do|subdirectory| 
             if FileTest.directory?(subdirectory)        
                 relative_path = "#{subdirectory.sub("#{index.full_path}", '')}/"
                 count = Dir[File.join(subdirectory, "**", "*")].count
-                if count > SEGMENT_CONTENT_THRESHOLD
+                puts "Looking into #{subdirectory}"
+                if count > SEGMENT_CONTENT_THRESHOLD || i == 0
                     puts "Creating segment for #{subdirectory} (count=#{count})"
                     segment = IndexSegment.where(index: index, relative_path: relative_path).first_or_create { |s| 
                         s.current_status = :init
@@ -27,6 +31,7 @@ class ZahifIndexerWorker
                         index.count = segment.total_count
                         index.save!
                     end
+                    i+=1
                 end
             else
                 next

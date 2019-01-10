@@ -9,6 +9,8 @@
       - docker
       - py-pip
       - rsync
+      - shadow
+      - sudo
       state: latest
       update_cache: yes
       repository: 
@@ -38,14 +40,50 @@
       sysctl_file: /etc/sysctl.d/01-hurracloud.conf
       reload: yes      
 
-  - name: Conifugre System (user watches)
+  - name: Configure System (user watches)
     sysctl:
       name: vm.swappiness
       value: 0
       state: present
       sysctl_file: /etc/sysctl.d/01-hurracloud.conf
       reload: yes
-      
+
+  - name: Configure manager user
+    user:
+      name: hurra
+      shell: /bin/bash
+      password: '{{ 9999999999999999999999 | random | to_uuid |  password_hash("sha512") }}'
+      state: present
+
+  - name: Generate keypair for Jawhar
+    local_action: command sh -c "(yes n | ssh-keygen -t rsa -b 4096 -C "hurra-manager@hurranet.com" -N '' -f ./key) || true"
+
+  - name: Clean stale authorized keys
+    file:
+      state: absent
+      path: "/home/hurra/.ssh/authorized_keys"
+
+  - name: Setup authorized key for hurra-manager
+    authorized_key:
+      user: hurra
+      state: present
+      key: '{{ item }}'
+    with_file:
+      - key.pub
+
+  - name: Setup sshd_config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^AllowUsers '
+      line: 'AllowUsers root hurra@172.18.0.0/16'
+
+  - name: Restart ssh service
+    service:
+      name: sshd
+      state: restarted
+    
+  - name: Setup / as shared
+    command: sh -c 'mount --make-shared /'
 
 #### Deploy Application
   - name: Deploy Application

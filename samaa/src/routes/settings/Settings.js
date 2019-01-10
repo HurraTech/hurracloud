@@ -24,6 +24,7 @@ import IndexIcon from '@material-ui/icons/DescriptionOutlined'
 import Tooltip from '@material-ui/core/Tooltip';
 import IndexDialog from './IndexDialog';
 
+
 const styles = theme => ({
     root: {
         width: '100%',
@@ -104,8 +105,15 @@ const styles = theme => ({
 
     sourceRow: {
         backgroundColor: '#e8e8e8',
+    },
+
+    typeCell: {
+        width:'320px'
+    },
+
+    indexCell: {
+        width: '200px'
     }
-    
 
 });
 
@@ -179,12 +187,52 @@ class IndexingTable extends React.Component {
         })
     }
 
-    componentDidMount() {
+    onIndexDialogSave = (settings) => {
+        const data = {
+            device_partition_id: this.state.selectedPartition.id,
+            settings: settings
+        }
+        console.log("Calling create index with data", data)
         axios
-        .get(`http://192.168.1.2:5000/indices`)
+        .post('http://192.168.1.2:5000/indices/', data)
+        .then(res => {
+            console.log("RESPONSE ", res)
+            this.setState({
+                indexDialogOpen: false,
+                selectedPartition: {}
+            })    
+        })
+    }
+
+    componentDidMount() {
+        // axios
+        // .get(`http://192.168.1.2:5000/indices`)
+        // .then(res => {
+        //   this.setState({ 
+        //       indices: res.data
+        //    }, () => {
+        //     $(document).ready(function() {
+        //         $(".meter > span").each(function() {
+        //             $(this)
+        //                 .data("origWidth", $(this).width())
+        //                 .width(0)
+        //                 .animate({
+        //                     width: `${$(this).data("origWidth")}%`
+        //                 }, 1200, () => {
+        //                     if ($(this).data("origWidth") == 100)
+        //                         $(this).parent().hide(0, () => { console.log($(this).siblings()); $(this).parent().siblings(".indexingDone").css('display', 'block') } )
+        //                 })
+        //         });
+        //     });
+                
+        //    });
+        // });
+
+        axios
+        .get(`http://192.168.1.2:5000/sources`)
         .then(res => {
           this.setState({ 
-              indices: res.data
+              sources: res.data
            }, () => {
             $(document).ready(function() {
                 $(".meter > span").each(function() {
@@ -199,15 +247,6 @@ class IndexingTable extends React.Component {
                         })
                 });
             });
-                
-           });
-        });
-
-        axios
-        .get(`http://192.168.1.2:5000/sources`)
-        .then(res => {
-          this.setState({ 
-              sources: res.data
            });
         });        
 
@@ -223,6 +262,7 @@ class IndexingTable extends React.Component {
                     open={indexDialogOpen} 
                     partitionObject={selectedPartition}
                     onClose={this.cancelIndexDialog.bind(this)}
+                    onSave={this.onIndexDialogSave}
                 />
                 <Grid container direction="column">
                     <Grid container direction="row" spacing={32} xs={12} justify="space-between">
@@ -249,7 +289,8 @@ class IndexingTable extends React.Component {
                                             <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.nameCell)} scope="row">Name</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Capacity</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Free Space</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left" >Type</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.typeCell)} align="left" >Type</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.indexCell)} align="left" >Index</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -307,8 +348,21 @@ class IndexingTable extends React.Component {
                                                                     </Button>
                                                                 </Tooltip>
                                                             </div>
-
-                                                        </TableCell>                                                
+                                                        </TableCell>
+                                                        {partition.index && <TableCell align="right" className={classes.tableCell}>
+                                                            { partition.index.progress < 100 && (<div>
+                                                            <div className="meter orange">
+                                                                <span style={{width: partition.index.progress }}>
+                                                                </span>
+                                                            </div>
+                                                            <div className="indexingDone">
+                                                                <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
+                                                            </div></div>)}
+                                                            { partition.index.progress >= 100 && (<div>
+                                                                <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
+                                                            </div>)}                                                    
+                                                        </TableCell>}
+                                                        {!partition.index && <TableCell />}
                                                     </TableRow>)
                                                 })
                                             return (
@@ -331,7 +385,7 @@ class IndexingTable extends React.Component {
                                                     </TableCell>
                                                     <TableCell>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
                                                                     && Utils.humanFileSize(total_free*1024)}</TableCell>
-                                                    <TableCell align="left"  className={classes.bodyCell}>
+                                                    <TableCell align="left"  className={classes.bodyCell} colSpan={2}>
                                                     <div style={{paddingTop:'6px'}}>
                                                         {IndexingTable.prettyTypeName(source.source_type)}
                                                     </div>
@@ -369,7 +423,7 @@ class IndexingTable extends React.Component {
                                         <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Indexed Files</TableCell>
                                         <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Status</TableCell>
                                     </TableRow>
-                                    <TableBody>
+                                    {/* <TableBody>
                                         {indices.map(index => {
                                             return (
                                                 <TableRow key={index.id}>
@@ -401,7 +455,7 @@ class IndexingTable extends React.Component {
                                                 </TableRow>
                                             );
                                         })}
-                                    </TableBody>
+                                    </TableBody> */}
                                 </Table>
                             </Paper>                        
                         </Grid>

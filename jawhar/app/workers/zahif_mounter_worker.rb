@@ -13,19 +13,17 @@ class ZahifMounterWorker
             partition_id = data["partition_id"]
             partition = DevicePartition.find(partition_id) or return
             dev_path = partition.deviceFile
-            label = partition.label
-            mount_path = "#{Settings.mounts_path}#{partition.source.id}/#{label}"
+            mount_path = partition.mount_path
             FileUtils.mkdir_p mount_path
             puts "Mounting #{dev_path} #{mount_path}"
-            result = `mount #{dev_path} #{mount_path}` 
+            result = `mount -o ro #{dev_path} #{mount_path}` 
             puts "Result #{result}"
             ZahifMounterWorker.perform_async('update_sources', {})
         when 'unmount_partition'    
             partition_id = data["partition_id"]
             partition = DevicePartition.find(partition_id) or return
             dev_path = partition.deviceFile
-            label = partition.label
-            mount_path = "#{Settings.mounts_path}#{partition.source.id}/#{label}"
+            mount_path = partition.mount_path
             FileUtils.mkdir_p mount_path
             puts "Unmounting #{dev_path} #{mount_path}"
             result = `umount #{mount_path}` 
@@ -43,9 +41,9 @@ class ZahifMounterWorker
                                  capacity: (size.to_i) /1024,
                                  path: dev,
                                  partitions: [] }
+                devices[dev][:uuid] = `blkid #{dev} | grep -o 'PTUUID=".[^"]*"' | cut -d '"' -f 2`.chomp()                                 
                 `blkid #{dev}[1-9]*`.split("\n").each_with_index do |line|
-                    (path, attributes) = line.split(": ",2)
-                    devices[dev][:uuid] = `blkid #{dev} | grep -o 'PTUUID=".[^"]*"' | cut -d '"' -f 2`.chomp()
+                    (path, attributes) = line.split(": ",2)                    
                     partition = { path: path}
                     re = /(([^=]*)="([^"]*)")\s+/m
                     attributes.scan(re) do |match|
@@ -95,14 +93,16 @@ class ZahifMounterWorker
         s.status = :attached
         device[:partitions].each do |p|
             if p[:uuid]
-                partitionQuery = DevicePartition.where(source: s, uuid: p[:uuid])
+                partitionQuery = DevicePartition.where(source: s, uuid: p["UUID"])
             else
                 partitionQuery = DevicePartition.where(source: s, label: p["LABEL"])
             end
             partition = partitionQuery.first_or_create{ |partition|
                 partition.source = s
-                if p[:uuid]
-                    partition.uuid = p[:uuid]
+                if p["UUID"]
+                    partition.uuid = p["UUID"]
+                elsif p["PARTUUID"]
+                    partition.uuid = p["PARTUUID"]
                 end
                 partition.label = p["LABEL"]
             }

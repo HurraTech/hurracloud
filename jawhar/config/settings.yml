@@ -12,4 +12,4 @@ inline_files: # files that can be returned as "inline" content-disposition for v
     - text/css
     - text/csv
     - text/plain    
-mounts_path: /usr/share/hurracloud/jawhar/sources/
+mounts_path: /usr/share/hurracloud/mounts/

@@ -2,15 +2,19 @@ require 'uri'
 require 'find'
 
 class Index < ApplicationRecord
-    belongs_to :source
+    belongs_to :device_partition
     has_many :index_segments
+    serialize :settings, JSON
 
     after_commit on: :create do |index|
         ZahifIndexerWorker.perform_async('initialize_index', :index_id => index.id)
     end
+    def name
+        self.device_partition.label
+    end
 
     def full_path
-        "/usr/share/hurracloud/jawhar/sources/#{self.source.name}/"
+        self.device_partition.mount_path
     end
 
     def root_segment
@@ -49,7 +53,7 @@ class Index < ApplicationRecord
     end
 
     def as_json(options={})
-        super(options.merge!(methods: [:progress, :indexed_count, :eta_minutes, :source]))
+        super(options.merge!(methods: [:name, :progress, :indexed_count, :eta_minutes]))
     end
     
 end

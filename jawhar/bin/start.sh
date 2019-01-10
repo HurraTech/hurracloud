@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Persist host fingerprint
+if [ ! -f /root/.ssh/known_hosts ]; then
+    ssh-keyscan -H hurracloud >> /root/.ssh/known_hosts
+fi
+
 ## Startup API Server
 echo "Starting up API server"
 rails s -p 3000 -b '0.0.0.0' -d
