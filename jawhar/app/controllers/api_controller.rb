@@ -15,6 +15,7 @@ class ApiController < ApplicationController
     end
 
     def create
+        puts "Resource params are #{resource_params}"
         inject_resource(resource_class.new(resource_params))
         if get_resource.save
           render json: get_resource, status: :created

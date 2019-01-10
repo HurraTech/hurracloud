@@ -84,7 +84,9 @@ class IndexDialog extends React.Component {
         if (this.props.partitionObject.index)
         {
             console.log(" I am here?")
-            excludes = this.props.partitionObject.index.settings.excludes
+            excludes = this.props.partitionObject.index.settings &&  
+                          this.props.partitionObject.index.settings.excludes ?
+                            this.props.partitionObject.index.settings.excludes : [""]
         }
         console.log("Updating excludeList to", excludes)
         this.setState({open: this.props.open,

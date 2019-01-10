@@ -1,9 +1,9 @@
 class IndicesController < ApiController
     skip_before_action :verify_authenticity_token
 
+    private
     def index_params
-        attributes = model_attributes
-        params.permit attributes << :password
+        params.require(:index).permit(:device_partition_id, :settings => {:excludes => []})
     end
     
 end

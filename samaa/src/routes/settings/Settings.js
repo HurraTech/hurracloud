@@ -38,23 +38,6 @@ const styles = theme => ({
         backgroundColor: 'white',
     },
 
-    tableHeader: {
-        backgroundColor: theme.palette.grey[900],
-        color: 'white',
-        height: '32px',
-        fontSize: '11pt'
-    },
-
-    iconCell: {
-        maxWidth: '1px',
-        padding: '0px',
-        paddingLeft: '25px'
-    },
-
-    nameCell: {
-        padding: '0px',
-    },
-
     descriptionTitle: {
         fontSize: '13pt',
     },
@@ -79,10 +62,6 @@ const styles = theme => ({
         marginRight: '-10px'
     },
 
-    tableCell: {
-        fontSize: '2em',
-    },
-  
     leftIcon: {
         marginRight: theme.spacing.unit,
     },
@@ -107,12 +86,47 @@ const styles = theme => ({
         backgroundColor: '#e8e8e8',
     },
 
+
+    tableHeader: {
+        backgroundColor: theme.palette.grey[900],
+        color: 'white',
+        height: '32px',
+        fontSize: '11pt',
+        padding :0,
+    },
+
+    bodyCell: {
+        padding: 0
+    },
+
+    iconCell: {
+        maxWidth: '1px',
+        padding: '0px',
+        paddingLeft: '25px'
+    },
+
+    nameCell: {
+        padding: '0px',
+    },
+
+    capacityCell: {
+        maxWidth: '50px'
+    },
+
+    availableCell: {
+        maxWidth: '50px'        
+    },
+
     typeCell: {
-        width:'320px'
+        maxWidth:'125px'
+    },
+
+    headerCell: {
+
     },
 
     indexCell: {
-        width: '200px'
+        minWidth: '200px'
     }
 
 });
@@ -189,14 +203,15 @@ class IndexingTable extends React.Component {
 
     onIndexDialogSave = (settings) => {
         const data = {
-            device_partition_id: this.state.selectedPartition.id,
-            settings: settings
+            index: {
+                device_partition_id: this.state.selectedPartition.id,
+                settings: settings
+            }
         }
         console.log("Calling create index with data", data)
         axios
         .post('http://192.168.1.2:5000/indices/', data)
         .then(res => {
-            console.log("RESPONSE ", res)
             this.setState({
                 indexDialogOpen: false,
                 selectedPartition: {}
@@ -287,10 +302,11 @@ class IndexingTable extends React.Component {
                                         <TableRow>
                                             <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.iconCell)} scope="row"></TableCell>
                                             <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.nameCell)} scope="row">Name</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Capacity</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)} align="left">Free Space</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.capacityCell)} align="left">Capacity</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.availableCell)} align="left">Free</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.typeCell)} align="left" >Type</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.indexCell)} align="left" >Index</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.indexCell)} align="left" >Index Status</TableCell>
+                                            {/* <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)}/> */}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -312,13 +328,13 @@ class IndexingTable extends React.Component {
                                                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                             {partition.mounted ? partition_name : <i>{partition_name}</i>}                                                    
                                                         </TableCell>
-                                                        <TableCell scope="row" className={classes.bodyCell}>
+                                                        <TableCell scope="row" className={classNames(classes.bodyCell, classes.capacityCell)}>
                                                         {partition.mounted && Utils.humanFileSize(partition.size)}
                                                         </TableCell>
-                                                        <TableCell scope="row" className={classes.bodyCell}>
+                                                        <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>
                                                         {partition.mounted && Utils.humanFileSize(partition.available)}
                                                         </TableCell>
-                                                        <TableCell align="left"  className={classes.bodyCell}>
+                                                        <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)}>
                                                             <div style={{width:'120px', float:'left'}}>
                                                             { (() => {
                                                                 if (partition.mounted) 
@@ -349,7 +365,7 @@ class IndexingTable extends React.Component {
                                                                 </Tooltip>
                                                             </div>
                                                         </TableCell>
-                                                        {partition.index && <TableCell align="right" className={classes.tableCell}>
+                                                        {partition.index && <><TableCell align="right" className={classNames(classes.bodyCell,classes.indexCell)}>
                                                             { partition.index.progress < 100 && (<div>
                                                             <div className="meter orange">
                                                                 <span style={{width: partition.index.progress }}>
@@ -360,9 +376,11 @@ class IndexingTable extends React.Component {
                                                             </div></div>)}
                                                             { partition.index.progress >= 100 && (<div>
                                                                 <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
-                                                            </div>)}                                                    
-                                                        </TableCell>}
-                                                        {!partition.index && <TableCell />}
+                                                            </div>)}
+                                                            {partition.index.progress == 0 ? "Initializing index" : `${partition.index.indexed_count} document(s) - ${partition.index.progress}%`}
+                                                        </TableCell>
+                                                        </>}
+                                                        {!partition.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
                                                     </TableRow>)
                                                 })
                                             return (
@@ -380,12 +398,12 @@ class IndexingTable extends React.Component {
                                                     {source.source_type == "system" ? "System Drive": source.name}
                                                     </span> 
                                                     </TableCell>
-                                                    <TableCell scope="row" className={classes.bodyCell}>
+                                                    <TableCell scope="row" className={classNames(classes.bodyCell, classes.capacityCell)}>
                                                     {Utils.humanFileSize(source.capacity*1024)}
                                                     </TableCell>
-                                                    <TableCell>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
+                                                    <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
                                                                     && Utils.humanFileSize(total_free*1024)}</TableCell>
-                                                    <TableCell align="left"  className={classes.bodyCell} colSpan={2}>
+                                                    <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)} colSpan={2}>
                                                     <div style={{paddingTop:'6px'}}>
                                                         {IndexingTable.prettyTypeName(source.source_type)}
                                                     </div>

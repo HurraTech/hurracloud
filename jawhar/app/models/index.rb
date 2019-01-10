@@ -9,6 +9,7 @@ class Index < ApplicationRecord
     after_commit on: :create do |index|
         ZahifIndexerWorker.perform_async('initialize_index', :index_id => index.id)
     end
+
     def name
         self.device_partition.label
     end
@@ -42,10 +43,6 @@ class Index < ApplicationRecord
 
     def indexed_count
         (Rails.application.config.es_client.count index: "#{self.name.downcase}_*")["count"]
-    end
-
-    def index_settings
-        ActiveSupport::JSON.decode(self.settings)
     end
 
     def es_wildcard_name

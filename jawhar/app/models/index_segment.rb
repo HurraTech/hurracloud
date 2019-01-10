@@ -20,7 +20,7 @@ class IndexSegment < ApplicationRecord
                                      segment.relative_path.sub(self.relative_path, '')
       "/#{Regexp.quote(exclude_path)}*"
     }
-    excludes = excludes.concat(self.index.index_settings['excludes'] || [])
+    excludes = excludes.concat(self.index.settings['excludes'] || [])
     ERB.new(FSCRAWLER_TEMPLATE).result(binding)
   end
 
