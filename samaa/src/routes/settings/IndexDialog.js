@@ -114,7 +114,7 @@ class IndexDialog extends React.Component {
   handleSave = () => {
       if (this.props.onSave)
         this.props.onSave({
-            excludes: this.state.excludeList
+            excludes: this.state.excludeList.filter(pattern => pattern.trim().length > 0)
         })
   }
   

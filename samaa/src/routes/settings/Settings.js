@@ -15,12 +15,10 @@ import { Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import $ from 'jquery'
 import Utils from '../../utils'
-import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
 import MountIcon from '@material-ui/icons/PlayCircleFilledWhiteOutlined'
 import UnmountIcon from '@material-ui/icons/EjectOutlined'
 import IndexIcon from '@material-ui/icons/DescriptionOutlined'
-
 import Tooltip from '@material-ui/core/Tooltip';
 import IndexDialog from './IndexDialog';
 
@@ -220,29 +218,6 @@ class IndexingTable extends React.Component {
     }
 
     componentDidMount() {
-        // axios
-        // .get(`http://192.168.1.2:5000/indices`)
-        // .then(res => {
-        //   this.setState({ 
-        //       indices: res.data
-        //    }, () => {
-        //     $(document).ready(function() {
-        //         $(".meter > span").each(function() {
-        //             $(this)
-        //                 .data("origWidth", $(this).width())
-        //                 .width(0)
-        //                 .animate({
-        //                     width: `${$(this).data("origWidth")}%`
-        //                 }, 1200, () => {
-        //                     if ($(this).data("origWidth") == 100)
-        //                         $(this).parent().hide(0, () => { console.log($(this).siblings()); $(this).parent().siblings(".indexingDone").css('display', 'block') } )
-        //                 })
-        //         });
-        //     });
-                
-        //    });
-        // });
-
         axios
         .get(`http://192.168.1.2:5000/sources`)
         .then(res => {
@@ -263,14 +238,14 @@ class IndexingTable extends React.Component {
                 });
             });
            });
-        });        
-
+        });   
 
     }
 
+
     render() {
         const { classes } = this.props;
-        const { indices, sources, indexDialogOpen, selectedPartition } = this.state
+        const { sources, indexDialogOpen, selectedPartition } = this.state
         return (
             <div>
                 <IndexDialog 
@@ -291,7 +266,7 @@ class IndexingTable extends React.Component {
 
                                 <div className={classes.tableDescriptionWrapper}>
                                     <Typography variant="title" className={classes.descriptionTitle}>
-                                    Attached Drives & Accounts
+                                    Devices & Accounts
                                     </Typography>
                                     <Typography variant="body" align="justify" className={classes.descriptionContent}>
                                         Your HurraCloud device comes with internal storage. You can also connect external USB devices or connect with online cloud storage such as Google Drive, Dropbox and iCloud
@@ -321,6 +296,7 @@ class IndexingTable extends React.Component {
                                             let total_free = source.device_partitions.reduce((sum, partition) => sum + (partition.available||0), 0)
                                             if (source.source_type != "system")
                                                 partitions = source.device_partitions.map((partition) =>{
+                                                    let indexingProgress = partition.index && partition.index.progress < 100 ? ` - ${partition.index.progress}%` : ''
                                                     let partition_name = partition.label
                                                     return (<TableRow key={source.id} className={classes.partitionRow}>
                                                         <TableCell scope="row" className={classes.iconCell}></TableCell>
@@ -365,19 +341,14 @@ class IndexingTable extends React.Component {
                                                                 </Tooltip>
                                                             </div>
                                                         </TableCell>
-                                                        {partition.index && <><TableCell align="right" className={classNames(classes.bodyCell,classes.indexCell)}>
-                                                            { partition.index.progress < 100 && (<div>
-                                                            <div className="meter orange">
-                                                                <span style={{width: partition.index.progress }}>
-                                                                </span>
+                                                        {partition.index && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
+                                                            <div className="indexingDone" style={{display: partition.index.progress >= 100 ? "block" : "none" }}>
+                                                                <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
                                                             </div>
-                                                            <div className="indexingDone">
-                                                                <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
-                                                            </div></div>)}
-                                                            { partition.index.progress >= 100 && (<div>
-                                                                <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
-                                                            </div>)}
-                                                            {partition.index.progress == 0 ? "Initializing index" : `${partition.index.indexed_count} document(s) - ${partition.index.progress}%`}
+                                                            { partition.index.progress < 100 && (<div className="meter orange">
+                                                                                                        <span style={{width: partition.index.progress }} />
+                                                                                                  </div>)}
+                                                            {partition.index.progress == 0 ? "Initializing index" : `${partition.index.indexed_count} document(s) ${indexingProgress}`}
                                                         </TableCell>
                                                         </>}
                                                         {!partition.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
@@ -417,66 +388,6 @@ class IndexingTable extends React.Component {
                                 </Table>
                             </Paper>
                         </Grid>                
-                        <Grid item xs={12}>
-                            <Paper className={classes.root}>
-                                <div className={classes.fabWrapper}>
-                                    <Fab aria-label="Create Index" color="secondary" className={classes.createButton}>
-                                        <AddIcon />
-                                    </Fab>
-                                    </div>
-
-
-                                <div className={classes.tableDescriptionWrapper}>
-                                    <Typography variant="title" className={classes.descriptionTitle}>
-                                    Indexes
-                                    </Typography>
-                                    <Typography variant="body" align="justify" className={classes.descriptionContent}>
-                                        Indexes make your files and data searchable in blazing speed. They take a while to build for the first time, but they are worth it. We promise!
-                                    </Typography>
-                                </div>                        
-                                <Table className={classes.table}>
-                                    <TableRow>
-                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Name</TableCell>
-                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)}>Data Source</TableCell>
-                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Indexed Files</TableCell>
-                                        <TableCell variant="head" component='div' className={classNames(classes.tableHeader)} align="right">Status</TableCell>
-                                    </TableRow>
-                                    {/* <TableBody>
-                                        {indices.map(index => {
-                                            return (
-                                                <TableRow key={index.id}>
-                                                    <TableCell align="left" className={classes.tableCell}>{index.name}</TableCell>
-                                                    <TableCell scope="row" className={classes.tableCell}>
-                                                    <div style={{float:'left'}}><span
-                                                    className={'fab fa-usb fa-2x'}
-                                                    style={{ marginRight: '0.5em' }}
-                                                    />
-                                                    </div>
-                                                    <div style={{paddingTop:'6px'}}>
-                                                    {index.name}
-                                                    </div>
-                                                    </TableCell>
-                                                    <TableCell align="right" className={classes.tableCell}>{index.indexed_count}</TableCell>
-                                                    <TableCell align="right" className={classes.tableCell}>
-                                                        { index.progress < 100 && (<div>
-                                                        <div className="meter orange">
-                                                            <span style={{width: index.progress }}>
-                                                            </span>
-                                                        </div>
-                                                        <div className="indexingDone">
-                                                            <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
-                                                        </div></div>)}
-                                                        { index.progress >= 100 && (<div>
-                                                            <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
-                                                        </div>)}                                                    
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody> */}
-                                </Table>
-                            </Paper>                        
-                        </Grid>
                     </Grid>
                 </Grid>
             </div>

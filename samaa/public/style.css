@@ -167,5 +167,6 @@ body {
 }
 
 .indexingDone {
-  display: none
+  float: left;
+  margin-right: 5px;
 }

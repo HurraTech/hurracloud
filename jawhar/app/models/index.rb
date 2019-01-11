@@ -5,6 +5,22 @@ class Index < ApplicationRecord
     belongs_to :device_partition
     has_many :index_segments
     serialize :settings, JSON
+    enum status: [ :init, :initial_indexing, :indexing, :completed ]
+    
+    before_save do
+        self.status ||= :init
+    end
+
+    after_initialize do
+        if ["initial_indexing", "indexing"].include?(self.status)
+            total_completed_segments = self.index_segments.select{|s| s.current_status == "completed"}.length
+            total_segments = self.index_segments.length
+            if total_completed_segments == total_segments
+                self.status = :completed
+                self.save()
+            end
+        end
+    end
 
     after_commit on: :create do |index|
         ZahifIndexerWorker.perform_async('initialize_index', :index_id => index.id)
@@ -23,8 +39,8 @@ class Index < ApplicationRecord
     end
 
     def progress
-        return 100 if self.count.to_f == 0
-        return 100 if self.index_segments.select{|s| s.current_status != "completed"}.length == 0
+        return 0 if self.status == "init"
+        return 100 if self.status == "completed"
         now = Time.now
         total_elapsed_minutes = self.index_segments.map{ |s| s.relative_indexing_duration(now) }.inject(0, &:+)
         total_etas = self.index_segments.map(&:eta_minutes).inject(0, &:+)
@@ -38,7 +54,8 @@ class Index < ApplicationRecord
     end
 
     def eta_minutes
-        self.index_segments.sort_by { |s| s.eta_minutes }.reverse[0].eta_minutes
+        self.status != "init" ?  
+            self.index_segments.sort_by { |s| s.eta_minutes }.reverse[0].eta_minutes : 0                
     end
 
     def indexed_count

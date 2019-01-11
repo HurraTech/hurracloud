@@ -50,7 +50,7 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - esdata1:/usr/share/elasticsearch/data
+      - es-data:/usr/share/elasticsearch/data
     networks:
       - hurracloud
     # PUT _template/all
@@ -72,7 +72,7 @@ services:
       - hurracloud
 
 volumes:
-  esdata1:
+  es-data:
     driver: local
   redis-data:
     driver: local

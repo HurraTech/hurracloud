@@ -1,6 +1,8 @@
 class ZahifIndexerWorker
   include Sidekiq::Worker
-  sidekiq_options queue: 'indexer'
+  include Sidekiq::Lock::Worker
+
+  sidekiq_options queue: 'indexer', lock: { timeout: 8000, name: 'lock-worker' }
   
   SEGMENT_CONTENT_THRESHOLD = 500
   def perform(job, params)
@@ -51,6 +53,8 @@ class ZahifIndexerWorker
             segment.save()
             ZahifIndexerWorker.perform_async('index_segment', :index_segment_id => segment.id)
         end
+        index.status = :initial_indexing
+        index.save()
     when 'index_segment'
         index_segment_id = params['index_segment_id']
         index_segment = IndexSegment.find(index_segment_id)

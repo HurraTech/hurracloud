@@ -106,9 +106,13 @@ class IndexSegment < ApplicationRecord
 
   def eta_minutes
     return 0 if self.current_status == "completed"
-    return -1 if ["scheduled", "init"].include?(self.current_status)
+    return 9999 if ["scheduled", "init"].include?(self.current_status)
+    return 9999 if self.indexed_count == 0
     elapsed = Time.now - self.last_run_started_at
-    (((elapsed.to_f / self.progress) * (100-self.progress).to_f) / 60).round(0)
+    # elapsed
+    Rails.logger.info("HELLLO!?!?!?!?!?!?")
+    Rails.logger.info(" (#{elapsed.to_f} / #{self.indexed_count}) * (#{total_count}-#{self.indexed_count}).to_f) / 60")
+    (((elapsed.to_f / self.indexed_count) * (self.total_count-self.indexed_count).to_f) / 60).round(0)
   end
 
   def average_file_size_weight
