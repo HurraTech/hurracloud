@@ -21,7 +21,9 @@ import UnmountIcon from '@material-ui/icons/EjectOutlined'
 import IndexIcon from '@material-ui/icons/DescriptionOutlined'
 import Tooltip from '@material-ui/core/Tooltip';
 import IndexDialog from './IndexDialog';
-
+import AlertDialog from '../../components/AlertDialog'
+import PauseIcon from '@material-ui/icons/Pause'
+import IconButton from '@material-ui/core/IconButton';
 
 const styles = theme => ({
     root: {
@@ -105,6 +107,7 @@ const styles = theme => ({
 
     nameCell: {
         padding: '0px',
+        maxWidth: '80x'
     },
 
     capacityCell: {
@@ -124,7 +127,17 @@ const styles = theme => ({
     },
 
     indexCell: {
-        minWidth: '200px'
+        minWidth: '170px',
+        padding: '0px',
+    },
+
+    actionCell: {
+        maxWidth: '1px'
+    },
+
+    indexTools: {
+        float: 'right',
+        clear: 'both'
     }
 
 });
@@ -151,7 +164,8 @@ class IndexingTable extends React.Component {
             indices: [],
             sources: [],
             indexDialogOpen: false,
-            selectedPartition: {}
+            selectedPartition: {},
+            unmountAlertOpen: false
         }
     }
 
@@ -170,18 +184,41 @@ class IndexingTable extends React.Component {
         console.log(source_id, partition_id)
 
         axios
-        .get(`http://192.168.1.2:5000/sources/${source_id}/mount/${partition_id}`)
+        .get(`http://192.168.1.2:5000/sources/${source_id}/_mount/${partition_id}`)
         .then(res => {
             console.log(res)
         })
     }
 
-    handleUnmountClick(source_id, partition_id) {
+    handleUnmountClick(partition) {
+        if (partition.index && (partition.index.status == "initial_indexing" || partition.index.status == "initial_indexing")) {
+            this.setState({ unmountAlertOpen: true, selectedPartition: partition });
+        }
+        else {
+            this.doUnmountParition(partition)            
+        }
+    }
+
+    openUnmountAlert() {
+        this.setState({ unmountAlertOpen: true });
+    }
+
+    cancelUnmountAlert = () => {
+        this.setState({ unmountAlertOpen: false });
+    }
+
+    confirmUnmountAlert = () => { 
+        this.doUnmountParition(this.state.selectedPartition)
+        this.setState({ unmountAlertOpen: false });
+    }
+
+    doUnmountParition(partition)
+    {
         axios
-        .get(`http://192.168.1.2:5000/sources/${source_id}/unmount/${partition_id}`)
+        .get(`http://192.168.1.2:5000/sources/${partition.source_id}/_unmount/${partition.id}`)
         .then(res => {
             console.log(res)
-        })
+        })        
     }
 
     openIndexDialog(partition) {
@@ -218,30 +255,28 @@ class IndexingTable extends React.Component {
     }
 
     componentDidMount() {
-        axios
-        .get(`http://192.168.1.2:5000/sources`)
-        .then(res => {
-          this.setState({ 
-              sources: res.data
-           }, () => {
-            $(document).ready(function() {
-                $(".meter > span").each(function() {
-                    $(this)
-                        .data("origWidth", $(this).width())
-                        .width(0)
-                        .animate({
-                            width: `${$(this).data("origWidth")}%`
-                        }, 1200, () => {
-                            if ($(this).data("origWidth") == 100)
-                                $(this).parent().hide(0, () => { console.log($(this).siblings()); $(this).parent().siblings(".indexingDone").css('display', 'block') } )
-                        })
-                });
-            });
-           });
-        });   
+        this.getSources()
+        this.timer = setInterval(()=> this.getSources(), 1000);
 
+        
     }
 
+    getSources = () => {
+        axios
+        .get('http://192.168.1.2:5000/sources')
+        .then(res => {
+            this.setState({ 
+                sources: res.data
+            }, () => {
+                this.forceUpdate()
+                $(document).ready(function() {
+                    $(".meter > span").each(function() {
+                        $(this).css("max-width", "1000px")
+                    })
+                }); 
+            })
+        })
+    }
 
     render() {
         const { classes } = this.props;
@@ -253,6 +288,15 @@ class IndexingTable extends React.Component {
                     partitionObject={selectedPartition}
                     onClose={this.cancelIndexDialog.bind(this)}
                     onSave={this.onIndexDialogSave}
+                    onCancel
+                />
+                <AlertDialog open={this.state.unmountAlertOpen}
+                    cancelButton="Cancel"
+                    okButton="Yes"
+                    title="This will interrupt indexing progress. Continue?"
+                    message="Indexing is currently in progress. Unmounting the storage partition will interrupt the indexing process and may cause some loss of progress. Are you sure you want to continue?" 
+                    onCancel={this.cancelUnmountAlert}
+                    onOk={this.confirmUnmountAlert}
                 />
                 <Grid container direction="column">
                     <Grid container direction="row" spacing={32} xs={12} justify="space-between">
@@ -280,8 +324,8 @@ class IndexingTable extends React.Component {
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.capacityCell)} align="left">Capacity</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.availableCell)} align="left">Free</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.typeCell)} align="left" >Type</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.indexCell)} align="left" >Index Status</TableCell>
-                                            {/* <TableCell variant="head" component='div'  className={classNames(classes.tableHeader)}/> */}
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.indexCell)} align="left">Index Status</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.actionsCell)} align="left"></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -302,7 +346,7 @@ class IndexingTable extends React.Component {
                                                         <TableCell scope="row" className={classes.iconCell}></TableCell>
                                                         <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
                                                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                            {partition.mounted ? partition_name : <i>{partition_name}</i>}                                                    
+                                                            {partition_name}
                                                         </TableCell>
                                                         <TableCell scope="row" className={classNames(classes.bodyCell, classes.capacityCell)}>
                                                         {partition.mounted && Utils.humanFileSize(partition.size)}
@@ -315,7 +359,7 @@ class IndexingTable extends React.Component {
                                                             { (() => {
                                                                 if (partition.mounted) 
                                                                     return <Tooltip title="Unmounting the drive will make it inaccessible.">
-                                                                                <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source.id, partition.id)} }>
+                                                                                <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(partition)} }>
                                                                                     <UnmountIcon className={classes.leftIcon}></UnmountIcon>
                                                                                     Unmount
                                                                                 </Button>
@@ -345,13 +389,19 @@ class IndexingTable extends React.Component {
                                                             <div className="indexingDone" style={{display: partition.index.progress >= 100 ? "block" : "none" }}>
                                                                 <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
                                                             </div>
+
                                                             { partition.index.progress < 100 && (<div className="meter orange">
-                                                                                                        <span style={{width: partition.index.progress }} />
+                                                                                                        <span style={{width: `${partition.index.progress}%` }} />
                                                                                                   </div>)}
                                                             {partition.index.progress == 0 ? "Initializing index" : `${partition.index.indexed_count} document(s) ${indexingProgress}`}
                                                         </TableCell>
                                                         </>}
                                                         {!partition.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
+                                                        <TableCell>
+                                                                <IconButton aria-label="Pause">
+                                                                    <PauseIcon fontSize="small" />
+                                                                </IconButton>                                                            
+                                                        </TableCell>
                                                     </TableRow>)
                                                 })
                                             return (
@@ -374,7 +424,7 @@ class IndexingTable extends React.Component {
                                                     </TableCell>
                                                     <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
                                                                     && Utils.humanFileSize(total_free*1024)}</TableCell>
-                                                    <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)} colSpan={2}>
+                                                    <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)} colSpan={3}>
                                                     <div style={{paddingTop:'6px'}}>
                                                         {IndexingTable.prettyTypeName(source.source_type)}
                                                     </div>

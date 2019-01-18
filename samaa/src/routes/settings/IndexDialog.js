@@ -57,7 +57,6 @@ const DEFAULT_EXCLUDES_LIST = [
     "*.yfull",
     "*.kdbx",
     "*/.DS_Store",
-    "*/.*",
     ""
 ]
 

@@ -7,14 +7,14 @@
     <RollingFile name="FILE" fileName="<%= log_file %>" filePattern="<%= log_file %>.%i" append="true" maxFiles="1">
         <PatternLayout pattern="%d{ABSOLUTE} %highlight{%-5p} [%c{1.}] %m%n"/>
         <Policies>
-            <OnStartupTriggeringPolicy minSize="512 KB" />
-            <SizeBasedTriggeringPolicy size="512 KB" />
+            <OnStartupTriggeringPolicy minSize="512 MB" /> <!-- TODO: CHANGE THIS IN PROD -->
+            <SizeBasedTriggeringPolicy size="512 MB" /> <!-- TODO: CHANGE THIS IN PROD -->
         </Policies>
         <DefaultRolloverStrategy max="1"/>
     </RollingFile>
    </Appenders>
    <Loggers>
-      <Logger name="fr.pilato.elasticsearch.crawler.fs" level="info" additivity="false">
+      <Logger name="fr.pilato.elasticsearch.crawler.fs" level="debug" additivity="false">
          <AppenderRef ref="CONSOLE"/>
          <AppenderRef ref="FILE"/>
       </Logger>
@@ -30,7 +30,7 @@
          <AppenderRef ref="CONSOLE"/>
          <AppenderRef ref="FILE"/>
       </Logger>
-      <Root level="info">
+      <Root level="debug">
          <AppenderRef ref="CONSOLE"/>
          <AppenderRef ref="FILE"/>
       </Root>

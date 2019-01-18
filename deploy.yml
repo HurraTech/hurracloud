@@ -71,6 +71,11 @@
     with_file:
       - key.pub
 
+  - name: Copying sudo file
+    copy:
+      src: ./sudoers
+      dest: /etc/sudoers.d/hurra
+
   - name: Setup sshd_config
     lineinfile:
       path: /etc/ssh/sshd_config
@@ -84,6 +89,12 @@
     
   - name: Setup / as shared
     command: sh -c 'mount --make-shared /'
+
+  - name: Setup environment
+    lineinfile:
+      path: /etc/profile
+      regexp: '^export HURRA_HOME'
+      line: 'export HURRA_HOME=/usr/local/src/hurracloud' ##TODO: Replace this with /usr/share/hurracloud
 
 #### Deploy Application
   - name: Deploy Application
@@ -101,26 +112,8 @@
       group: root
     with_items:
       - /usr/share/hurracloud
-      - /usr/share/hurracloud/zahif
-      - /usr/share/hurracloud/zahif/logs
-      - /usr/share/hurracloud/zahif/indices
-      - /usr/share/hurracloud/jawhar/db
+      - /usr/share/hurracloud/data
 
-  - name: Create Directory Structure (sources)
-    file:
-      state: link
-      src: /mnt
-      dest: /usr/share/hurracloud/zahif/sources
-      owner: root
-      group: root
-
-  # - name: Deploy Application
-  #   file:
-  #     state: directory
-  #     name: /usr/share/hurracloud/data
-  #     owner: root
-  #     group: root
-      
   - name: Deploy Application
     template:
       src: docker-compose.yml

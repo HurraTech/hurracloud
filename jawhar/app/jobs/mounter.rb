@@ -1,14 +1,11 @@
-require 'fileutils'
-require 'json'
 require 'sys/filesystem'
 include Sys
 
-class ZahifMounterWorker
-  include Sidekiq::Worker
-  sidekiq_options queue: 'mounter'
+class Mounter
+    @queue = :mounter
 
-    def perform(job, data)
-        case job
+    def self.perform(cmd, data = {})
+        case cmd
         when 'mount_partition'    
             partition_id = data["partition_id"]
             partition = DevicePartition.find(partition_id) or return
@@ -18,7 +15,8 @@ class ZahifMounterWorker
             puts "Mounting #{dev_path} #{mount_path}"
             result = `mount -o ro #{dev_path} #{mount_path}` 
             puts "Result #{result}"
-            ZahifMounterWorker.perform_async('update_sources', {})
+            Resque.enqueue(Mounter, 'update_sources')
+
         when 'unmount_partition'    
             partition_id = data["partition_id"]
             partition = DevicePartition.find(partition_id) or return
@@ -28,7 +26,7 @@ class ZahifMounterWorker
             puts "Unmounting #{dev_path} #{mount_path}"
             result = `umount #{mount_path}` 
             puts "Result #{result}"
-            ZahifMounterWorker.perform_async('update_sources', {})   
+            Resque.enqueue(Mounter, 'update_sources')
         when 'update_sources'
             devices = { }
             `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb`.split("\n").each do |line|             
@@ -57,7 +55,6 @@ class ZahifMounterWorker
                         partition["LABEL"] = "#{devices[dev][:model]} ##{partition["NUMBER"]}"
                     end
 
-
                     mount = Filesystem.mounts.select{ |d| d.name == path }[0]
                     if mount
                         fs = Filesystem.stat(mount.mount_point)
@@ -77,7 +74,7 @@ class ZahifMounterWorker
                 s = Source.where(unique_id: device[:uuid]).first_or_create { |s|
                     s.unique_id = device[:uuid]                
                 }
-                self.update_source(s, device)
+                Mounter.update_source(s, device)
                 s.save()
                 puts JSON.pretty_generate(s.as_json)
             end
@@ -85,7 +82,7 @@ class ZahifMounterWorker
         end
     end
 
-    def update_source(s, device)
+    def self.update_source(s, device)
         s.source_type = device[:type]
         s.url = device[:path]
         s.capacity = device[:capacity]
@@ -119,3 +116,5 @@ class ZahifMounterWorker
         end
     end    
 end
+
+    

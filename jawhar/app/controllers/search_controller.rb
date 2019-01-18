@@ -67,7 +67,7 @@ class SearchController < ApplicationController
             };
         end
 
-        es_response = Rails.application.config.es_client.search index: index.es_wildcard_name, body: query   
+        es_response = Rails.application.config.es_client.search index: "hurracloud_*", body: query   
         hits = es_response["hits"]["hits"]
         hits = hits.map{ |h|
             h["_source"]["path"] = h["_source"]["path"]["real"].sub("#{Settings.mounts_path}", "")
@@ -83,6 +83,6 @@ class SearchController < ApplicationController
     def allow_cors
         response.headers['Access-Control-Allow-Origin'] = 'http://192.168.1.2:3000'
         response.headers['Access-Control-Allow-Methods'] = 'GET'
-      end    
+    end
 
 end

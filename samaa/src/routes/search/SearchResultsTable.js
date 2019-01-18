@@ -151,7 +151,7 @@ class SearchResultsTable extends React.PureComponent {
             <Highlighter
               searchWords={this.state.searchTerms}
               autoEscape
-              textToHighlight={cellData._source.path}
+              textToHighlight={cellData._source.path.substring(cellData._source.path.indexOf('/')+1)}
             />
           </TableCell>
         );

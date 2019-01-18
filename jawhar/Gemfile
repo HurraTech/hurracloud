@@ -13,7 +13,9 @@ gem 'elasticsearch'
 gem 'whenever', require: false
 gem 'sys-filesystem'
 gem 'rack-cors', require: 'rack/cors'
-gem 'sidekiq-lock'
+gem 'resque', '~> 1.25'
+gem 'resque-scheduler', '~> 4.0'
+gem 'resque-retry'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.6'

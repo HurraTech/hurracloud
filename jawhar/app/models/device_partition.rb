@@ -4,11 +4,11 @@ class DevicePartition < ApplicationRecord
   has_one :index
 
   def mount()
-    ZahifMounterWorker.perform_async('mount_partition', :partition_id => self.id)
+    Resque.enqueue(Mounter, 'mount_partition', :partition_id => self.id)
   end
 
   def unmount()
-      ZahifMounterWorker.perform_async('unmount_partition', :partition_id => self.id)
+      Resque.enqueue(Mounter, 'unmount_partition', :partition_id => self.id)
   end
 
   def mount_path

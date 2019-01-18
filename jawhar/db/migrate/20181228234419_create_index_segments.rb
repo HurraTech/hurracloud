@@ -12,6 +12,7 @@ class CreateIndexSegments < ActiveRecord::Migration[5.1]
       t.integer :total_count
       t.integer :actual_size
       t.integer :total_size
+      t.integer :crawler_pid
       t.timestamps
     end
 

@@ -4,25 +4,20 @@ services:
     ports:
       - 9200:9200
     
-  # zahif_indexer:
-  #   image: aimannajjar/hurracloud:jawhar-v1
-  #   volumes:
-  #     - ./jawhar:/usr/share/hurracloud/jawhar
+  zahif:
+    volumes:
+      - ./jawhar:/usr/share/hurracloud/jawhar
+    command: sh -c "bundle install && ./bin/start_zahif.sh"
 
   jawhar:
-    image: aimannajjar/hurracloud:jawhar-v1
     build:
       context: .
       dockerfile: Jawhar.Dockerfile
     volumes:
       - ./jawhar:/usr/share/hurracloud/jawhar
-    networks:
-      - hurracloud
     ports:
       - 5000:3000
     command: sh -c "bundle install && ./bin/start.sh"
-    environment:
-      - HOST_MOUNTS_PATH=/usr/local/src/hurracloud/mounts
 
   samaa:
     image: aimannajjar/hurracloud:samaa-v1
@@ -41,5 +36,3 @@ services:
       - hurracloud
     environment:
       - NODE_ENV=development
-
-      

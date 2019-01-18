@@ -5,6 +5,16 @@ if [ ! -f /root/.ssh/known_hosts ]; then
     ssh-keyscan -H hurracloud >> /root/.ssh/known_hosts
 fi
 
+## Deploy Database migrations
+echo "Deploy Database"
+rake db:migrate
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to deploy DB migrations: $status"
+  exit $status
+fi
+
+
 ## Startup API Server
 echo "Starting up API server"
 rails s -p 3000 -b '0.0.0.0' -d
@@ -14,15 +24,23 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
+## Startup background scheduler
+echo "Starting up scheduler"
+rake resque:scheduler &> log/scheduler.log &
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start scheduler: $status"
+  exit $status
+fi
+
 ## Startup Zahif Mounter
-echo "Starting up Zahif mounter"
-bundle exec sidekiq -q mounter -d -L log/mounter.log
+echo "Starting up Zahif mounter" 
+QUEUE=mounter BACKGROUND=yes rake resque:work
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start Zahif Mounter: $status"
   exit $status
 fi
-
 
 ## Startup USB Monitor
 echo "Starting up USB monitor"

@@ -170,3 +170,12 @@ body {
   float: left;
   margin-right: 5px;
 }
+
+
+.meter > span {
+  -moz-transition: max-width 5s ease;
+  -webkit-transition: max-width 5s ease;
+  -o-transition: max-width 5s ease;
+  transition: max-width 5s ease;
+  max-width: 10px
+}

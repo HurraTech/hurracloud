@@ -3,6 +3,7 @@
     "fs" : {
       "url" : "<%=url%>",
       "update_rate" : "10s",
+      "includes" : <%=includes%>,      
       "excludes" : <%=excludes%>,
       "json_support" : false,
       "filename_as_id" : false,
@@ -17,7 +18,7 @@
       "index_folders" : false,
       "lang_detect" : false,
       "continue_on_error" : true,
-      "pdf_ocr" : true,
+      "pdf_ocr" : <%=ocr%>,
       "ocr" : {
         "language" : "eng+ara"
       }
@@ -30,7 +31,9 @@
       } ],
       "bulk_size" : 5,
       "flush_interval" : "5s",
-      "byte_size" : "4mb"
+      "byte_size" : "4mb",
+      "index": "<%=index_name%>",
+      "index_folder" : "<%=index_name%>_folders"
     },
     "rest" : {
       "scheme" : "HTTP",

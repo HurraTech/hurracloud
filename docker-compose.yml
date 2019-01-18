@@ -4,18 +4,19 @@ services:
     image: aimannajjar/hurracloud:jawhar-v1
     volumes_from:
     - jawhar
-    command: bundle exec sidekiq -q indexer
+    command: ./bin/start_zahif.sh
     environment:
     - RAILS_ENV=indexer
     networks:
       - hurracloud
+    restart: always
 
   jawhar:
     image: aimannajjar/hurracloud:jawhar-v1
     volumes:
-      - ./indices:/usr/share/hurracloud/zahif/indices
-      - ./data:/usr/share/hurracloud/jawhar/data
-      - ./logs:/usr/share/hurracloud/jawhar/log
+      - ./data/indices:/usr/share/hurracloud/zahif/indices
+      - ./data/db:/usr/share/hurracloud/jawhar/data
+      - ./data/logs:/usr/share/hurracloud/jawhar/log
       - ./key:/root/.ssh/id_rsa
       - /dev/bus/usb:/dev/bus/usb
       - type: bind
@@ -26,6 +27,7 @@ services:
     networks:
       - hurracloud
     privileged: true
+    restart: always
 
   samaa:
     image: aimannajjar/hurracloud:samaa-v1
@@ -33,6 +35,7 @@ services:
       - hurracloud
     environment:
       - NODE_ENV=production
+    restart: always
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
@@ -53,14 +56,7 @@ services:
       - es-data:/usr/share/elasticsearch/data
     networks:
       - hurracloud
-    # PUT _template/all
-    # {
-    #   "index_patterns": ["*"],
-    #   "settings": {
-    #     "number_of_shards": 1,
-    #     "number_of_replicas": 1
-    #   }
-    # }
+    restart: always
 
   redis:
     image: redis:5.0.3-alpine
@@ -79,3 +75,7 @@ volumes:
 
 networks:
   hurracloud:
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+
