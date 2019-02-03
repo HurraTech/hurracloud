@@ -17,7 +17,7 @@ services:
       - ./jawhar:/usr/share/hurracloud/jawhar
     ports:
       - 5000:3000
-    command: sh -c "bundle install && ./bin/start.sh"
+    command: sh -c "bundle install && ./bin/start_jawhar.sh"
 
   samaa:
     image: aimannajjar/hurracloud:samaa-v1

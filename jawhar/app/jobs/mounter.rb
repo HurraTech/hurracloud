@@ -11,9 +11,9 @@ class Mounter
             partition = DevicePartition.find(partition_id) or return
             dev_path = partition.deviceFile
             mount_path = partition.mount_path
-            FileUtils.mkdir_p mount_path
+            FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
             puts "Mounting #{dev_path} #{mount_path}"
-            result = `mount -o ro #{dev_path} #{mount_path}` 
+            result = `mount -t ntfs-3g #{dev_path} #{mount_path}` 
             puts "Result #{result}"
             Resque.enqueue(Mounter, 'update_sources')
 
@@ -22,7 +22,7 @@ class Mounter
             partition = DevicePartition.find(partition_id) or return
             dev_path = partition.deviceFile
             mount_path = partition.mount_path
-            FileUtils.mkdir_p mount_path
+            # FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
             puts "Unmounting #{dev_path} #{mount_path}"
             result = `umount #{mount_path}` 
             puts "Result #{result}"
@@ -116,5 +116,3 @@ class Mounter
         end
     end    
 end
-
-    

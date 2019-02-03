@@ -113,4 +113,3 @@ class Indexer
     end
   
   end
-  

@@ -11,6 +11,7 @@
       - rsync
       - shadow
       - sudo
+      - ntfs-3g
       state: latest
       update_cache: yes
       repository: 

@@ -42,4 +42,3 @@ class WorkerManager
     end
   
   end
-  

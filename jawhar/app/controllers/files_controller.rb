@@ -42,6 +42,7 @@ class FilesController < ApplicationController
                 {
                     name: i,
                     type: FileTest.directory?(entry_path) ? "folder": file_extension,
+                    path: "#{source_id}/#{partition_label}/#{params[:path]}/#{i}",
                     last_modified: File.mtime(entry_path),
                     filesize: File.size(entry_path)
                 }

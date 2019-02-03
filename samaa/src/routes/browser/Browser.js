@@ -55,12 +55,17 @@ class Content extends React.Component {
     this.searchThrottled = throttle(500, this.search);
   }
 
-  handlePreviewCloseClick() {
+  handlePreviewCloseClick() {    
+    let backPath = this.state.path.substring(0, this.state.path.lastIndexOf("/"))
+    console.log("Closing preview, going to this path", backPath)
     this.setState({
       isPreviewOpen: false,
       isInlineViewerOpen: false,
       openedFile: '',
+      path: backPath
     });
+    history.goBack()
+
   }
 
   componentDidUpdate(prevProps) {
@@ -102,60 +107,77 @@ class Content extends React.Component {
   handleFilenameClick = index => {
     const path = this.state.items[index].name;
     const type = this.state.items[index].type;
-    console.log("Current state", this.state)
-    const requestedPath = `${this.state.path}/${path}`;
     console.log(`Clicked on ${path} of type ${type}`)
-    history.push({
-      pathname: `/browse/${requestedPath}`
-    });
-  
-    this.setState(
-      {
-        isAjaxInProgress: true,
-        isInlineViewerOpen: false,
-        isPreviewOpen: false,
-        openedFile: '',
-        path: requestedPath
-      },
-      () => {
-        if (type == 'folder' || type.indexOf('source_') == 0) {
-          console.log("Requesed path", requestedPath)          
-          this.browse().then(() => {
-            this.setState({
-              isAjaxInProgress: false,
-              isInlineViewerOpen: false,
-              isPreviewOpen: false,
-              openedFile: '',
-            });
-          });
-        } else {
-          axios
-            .get(`http://192.168.1.2:5000/files/is_viewable/${requestedPath}`)
-            .then(res => {
-              this.setState({ isAjaxInProgress: false }, () => {
-                const isViewable = res.data.is_viewable;
-                if (isViewable) {
-                  this.setState({
-                    openedFile: requestedPath,
-                    isInlineViewerOpen: true,
-                    isPreviewOpen: false,
-                  });
-                } else {
-                  window.location = `http://192.168.1.2:5000/files/download/${requestedPath}`;
-                }
-              });
-            });
-        }
-      },
-    );
+    let requestedPath = `${type != 'folder' ? '_open_/' :''}${this.state.path}/${path}`;
+    history.push({ pathname: `/browse/${requestedPath}`});  
+    this.setState({path: requestedPath}, () => { this.browse() } )
+
+    // this.setState(
+    //   {
+    //     isAjaxInProgress: true,
+    //     isInlineViewerOpen: false,
+    //     isPreviewOpen: false,
+    //     openedFile: '',
+    //     path: requestedPath
+    //   },
+    //   () => {
+    //     if (type == 'folder' || type.indexOf('source_') == 0) {
+    //       console.log("Requesed path", requestedPath)          
+    //       this.browse().then(() => {
+    //         this.setState({
+    //           isAjaxInProgress: false,
+    //           isInlineViewerOpen: false,
+    //           isPreviewOpen: false,
+    //           openedFile: '',
+    //         });
+    //       });
+    //     } else {
+    //       this.openFile()
+    //     }
+    //   },
+    // );
   };
+
+  openFile() {
+    return new Promise((resolve, reject) => {
+      axios
+      .get(`http://192.168.1.2:5000/files/is_viewable/${this.state.path.replace('_open_/', '')}`)
+      .then(res => {
+        this.setState({ isAjaxInProgress: false }, () => {
+          const isViewable = res.data.is_viewable;
+          if (isViewable) {
+            this.setState({
+              openedFile: this.state.path.replace('_open_/', ''),
+              isInlineViewerOpen: true,
+              isPreviewOpen: false,
+            });
+          } else {
+            window.location = `http://192.168.1.2:5000/files/download/${this.state.path.replace('_open_/', '')}`;
+          }
+        });
+      });    
+    })
+  }
 
   componentDidMount() {
     this.browse();
+
+    window.onpopstate = ()=> {
+      console.log(location)
+      this.setState({
+        path: location.pathname.replace("/browse/", ""),
+      }, () => {        
+        this.browse()
+      })
+    }
+
   }
 
   browse() {
     console.log("Making request to ", this.state.path)
+    if (this.state.path.startsWith("_open_/")) {
+      return this.openFile()
+    }
     return new Promise((resolve, reject) => {
       axios.get(`http://192.168.1.2:5000/files/browse/${this.state.path}`).then(res => {
         const response = res.data;
@@ -163,6 +185,8 @@ class Content extends React.Component {
         this.setState(
           {
             items: response.contents,
+            isInlineViewerOpen: false,
+            isPreviewOpen: false,
           },
           () => {
             resolve(response.contents);

@@ -12,7 +12,7 @@ class Index < ApplicationRecord
     end
 
     after_initialize do
-        if ["initial_indexing", "indexing"].include?(self.status)
+        if ["initial_indexing", "indexing", "paused"].include?(self.status)
             total_completed_segments = self.index_segments.select{|s| s.current_status == "completed"}.length
             total_segments = self.index_segments.length
             if total_completed_segments == total_segments

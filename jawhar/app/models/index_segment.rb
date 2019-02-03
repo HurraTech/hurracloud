@@ -91,7 +91,7 @@ class IndexSegment < ApplicationRecord
   end
 
   def as_json(options={})
-    super(options.merge!(methods: [:is_root?, :fscrawler_settings_json, :path_without_wildcard]))
+    super(options.merge!(methods: [:is_root?, :path_without_wildcard]))
   end
 
 end

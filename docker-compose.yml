@@ -67,6 +67,45 @@ services:
     networks:
       - hurracloud
 
+  samba:
+    image: dperson/samba
+    environment:
+      TZ: 'EST5EDT'
+    networks:
+      - hurracloud
+    ports:
+      - "137:137/udp"
+      - "138:138/udp"
+      - "139:139/tcp"
+      - "445:445/tcp"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - type: bind
+        source: ./mounts
+        target: /mount
+        bind:
+          propagation: shared
+    command: '-u "aiman;Ytz8fJaaxqhdQkpAMnGLOyOkix1" -s "drives;/mount;yes;no;no;aiman;aiman,aiman" -w "HURRA"'
+
+  ftp:
+    image: vimagick/pure-ftpd
+    ports:
+      - "21:21"
+    volumes:
+      - type: bind
+        source: ./mounts
+        target: /home/ftpuser
+        bind:
+          propagation: shared
+
+    privileged: true
+    restart: always
+
 volumes:
   es-data:
     driver: local

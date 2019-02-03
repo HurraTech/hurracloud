@@ -190,7 +190,7 @@ class BrowserTable extends React.PureComponent {
             padding="none"
           >
             <Tooltip title="Donwload File">
-              <IconButton href="http://192.168.1.2:5000/files/download">
+              <IconButton href={`http://192.168.1.2:5000/files/download/${cellData.path}` } >
                 <DownloadIcon color="inherit" color="primary" />
               </IconButton>
             </Tooltip>
