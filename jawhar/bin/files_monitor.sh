@@ -1,3 +1,4 @@
-inotifywait -r -m /usr/share/hurracloud/mounts -e delete -e close_write | while read path action file; do
-    echo "New event. ${path} .. ${action} .. ${file}"
+inotifywait -r -m /usr/share/hurracloud/mounts -e delete -e close_write --format "%e %w%f" | while read action path file; do
+    echo "${action}: ${path}${file}"
+    rake zahif:index_file["${path}${file}"]
 done
