@@ -41,7 +41,6 @@ class Indexer
                     Rails.logger.debug "Found #{subdirectory}"
                     if count > SEGMENT_CONTENT_THRESHOLD || i == 0
                         Rails.logger.debug "Creating segment for #{subdirectory} (count=#{count})"
-                        # ['', 'a-c', 'd-f', 'g-i', 'j-l', 'm-o', 'p-r', 's-u', 'v-x', 'y-z', '0-9_\.\-'].each do |char|
                         ['', 'a-d', 'e-h', 'i-l', 'm-p', 'q-t', 'u-x', 'y-z', '0-9_\.\-'].each do |char|
                             char_class = char
                             char_class = "[#{char}]" if char.size > 1
@@ -64,15 +63,8 @@ class Indexer
                 end
             end
             Rails.logger.info "Done creating semgents for index #{index.id}. Building relationship tree"
-            #TODO: See if below can be optimized, too many loops
-            # for segment in index.index_segments
-            #     # Find segment's parent
-            #     segment.find_parent()
-            #     segment.save()
-            # end
-            
+
             for segment in index.index_segments
-                # segment.update_counts()
                 segment.current_status = :scheduled
                 segment.save()
                 Resque.enqueue(Indexer, 'index_segment',  :index_id => index.id, :index_segment_id => segment.id)
@@ -108,6 +100,23 @@ class Indexer
             index_segment.last_run = Time.now
             index_segment.last_duration_seconds = (index_segment.last_run - index_segment.last_run_started_at)
             index_segment.save()
+        when 'after_scan'
+            index_id = params['index_id']
+            index = Index.find(index_id)
+            fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{index.name}"
+            fscrawler_index_dir = "#{fscrawler_config_dir}/rescan"
+            FileUtils.mkdir_p fscrawler_index_dir
+            File.write("#{fscrawler_index_dir}/_settings.json", index.fscrawler_settings)
+            File.write("#{fscrawler_index_dir}/log4j.xml", index.fscrawler_log4j_config)
+            # pid = Process.spawn({"JAVA_HOME" => "/usr/lib/jvm/java-8-openjdk-amd64/jre/",
+            #         "FS_JAVA_OPTS" => "-Xmx512m -Xms512m -Dlog4j.configurationFile=#{fscrawler_index_dir}/log4j.xml"},
+            #         'bin/fscrawler', "segment_#{index_segment_id}", '--loop', '1', '--config_dir', fscrawler_config_dir)
+            # Rails.logger.info("Spawned process #{pid}.. Waiting for it to complete")
+            # index_segment.crawler_pid = pid
+            # index_segment.save()
+            # Process.wait(pid)
+            Rails.logger.info("Completed")
+
         end
       end
     end

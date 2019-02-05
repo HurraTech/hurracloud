@@ -6,7 +6,10 @@ class Index < ApplicationRecord
     has_many :index_segments
     serialize :settings, JSON
     enum status: [ :init, :initial_indexing, :indexing, :completed, :paused ]
-    
+
+    FSCRAWLER_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_template.json.erb'))
+    FSCRAWLER_LOG4J_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_log4j.xml.erb'))
+      
     before_save do
         self.status ||= :init
     end
@@ -18,6 +21,7 @@ class Index < ApplicationRecord
             if total_completed_segments == total_segments
                 self.status = :completed
                 self.save()
+                Resque.enqueue(Indexer, 'after_scan', :index_id => index.id)
             end
         end
     end
@@ -37,21 +41,6 @@ class Index < ApplicationRecord
     def root_segment
         self.index_segments[0]
     end
-
-    # def progress
-    #     return 0 if self.status == "init"
-    #     return 100 if self.status == "completed"
-    #     now = Time.now
-    #     total_elapsed_minutes = self.index_segments.map{ |s| s.relative_indexing_duration(now) }.inject(0, &:+)
-    #     total_etas = self.index_segments.map(&:eta_minutes).inject(0, &:+)
-    #     self.index_segments.map{ |segment| 
-    #         count_weight = (segment.actual_count || 0) / self.count.to_f
-    #         size_weight = (segment.actual_size || 0) / self.size.to_f
-    #         # slowness_weight = segment.relative_indexing_duration(now) / total_elapsed_minutes
-    #         slowness_weight = segment.eta_minutes / total_etas.to_f
-    #         segment.progress * ((count_weight + size_weight + slowness_weight*2) / 4)
-    #     }.inject(0, &:+).round(2)
-    # end
 
     def progress
         return 0 if self.status == "init"
@@ -73,6 +62,29 @@ class Index < ApplicationRecord
 
     def as_json(options={})
         super(options.merge!(methods: [:name, :progress, :indexed_count]))
+    end
+    
+    def fscrawler_settings
+        name = self.crawler_job_name
+        index_name = self.index.es_index_name
+        url = "#{self.index.full_path}"
+        excludes = self.index.settings['excludes'] || []        
+        includes = "null"
+        ocr = self.index.settings['ocr'] || false
+        ERB.new(FSCRAWLER_TEMPLATE).result(binding)
+    end
+
+    def fscrawler_settings_json
+        ActiveSupport::JSON.decode(fscrawler_settings)
+    end  
+
+    def fscrawler_log4j_config
+        log_file = "#{Rails.root.join('log', "zahif/rescan-#{self.id}.log")}"
+        ERB.new(FSCRAWLER_LOG4J_TEMPLATE).result(binding)
+    end
+
+    def crawler_job_name
+        "#{self.name}_rescan".gsub(/[\*\/\-_\. ]/, '_').downcase
     end
     
 end

@@ -45,6 +45,17 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
+## Startup Zahif Files Monitor
+### Mounts monitor responsible for spawning files monitor whenever there is new mount / unmount operations
+### Files montior is responsible for enqueing index jobs when mounts have file changes
+echo "Starting up Zahif mounts monitor" 
+./bin/mounts_monitor.sh &> log/mounts_monitor.log &
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start Zahif Mounts Monitor: $status"
+  exit $status
+fi
+
 ## Startup USB Monitor
 ### USB monitor simply runs rake zahif:update command whenever there's change in system's USB devices
 echo "Starting up USB monitor"

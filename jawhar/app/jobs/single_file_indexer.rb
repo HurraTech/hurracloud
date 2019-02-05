@@ -35,7 +35,7 @@ class SingleFileIndexer
                               "FS_JAVA_OPTS" => "-Xmx512m -Xms512m -Dlog4j.configurationFile=#{fscrawler_config_dir}/log4j.xml"
                             }, cmd)
         Rails.logger.debug("Command #{cmd} returned: #{stdout}\n#{stderr}")
-        # FileUtils.rm_rf(fscrawler_config_dir)
+        FileUtils.rm_rf(fscrawler_config_dir)
         Rails.logger.info("Completed")
     end
 

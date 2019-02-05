@@ -23,7 +23,7 @@ services:
         source: ./mounts
         target: /usr/share/hurracloud/mounts
         bind:
-          propagation: shared
+          propagation: rshared
     networks:
       - hurracloud
     privileged: true

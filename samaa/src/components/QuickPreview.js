@@ -6,7 +6,6 @@ import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import injectSheet from 'react-jss/lib/injectSheet';
 
@@ -64,7 +63,7 @@ const DialogContent = withStyles(theme => ({
   );
 });
 
-class FilePreview extends React.Component {
+class QuickPreview extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -83,9 +82,7 @@ class FilePreview extends React.Component {
   }
 
   handleClose() {
-    this.setState({
-      open: false,
-    });
+    this.props.onCloseClick()
   }
 
   render() {
@@ -117,4 +114,4 @@ class FilePreview extends React.Component {
   }
 }
 
-export default injectSheet(styles)(FilePreview);
+export default injectSheet(styles)(QuickPreview);
