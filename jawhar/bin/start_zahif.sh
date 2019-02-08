@@ -10,7 +10,7 @@ if [ $status -ne 0 ]; then
 fi
 
 echo "Starting up Zahif Single File Indexer" 
-PIDFILE=/var/resque-single.pid BACKGROUND=yes QUEUE=single_file_indexer rake resque:work
+PIDFILE=/var/resque-single.pid BACKGROUND=yes QUEUE=single_file_indexer,scanners rake resque:work
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start Zahif Single File Indexer: $status"

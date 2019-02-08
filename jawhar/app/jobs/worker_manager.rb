@@ -37,7 +37,7 @@ class WorkerManager
             index.status = :paused
             index.save()
             Rails.logger.info "Pausing index #{index.id} completed"
-        when 'resume'
+        when 'resume'            
         end
     end
   

@@ -8,5 +8,10 @@ namespace :zahif do
     task :index_file, [:file] => :environment do |task, args|
         Resque.enqueue(SingleFileIndexer, 'index_file', :file => args[:file])
     end
+
+    desc "Spawns scanners"
+    task :spawn_scanners => :environment do
+        Resque.enqueue(Scanner, 'spawn_scanners')
+    end
 end
 

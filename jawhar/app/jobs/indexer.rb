@@ -22,7 +22,9 @@ class Indexer
       true
     end
   
-  
+    FSCRAWLER_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_template.json.erb'))
+    FSCRAWLER_LOG4J_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_log4j.xml.erb'))
+
   
     def self.perform(job, params)
       Rails.logger.info("Got a #{job} job. Params: #{params}")
@@ -100,25 +102,8 @@ class Indexer
             index_segment.last_run = Time.now
             index_segment.last_duration_seconds = (index_segment.last_run - index_segment.last_run_started_at)
             index_segment.save()
-        when 'after_scan'
-            index_id = params['index_id']
-            index = Index.find(index_id)
-            fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{index.name}"
-            fscrawler_index_dir = "#{fscrawler_config_dir}/rescan"
-            FileUtils.mkdir_p fscrawler_index_dir
-            File.write("#{fscrawler_index_dir}/_settings.json", index.fscrawler_settings)
-            File.write("#{fscrawler_index_dir}/log4j.xml", index.fscrawler_log4j_config)
-            # pid = Process.spawn({"JAVA_HOME" => "/usr/lib/jvm/java-8-openjdk-amd64/jre/",
-            #         "FS_JAVA_OPTS" => "-Xmx512m -Xms512m -Dlog4j.configurationFile=#{fscrawler_index_dir}/log4j.xml"},
-            #         'bin/fscrawler', "segment_#{index_segment_id}", '--loop', '1', '--config_dir', fscrawler_config_dir)
-            # Rails.logger.info("Spawned process #{pid}.. Waiting for it to complete")
-            # index_segment.crawler_pid = pid
-            # index_segment.save()
-            # Process.wait(pid)
-            Rails.logger.info("Completed")
-
         end
       end
     end
-  
+
   end

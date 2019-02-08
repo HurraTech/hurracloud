@@ -21,7 +21,7 @@ class Index < ApplicationRecord
             if total_completed_segments == total_segments
                 self.status = :completed
                 self.save()
-                Resque.enqueue(Indexer, 'after_scan', :index_id => index.id)
+                # Resque.enqueue(Indexer, 'setup_scanner', :index_id => index.id)
             end
         end
     end
@@ -66,11 +66,11 @@ class Index < ApplicationRecord
     
     def fscrawler_settings
         name = self.crawler_job_name
-        index_name = self.index.es_index_name
-        url = "#{self.index.full_path}"
-        excludes = self.index.settings['excludes'] || []        
+        index_name = self.es_index_name
+        url = "#{self.full_path}"
+        excludes = self.settings['excludes'] || []        
         includes = "null"
-        ocr = self.index.settings['ocr'] || false
+        ocr = self.settings['ocr'] || false
         ERB.new(FSCRAWLER_TEMPLATE).result(binding)
     end
 
@@ -79,7 +79,7 @@ class Index < ApplicationRecord
     end  
 
     def fscrawler_log4j_config
-        log_file = "#{Rails.root.join('log', "zahif/rescan-#{self.id}.log")}"
+        log_file = "#{Rails.root.join('log', "zahif/scanner-#{self.es_index_name}.log")}"
         ERB.new(FSCRAWLER_LOG4J_TEMPLATE).result(binding)
     end
 
