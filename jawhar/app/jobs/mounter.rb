@@ -10,23 +10,26 @@ class Mounter
             partition_id = data["partition_id"]
             partition = DevicePartition.find(partition_id) or return
             dev_path = partition.deviceFile
-            mount_path = partition.mount_path
-            FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)            
-            puts "Mounting #{dev_path} #{mount_path}"
-            result = `mount -t ntfs-3g #{dev_path} #{mount_path}` 
-            puts "Result #{result}"
-            `touch /usr/share/hurracloud/mounts`
+            host_mount_path = partition.host_mount_path
+            local_mount_path = partition.mount_path
+            FileUtils.mkdir_p(local_mount_path) unless File.directory?(local_mount_path)            
+            Rails.logger.info "Mounting #{dev_path} #{host_mount_path}"
+            result = `ssh hurra@hurracloud '(sudo mount -t ntfs-3g #{dev_path} #{host_mount_path}) || (sudo mount #{dev_path} #{host_mount_path})'`
+            Rails.logger.info "Ran `ssh hurra@hurracloud '(sudo mount -t ntfs-3g #{dev_path} #{host_mount_path}) || (sudo mount #{dev_path} #{host_mount_path})'`"
+            Rails.logger.info "Result #{result}"
+            `touch /usr/share/hurracloud/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh) 
             Resque.enqueue(Mounter, 'update_sources')
 
         when 'unmount_partition'    
             partition_id = data["partition_id"]
             partition = DevicePartition.find(partition_id) or return
             dev_path = partition.deviceFile
-            mount_path = partition.mount_path
+            mount_path = partition.host_mount_path
             # FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
-            puts "Unmounting #{dev_path} #{mount_path}"
-            result = `umount #{mount_path}` 
-            puts "Result #{result}"
+            Rails.logger.info  "Unmounting #{dev_path} #{host_mount_path}"
+            result = `ssh hurra@hurracloud 'sudo umount #{mount_path}'`
+            Rails.logger.info "Ran `ssh hurra@hurracloud 'sudo umount #{mount_path}'`"
+            Rails.logger.info  "Result #{result}"
             Resque.enqueue(Mounter, 'update_sources')
         when 'update_sources'
             devices = { }

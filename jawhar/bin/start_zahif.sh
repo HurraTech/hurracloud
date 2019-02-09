@@ -17,7 +17,6 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
-
 ## Startup Zahif Manager
 echo "Starting up Zahif Manager"
 QUEUE=manager-$(hostname) rake resque:work

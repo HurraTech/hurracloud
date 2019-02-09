@@ -1,1 +1,1 @@
-%hurra ALL=(root) NOPASSWD:/usr/bin/docker-compose 
+%hurra ALL=(root) NOPASSWD:/bin/mount, /bin/umount 

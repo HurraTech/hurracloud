@@ -66,6 +66,12 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
+echo "Setup cron schedule"
+echo "*/5 * * * * rake zahif:spawn_scanners" >> ~/cron
+crontab ~/cron
+
+service cron start
+
 echo "Done. Monitoring processes "
 
 # Naive check runs checks once a minute to see if either of the processes exited.

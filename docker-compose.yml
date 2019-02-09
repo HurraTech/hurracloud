@@ -23,7 +23,9 @@ services:
         source: ./mounts
         target: /usr/share/hurracloud/mounts
         bind:
-          propagation: rshared
+          propagation: shared
+    environment:
+    - HOST_MOUNT_PATH=/usr/share/hurracloud/mounts/
     networks:
       - hurracloud
     privileged: true
