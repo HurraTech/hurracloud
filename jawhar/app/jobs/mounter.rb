@@ -60,13 +60,14 @@ class Mounter
                     end
 
                     mount = Filesystem.mounts.select{ |d| d.name == path }[0]
+                    Rails.logger.info "Found mount #{mount.name}" if mount
                     if mount
                         fs = Filesystem.stat(mount.mount_point)
                         partition[:size] = fs.blocks  * fs.block_size / 1024
                         partition[:available] = fs.blocks_available  * fs.block_size / 1024
-                        partition[:mounted] = true            
+                        partition[:status] = :mounted
                     else
-                        partition[:mounted] = false
+                        partition[:status] = :unmounted
                     end
     
                     devices[dev][:partitions] << partition
@@ -109,7 +110,7 @@ class Mounter
             }
             partition.partitionNumber = p["NUMBER"]
             partition.deviceFile = p[:path]
-            partition.mounted = p[:mounted]
+            partition.status = p[:status]
             partition.filesystem = p["TYPE"]
             if p[:size]
                 partition.size = p[:size]

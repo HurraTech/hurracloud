@@ -19,6 +19,10 @@ class SingleFileIndexer
         partition_label = parsed_path[1]
         filename = parsed_path.last
         partition = DevicePartition.where(source_id: source_id, label: partition_label).first()
+        if !partition.index 
+            Rails.logger.info("Skipping #{file} as this partition is not indexed")
+            return
+        end
         index = partition.index
 
         Rails.logger.info "Starting index process for #{file}"

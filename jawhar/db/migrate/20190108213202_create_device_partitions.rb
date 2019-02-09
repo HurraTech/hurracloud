@@ -6,10 +6,10 @@ class CreateDevicePartitions < ActiveRecord::Migration[5.1]
       t.integer :partitionNumber
       t.string :deviceFile
       t.string :label
-      t.boolean :mounted
       t.string :filesystem
       t.integer :size
       t.integer :available
+      t.integer :status
       t.text :raw
 
       t.timestamps

@@ -2,13 +2,18 @@ class DevicePartition < ApplicationRecord
   belongs_to :source
   serialize :raw, JSON
   has_one :index
+  enum status: [ :unmounted, :mounting, :unmounting, :mounted ]
 
   def mount()
+    self.status = :mounting
+    self.save()
     Resque.enqueue(Mounter, 'mount_partition', :partition_id => self.id)
   end
 
   def unmount()
-      Resque.enqueue(Mounter, 'unmount_partition', :partition_id => self.id)
+    self.status = :unmounting
+    self.save()
+    Resque.enqueue(Mounter, 'unmount_partition', :partition_id => self.id)
   end
 
   def mount_path
