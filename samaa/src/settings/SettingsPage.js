@@ -178,6 +178,15 @@ class SettingsPage extends React.Component {
         })
     }
 
+    handlePauseClick(source_id, partition_id, index_id) {
+        var currentSources = [...this.state.sources]
+        currentSources.find(s => s.id === source_id).device_partitions.find(d => d.id === partition_id).index.status = "pausing"
+        this.setState({sources: currentSources}, () => {
+            axios.get(`http://192.168.1.2:5000/indices/${index_id}/_pause`)
+        })
+    }
+
+
     handleUnmountClick(partition) {
         if (partition.index && (partition.index.status == "initial_indexing" || partition.index.status == "initial_indexing")) {
             this.setState({ unmountAlertOpen: true, selectedPartition: partition });
@@ -333,7 +342,7 @@ class SettingsPage extends React.Component {
                                             <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.nameCell)} scope="row">Name</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.capacityCell)} align="left">Capacity</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.availableCell)} align="left">Free</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.typeCell)} align="left" >Type</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.typeCell)} align="left" >Actions</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.indexCell)} align="left">Index Status</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.actionsCell)} align="left"></TableCell>
                                         </TableRow>
@@ -364,7 +373,7 @@ class SettingsPage extends React.Component {
                                                         <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>
                                                         {partition.status == "mounted" && Utils.humanFileSize(partition.available)}
                                                         </TableCell>
-                                                        <TableCell align="center"  className={classNames(classes.bodyCell, classes.typeCell)}>
+                                                        <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)}>
                                                             <div style={{width:'120px', float:'left'}}>
                                                             { (() => {
                                                                 if (partition.status == "mounted") 
@@ -387,6 +396,7 @@ class SettingsPage extends React.Component {
                                                             }
                                                             </div>
                                                             <div style={{width:'120px', float:'left'}}>
+                                                            {!partition.index && (
                                                                 <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
                                                                     <Button variant="outline"
                                                                             color="primary" size="small"
@@ -394,7 +404,20 @@ class SettingsPage extends React.Component {
                                                                         <IndexIcon className={classes.leftIcon}></IndexIcon>
                                                                         Index
                                                                     </Button>
-                                                                </Tooltip>
+                                                                </Tooltip>)
+                                                            }
+
+                                                            {partition.index && (partition.index.status === "initial_indexing" || partition.index.status === "indexing") && (
+                                                            // <IconButton aria-label="Pause">
+                                                            //     <PauseIcon fontSize="small" />
+                                                            // </IconButton>
+                                                            <Button variant="outline"
+                                                                color="primary" size="small"
+                                                                onClick={() => { this.handlePauseClick(source.id, partition.id, partition.index.id)}}>
+                                                                <PauseIcon className={classes.leftIcon}></PauseIcon>
+                                                            Pause
+                                                        </Button>)}
+
                                                             </div>
                                                         </TableCell>
                                                         {partition.index && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
@@ -410,9 +433,6 @@ class SettingsPage extends React.Component {
                                                         </>}
                                                         {!partition.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
                                                         <TableCell>
-                                                                <IconButton aria-label="Pause">
-                                                                    <PauseIcon fontSize="small" />
-                                                                </IconButton>                                                            
                                                         </TableCell>
                                                     </TableRow>)
                                                 })
@@ -437,9 +457,9 @@ class SettingsPage extends React.Component {
                                                     <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
                                                                     && Utils.humanFileSize(total_free*1024)}</TableCell>
                                                     <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)} colSpan={3}>
-                                                    <div style={{paddingTop:'6px'}}>
+                                                    {/* <div style={{paddingTop:'6px'}}>
                                                         {SettingsPage.prettyTypeName(source.source_type)}
-                                                    </div>
+                                                    </div> */}
                                                     </TableCell>
                                                 </TableRow>
                                                 {partitions}

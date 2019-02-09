@@ -432,7 +432,7 @@ class App extends React.Component {
           </div>
           <Divider />
           <List>
-            {['Browser', 'Search', 'Settings'].map((text) => (
+            {['Search', 'Browser', 'Settings'].map((text) => (
               <div>
               <Link to={`/${text.toLowerCase()}/`} style={{ textDecoration: 'none' }}>
                 <ListItem
