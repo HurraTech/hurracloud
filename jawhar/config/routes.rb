@@ -19,6 +19,8 @@ Rails.application.routes.draw do
     resources :index_segments,  :defaults => { :format => 'json' }
     get '_pause', to: 'indices#pause'
     get '_resume', to: 'indices#resume'
+    get '_delete', to: 'indices#delete'
+    get '_cancel', to: 'indices#cancel'
   end
 
   mount Resque::Server.new, at: "/resque"

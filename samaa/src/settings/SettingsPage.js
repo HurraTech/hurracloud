@@ -16,14 +16,16 @@ import classNames from 'classnames';
 import $ from 'jquery'
 import Utils from '../utils'
 import Button from '@material-ui/core/Button';
-import MountIcon from '@material-ui/icons/PlayCircleFilledWhiteOutlined'
-import UnmountIcon from '@material-ui/icons/EjectOutlined'
+import MountIcon from '@material-ui/icons/PlayForWork'
+import UnmountIcon from '@material-ui/icons/EjectRounded'
 import IndexIcon from '@material-ui/icons/DescriptionOutlined'
 import Tooltip from '@material-ui/core/Tooltip';
 import IndexDialog from './IndexDialog';
 import AlertDialog from '../components/AlertDialog'
 import PauseIcon from '@material-ui/icons/Pause'
-import IconButton from '@material-ui/core/IconButton';
+import ResumeIcon from '@material-ui/icons/PlayArrowRounded'
+import DeleteIcon from '@material-ui/icons/DeleteRounded'
+import CancelIcon from '@material-ui/icons/CancelPresentation'
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 const styles = theme => ({
@@ -108,19 +110,19 @@ const styles = theme => ({
 
     nameCell: {
         padding: '0px',
-        maxWidth: '80x'
+        width: '20%'
     },
 
     capacityCell: {
-        maxWidth: '50px'
+        width: '100px'
     },
 
     availableCell: {
-        maxWidth: '50px'        
+        width: '100px'        
     },
 
-    typeCell: {
-        maxWidth:'125px'
+    actionsCell: {
+        width:'30%'
     },
 
     headerCell: {
@@ -128,12 +130,8 @@ const styles = theme => ({
     },
 
     indexCell: {
-        minWidth: '170px',
+        width: '300px',
         padding: '0px',
-    },
-
-    actionCell: {
-        maxWidth: '1px'
     },
 
     indexTools: {
@@ -142,7 +140,9 @@ const styles = theme => ({
     },
 
     progress: {
-        margin: theme.spacing.unit * 1,
+        marginTop: theme.spacing.unit,
+        marginLeft: theme.spacing.unit * 5,
+        padding:'2px'
       },    
 
 });
@@ -186,9 +186,63 @@ class SettingsPage extends React.Component {
         })
     }
 
+    handleResumeClick(source_id, partition_id, index_id) {
+        var currentSources = [...this.state.sources]
+        currentSources.find(s => s.id === source_id).device_partitions.find(d => d.id === partition_id).index.status = "resuming"
+        this.setState({sources: currentSources}, () => {
+            axios.get(`http://192.168.1.2:5000/indices/${index_id}/_resume`)
+        })
+    }
 
+    /* --------- Cancel Index ----------- */
+    handleCancelClick(partition) {
+        this.setState({ cancelIndexAlertOpen: true, selectedPartition: partition });
+    }
+
+    doCancelIndex(partition) {
+        var currentSources = [...this.state.sources]
+        currentSources.find(s => s.id === partition.source_id).device_partitions.find(d => d.id === partition.id).index.status = "cancelling"
+        this.setState({sources: currentSources}, () => {
+            axios.get(`http://192.168.1.2:5000/indices/${partition.index.id}/_cancel`)
+        })
+
+    }
+
+    confirmCancelAlert = () => {
+        this.doCancelIndex(this.state.selectedPartition);
+        this.setState({ cancelIndexAlertOpen: false });
+    }
+
+    cancelCancelAlert = () => {        
+        this.setState({ cancelIndexAlertOpen: false });
+    }
+
+    /* --------- Delete Index ----------- */
+    handleDeleteIndexClick(partition) {
+        this.setState({ deleteIndexAlertOpen: true, selectedPartition: partition });
+    }
+
+    doDeleteIndex(partition) {
+        var currentSources = [...this.state.sources]
+        currentSources.find(s => s.id === partition.source_id).device_partitions.find(d => d.id === partition.id).index.status = "deleting"
+        this.setState({sources: currentSources}, () => {
+            axios.get(`http://192.168.1.2:5000/indices/${partition.index.id}/_delete`)
+        })
+
+    }
+    
+    confirmDeleteAlert = () => {
+        this.doDeleteIndex(this.state.selectedPartition);
+        this.setState({ deleteIndexAlertOpen: false });
+    }
+
+    cancelDeleteAlert = () => {        
+        this.setState({ deleteIndexAlertOpen: false });
+    }
+
+    /* --------- Unmount Partition ----------- */
     handleUnmountClick(partition) {
-        if (partition.index && (partition.index.status == "initial_indexing" || partition.index.status == "initial_indexing")) {
+        if (partition.index && partition.index.status == "indexing") {
             this.setState({ unmountAlertOpen: true, selectedPartition: partition });
         }
         else {
@@ -196,16 +250,12 @@ class SettingsPage extends React.Component {
         }
     }
 
-    openUnmountAlert() {
-        this.setState({ unmountAlertOpen: true });
-    }
-
-    cancelUnmountAlert = () => {
+    confirmUnmountAlert = () => { 
+        this.doUnmountParition(this.state.selectedPartition)
         this.setState({ unmountAlertOpen: false });
     }
 
-    confirmUnmountAlert = () => { 
-        this.doUnmountParition(this.state.selectedPartition)
+    cancelUnmountAlert = () => {
         this.setState({ unmountAlertOpen: false });
     }
 
@@ -218,6 +268,9 @@ class SettingsPage extends React.Component {
         })
 
     }
+
+
+    /* ------- Create Index ------- */
 
     openIndexDialog(partition) {
         this.setState({
@@ -252,36 +305,8 @@ class SettingsPage extends React.Component {
         })
     }
 
-    componentDidMount() {
-        // this.updateSourcesAndSchedule()
-    }
 
-    componentWillUnmount() {
-        clearInterval(this.timer)
-    }
-
-    // updateSourcesAndSchedule() {
-    //     this.getSources()
-    //     this.timer = setInterval(()=> this.getSources(), 1000);        
-    // }
-
-    // getSources = () => {
-    //     axios
-    //     .get('http://192.168.1.2:5000/sources')
-    //     .then(res => {
-    //         this.setState({ 
-    //             sources: res.data
-    //         }, () => {
-    //             this.forceUpdate()
-    //             $(document).ready(function() {
-    //                 $(".meter > span").each(function() {
-    //                     $(this).css("max-width", "1000px")
-    //                 })
-    //             }); 
-    //         })
-    //     })
-    // }
-
+    /* ---------- Update Sources --------- */
     componentDidUpdate = (prevProps, prevState, snapshot) => {
         if (JSON.stringify(this.props.sources) != JSON.stringify(prevProps.sources)) {
             this.setState({ 
@@ -297,6 +322,7 @@ class SettingsPage extends React.Component {
         }
     }
 
+    /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
         const { sources, indexDialogOpen, selectedPartition } = this.state
@@ -317,6 +343,23 @@ class SettingsPage extends React.Component {
                     onCancel={this.cancelUnmountAlert}
                     onOk={this.confirmUnmountAlert}
                 />
+                <AlertDialog open={this.state.deleteIndexAlertOpen}
+                    cancelButton="Cancel"
+                    okButton="Yes"
+                    title="This will make your files non-searchable. Continue?"
+                    message="Deleting the index will makes your files on this partition non-searchable, you can re-create the index later but it might take time depending on data size. Are you sure you want to continue?"
+                    onCancel={this.cancelDeleteAlert}
+                    onOk={this.confirmDeleteAlert}
+                />
+                <AlertDialog open={this.state.cancelIndexAlertOpen}
+                    cancelButton="Cancel"
+                    okButton="Yes"
+                    title="Are you sure you want to cancel index creation?"
+                    message="You will be able to tempoarirly pause index creation after the index has been initialized."
+                    onCancel={this.cancelCancelAlert}
+                    onOk={this.confirmCancelAlert}
+                />
+
                 <Grid container direction="column">
                     <Grid container direction="row" spacing={32} xs={12} justify="space-between">
                     <Grid item xs={12}>
@@ -329,7 +372,7 @@ class SettingsPage extends React.Component {
 
                                 <div className={classes.tableDescriptionWrapper}>
                                     <Typography variant="title" className={classes.descriptionTitle}>
-                                    Devices & Accounts
+                                    Storage Indexes
                                     </Typography>
                                     <Typography variant="body" align="justify" className={classes.descriptionContent}>
                                         Your HurraCloud device comes with internal storage. You can also connect external USB devices or connect with online cloud storage such as Google Drive, Dropbox and iCloud
@@ -342,9 +385,8 @@ class SettingsPage extends React.Component {
                                             <TableCell variant="head" component='div' className={classNames(classes.tableHeader, classes.nameCell)} scope="row">Name</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.capacityCell)} align="left">Capacity</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.availableCell)} align="left">Free</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.typeCell)} align="left" >Actions</TableCell>
+                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.actionsCell)} align="left" >Actions</TableCell>
                                             <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.indexCell)} align="left">Index Status</TableCell>
-                                            <TableCell variant="head" component='div'  className={classNames(classes.tableHeader, classes.actionsCell)} align="left"></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -373,8 +415,8 @@ class SettingsPage extends React.Component {
                                                         <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>
                                                         {partition.status == "mounted" && Utils.humanFileSize(partition.available)}
                                                         </TableCell>
-                                                        <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)}>
-                                                            <div style={{width:'120px', float:'left'}}>
+                                                        <TableCell align="left"  className={classNames(classes.bodyCell, classes.actionsCell)}>
+                                                        <div style={{width: "120px", float: 'left', minHeight: '1px'}}>
                                                             { (() => {
                                                                 if (partition.status == "mounted") 
                                                                     return <Tooltip title="Unmounting the drive will make it inaccessible.">
@@ -395,45 +437,85 @@ class SettingsPage extends React.Component {
                                                                 })()
                                                             }
                                                             </div>
-                                                            <div style={{width:'120px', float:'left'}}>
-                                                            {!partition.index && (
+                                                            <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
+                                                            {!partition.index && partition.status == "mounted" && (
                                                                 <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
                                                                     <Button variant="outline"
                                                                             color="primary" size="small"
                                                                             onClick={() => { this.openIndexDialog(partition) }}>
                                                                         <IndexIcon className={classes.leftIcon}></IndexIcon>
-                                                                        Index
+                                                                        Create Index
                                                                     </Button>
                                                                 </Tooltip>)
                                                             }
+                                                            {partition.index && (partition.index.status == "init" || partition.index.status == "scheduled") && (
+                                                                <Tooltip title="You can cancel index creation while it's being intialized or scheduled. You will have the opportuinity to temporarily pause after intialization has completed">
+                                                                    <Button variant="outline"
+                                                                            color="primary" size="small"
+                                                                            onClick={() => { this.handleCancelClick(partition) }}>
+                                                                        <CancelIcon className={classes.leftIcon}></CancelIcon>
+                                                                        Cancel
+                                                                    </Button>
+                                                                </Tooltip>)
+                                                            }
+                                                            {partition.index && partition.index.status === "cancelling"  && (
+                                                                <CircularProgress className={classes.progress} size={20} />
+                                                            )}                             
 
-                                                            {partition.index && (partition.index.status === "initial_indexing" || partition.index.status === "indexing") && (
-                                                            // <IconButton aria-label="Pause">
-                                                            //     <PauseIcon fontSize="small" />
-                                                            // </IconButton>
+                                                            {partition.index && partition.status == "mounted" && partition.index.status === "indexing" && (
                                                             <Button variant="outline"
                                                                 color="primary" size="small"
                                                                 onClick={() => { this.handlePauseClick(source.id, partition.id, partition.index.id)}}>
-                                                                <PauseIcon className={classes.leftIcon}></PauseIcon>
-                                                            Pause
-                                                        </Button>)}
+                                                                <PauseIcon className={classes.leftIcon}></PauseIcon>Pause
+                                                            </Button>)}
+                                                            
+                                                            {partition.index && partition.status == "mounted" && partition.index.status === "paused" && (
+                                                            <Button variant="outline"
+                                                                color="primary" size="small"
+                                                                onClick={() => { this.handleResumeClick(source.id, partition.id, partition.index.id)}}>
+                                                                <ResumeIcon className={classes.leftIcon}></ResumeIcon>Resume
+                                                            </Button>)}
+
+                                                            {partition.index && (partition.index.status === "resuming" || partition.index.status === "pausing")  && (
+                                                                <CircularProgress className={classes.progress} size={20} />
+                                                            )}                             
+                                                            </div>
+                                                            <div style={{width: "180px", float: 'left', clear: 'right', minHeight: '1px'}}>
+                                                            {partition.index && (partition.index.status === "paused" || partition.index.status === "completed") && (
+                                                                <Button variant="outline"
+                                                                    color="primary" size="small"
+                                                                    onClick={() => { this.handleDeleteIndexClick(partition)}}>
+                                                                    <DeleteIcon className={classes.leftIcon}></DeleteIcon>Delete Index
+                                                                </Button>
+                                                            )}
+                                                            {partition.index && partition.index.status === "deleting"  && (
+                                                                <CircularProgress className={classes.progress} size={20} />
+                                                            )}                             
 
                                                             </div>
+                                                            
                                                         </TableCell>
                                                         {partition.index && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
                                                             <div className="indexingDone" style={{display: partition.index.progress >= 100 ? "block" : "none" }}>
                                                                 <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
                                                             </div>
+                                                            <div className="indexingDone" style={{display: (partition.index.status == "paused" || partition.index.status == "pausing" || partition.index.status == "resuming") ? "block" : "none" }}>
+                                                                <i style={{fontSize: 17, color: '#F86395'}} class="fas fa-pause-circle"></i>
+                                                            </div>
+                                                            <div className="indexingDone" style={{display: (partition.index.status == "scheduled") ? "block" : "none" }}>
+                                                                <i style={{fontSize: 16, color: 'orange'}} class="fas fa-clock"></i>
+                                                            </div>
 
-                                                            { partition.index.progress < 100 && (<div className="meter orange">
+                                                            { (partition.index.status == "init" || partition.index.status == "indexing") && partition.index.progress < 100 && (<div className="meter orange">
                                                                                                         <span style={{width: `${partition.index.progress}%` }} />
                                                                                                   </div>)}
-                                                            {partition.index.progress == 0 ? "Initializing index" : `${partition.index.indexed_count} document(s) ${indexingProgress}`}
+                                                            {partition.index.status == "scheduled" && "Scheduled" }                                                                                                  
+                                                            {partition.index.status == "init" && "Initializing index (scanning files)" }
+                                                            {partition.index.status != "init" && partition.index.status != "scheduled"  && partition.index.status != "cancelling"  && `${partition.index.indexed_count} document(s) ${indexingProgress}`}
+                                                            
                                                         </TableCell>
                                                         </>}
                                                         {!partition.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
-                                                        <TableCell>
-                                                        </TableCell>
                                                     </TableRow>)
                                                 })
                                             return (
@@ -456,7 +538,7 @@ class SettingsPage extends React.Component {
                                                     </TableCell>
                                                     <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>{(source.source_type == "system" || source.source_type == "internal_storage" || all_mounted) 
                                                                     && Utils.humanFileSize(total_free*1024)}</TableCell>
-                                                    <TableCell align="left"  className={classNames(classes.bodyCell, classes.typeCell)} colSpan={3}>
+                                                    <TableCell align="left"  className={classNames(classes.bodyCell, classes.actionsCell)} colSpan={3}>
                                                     {/* <div style={{paddingTop:'6px'}}>
                                                         {SettingsPage.prettyTypeName(source.source_type)}
                                                     </div> */}

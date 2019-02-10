@@ -35,10 +35,11 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
-## Startup Zahif Mounter
+## Startup Zahif Mounter & Metadata Updater
 ### Mounter is responsible for processing mount and unmount jobs that are sent by Jawhar backend
+### Metadata Updater simply changes status of index to paused or delete it (invoked after WorkerManager has completed descheduling, see WorkerManger)
 echo "Starting up Zahif mounter" 
-QUEUE=mounter BACKGROUND=yes rake resque:work
+QUEUE=metadata_updates,mounter BACKGROUND=yes rake resque:work
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start Zahif Mounter: $status"

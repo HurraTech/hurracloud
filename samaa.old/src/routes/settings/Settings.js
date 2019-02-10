@@ -196,7 +196,7 @@ class IndexingTable extends React.Component {
     }
 
     handleUnmountClick(partition) {
-        if (partition.index && (partition.index.status == "initial_indexing" || partition.index.status == "initial_indexing")) {
+        if (partition.index && partition.index.status == "indexing") {
             this.setState({ unmountAlertOpen: true, selectedPartition: partition });
         }
         else {

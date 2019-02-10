@@ -11,12 +11,20 @@ class Indexer
 
     retry_criteria_check do |exception, *args|
       if exception.is_a? Resque::DirtyExit
-        index_segment_id = args[1]["index_segment_id"]
-        index_segment = IndexSegment.find(index_segment_id)
-        Process.kill("KILL", index_segment.crawler_pid)
-        index_segment.crawler_pid = nil
-        index_segment.current_status = :killed
-        index_segment.save()
+        if args[1].key?("index_segment_id")
+            begin
+                ActiveRecord::Base.connection.execute("END;")
+            rescue Exception => e
+            end
+            index_segment_id = args[1]["index_segment_id"]
+            index_segment = IndexSegment.find_by(id: index_segment_id)
+            if (index_segment)
+                Process.kill("KILL", index_segment.crawler_pid)
+                index_segment.crawler_pid = nil
+                index_segment.current_status = :killed
+                index_segment.save()
+            end
+        end
         return false
       end  
       true
@@ -33,6 +41,8 @@ class Indexer
         when 'initialize_index'
             index_id = params['index_id']
             index = Index.find(index_id)
+            index.status = :init
+            index.save()
             Rails.logger.debug "Scanning #{index.full_path}"
             i = 0
             Find.find("#{index.full_path}") do|subdirectory| 
@@ -71,7 +81,7 @@ class Indexer
                 segment.save()
                 Resque.enqueue(Indexer, 'index_segment',  :index_id => index.id, :index_segment_id => segment.id)
             end
-            index.status = :initial_indexing
+            index.status = :indexing
             index.save()
             Rails.logger.info "Index #{index.id} initialized and segments are scheduled"
         when 'index_segment'
@@ -85,7 +95,7 @@ class Indexer
             FileUtils.mkdir_p fscrawler_index_dir
             File.write("#{fscrawler_index_dir}/_settings.json", index_segment.fscrawler_settings)
             File.write("#{fscrawler_index_dir}/log4j.xml", index_segment.fscrawler_log4j_config)
-            index_segment.current_status = index_segment.has_been_indexed? ? :indexing : :initial_indexing
+            index_segment.current_status = :indexing
             index_segment.last_run_started_at = Time.now
             index_segment.save()
             pid = Process.spawn({"JAVA_HOME" => "/usr/lib/jvm/java-8-openjdk-amd64/jre/",

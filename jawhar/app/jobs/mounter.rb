@@ -8,7 +8,7 @@ class Mounter
         case cmd
         when 'mount_partition'    
             partition_id = data["partition_id"]
-            partition = DevicePartition.find(partition_id) or return
+            partition = DevicePartition.find_by(id: partition_id) or return
             dev_path = partition.deviceFile
             host_mount_path = partition.host_mount_path
             local_mount_path = partition.mount_path
@@ -22,7 +22,7 @@ class Mounter
 
         when 'unmount_partition'    
             partition_id = data["partition_id"]
-            partition = DevicePartition.find(partition_id) or return
+            partition = DevicePartition.find_by(id: partition_id) or return
             dev_path = partition.deviceFile
             mount_path = partition.host_mount_path
             # FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)

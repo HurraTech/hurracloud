@@ -3,25 +3,35 @@ require 'find'
 
 class Index < ApplicationRecord
     belongs_to :device_partition
-    has_many :index_segments
+    has_many :index_segments, :dependent => :destroy
     serialize :settings, JSON
-    enum status: [ :init, :initial_indexing, :indexing, :completed, :paused ]
+    enum status: [ :scheduled, :init, :indexing, :completed, :paused, :resuming, :pausing, :deleting, :cancelling ]
 
     FSCRAWLER_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_template.json.erb'))
     FSCRAWLER_LOG4J_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_log4j.xml.erb'))
       
     before_save do
-        self.status ||= :init
+        self.status ||= :scheduled
+    end
+
+    before_destroy do
+        begin
+            Rails.application.config.es_client.indices.delete index: self.es_index_name
+        rescue Exception => e
+            Rails.logger.error "Exception while trying to delete ES index #{self.es_index_name}: #{e}"
+        end
+        fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{self.name}"
+        FileUtils.rm_rf("#{Rails.root.join('log', "zahif/#{self.name}")}")
+        FileUtils.rm_rf(fscrawler_config_dir)
     end
 
     after_initialize do
-        if ["initial_indexing", "indexing", "paused"].include?(self.status)
+        if ["indexing", "paused"].include?(self.status)
             total_completed_segments = self.index_segments.select{|s| s.current_status == "completed"}.length
             total_segments = self.index_segments.length
             if total_completed_segments == total_segments
                 self.status = :completed
                 self.save()
-                # Resque.enqueue(Indexer, 'setup_scanner', :index_id => index.id)
             end
         end
     end
@@ -50,7 +60,7 @@ class Index < ApplicationRecord
     
     def indexed_count
         begin
-            (Rails.application.config.es_client.count index: self.es_index_name)["count"]            
+            (Rails.application.config.es_client.count index: self.es_index_name)["count"]
         rescue => exception
             return 0            
         end

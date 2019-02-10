@@ -432,63 +432,52 @@ class App extends React.Component {
           </div>
           <Divider />
           <List>
-            {['Search', 'Browser', 'Settings'].map((text) => (
-              <div>
-              <Link to={`/${text.toLowerCase()}/`} style={{ textDecoration: 'none' }}>
-                <ListItem
-                  button
-                  key={text}
-                  selected={this.props.history.location.pathname.startsWith(`/${text.toLowerCase()}/`)}
-                >
-                  <ListItemIcon>
-                    {(() => {
-                      switch (text) {
-                        case 'Search':
-                          return <SearchIcon />;
-                        case 'Browser':
-                          return <BrowserIcon />;
-                        case 'Settings':
-                          return <SettingsIcon />;
-                      }
-                    })()}
-                  </ListItemIcon>
-                  <ListItemText primary={text} />
-                  {text == "Browser" && (this.browserListOpen ?<ExpandLess /> : <ExpandMore />) }
+            <Link to={`/search/`} style={{ textDecoration: 'none' }}>
+                <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
+                  <ListItemIcon><SettingsIcon /></ListItemIcon>
+                  <ListItemText primary="Search" style={{color:'black'}} />
+                </ListItem>
+            </Link>        
+                              
+            <ListItem button key="Browse" selected={this.props.history.location.pathname.startsWith(`/browse/`)} onClick={this.handleBrowserClick}>
+                <ListItemIcon><BrowserIcon /></ListItemIcon>
+                <ListItemText primary="Browse" style={{color:'black'}} />
+                {this.state.browserListOpen ? <ExpandLess /> : <ExpandMore />}
+              </ListItem>
+              <Collapse in={this.state.browserListOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>                    
+                  {this.state.sources.map(source => {
+                    let icon_class = "fab fa-usb"
+                    if (source.source_type == "system")
+                      icon_class = "fas fa-database"
+                    else if (source.source_type == "internal")
+                      icon_class = "fab fa-hdd"
+                    return source.device_partitions.filter(p => p.status == "mounted").map(partition => {
+                        return <Link
+                        to={`/browse/${source.id}/${partition.label}`}
+                        style={{ textDecoration: 'none', color:'black' }}
+                        >       
+                            <ListItem button className={classes.nested}>
+                                <div style={{float:'left'}}><span
+                                      className={`${icon_class}`}
+                                      style={{ marginRight: '0.5em', width:'10px', }}
+                                      />
+                                      </div> 
+                            <ListItemText inset primary={partition.label} className={classes.sourceNameText} />
+                          </ListItem>
+                          </Link>
+                    })
+                  })}
+                </List>
+              </Collapse>
+              <Divider />
+              <Link to={`/manage/`} style={{ textDecoration: 'none' }}>
+                <ListItem button key="Manage" selected={this.props.history.location.pathname.startsWith(`/manage/`)}>
+                  <ListItemIcon><SettingsIcon /></ListItemIcon>
+                  <ListItemText primary="Manage" style={{color:'black'}} />
                 </ListItem>
               </Link>
-              {(() => { 
-                if (text == 'Browser') {
-                  return <Collapse in={this.state.browserListOpen} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>                    
-                     {this.state.sources.map(source => {
-                        let icon_class = "fab fa-usb"
-                        if (source.source_type == "system")
-                          icon_class = "fas fa-database"
-                        else if (source.source_type == "internal")
-                          icon_class = "fab fa-hdd"
-                        return source.device_partitions.filter(p => p.status == "mounted").map(partition => {
-                            return <Link
-                            to={`/browse/${source.id}/${partition.label}`}
-                            // onClick={this.handlePartitionClick.bind(this)}
-                            style={{ textDecoration: 'none' }}
-                            >       
-                                <ListItem button className={classes.nested}>
-                                    <div style={{float:'left'}}><span
-                                          className={`${icon_class}`}
-                                          style={{ marginRight: '0.5em', width:'10px', }}
-                                          />
-                                          </div> 
-                                <ListItemText inset primary={partition.label} className={classes.sourceNameText} />
-                              </ListItem>
-                              </Link>
-                        })
-                     })}
-                  </List>
-                </Collapse>
-                }
-              }).bind(this)()}
-              </div>
-            ))}
+
           </List>
         </Drawer>
         <main
@@ -500,7 +489,7 @@ class App extends React.Component {
           <Route exact={true} path="/" render={() => (<Redirect from="/" to="/search/" />)} />          
           <Route path="/browse/:path+" render={({match}) => (<BrowserPage path={match.params.path || ""} />)}/>
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
-          <Route path="/settings" render={() => (<SettingsPage sources={this.state.sources} />)}/>
+          <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>
         </main>
       </div>
   </MuiThemeProvider>

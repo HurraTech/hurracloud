@@ -1,7 +1,7 @@
 require 'erb'
 
 class IndexSegment < ApplicationRecord
-  enum current_status: [ :init, :scheduled, :initial_indexing, :indexing, :completed, :killed, :cancelled ]
+  enum current_status: [ :scheduled, :init, :indexing, :completed, :killed, :cancelled ]
 
   belongs_to :index
   belongs_to :parent_segment, :class_name => 'IndexSegment', optional: true
@@ -38,7 +38,7 @@ class IndexSegment < ApplicationRecord
   end  
 
   def fscrawler_log4j_config
-    log_file = "#{Rails.root.join('log', "zahif/segment-#{self.id}.log")}"
+    log_file = "#{Rails.root.join('log', "zahif/#{self.index.name}/segment-#{self.id}.log")}"
     ERB.new(FSCRAWLER_LOG4J_TEMPLATE).result(binding)
   end
 
@@ -48,10 +48,6 @@ class IndexSegment < ApplicationRecord
 
   def is_root?
     self.relative_path == "/"
-  end
-
-  def has_been_indexed?
-    self.last_run != nil
   end
 
   def find_parent
