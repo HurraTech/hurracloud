@@ -20,6 +20,18 @@ class Index < ApplicationRecord
         rescue Exception => e
             Rails.logger.error "Exception while trying to delete ES index #{self.es_index_name}: #{e}"
         end
+        # Kill scanner process (if it exists)
+        pid_file = "/var/run/#{self.crawler_job_name}.pid"
+        if FileTest.exists?(pid_file)
+            Rails.logger.info("PID file exists for scanner process")
+            pid = File.read(pid_file).to_i
+            Rails.logger.info("Checking if PID #{pid} is alive")
+            begin
+                Process.kill("KILL", pid)
+            rescue
+                Rails.logger.info("Failed to kill process")
+            end
+        end        
         fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{self.name}"
         FileUtils.rm_rf("#{Rails.root.join('log', "zahif/#{self.name}")}")
         FileUtils.rm_rf(fscrawler_config_dir)

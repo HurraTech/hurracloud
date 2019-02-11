@@ -35,11 +35,12 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
-## Startup Zahif Mounter & Metadata Updater
+## Startup Zahif Mounter, Scanner & Metadata Updater
 ### Mounter is responsible for processing mount and unmount jobs that are sent by Jawhar backend
 ### Metadata Updater simply changes status of index to paused or delete it (invoked after WorkerManager has completed descheduling, see WorkerManger)
+### Scanners is responsible for starting background fscrawler processes for scheduled index refreshes
 echo "Starting up Zahif mounter" 
-QUEUE=metadata_updates,mounter BACKGROUND=yes rake resque:work
+QUEUE=metadata_updates,mounter,scanners BACKGROUND=yes rake resque:work
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start Zahif Mounter: $status"
@@ -68,9 +69,8 @@ if [ $status -ne 0 ]; then
 fi
 
 echo "Setup cron schedule"
-echo "*/5 * * * * rake zahif:spawn_scanners" >> ~/cron
+echo "*/5 * * * * PWD=/usr/share/hurracloud/jawhar BUNDLE_APP_CONFIG=/usr/local/bundle GEM_HOME=/usr/local/bundle BUNDLE_PATH=/usr/local/bundle PATH=\"/usr/local/bundle/bin:/usr/local/bundle/gems/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\" sh -c 'cd /usr/share/hurracloud/jawhar && rake zahif:spawn_scanners' >> /var/log/cron 2>&1" > ~/cron
 crontab ~/cron
-
 service cron start
 
 echo "Done. Monitoring processes "
