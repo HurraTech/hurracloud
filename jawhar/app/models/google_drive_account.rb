@@ -1,3 +1,6 @@
 class GoogleDriveAccount < ApplicationRecord
-    belongs_to :sourcable, :polymorphic => true
+    include ActsAsSourcable  
+    acts_as_sourcable
+
+    
 end

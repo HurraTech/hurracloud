@@ -16,8 +16,8 @@ class GoogleDriveAccountsController < ApiController
         token = client.fetch_access_token!
         id_token = JWT.decode token["id_token"], nil, false
 
-        # GoogleDriveAccount.where(email: id_token[""] first_or_create()
-        account = GoogleDriveAccount.new
+        account = GoogleDriveAccount.create_source(id_token[0]["email"])
+        account.name = id_token[0]["email"]
         account.email = id_token[0]["email"]
         account.accessToken = token["access_token"]
         account.refreshToken = token["refresh_token"]
