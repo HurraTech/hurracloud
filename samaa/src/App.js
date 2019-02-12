@@ -434,7 +434,7 @@ class App extends React.Component {
           <List>
             <Link to={`/search/`} style={{ textDecoration: 'none' }}>
                 <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
-                  <ListItemIcon><SettingsIcon /></ListItemIcon>
+                  <ListItemIcon><SearchIcon /></ListItemIcon>
                   <ListItemText primary="Search" style={{color:'black'}} />
                 </ListItem>
             </Link>        

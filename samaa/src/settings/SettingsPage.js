@@ -11,7 +11,7 @@ import Fab from '@material-ui/core/Fab';
 import Grid from '@material-ui/core/Grid';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import { Typography } from '@material-ui/core';
+import { Typography, DialogContent, DialogActions, DialogContentText } from '@material-ui/core';
 import classNames from 'classnames';
 import $ from 'jquery'
 import Utils from '../utils'
@@ -27,6 +27,16 @@ import ResumeIcon from '@material-ui/icons/PlayArrowRounded'
 import DeleteIcon from '@material-ui/icons/DeleteRounded'
 import CancelIcon from '@material-ui/icons/CancelPresentation'
 import CircularProgress from '@material-ui/core/CircularProgress';
+import NewWindow from 'react-new-window'
+
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import Avatar from '@material-ui/core/Avatar';
+import ListItemText from '@material-ui/core/ListItemText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from '@material-ui/core/Dialog';
+import TextField from '@material-ui/core/TextField';
 
 const styles = theme => ({
     root: {
@@ -155,7 +165,10 @@ class SettingsPage extends React.Component {
             sources: this.props.sources || [],
             indexDialogOpen: false,
             selectedPartition: {},
-            unmountAlertOpen: false
+            unmountAlertOpen: false,
+            addDialogOpen: false,
+            googleAuthConsentOpen: false,
+            consentFlowState: ""
         }
     }
 
@@ -322,12 +335,58 @@ class SettingsPage extends React.Component {
         }
     }
 
+    /* --------- Add Account Dialog -------*/
+    handleAddDialogClose = () => {
+        this.setState({
+            addDialogOpen: false
+        })
+    }
+
+    openAddDialog = () => {
+        this.setState({
+            addDialogOpen: true,
+            consentFlowState: "selectProvider"
+        })
+    }
+
+    responseGoogle = (response) => {
+        console.log(response);
+    }
+
+    openGoogleAuthConsent = () => {
+        this.createGoogleAuthWindow()
+        this.setState({
+            googleAuthConsentOpen: true,
+            googleAuthCode: "",
+            consentFlowState: "enterGoogleAuthCode"
+        })
+    }
+
+    createGoogleAuthWindow = () => {
+        this.currentAuthWindow = <NewWindow 
+                key={Math.random().toString(36).replace(/[^a-z]+/g, '') }
+                url="https://accounts.google.com/o/oauth2/v2/auth?scope=email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly&response_type=code&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=647498924470-rvr9l3drsfmnc3k7cnghrvn8jd2k42l8.apps.googleusercontent.com" 
+                center="screen" />
+    }
+
+    addGoogleAccount = () => {
+        const data = {
+            authCode: this.state.googleAuthCode
+        }
+        console.log("Calling create index with data", data)
+        axios
+        .post('http://192.168.1.2:5000/google_drive_accounts/', data)        
+    }
+      
+      
     /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
         const { sources, indexDialogOpen, selectedPartition } = this.state
         return (
             <div>
+                {this.state.googleAuthConsentOpen && this.currentAuthWindow}
+
                 <IndexDialog 
                     open={indexDialogOpen} 
                     partitionObject={selectedPartition}
@@ -360,13 +419,67 @@ class SettingsPage extends React.Component {
                     onOk={this.confirmCancelAlert}
                 />
 
+
+                <Dialog onClose={this.handleAddDialogClose}
+                        open={this.state.addDialogOpen}
+                        maxWidth="sm"
+                        fullWidth>
+                    {this.state.consentFlowState == "selectProvider" && (<><DialogTitle id="simple-dialog-title">Add External Storage Accounts</DialogTitle>
+                        <DialogContent>
+                        <DialogContentText>
+                            Select an account type to connect your HurraCloud Device with.
+                        </DialogContentText>
+                        <List>
+                            <ListItem button onClick={this.openGoogleAuthConsent}>
+                                <ListItemAvatar>
+                                    <Avatar><span class="google-drive-icon" /></Avatar>
+                                </ListItemAvatar>
+                                <ListItemText primary="Google Drive" />
+                            </ListItem>
+                        </List></DialogContent></>)
+                    }
+                    {this.state.consentFlowState == "enterGoogleAuthCode" && (
+                    <><DialogTitle id="simple-dialog-title">Enter Google Authorization Code</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                Please complete the authentication process with Google in the popup window and provide the authorization code below:
+                            </DialogContentText>
+                            <List>
+                                <ListItem>
+                                    <TextField 
+                                        variant="outlined" 
+                                        fullWidth 
+                                        label="Authorization Code"
+                                        value={this.state.googleAuthCode}
+                                        onChange={(e) => { this.setState({googleAuthCode: e.target.value}) }}
+                                        />
+                                </ListItem>
+                            </List>
+                            <DialogActions>
+                                <Button onClick={this.handleClose} color="secondary">
+                                Cancel
+                                </Button>
+                                <Button onClick={this.addGoogleAccount} color="secondary">
+                                Add Account
+                                </Button>
+                            </DialogActions>
+                            <DialogContentText variant="body2" align="justify">
+                                <b>Why do I need authorization code?</b> The authorization code is needed to allow your HurraCloud Device to access your Google Drive files, therefore enable features such as files sync and backups. <br/><br/>
+                                <b>But why enter it manually?</b> You may have seen other applications that automatically completes the consent process without requiring you to copy/paste the code. This is because they use server-side application to retrieve the code from Google. But since HurraCloud is all about privacy, we do not use any servers on the internet. In fact, the entire process completely happens at your HurraCloud Device (and of course, Google's login server)
+                            </DialogContentText>
+                        </DialogContent>
+                    </>)
+                    }
+
+                </Dialog>
+
                 <Grid container direction="column">
                     <Grid container direction="row" spacing={32} xs={12} justify="space-between">
                     <Grid item xs={12}>
                             <Paper className={classes.root}>
                                 <div className={classes.fabWrapper}>
-                                <Fab aria-label="Create Index" color="secondary" className={classes.createButton}>
-                                    <AddIcon />
+                                <Fab aria-label="Create Index" color="secondary" className={classes.createButton} onClick={this.openAddDialog}>
+                                    <AddIcon  />
                                 </Fab>
                                 </div>
 
@@ -403,7 +516,7 @@ class SettingsPage extends React.Component {
                                                 partitions = source.device_partitions.map((partition) =>{
                                                     let indexingProgress = partition.index && partition.index.progress < 100 ? ` - ${partition.index.progress}%` : ''
                                                     let partition_name = partition.label
-                                                    return (<TableRow key={source.id} className={classes.partitionRow}>
+                                                    return (<TableRow key={partition.id} className={classes.partitionRow}>
                                                         <TableCell scope="row" className={classes.iconCell}></TableCell>
                                                         <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
                                                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

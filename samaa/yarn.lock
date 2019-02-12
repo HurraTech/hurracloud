@@ -7221,6 +7221,13 @@ react-event-listener@^0.6.2:
     prop-types "^15.6.0"
     warning "^4.0.1"
 
+react-google-login@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/react-google-login/-/react-google-login-5.0.2.tgz#0eb7964afd53e4a8cd80159b166b3079072717da"
+  dependencies:
+    "@types/react" "*"
+    prop-types "^15.6.0"
+
 react-highlight-words@^0.16.0:
   version "0.16.0"
   resolved "https://registry.yarnpkg.com/react-highlight-words/-/react-highlight-words-0.16.0.tgz#4b4b9824e3d2b98789d3e3b3aedb5e961ae1b7cf"
@@ -7254,6 +7261,12 @@ react-lifecycles-compat@^3.0.2, react-lifecycles-compat@^3.0.4:
 react-moment@^0.8.4:
   version "0.8.4"
   resolved "https://registry.yarnpkg.com/react-moment/-/react-moment-0.8.4.tgz#18eb59e1541c8b216353e23c21e9db50e42e2edb"
+
+react-new-window@^0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/react-new-window/-/react-new-window-0.0.11.tgz#4ea1742216cd9565760289d2f7f711467048b14a"
+  dependencies:
+    prop-types "^15.6.1"
 
 react-router-dom@^4.3.1:
   version "4.3.1"

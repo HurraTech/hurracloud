@@ -1,6 +1,5 @@
 class ApiController < ApplicationController
     respond_to :json, :html
-    # after_action :allow_cors
 
     prepend_before_action :inject_resource, only: [:destroy, :show, :update]
     def get_resource
@@ -48,12 +47,6 @@ class ApiController < ApplicationController
     
     def resource_params
         @resource_params ||= self.send("#{resource_name}_params")
-    end  
-
-    private
-    # def allow_cors
-    #     response.headers['Access-Control-Allow-Origin'] = 'http://192.168.1.2:3000'
-    #     response.headers['Access-Control-Allow-Methods'] = '*'
-    #   end    
+    end
 
 end

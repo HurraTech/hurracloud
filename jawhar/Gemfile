@@ -16,6 +16,8 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'resque', '~> 1.25'
 gem 'resque-scheduler', '~> 4.0'
 gem 'resque-retry'
+gem 'google-api-client'
+gem 'jwt'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.6'

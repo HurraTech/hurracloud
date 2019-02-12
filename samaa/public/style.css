@@ -28,6 +28,24 @@ body {
   .ReactVirtualized__Grid {
     outline: none;
   }
+
+  /* --------------------- */
+  /*  Icons                */
+
+  .google-drive-icon:before {
+    content: '\00a0';
+  }
+  
+
+  .google-drive-icon {
+    background-image: url('/icons/google-drive.svg');
+    display: inline-block;
+    background-size: contain;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    font-size: 125px
+  }
+  
   
   /* --------------------- */
   .meter { 

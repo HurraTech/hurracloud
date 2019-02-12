@@ -2,8 +2,6 @@ require 'ruby-filemagic'
 
 
 class FilesController < ApplicationController
-    after_action :allow_iframe_cors
-
     def proxy
         file = "#{Settings.mounts_path}/#{params[:path]}"
         
@@ -50,12 +48,5 @@ class FilesController < ApplicationController
              .sort{ |e1,e2| e1[:type] == "folder" ? -1 : 1 }
         }
     end
-
-    private
-    def allow_iframe_cors
-        response.headers['Access-Control-Allow-Origin'] = 'http://192.168.1.2:3000'
-        response.headers['Access-Control-Allow-Methods'] = 'GET'
-        response.headers.except! 'X-Frame-Options'
-      end    
 
 end

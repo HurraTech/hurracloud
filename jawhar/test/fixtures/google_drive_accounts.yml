@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  accessToken: MyString
+  googleId: MyString
+  expires_in: 1
+  email: MyString
+
+two:
+  accessToken: MyString
+  googleId: MyString
+  expires_in: 1
+  email: MyString

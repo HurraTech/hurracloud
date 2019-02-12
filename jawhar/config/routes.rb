@@ -15,6 +15,9 @@ Rails.application.routes.draw do
     get '_mount/:partition_id', to: 'sources#mount_partition'
     get '_unmount/:partition_id', to: 'sources#unmount_partition'
   end
+
+  resources :google_drive_accounts,  format: false
+  
   resources :indices, :defaults => { :format => 'json' } do
     resources :index_segments,  :defaults => { :format => 'json' }
     get '_pause', to: 'indices#pause'

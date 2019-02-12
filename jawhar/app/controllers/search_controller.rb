@@ -1,6 +1,4 @@
 class SearchController < ApplicationController
-    after_action :allow_cors, only: :search
-
     def search
         index = Index.first()
         q = params[:q] || ""
@@ -77,12 +75,6 @@ class SearchController < ApplicationController
             total: es_response["hits"]["total"],
             hits: hits
         }
-    end
-
-    private
-    def allow_cors
-        response.headers['Access-Control-Allow-Origin'] = 'http://192.168.1.2:3000'
-        response.headers['Access-Control-Allow-Methods'] = 'GET'
     end
 
 end
