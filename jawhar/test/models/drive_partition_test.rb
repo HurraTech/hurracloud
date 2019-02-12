@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class DevicePartitionTest < ActiveSupport::TestCase
+class DrivePartitionTest < ActiveSupport::TestCase
   # test "the truth" do
   #   assert true
   # end

@@ -1,7 +1,7 @@
 require 'ruby-filemagic'
-
-
 class FilesController < ApplicationController
+    after_action :allow_iframe_cors
+
     def proxy
         file = "#{Settings.mounts_path}/#{params[:path]}"
         
@@ -28,25 +28,16 @@ class FilesController < ApplicationController
     end
 
     def browse
-        source_id = params[:source_id]
-        partition_label = params[:partition_label]
+        source_id = params[:source_id]        
         source = Source.find(source_id) or render json: { error: "not found"}
-        path = "#{Settings.mounts_path}#{source.id}/#{partition_label}/#{params[:path]}"
-        render json: { 
-            contents: Dir.entries(path).map {|i|
-                entry_path = "#{path}/#{i}"
-                file_extension = File.extname(entry_path).downcase
-                file_extension = file_extension.length > 0 ? file_extension[1..-1] : ""
-                {
-                    name: i,
-                    type: FileTest.directory?(entry_path) ? "folder": file_extension,
-                    path: "#{source_id}/#{partition_label}/#{params[:path]}/#{i}",
-                    last_modified: File.mtime(entry_path),
-                    filesize: File.size(entry_path)
-                }
-            }.select{ |e| e[:name] != '.' && ( !params[:path].nil? || e[:name] != '..') }
-             .sort{ |e1,e2| e1[:type] == "folder" ? -1 : 1 }
-        }
+        render json: source.sourcable.browse(params[:path])
     end
+
+    private
+    def allow_iframe_cors
+        response.headers['Access-Control-Allow-Origin'] = 'http://192.168.1.2:3000'
+        response.headers['Access-Control-Allow-Methods'] = 'GET'
+        response.headers.except! 'X-Frame-Options'
+    end    
 
 end

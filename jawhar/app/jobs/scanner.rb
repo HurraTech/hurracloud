@@ -8,7 +8,7 @@ class Scanner
       begin
         case job
         when 'spawn_scanners'
-            DevicePartition.where(:status => :mounted).each do |device|
+            DrivePartition.joins(:source).where("sources.status = ?", :mounted).each do |device|
                 next if !device.index or device.index.status != "completed"
                 Rails.logger.info("Spawning scanner for #{device.index.es_index_name} ?")        
                 index = device.index        

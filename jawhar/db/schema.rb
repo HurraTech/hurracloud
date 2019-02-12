@@ -12,7 +12,7 @@
 
 ActiveRecord::Schema.define(version: 20190211224920) do
 
-  create_table "device_partitions", force: :cascade do |t|
+  create_table "drive_partitions", force: :cascade do |t|
     t.integer "source_id"
     t.string "uuid"
     t.integer "partitionNumber"
@@ -25,7 +25,7 @@ ActiveRecord::Schema.define(version: 20190211224920) do
     t.text "raw"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["source_id"], name: "index_device_partitions_on_source_id"
+    t.index ["source_id"], name: "index_drive_partitions_on_source_id"
   end
 
   create_table "google_drive_accounts", force: :cascade do |t|
@@ -58,14 +58,14 @@ ActiveRecord::Schema.define(version: 20190211224920) do
   end
 
   create_table "indices", force: :cascade do |t|
-    t.integer "device_partition_id"
+    t.integer "drive_partition_id"
     t.text "settings"
     t.integer "status"
     t.integer "count"
     t.integer "size"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["device_partition_id"], name: "index_indices_on_device_partition_id"
+    t.index ["drive_partition_id"], name: "index_indices_on_drive_partition_id"
   end
 
   create_table "sources", force: :cascade do |t|

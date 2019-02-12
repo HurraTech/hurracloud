@@ -16,14 +16,13 @@ class SingleFileIndexer
         parent_path = "/#{file.scan(/[^\/]*/).reject { |i| i.empty? }[0..-2].join("/")}/"
         parsed_path = file.sub("/usr/share/hurracloud/mounts/", "").scan(/[^\/]*/).reject { |i| i.empty? }
         source_id = parsed_path[0]
-        partition_label = parsed_path[1]
         filename = parsed_path.last
-        partition = DevicePartition.where(source_id: source_id, label: partition_label).first()
-        if !partition.index 
-            Rails.logger.info("Skipping #{file} as this partition is not indexed")
+        source = Source.where(drive_id: source_id).first()
+        if !source.index 
+            Rails.logger.info("Skipping #{file} as this source is not indexed")
             return
         end
-        index = partition.index
+        index = source.index
 
         Rails.logger.info "Starting index process for #{file}"
         fscrawler_root_config = "/usr/share/hurracloud/zahif/indices/singles"

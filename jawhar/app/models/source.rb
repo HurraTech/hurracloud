@@ -1,11 +1,11 @@
 class Source < ApplicationRecord
-    enum source_type: [ :usb, :internal_storage, :system ]
-    enum status: [ :attached, :detached ]
+    belongs_to :sourcable, :polymorphic => true
+    has_one :index
     serialize :metadata, JSON
-    has_many :device_partitions
+    enum status: [ :unmounted, :mounting, :unmounting, :mounted ]
 
     def as_json(options={})
-        super(options.merge!(methods: [:device_partitions]))
+        super(options.merge!(methods: [:sourcable, :index]))
     end
 
 end

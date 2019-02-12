@@ -2,7 +2,7 @@ require 'uri'
 require 'find'
 
 class Index < ApplicationRecord
-    belongs_to :device_partition
+    belongs_to :source
     has_many :index_segments, :dependent => :destroy
     serialize :settings, JSON
     enum status: [ :scheduled, :init, :indexing, :completed, :paused, :resuming, :pausing, :deleting, :cancelling ]
@@ -53,11 +53,11 @@ class Index < ApplicationRecord
     end
 
     def name
-        self.device_partition.label
+        self.source.name
     end
 
     def full_path
-        self.device_partition.mount_path
+        self.source.sourcable.mount_path
     end
 
     def root_segment

@@ -446,15 +446,15 @@ class App extends React.Component {
               </ListItem>
               <Collapse in={this.state.browserListOpen} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>                    
-                  {this.state.sources.map(source => {
+                  {this.state.sources.filter(s => s.status == "mounted").map(source => {
                     let icon_class = "fab fa-usb"
-                    if (source.source_type == "system")
+                    if (source.sourcable_type == "DrivePartition")
                       icon_class = "fas fa-database"
-                    else if (source.source_type == "internal")
-                      icon_class = "fab fa-hdd"
-                    return source.device_partitions.filter(p => p.status == "mounted").map(partition => {
+                    // else if (source.source_type == "internal")
+                    //   icon_class = "fab fa-hdd"
+                    // return source.drive_partitions.filter(p => p.status == "mounted").map(partition => {
                         return <Link
-                        to={`/browse/${source.id}/${partition.label}`}
+                        to={`/browse/${source.id}/`}
                         style={{ textDecoration: 'none', color:'black' }}
                         >       
                             <ListItem button className={classes.nested}>
@@ -463,10 +463,10 @@ class App extends React.Component {
                                       style={{ marginRight: '0.5em', width:'10px', }}
                                       />
                                       </div> 
-                            <ListItemText inset primary={partition.label} className={classes.sourceNameText} />
+                            <ListItemText inset primary={source.name} className={classes.sourceNameText} />
                           </ListItem>
                           </Link>
-                    })
+                    // })
                   })}
                 </List>
               </Collapse>

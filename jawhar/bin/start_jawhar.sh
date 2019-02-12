@@ -61,7 +61,7 @@ fi
 ## Startup USB Monitor
 ### USB monitor simply runs rake zahif:update command whenever there's change in system's USB devices
 echo "Starting up USB monitor"
-./bin/device_monitor.sh &> log/usb_monitor.log &
+./bin/drives_monitor.sh &> log/drives_monitor.log &
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start USB monitor: $status"

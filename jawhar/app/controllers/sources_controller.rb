@@ -1,34 +1,19 @@
 class SourcesController < ApiController
 
     def index
-        @sources = Source.where.not(status: :detached, source_type: :system).all()
+        @sources = Source.all()
         respond_with @sources
     end
 
-    def mount_partition
-        source_id = params[:source_id]
-        partition_id = params[:partition_id]
-        partition = DevicePartition.where(source_id: source_id, id: partition_id).first()
-        if !partition
-            render json: { error: "not found"}
-            return
-        end
-
-        partition.mount()
+    def mount
+        source = Source.find_by(id: params[:source_id]) or render json: { error: "not found"}                
+        source.sourcable.mount()
         render json: { done: true }
     end
 
-    def unmount_partition
-        source_id = params[:source_id]
-        partition_id = params[:partition_id]
-        puts "SOURCE_ID #{source_id} PARITION_ID #{partition_id}"
-        partition = DevicePartition.where(source_id: source_id, id: partition_id).first()
-        if !partition
-            render json: { error: "not found"}
-            return
-        end
-
-        partition.unmount()
+    def unmount
+        source = Source.find_by(id: params[:source_id]) or render json: { error: "not found"}                
+        source.sourcable.unmount()
         render json: { done: true }
     end
 

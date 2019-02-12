@@ -65,7 +65,7 @@ class IndicesController < ApiController
 
     private
     def index_params
-        params.require(:index).permit(:device_partition_id, :settings => {:excludes => []})
+        params.require(:index).permit(:source_id, :settings => {:excludes => []})
     end
     
 end

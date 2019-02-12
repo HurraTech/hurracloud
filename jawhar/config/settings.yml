@@ -13,3 +13,6 @@ inline_files: # files that can be returned as "inline" content-disposition for v
     - text/csv
     - text/plain    
 mounts_path: /usr/share/hurracloud/mounts/
+skip_partitions:
+  - /dev/sda1
+  - /dev/sda2

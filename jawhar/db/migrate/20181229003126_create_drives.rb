@@ -1,8 +1,8 @@
-class CreateSources < ActiveRecord::Migration[5.1]
+class CreateDrives < ActiveRecord::Migration[5.1]
   def change
-    create_table :sources do |t|
+    create_table :drives do |t|
       t.string :name
-      t.integer :source_type
+      t.string :drive_type
       t.string :url
       t.string :unique_id 
       t.integer :capacity, :limit => 8

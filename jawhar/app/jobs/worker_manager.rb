@@ -9,6 +9,7 @@ class WorkerManager
             Rails.logger.info "Pausing index #{index.id} completed"
         when 'cancel'
             index = Index.find(params["index_id"]) 
+            Resque.dequeue(Indexer, 'initialize_index',  :index_id => index.id)
             self.kill_and_dequeue_jobs(index)
             Resque.enqueue(MetadataUpdater, 'index_cancelled',  :index_id => index.id)
             Rails.logger.info "Cancelling index #{index.id} completed"

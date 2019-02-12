@@ -1,13 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  status: 1
-  size: 1
-  used: 1
+  source_type: 1
+  url: MyString
   metadata: MyText
 
 two:
-  status: 1
-  size: 1
-  used: 1
+  source_type: 1
+  url: MyString
   metadata: MyText
