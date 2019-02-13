@@ -1647,3 +1647,8 @@
 .fiv-viv.fiv-icon-zsh {
   background-image: url('icons/vivid/zsh.svg');
 }
+
+.fiv-viv.fiv-icon-gdoc {
+  background-image: url('../icons/gdoc.svg');
+}
+

@@ -1651,3 +1651,8 @@
 .fiv-sqo.fiv-icon-zsh {
   background-image: url('icons/square-o/zsh.svg');
 }
+
+.fiv-sqo.fiv-icon-gdoc {background-image: url('../icons/gdoc.svg')}
+.fiv-sqo.fiv-icon-gsheet {background-image: url('../icons/gsheet.svg')}
+.fiv-sqo.fiv-icon-gslide {background-image: url('../icons/gslide.svg')}
+.fiv-sqo.fiv-icon-gform {background-image: url('../icons/gform.svg')}

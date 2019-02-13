@@ -18,6 +18,8 @@ import Utils from '../utils'
 import Button from '@material-ui/core/Button';
 import MountIcon from '@material-ui/icons/PlayForWork'
 import UnmountIcon from '@material-ui/icons/EjectRounded'
+import DisconnectIcon from '@material-ui/icons/LinkOff'
+import ReconnectIcon from '@material-ui/icons/Link'
 import IndexIcon from '@material-ui/icons/DescriptionOutlined'
 import Tooltip from '@material-ui/core/Tooltip';
 import IndexDialog from './IndexDialog';
@@ -91,12 +93,8 @@ const styles = theme => ({
         margin: theme.spacing.unit,
     },
 
-    partitionRow: {
-        backgroundColor: '#f7f7f7'
-    },
-
     sourceRow: {
-        backgroundColor: '#e8e8e8',
+        backgroundColor: 'white',
     },
 
 
@@ -165,7 +163,7 @@ class SettingsPage extends React.Component {
             indices: [],
             sources: this.props.sources || [],
             indexDialogOpen: false,
-            selectedPartition: {},
+            selectedSource: {},
             unmountAlertOpen: false,
             addDialogOpen: false,
             googleAuthConsentOpen: false,
@@ -185,12 +183,16 @@ class SettingsPage extends React.Component {
     }
 
     handleMountClick(source) {
-        var currentSources = [...this.state.sources]
-        let source_id = source.id
-        currentSources.find(s => s.id === source_id).status = "mounting"
-        this.setState({sources: currentSources}, () => {
-            axios.get(`http://192.168.1.2:5000/sources/${source_id}/_mount`)
-        })
+        if (source.sourcable_type == "DrivePartition") {
+            var currentSources = [...this.state.sources]
+            let source_id = source.id
+            currentSources.find(s => s.id === source_id).status = "mounting"
+            this.setState({sources: currentSources}, () => {
+                axios.get(`http://192.168.1.2:5000/sources/${source_id}/_mount`)
+            })
+        } else if (source.sourcable_type == "GoogleDriveAccount") { 
+            this.openGoogleAuthConsent()            
+        }
     }
 
     handlePauseClick(source) {
@@ -211,7 +213,7 @@ class SettingsPage extends React.Component {
 
     /* --------- Cancel Index ----------- */
     handleCancelClick(source) {
-        this.setState({ cancelIndexAlertOpen: true, selectedPartition: source });
+        this.setState({ cancelIndexAlertOpen: true, selectedSource: source });
     }
 
     doCancelIndex(source) {
@@ -224,7 +226,7 @@ class SettingsPage extends React.Component {
     }
 
     confirmCancelAlert = () => {
-        this.doCancelIndex(this.state.selectedPartition);
+        this.doCancelIndex(this.state.selectedSource);
         this.setState({ cancelIndexAlertOpen: false });
     }
 
@@ -234,7 +236,7 @@ class SettingsPage extends React.Component {
 
     /* --------- Delete Index ----------- */
     handleDeleteIndexClick(source) {
-        this.setState({ deleteIndexAlertOpen: true, selectedPartition: source });
+        this.setState({ deleteIndexAlertOpen: true, selectedSource: source });
     }
 
     doDeleteIndex(source) {
@@ -247,7 +249,7 @@ class SettingsPage extends React.Component {
     }
     
     confirmDeleteAlert = () => {
-        this.doDeleteIndex(this.state.selectedPartition);
+        this.doDeleteIndex(this.state.selectedSource);
         this.setState({ deleteIndexAlertOpen: false });
     }
 
@@ -258,7 +260,7 @@ class SettingsPage extends React.Component {
     /* --------- Unmount Source ----------- */
     handleUnmountClick(source) {
         if (source.index && source.index.status == "indexing") {
-            this.setState({ unmountAlertOpen: true, selectedPartition: source });
+            this.setState({ unmountAlertOpen: true, selectedSource: source });
         }
         else {
             this.doUnmountParition(source.id)            
@@ -266,7 +268,7 @@ class SettingsPage extends React.Component {
     }
 
     confirmUnmountAlert = () => { 
-        this.doUnmountParition(this.state.selectedPartition.id)
+        this.doUnmountParition(this.state.selectedSource.id)
         this.setState({ unmountAlertOpen: false });
     }
 
@@ -290,7 +292,7 @@ class SettingsPage extends React.Component {
     openIndexDialog(source) {
         this.setState({
             indexDialogOpen: true,
-            selectedPartition: source
+            selectedSource: source
         })
     }
 
@@ -298,14 +300,14 @@ class SettingsPage extends React.Component {
         console.log("Closing index dialog")
         this.setState({
             indexDialogOpen: false,
-            selectedPartition: {}
+            selectedSource: {}
         })
     }
 
     onIndexDialogSave = (settings) => {
         const data = {
             index: {
-                source_id: this.state.selectedPartition.id,
+                source_id: this.state.selectedSource.id,
                 settings: settings
             }
         }
@@ -315,7 +317,7 @@ class SettingsPage extends React.Component {
         .then(res => {
             this.setState({
                 indexDialogOpen: false,
-                selectedPartition: {}
+                selectedSource: {}
             })    
         })
     }
@@ -360,14 +362,15 @@ class SettingsPage extends React.Component {
         this.setState({
             googleAuthConsentOpen: true,
             googleAuthCode: "",
-            consentFlowState: "enterGoogleAuthCode"
+            consentFlowState: "enterGoogleAuthCode",
+            addDialogOpen: true            
         })
     }
 
     createGoogleAuthWindow = () => {
         this.currentAuthWindow = <NewWindow 
                 key={Math.random().toString(36).replace(/[^a-z]+/g, '') }
-                url="https://accounts.google.com/o/oauth2/v2/auth?scope=email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly&response_type=code&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=647498924470-rvr9l3drsfmnc3k7cnghrvn8jd2k42l8.apps.googleusercontent.com" 
+                url="https://accounts.google.com/o/oauth2/v2/auth?scope=email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.metadata&response_type=code&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=647498924470-rvr9l3drsfmnc3k7cnghrvn8jd2k42l8.apps.googleusercontent.com" 
                 center="screen" />
     }
 
@@ -384,14 +387,14 @@ class SettingsPage extends React.Component {
     /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
-        const { sources, indexDialogOpen, selectedPartition } = this.state
+        const { sources, indexDialogOpen, selectedSource } = this.state
         return (
             <div>
                 {this.state.googleAuthConsentOpen && this.currentAuthWindow}
 
                 <IndexDialog 
                     open={indexDialogOpen} 
-                    partitionObject={selectedPartition}
+                    partitionObject={selectedSource}
                     onClose={this.cancelIndexDialog.bind(this)}
                     onSave={this.onIndexDialogSave}
                     onCancel
@@ -511,40 +514,41 @@ class SettingsPage extends React.Component {
                                                 icon_class = "fas fa-usb"
                                             // else if (source.source_type == "internal")
                                             //     icon_class = "fab fa-hdd"
-                                            let partition = source
-                                            let indexingProgress = partition.index && partition.index.progress < 100 ? ` - ${partition.index.progress}%` : ''
-                                            let partition_name = partition.name
+                                            let indexingProgress = source.index && source.index.progress < 100 ? ` - ${source.index.progress}%` : ''
                                             return (
-                                            <TableRow key={partition.id} className={classes.partitionRow}>
+                                            <TableRow key={source.id} className={classes.sourceRow}>
                                                 <TableCell scope="row" className={classes.iconCell}>
                                                     <div style={{float:'left'}}>
                                                         <span className={`${icon_class}`} style={{ marginRight: '0.5em' }} />
                                                     </div>                                                         
                                                 </TableCell>
                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
-                                                    {partition_name}
+                                                    {source.name}
                                                 </TableCell>
                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.capacityCell)}>
-                                                {partition.status == "mounted" && Utils.humanFileSize(partition.size)}
+                                                {source.status == "mounted" && Utils.humanFileSize(source.size)}
                                                 </TableCell>
                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>
-                                                {partition.status == "mounted" && Utils.humanFileSize(partition.free)}
+                                                {source.status == "mounted" && Utils.humanFileSize(source.free)}
                                                 </TableCell>
                                                 <TableCell align="left"  className={classNames(classes.bodyCell, classes.actionsCell)}>
-                                                <div style={{width: "120px", float: 'left', minHeight: '1px'}}>
+                                                <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
                                                     { (() => {
-                                                        if (partition.status == "mounted") 
+                                                        if (source.status == "mounted") 
                                                             return <Tooltip title="Unmounting the drive will make it inaccessible.">
-                                                                        <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(partition)} }>
-                                                                            <UnmountIcon className={classes.leftIcon}></UnmountIcon>
-                                                                            Unmount
+                                                                        <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source)} }>
+                                                                            {source.sourcable_type == "DrivePartition" && <UnmountIcon className={classes.leftIcon}></UnmountIcon>}
+                                                                            {source.sourcable_type == "GoogleDriveAccount" && <DisconnectIcon className={classes.leftIcon}></DisconnectIcon>}
+                                                                            {source.sourcable_type == "DrivePartition" ? "Eject" : "Disconnect"}
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (partition.status == "unmounted") 
+                                                        else if (source.status == "unmounted") 
                                                             return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
-                                                                        <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(partition)} }>
-                                                                            <MountIcon className={classes.leftIcon}></MountIcon>
-                                                                            Mount
+                                                                        <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
+                                                                            {source.sourcable_type == "DrivePartition" && <MountIcon className={classes.leftIcon}></MountIcon>}
+                                                                            {source.sourcable_type == "GoogleDriveAccount" && <ReconnectIcon className={classes.leftIcon}></ReconnectIcon>}
+                                                                            {source.sourcable_type == "DrivePartition" ? "Mount" : "Reconnect"}
+
                                                                         </Button>
                                                                     </Tooltip>
                                                         else
@@ -553,84 +557,84 @@ class SettingsPage extends React.Component {
                                                     }
                                                     </div>
                                                     <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
-                                                    {!partition.index && partition.status == "mounted" && (
+                                                    {!source.index && source.status == "mounted" && (
                                                         <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
                                                             <Button variant="outline"
                                                                     color="primary" size="small"
-                                                                    onClick={() => { this.openIndexDialog(partition) }}>
+                                                                    onClick={() => { this.openIndexDialog(source) }}>
                                                                 <IndexIcon className={classes.leftIcon}></IndexIcon>
                                                                 Create Index
                                                             </Button>
                                                         </Tooltip>)
                                                     }
-                                                    {partition.index && (partition.index.status == "init" || partition.index.status == "scheduled") && (
+                                                    {source.index && (source.index.status == "init" || source.index.status == "scheduled") && (
                                                         <Tooltip title="You can cancel index creation while it's being intialized or scheduled. You will have the opportuinity to temporarily pause after intialization has completed">
                                                             <Button variant="outline"
                                                                     color="primary" size="small"
-                                                                    onClick={() => { this.handleCancelClick(partition) }}>
+                                                                    onClick={() => { this.handleCancelClick(source) }}>
                                                                 <CancelIcon className={classes.leftIcon}></CancelIcon>
                                                                 Cancel
                                                             </Button>
                                                         </Tooltip>)
                                                     }
-                                                    {partition.index && partition.index.status === "cancelling"  && (
+                                                    {source.index && source.index.status === "cancelling"  && (
                                                         <CircularProgress className={classes.progress} size={20} />
                                                     )}                             
 
-                                                    {partition.index && partition.status == "mounted" && partition.index.status === "indexing" && (
+                                                    {source.index && source.status == "mounted" && source.index.status === "indexing" && (
                                                     <Button variant="outline"
                                                         color="primary" size="small"
                                                         onClick={() => { this.handlePauseClick(source)}}>
                                                         <PauseIcon className={classes.leftIcon}></PauseIcon>Pause
                                                     </Button>)}
                                                     
-                                                    {partition.index && partition.status == "mounted" && partition.index.status === "paused" && (
+                                                    {source.index && source.status == "mounted" && source.index.status === "paused" && (
                                                     <Button variant="outline"
                                                         color="primary" size="small"
                                                         onClick={() => { this.handleResumeClick(source)}}>
                                                         <ResumeIcon className={classes.leftIcon}></ResumeIcon>Resume
                                                     </Button>)}
 
-                                                    {partition.index && (partition.index.status === "resuming" || partition.index.status === "pausing")  && (
+                                                    {source.index && (source.index.status === "resuming" || source.index.status === "pausing")  && (
                                                         <CircularProgress className={classes.progress} size={20} />
                                                     )}                             
                                                     </div>
                                                     <div style={{width: "180px", float: 'left', clear: 'right', minHeight: '1px'}}>
-                                                    {partition.index && (partition.index.status === "paused" || partition.index.status === "completed") && (
+                                                    {source.index && (source.index.status === "paused" || source.index.status === "completed") && (
                                                         <Button variant="outline"
                                                             color="primary" size="small"
-                                                            onClick={() => { this.handleDeleteIndexClick(partition)}}>
+                                                            onClick={() => { this.handleDeleteIndexClick(source)}}>
                                                             <DeleteIcon className={classes.leftIcon}></DeleteIcon>Delete Index
                                                         </Button>
                                                     )}
-                                                    {partition.index && partition.index.status === "deleting"  && (
+                                                    {source.index && source.index.status === "deleting"  && (
                                                         <CircularProgress className={classes.progress} size={20} />
                                                     )}                             
 
                                                     </div>
                                                     
                                                 </TableCell>
-                                                {partition.index && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
-                                                    <div className="indexingDone" style={{display: partition.index.status == "completed" ? "block" : "none" }}>
+                                                {source.index && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
+                                                    <div className="indexingDone" style={{display: source.index.status == "completed" ? "block" : "none" }}>
                                                         <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
                                                     </div>
-                                                    <div className="indexingDone" style={{display: ["paused", "pausing", "resuming"].includes(partition.index.status) ? "block" : "none" }}>
+                                                    <div className="indexingDone" style={{display: ["paused", "pausing", "resuming"].includes(source.index.status) ? "block" : "none" }}>
                                                         <i style={{fontSize: 17, color: '#F86395'}} class="fas fa-pause-circle"></i>
                                                     </div>
-                                                    <div className="indexingDone" style={{display: ["scheduled", "deleting"].includes(partition.index.status) ? "block" : "none" }}>
+                                                    <div className="indexingDone" style={{display: ["scheduled", "deleting"].includes(source.index.status) ? "block" : "none" }}>
                                                         <i style={{fontSize: 16, color: 'orange'}} class="fas fa-clock"></i>
                                                     </div>
 
-                                                    { (partition.index.status == "init" || partition.index.status == "indexing") && partition.index.progress < 100 && (<div className="meter orange">
-                                                                                                <span style={{width: `${partition.index.progress}%` }} />
+                                                    { (source.index.status == "init" || source.index.status == "indexing") && source.index.progress < 100 && (<div className="meter orange">
+                                                                                                <span style={{width: `${source.index.progress}%` }} />
                                                                                             </div>)}
-                                                    {partition.index.status == "scheduled" && "Scheduled" }                                                                                                  
-                                                    {partition.index.status == "init" && "Initializing index (scanning files)" }
-                                                    {!["init", "scheduled", "cancelling", "deleting"].includes(partition.index.status) && `${partition.index.indexed_count} document(s) ${indexingProgress}`}
+                                                    {source.index.status == "scheduled" && "Scheduled" }                                                                                                  
+                                                    {source.index.status == "init" && "Initializing index (scanning files)" }
+                                                    {!["init", "scheduled", "cancelling", "deleting"].includes(source.index.status) && `${source.index.indexed_count} document(s) ${indexingProgress}`}
                                                     
                                                 </TableCell>
                                                 </>}
-                                                {!partition.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
+                                                {!source.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
                                             </TableRow>)
 
                                         })}

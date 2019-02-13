@@ -102,7 +102,7 @@ class BrowserPage extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index].name;
+    const path = this.state.items[index].internalName;
     const type = this.state.items[index].type;
     console.log(`Clicked on ${path} of type ${type}`)
     let requestedPath = `${type != 'folder' ? '_open_/' :''}${this.state.path}/${path}`;

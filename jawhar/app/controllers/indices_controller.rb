@@ -37,14 +37,14 @@ class IndicesController < ApiController
         index_id = params[:index_id].to_i
         index = Index.find(index_id)
         index.status = :resuming
-        index.save()
-        IndexSegment.where(:index_id => index_id, :current_status => [:killed, :scheduled]).each do |segment|
+        index.save!
+        IndexSegment.where(:index_id => index_id).where.not(current_status: :completed).each do |segment|
             Resque.enqueue(Indexer, 'index_segment',  :index_id => index_id, :index_segment_id => segment.id)
             segment.current_status = :scheduled
-            segment.save()
+            segment.save!
         end
         index.status = :indexing
-        index.save()
+        index.save!
         render json: { done: true }
     end
 
