@@ -506,11 +506,11 @@ class SettingsPage extends React.Component {
                                     </TableHead>
                                     <TableBody>
                                         {sources.map(source => {
-                                            let icon_class = "fab fa-usb"
-                                            if (source.source_type == "system")
-                                                icon_class = "fas fa-database"
-                                            else if (source.source_type == "internal")
-                                                icon_class = "fab fa-hdd"
+                                            let icon_class = "fas fa-hdd"
+                                            if (source.sourcable == "DrivePartition" && source.sourcable.drive_type == "usb")
+                                                icon_class = "fas fa-usb"
+                                            // else if (source.source_type == "internal")
+                                            //     icon_class = "fab fa-hdd"
                                             let partition = source
                                             let indexingProgress = partition.index && partition.index.progress < 100 ? ` - ${partition.index.progress}%` : ''
                                             let partition_name = partition.name

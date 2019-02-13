@@ -47,7 +47,7 @@ class DrivePartition < ApplicationRecord
   end
 
   def as_json(options={})
-    super(options.merge!(methods: [:drive]))
+    super(options.merge!(methods: [:drive_type]))
   end
 
 end
