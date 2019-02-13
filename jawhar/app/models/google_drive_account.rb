@@ -5,6 +5,13 @@ class GoogleDriveAccount < ApplicationRecord
     include ActsAsSourcable  
     acts_as_sourcable
 
+    def update_usage
+        quota = client.get_about(fields: 'storageQuota').storage_quota
+        self.source.size = quota.limit.to_i
+        self.source.used = quota.usage.to_i
+        self.source.free = self.source.size - self.source.used
+    end
+
     def browse(requested_path)
         parent = "root"
         parent = requested_path if !requested_path.nil?
@@ -13,6 +20,7 @@ class GoogleDriveAccount < ApplicationRecord
         }
         response[:contents].unshift({ name: "..", internalName: "..", type: "folder" }) if !requested_path.nil?
         response
+        
     end
 
     def client
@@ -27,7 +35,7 @@ class GoogleDriveAccount < ApplicationRecord
         self.source.status = :unmounted
         self.save!
     end
-    
+
     def credentials
         credentials = Signet::OAuth2::Client.new(
             :client_id => '647498924470-rvr9l3drsfmnc3k7cnghrvn8jd2k42l8.apps.googleusercontent.com',

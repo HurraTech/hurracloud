@@ -191,7 +191,7 @@ class SettingsPage extends React.Component {
                 axios.get(`http://192.168.1.2:5000/sources/${source_id}/_mount`)
             })
         } else if (source.sourcable_type == "GoogleDriveAccount") { 
-            this.openGoogleAuthConsent()            
+            this.openGoogleAuthConsent(source)
         }
     }
 
@@ -300,7 +300,7 @@ class SettingsPage extends React.Component {
         console.log("Closing index dialog")
         this.setState({
             indexDialogOpen: false,
-            selectedSource: {}
+            selectedSource: {},
         })
     }
 
@@ -357,11 +357,12 @@ class SettingsPage extends React.Component {
         console.log(response);
     }
 
-    openGoogleAuthConsent = () => {
+    openGoogleAuthConsent = (source={}) => {
         this.createGoogleAuthWindow()
         this.setState({
             googleAuthConsentOpen: true,
             googleAuthCode: "",
+            selectedSource: source,
             consentFlowState: "enterGoogleAuthCode",
             addDialogOpen: true            
         })
@@ -374,13 +375,24 @@ class SettingsPage extends React.Component {
                 center="screen" />
     }
 
-    addGoogleAccount = () => {
+    addUpdateGoogleAccount = () => {
+        // if (this.state.selectedSource !== null)
+        // {
+        //     console.log("Updating selectedSource", this.state.selectedSource)
+        //     var currentSources = [...this.state.sources]
+        //     currentSources.find(s => s.id === this.state.selectedSource.id).status = "mounting"
+        // }
         const data = {
             authCode: this.state.googleAuthCode
         }
-        console.log("Calling create index with data", data)
         axios
-        .post('http://192.168.1.2:5000/google_drive_accounts/', data)        
+        .post('http://192.168.1.2:5000/google_drive_accounts/', data)
+        .then(res => {
+            this.setState({
+                addDialogOpen: false,
+                selectedSource: {},
+            })
+        })
     }
       
       
@@ -461,10 +473,10 @@ class SettingsPage extends React.Component {
                                 </ListItem>
                             </List>
                             <DialogActions>
-                                <Button onClick={this.handleClose} color="secondary">
+                                <Button onClick={this.handleAddDialogClose} color="secondary">
                                 Cancel
                                 </Button>
-                                <Button onClick={this.addGoogleAccount} color="secondary">
+                                <Button onClick={this.addUpdateGoogleAccount} color="secondary">
                                 Add Account
                                 </Button>
                             </DialogActions>
