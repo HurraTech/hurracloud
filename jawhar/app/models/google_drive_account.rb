@@ -16,9 +16,9 @@ class GoogleDriveAccount < ApplicationRecord
         parent = "root"
         parent = requested_path if !requested_path.nil?
         response = {contents:
-            client.list_files(fields: 'files(name,size,modifiedTime,mimeType,id)', order_by: 'folder', q: "'#{parent}' in parents").files.map{|file| self.normalize_file_entry(file) }
+            client.list_files(fields: 'files(name,size,modifiedTime,mimeType,id,webContentLink)', order_by: 'folder', q: "'#{parent}' in parents").files.map{|file| self.normalize_file_entry(file) }
         }
-        response[:contents].unshift({ name: "..", internalName: "..", type: "folder" }) if !requested_path.nil?
+        response[:contents].unshift({ name: "..", internal_name: "..", type: "folder" }) if !requested_path.nil?
         response
         
     end
@@ -52,13 +52,17 @@ class GoogleDriveAccount < ApplicationRecord
     def normalize_file_entry(entry)
         file_extension = File.extname(entry.name).downcase
         file_extension = file_extension.length > 0 ? file_extension[1..-1] : ""
+        file_type =  GoogleDriveAccount.determine_file_type(entry.name, entry.mime_type)
         {
             name: entry.name,
-            internalName: entry.id,
-            type: GoogleDriveAccount.determine_file_type(entry.name, entry.mime_type),
+            internal_name: entry.id,
+            type: file_type,
             path: "#{self.source.id}/#{entry.id}",
             last_modified: entry.modified_time,
-            filesize: entry.size.nil? ? 0 : entry.size
+            filesize: entry.size.nil? ? 0 : entry.size,
+            web_link: entry.web_content_link,
+            open_link: GoogleDriveAccount.is_file_google_doc?(entry.mime_type) ? "https://drive.google.com/open?id=#{entry.id}" : nil,
+            mime_type: entry.mime_type
         }
     end
 
@@ -85,6 +89,10 @@ class GoogleDriveAccount < ApplicationRecord
         else
             file_extension
         end
+    end
+
+    def self.is_file_google_doc?(mime_type)
+        mime_type.starts_with?("application/vnd.google-apps") && mime_type != "application/vnd.google-apps.folder"
     end
 
     # "name": "EFI",

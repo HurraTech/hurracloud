@@ -24,7 +24,7 @@ class DrivePartition < ApplicationRecord
           file_extension = file_extension.length > 0 ? file_extension[1..-1] : ""
           {
               name: i,
-              internalName: i,
+              internal_name: i,
               type: FileTest.directory?(entry_path) ? "folder": file_extension,
               path: "#{self.id}/#{requested_path}#{i}",
               last_modified: File.mtime(entry_path),

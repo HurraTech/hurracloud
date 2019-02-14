@@ -46,6 +46,7 @@ class BrowserPage extends React.Component {
       previewedTitle: '',
       isAjaxInProgress: false,
       path: props.path,
+      requestedItem: null,
       items: [],
 
       searchTerms: [],
@@ -102,32 +103,40 @@ class BrowserPage extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index].internalName;
+    const path = this.state.items[index].internal_name;
     const type = this.state.items[index].type;
     console.log(`Clicked on ${path} of type ${type}`)
     let requestedPath = `${type != 'folder' ? '_open_/' :''}${this.state.path}/${path}`;
     this.props.history.push({ pathname: `/browse/${requestedPath}`});  
-    this.setState({path: requestedPath}, () => { this.browse() } )
+    this.setState({path: requestedPath, requestedItem: this.state.items[index]}, () => { this.browse() } )
   };
 
   openFile() {
     return new Promise((resolve, reject) => {
-      axios
-      .get(`http://192.168.1.2:5000/files/is_viewable/${this.state.path.replace('_open_/', '')}`)
-      .then(res => {
-        this.setState({ isAjaxInProgress: false }, () => {
-          const isViewable = res.data.is_viewable;
-          if (isViewable) {
-            this.setState({
-              openedFile: this.state.path.replace('_open_/', ''),
-              isInlineViewerOpen: true,
-              isPreviewOpen: false,
-            });
-          } else {
-            window.location = `http://192.168.1.2:5000/files/download/${this.state.path.replace('_open_/', '')}`;
-          }
+      // if (this.state.requestedItem.openLink != null)
+      // {
+      //     window.open(this.state.requestedItem.openLink, "_blank")
+      //     return;
+      // }
+  
+      this.setState({isAjaxInProgress: true}, () => {
+        axios
+        .get(`http://192.168.1.2:5000/files/is_viewable/${this.state.path.replace('_open_/', '')}`)
+        .then(res => {
+          this.setState({ isAjaxInProgress: false }, () => {
+            const isViewable = res.data.is_viewable;
+            if (isViewable) {
+              this.setState({
+                openedFile: this.state.path.replace('_open_/', ''),
+                isInlineViewerOpen: true,
+                isPreviewOpen: false,
+              });
+            } else {
+              window.location = `http://192.168.1.2:5000/files/download/${this.state.path.replace('_open_/', '')}`;
+            }
+          });
         });
-      });    
+      })
     })
   }
 
@@ -141,20 +150,23 @@ class BrowserPage extends React.Component {
       return this.openFile()
     }
     return new Promise((resolve, reject) => {
-      axios.get(`http://192.168.1.2:5000/files/browse/${this.state.path}`).then(res => {
-        const response = res.data;
-        console.log("Response", response)
-        this.setState(
-          {
-            items: response.contents,
-            isInlineViewerOpen: false,
-            isPreviewOpen: false,
-          },
-          () => {
-            resolve(response.contents);
-          },
-        );
-      });
+      this.setState({isAjaxInProgress: true}, () => {
+        axios.get(`http://192.168.1.2:5000/files/browse/${this.state.path}`).then(res => {
+          const response = res.data;
+          console.log("Response", response)
+          this.setState(
+            {
+              items: response.contents,
+              isInlineViewerOpen: false,
+              isPreviewOpen: false,
+              isAjaxInProgress: false 
+            },
+            () => {
+              resolve(response.contents);
+            },
+          );
+        });
+      })
     });
   }
 

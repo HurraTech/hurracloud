@@ -121,7 +121,8 @@ class BrowserTable extends React.PureComponent {
           className={classNames(classes.tableCell, classes.flexContainer)}
           variant="body"
           style={{ height: rowHeight }}
-          onClick={() => this.props.onFilenameClick(rowIndex)}
+          href={cellData.open_link ? cellData.open_link : ""}
+          onClick={() => { if (!cellData.open_link) this.props.onFilenameClick(rowIndex)} }
         >
           <div className={classes.placeholder} style={{ width: 200 }} />
         </TableCell>
@@ -131,7 +132,7 @@ class BrowserTable extends React.PureComponent {
       case 'filename': {
         return (
           <TableCell
-            component="div"
+            component={cellData.open_link ? "a" : "div"}
             className={classNames(
               classes.tableCell,
               classes.flexContainer,
@@ -139,10 +140,14 @@ class BrowserTable extends React.PureComponent {
             )}
             variant="body"
             style={{
+              textDecoration: 'none',
               height: rowHeight,
               color: cellData.name == '..' ? '#960000' : 'black',
             }}
-            onClick={() => this.props.onFilenameClick(rowIndex)}
+            href={cellData.open_link ? cellData.open_link : ""}
+            target="_new"
+            onClick={() => { if (!cellData.open_link) { this.props.onFilenameClick(rowIndex)}  }}
+  
           >
             <span
               className={`fiv-sqo fiv-icon-blank fiv-icon-${cellData.type}`}
