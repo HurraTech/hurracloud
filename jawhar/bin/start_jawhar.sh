@@ -2,7 +2,7 @@
 
 # Persist host fingerprint
 if [ ! -f /root/.ssh/known_hosts ]; then
-    ssh-keyscan -H hurracloud >> /root/.ssh/known_hosts
+    ssh-keyscan -H 172.18.0.1 >> /root/.ssh/known_hosts
 fi
 
 ## Deploy Database migrations

@@ -30,10 +30,6 @@ class Indexer
       true
     end
   
-    FSCRAWLER_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_template.json.erb'))
-    FSCRAWLER_LOG4J_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_log4j.xml.erb'))
-
-  
     def self.perform(job, params)
       Rails.logger.info("Got a #{job} job. Params: #{params}")
       begin
@@ -90,7 +86,7 @@ class Indexer
             path = "#{index_segment.index.full_path}#{index_segment.relative_path}"
             
             Rails.logger.info "Starting index process for #{path}"
-            fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{index_segment.index.name}"
+            fscrawler_config_dir = "#{Settings.fscrawler_root}/#{index_segment.index.name}"
             fscrawler_index_dir = "#{fscrawler_config_dir}/segment_#{index_segment_id}"
             FileUtils.mkdir_p fscrawler_index_dir
             File.write("#{fscrawler_index_dir}/_settings.json", index_segment.fscrawler_settings)

@@ -12,6 +12,13 @@
       - shadow
       - sudo
       - ntfs-3g
+      - opam
+      - g++
+      - make
+      - build-base
+      - ocaml
+      - ocaml-ocamldoc
+      - ocaml-compiler-libs
       state: latest
       update_cache: yes
       repository: 
@@ -48,6 +55,20 @@
       state: present
       sysctl_file: /etc/sysctl.d/01-hurracloud.conf
       reload: yes
+
+  - name: Configure System (opam)
+    command: sh -c 'OPAMYES=true opam init'
+
+  - name: Configure System (opam)
+    shell: opam init --shell-setup && eval $(opam env) && opam depext google-drive-ocamlfuse && opam install google-drive-ocamlfuse
+    environment:
+      OPAMYES: true
+
+  - name: Confiugre System (google-drive-ocamlfuse)
+    file:
+      src: /root/.opam/default/bin/google-drive-ocamlfuse
+      dest: /usr/local/bin/google-drive-ocamlfuse
+      state: link
 
   - name: Configure manager user
     user:
@@ -132,10 +153,3 @@
     docker_login:
       username: aimannajjar
       password: PHJ3iphUPHgFqpkh6feJNaR4fedjTm5dNRqqEfQ
-
-##### Create new index
-
-  # - include_tasks: create_index.yml 
-  #   vars: 
-  #     index_name: hurradrive
-  #     data: /mnt/HurraDrive

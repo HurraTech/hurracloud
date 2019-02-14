@@ -68,7 +68,7 @@ class SearchController < ApplicationController
         es_response = Rails.application.config.es_client.search index: "hurracloud_*", body: query   
         hits = es_response["hits"]["hits"]
         hits = hits.map{ |h|
-            h["_source"]["path"] = h["_source"]["path"]["real"].sub("#{Settings.mounts_path}", "")
+            h["_source"]["path"] = h["_source"]["path"]["real"].sub("#{Settings.mounts_path}/", "")
             h
         }
         render json: { 

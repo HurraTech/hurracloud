@@ -16,7 +16,9 @@ services:
     volumes:
       - ./jawhar:/usr/share/hurracloud/jawhar
     environment:
-    - HOST_MOUNT_PATH=/usr/local/src/hurracloud/mounts/
+    - HOST_MOUNT_PATH=/usr/local/src/hurracloud/mounts
+    - HOST_GDFUSE_PATH=/usr/local/src/hurracloud/data/gdfuse
+
     ports:
       - 5000:3000
     command: sh -c "bundle install && ./bin/start_jawhar.sh"
