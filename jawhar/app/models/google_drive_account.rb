@@ -16,35 +16,19 @@ class GoogleDriveAccount < ApplicationRecord
         self.source.free = self.source.size - self.source.used
     end
 
-    # def browse(requested_path)
-    #     parent = "root"
-    #     parent = requested_path if !requested_path.nil?
-    #     response = {contents:
-    #         client.list_files(fields: 'files(name,size,modifiedTime,mimeType,id,webContentLink)', order_by: 'folder', q: "'#{parent}' in parents").files.map{|file| self.normalize_file_entry(file) }
-    #     }
-    #     response[:contents].unshift({ name: "..", internal_name: "..", type: "folder" }) if !requested_path.nil?
-    #     response        
-    # end
+    def api_browse(requested_path)
+        parent = "root"
+        parent = requested_path if !requested_path.nil?
+        response = {contents:
+            client.list_files(fields: 'files(name,size,modifiedTime,mimeType,id,webContentLink)', order_by: 'folder', q: "'#{parent}' in parents").files.map{|file| self.normalize_file_entry(file) }
+        }
+        response[:contents].unshift({ name: "..", internal_name: "..", type: "folder" }) if !requested_path.nil?
+        response        
+    end
 
-    def browse(requested_path=nil)
-        path = "#{self.source.mount_path}/#{requested_path}"
-        { 
-          contents: Dir.entries(path).map {|i|
-              entry_path = "#{path}/#{i}"
-              file_extension = File.extname(entry_path).downcase
-              file_extension = file_extension.length > 0 ? file_extension[1..-1] : ""
-              {
-                  name: i,
-                  internal_name: i,
-                  type: FileTest.directory?(entry_path) ? "folder": file_extension,
-                  path: "#{self.source.id}/#{requested_path}#{i}",
-                  last_modified: File.mtime(entry_path),
-                  filesize: File.size(entry_path)
-              }
-          }.select{ |e| e[:name] != '.' && ( !requested_path.nil? || e[:name] != '..') }
-           .sort{ |e1,e2| e1[:type] == "folder" ? -1 : 1 }
-      }
-      end
+    def browse(requestedPath)
+        self.source.browse(requestedPath) ## Use the common browse logic
+    end
     
 
     def client
@@ -59,11 +43,11 @@ class GoogleDriveAccount < ApplicationRecord
         Resque.enqueue(Mounter, 'mount_gdrive_account', :gdrive_account_id => self.id)    
     end
 
-    def unmount()
+    def unmount
         self.source.unmount() ## Use the common source unmount logic
     end
 
-    def unmount
+    def disconnect
         self.accessToken = nil
         self.refreshToken = nil
         self.source.status = :unmounted

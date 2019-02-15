@@ -57,7 +57,7 @@ class Index < ApplicationRecord
     end
 
     def full_path
-        self.source.sourcable.mount_path
+        self.source.mount_path
     end
 
     def root_segment

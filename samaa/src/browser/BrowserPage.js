@@ -105,10 +105,14 @@ class BrowserPage extends React.Component {
   handleFilenameClick = index => {
     const path = this.state.items[index].internal_name;
     const type = this.state.items[index].type;
-    console.log(`Clicked on ${path} of type ${type}`)
     let requestedPath = `${type != 'folder' ? '_open_/' :''}${this.state.path}/${path}`;
+    if (path == "..")
+    {
+      // Going one level up
+      requestedPath = this.state.path.substring(0, this.state.path.lastIndexOf("/"))
+    }
+    console.log(`Clicked on ${path} of type ${type}`)
     this.props.history.push({ pathname: `/browse/${requestedPath}`});  
-    this.setState({path: requestedPath, requestedItem: this.state.items[index]}, () => { this.browse() } )
   };
 
   openFile() {
@@ -133,6 +137,8 @@ class BrowserPage extends React.Component {
               });
             } else {
               window.location = `http://192.168.1.2:5000/files/download/${this.state.path.replace('_open_/', '')}`;
+              let path = `/browse/${this.state.path.substring(0, this.state.path.lastIndexOf("/")).replace("_open_/", "")}`
+              this.props.history.push({ pathname: path});
             }
           });
         });

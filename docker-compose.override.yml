@@ -16,7 +16,6 @@ services:
     volumes:
       - ./jawhar:/usr/share/hurracloud/jawhar
     environment:
-    - HOST_MOUNT_PATH=/usr/local/src/hurracloud/mounts
     - HOST_GDFUSE_PATH=/usr/local/src/hurracloud/data/gdfuse
 
     ports:

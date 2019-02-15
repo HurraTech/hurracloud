@@ -16,5 +16,5 @@ mounts_path: /usr/share/hurracloud/mounts
 gdfuse_path: /usr/share/hurracloud/jawhar/gdfuse
 fscrawler_root_path: /usr/share/hurracloud/zahif/indices 
 skip_partitions:
-  - /dev/sda1
-  - /dev/sda2
+  - /dev/sdb1
+  - /dev/sdb2

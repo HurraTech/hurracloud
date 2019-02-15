@@ -10,19 +10,18 @@ class Mounter
             partition_id = data["partition_id"]
             partition = DrivePartition.find_by(id: partition_id) or return
             dev_path = partition.deviceFile
-            host_mount_path = partition.source.host_mount_path
-            local_mount_path = partition.source.mount_path
-            FileUtils.mkdir_p(local_mount_path) unless File.directory?(local_mount_path)            
-            Rails.logger.info "Mounting #{dev_path} #{host_mount_path}"
-            result = `ssh hurra@172.18.0.1 '(sudo mount -t ntfs-3g #{dev_path} #{host_mount_path}) || (sudo mount #{dev_path} #{host_mount_path})'`
-            Rails.logger.info "Ran `ssh hurra@172.18.0.1 '(sudo mount -t ntfs-3g #{dev_path} #{host_mount_path}) || (sudo mount #{dev_path} #{host_mount_path})'`"
+            mount_path = partition.source.mount_path
+            FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)            
+            Rails.logger.info "Mounting #{dev_path} #{mount_path}"
+            result = `ssh hurra@172.18.0.1 '(sudo mount -t ntfs-3g #{dev_path} #{mount_path}) || (sudo mount #{dev_path} #{mount_path})'`
+            Rails.logger.info "Ran `ssh hurra@172.18.0.1 '(sudo mount -t ntfs-3g #{dev_path} #{mount_path}) || (sudo mount #{dev_path} #{mount_path})'`"
             Rails.logger.info "Result #{result}"
             `touch /usr/share/hurracloud/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh) 
             Resque.enqueue(Mounter, 'update_sources')
         when 'unmount_source'
             source_id = data["source_id"]
             source = Source.find_by(id: source_id) or return
-            mount_path = source.host_mount_path
+            mount_path = source.mount_path
             result = `ssh hurra@172.18.0.1 'sudo umount #{mount_path}'`
             Rails.logger.info "Ran `ssh hurra@172.18.0.1 'sudo umount #{mount_path}'`"
             Rails.logger.info  "Result #{result}"
@@ -30,14 +29,16 @@ class Mounter
         when 'mount_gdrive_account'
             gdrive_account_id = data["gdrive_account_id"]
             gdrive_account = GoogleDriveAccount.find(gdrive_account_id)
+            mount_path = gdrive_account.source.mount_path
             FileUtils.mkdir_p gdrive_account.gdfuse_config_directory
+            FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)    
             # Generate state and config files
             File.write("#{gdrive_account.gdfuse_config_directory}/config", gdrive_account.gdfuse_config)
             File.write("#{gdrive_account.gdfuse_config_directory}/state", gdrive_account.gdfuse_state)
-            Rails.logger.info("Running command ssh hurra@172.18.0.1 'sudo /usr/local/bin/google-drive-ocamlfuse -label #{gdrive_account.source.id} -config #{gdrive_account.host_gdfuse_config_directory}/config #{gdrive_account.source.host_mount_path}'")
-            result = `ssh hurra@172.18.0.1 'sudo /usr/local/bin/google-drive-ocamlfuse -label #{gdrive_account.source.id} -config #{gdrive_account.host_gdfuse_config_directory}/config #{gdrive_account.source.host_mount_path}'`
+            Rails.logger.info("Running command ssh hurra@172.18.0.1 'sudo /usr/local/bin/google-drive-ocamlfuse -label #{gdrive_account.source.id} -config #{gdrive_account.host_gdfuse_config_directory}/config #{gdrive_account.source.mount_path}'")
+            result = `ssh hurra@172.18.0.1 'sudo /usr/local/bin/google-drive-ocamlfuse -label #{gdrive_account.source.id} -config #{gdrive_account.host_gdfuse_config_directory}/config #{mount_path}'`
             Resque.enqueue(Mounter, 'update_sources')
-        when 'update_drives'
+        when 'update_sources'
             devices = { }
             `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb`.split("\n").each do |line|             
                 (dev, size, type, vendor, model) = line.split(" ", 5)

@@ -21,12 +21,11 @@ services:
       - ./key:/root/.ssh/id_rsa
       - /dev/bus/usb:/dev/bus/usb
       - type: bind
-        source: ./mounts
+        source: /usr/share/hurracloud/mounts
         target: /usr/share/hurracloud/mounts
         bind:
           propagation: shared
     environment:
-    - HOST_MOUNT_PATH=/usr/share/hurracloud/mounts
     - HOST_GDFUSE_PATH=/usr/share/hurracloud/data/gdfuse
     networks:
       - hurracloud
@@ -91,7 +90,7 @@ services:
     tty: true
     volumes:
       - type: bind
-        source: ./mounts
+        source: /usr/share/hurracloud/mounts
         target: /mount
         bind:
           propagation: shared

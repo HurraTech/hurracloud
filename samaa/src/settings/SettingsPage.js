@@ -183,16 +183,12 @@ class SettingsPage extends React.Component {
     }
 
     handleMountClick(source) {
-        if (source.sourcable_type == "DrivePartition") {
-            var currentSources = [...this.state.sources]
-            let source_id = source.id
-            currentSources.find(s => s.id === source_id).status = "mounting"
-            this.setState({sources: currentSources}, () => {
-                axios.get(`http://192.168.1.2:5000/sources/${source_id}/_mount`)
-            })
-        } else if (source.sourcable_type == "GoogleDriveAccount") { 
-            this.openGoogleAuthConsent(source)
-        }
+        var currentSources = [...this.state.sources]
+        let source_id = source.id
+        currentSources.find(s => s.id === source_id).status = "mounting"
+        this.setState({sources: currentSources}, () => {
+            axios.get(`http://192.168.1.2:5000/sources/${source_id}/_mount`)
+        })
     }
 
     handlePauseClick(source) {
