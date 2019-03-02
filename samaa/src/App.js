@@ -30,10 +30,12 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import BrowserIcon from '@material-ui/icons/Folder';
 import SettingsIcon from '@material-ui/icons/Settings';
+import AppsIcon from '@material-ui/icons/Apps';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import SearchPage from './search/SearchPage';
 import SettingsPage from './settings/SettingsPage'
+import AppStorePage from './appStore/AppStorePage'
 import { Route, Link, withRouter, Redirect } from 'react-router-dom';
 import BrowserPage from './browser/BrowserPage'
 import { create } from 'jss';
@@ -300,8 +302,9 @@ class App extends React.Component {
         open={isMenuOpen}
         onClose={this.handleMenuClose}
       >
-        <MenuItem onClick={this.handleMenuClose}>Profile</MenuItem>
-        <MenuItem onClick={this.handleMenuClose}>My account</MenuItem>
+        <MenuItem>
+          <Link to={`/manage/`} style={{ textDecoration: 'none', color: 'black' }} onClick={this.handleMenuClose}>Manage Storage</Link>
+        </MenuItem>
       </Menu>
     );
 
@@ -314,6 +317,12 @@ class App extends React.Component {
         onClose={this.handleMobileMenuClose}
       >
         <MenuItem>
+          <IconButton color="inherit">
+              <SettingsIcon />
+          </IconButton>
+          <p>Manage</p>
+        </MenuItem>      
+        {/* <MenuItem>
           <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">
               <MailIcon />
@@ -334,7 +343,7 @@ class App extends React.Component {
             <AccountCircle />
           </IconButton>
           <p>Profile</p>
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     );
 
@@ -380,7 +389,16 @@ class App extends React.Component {
             </div>
             <div className={classes.grow} />
             <div className={classes.sectionDesktop}>
-              <IconButton color="inherit">
+              <IconButton color="inherit"
+                aria-owns={isMenuOpen ? 'material-appbar' : undefined}
+                aria-haspopup="true"
+                onClick={this.handleProfileMenuOpen}
+                color="inherit"
+              >
+                <SettingsIcon />
+              </IconButton>
+
+              {/* <IconButton color="inherit">
                 <Badge badgeContent={4} color="secondary">
                   <MailIcon />
                 </Badge>
@@ -397,7 +415,7 @@ class App extends React.Component {
                 color="inherit"
               >
                 <AccountCircle />
-              </IconButton>
+              </IconButton> */}
             </div>
             <div className={classes.sectionMobile}>
               <IconButton
@@ -441,7 +459,7 @@ class App extends React.Component {
                               
             <ListItem button key="Browse" selected={this.props.history.location.pathname.startsWith(`/browse/`)} onClick={this.handleBrowserClick}>
                 <ListItemIcon><BrowserIcon /></ListItemIcon>
-                <ListItemText primary="Browse" style={{color:'black'}} />
+                <ListItemText primary="Cloud Drive" style={{color:'black'}} />
                 {this.state.browserListOpen ? <ExpandLess /> : <ExpandMore />}
               </ListItem>
               <Collapse in={this.state.browserListOpen} timeout="auto" unmountOnExit>
@@ -471,12 +489,19 @@ class App extends React.Component {
                 </List>
               </Collapse>
               <Divider />
-              <Link to={`/manage/`} style={{ textDecoration: 'none' }}>
+              <Link to={`/appStore/`} style={{ textDecoration: 'none' }}>
+                <ListItem button key="AppStore" selected={this.props.history.location.pathname.startsWith(`/appStore/`)}>
+                  <ListItemIcon><AppsIcon /></ListItemIcon>
+                  <ListItemText primary="App Store" style={{color:'black'}} />
+                </ListItem>
+              </Link>
+              <Divider />
+              {/* <Link to={`/manage/`} style={{ textDecoration: 'none' }}>
                 <ListItem button key="Manage" selected={this.props.history.location.pathname.startsWith(`/manage/`)}>
                   <ListItemIcon><SettingsIcon /></ListItemIcon>
                   <ListItemText primary="Manage" style={{color:'black'}} />
                 </ListItem>
-              </Link>
+              </Link> */}
 
           </List>
         </Drawer>
@@ -490,6 +515,8 @@ class App extends React.Component {
           <Route path="/browse/:path+" render={({match}) => (<BrowserPage path={match.params.path || ""} />)}/>
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>
+          <Route path="/appStore" render={() => (<AppStorePage sources={this.state.sources} />)}/>
+
         </main>
       </div>
   </MuiThemeProvider>

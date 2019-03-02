@@ -30,6 +30,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import BrowserIcon from '@material-ui/icons/Folder';
 import SettingsIcon from '@material-ui/icons/Settings';
+import AppsIcon from '@material-ui/icons/Apps';
 import history from '../../history';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
@@ -419,7 +420,7 @@ class Layout extends React.Component {
           </div>
           <Divider />
           <List>
-            {['Browser', 'Search', 'Settings'].map((text) => (
+            {['Browser', 'Search', 'Settings', 'App Store'].map((text) => (
               <div>
               <a
                 href={`/${text.toLowerCase()}`}
@@ -440,8 +441,11 @@ class Layout extends React.Component {
                           return <SearchIcon />;
                         case 'Browser':
                           return <BrowserIcon />;
+                        case 'App Store':
+                          return <AppsIcon />;
                         case 'Settings':
                           return <SettingsIcon />;
+
                       }
                     })()}
                   </ListItemIcon>
