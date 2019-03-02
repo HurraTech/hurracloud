@@ -29,6 +29,31 @@ class GoogleDriveAccount < ApplicationRecord
     def browse(requestedPath)
         self.source.browse(requestedPath) ## Use the common browse logic
     end
+
+    def file_to_json(requested_path, file)
+        path = "#{self.source.mount_path}/#{requested_path}"
+        file_path = "#{path}/#{file}"
+        
+        return self.source.file_to_json(requested_path, file) if ! /^.*\.desktop(\s\([^\)]*\))?/.match?(file) || FileTest.directory?(file_path) 
+        normalized_name = file.scan(/^(.*)\.desktop(\s\([^\)]*\))?/).last.first
+        
+        # Process .desktop files differently as they are actually links to Google Documents        
+        url_line = IO.readlines(file_path)[3]
+        url = url_line.split("=")[1]
+
+        file_extension = File.extname(file_path).downcase
+        file_extension = file_extension.length > 0 ? file_extension[1..-1] : ""
+        {
+            name: normalized_name,
+            internal_name: file,
+            type: GoogleDriveAccount.determine_file_type_by_url(url),
+            path: "#{self.id}/#{requested_path}/#{file}",
+            last_modified: File.mtime(file_path),
+            filesize: File.size(file_path),
+            open_link: url,
+
+        }
+    end
     
 
     def client
@@ -104,6 +129,27 @@ class GoogleDriveAccount < ApplicationRecord
             mime_type: entry.mime_type
         }
     end
+
+    def self.determine_file_type_by_url(url)
+        type = url.scan(/https:\/\/docs\.google\.com\/([^\/]*)\/.*/).last.first
+        case type
+        when 'document'
+            'gdoc'
+        when 'spreadsheets'
+            'gsheet'
+        when 'application/vnd.google-apps.presentation'
+            'gslide'
+        when 'application/vnd.google-apps.site'
+            'gsite'
+        when 'application/vnd.google-apps.form'
+            'gform'
+        when 'application/vnd.google-apps.video'
+            'mov'
+        else
+            type
+        end
+    end
+
 
     def self.determine_file_type(file_name, google_mime_type)
         file_extension = File.extname(file_name).downcase

@@ -15,6 +15,7 @@ class FilesController < ApplicationController
         elsif params[:file_action] == 'download'
             file_extension = File.extname(file)[1..-1]
             mime = Mime::Type.lookup_by_extension(file_extension).to_s
+            mime = "application/octet-stream" if mime == ""
         end
 
         if params[:file_action] == 'is_viewable'
