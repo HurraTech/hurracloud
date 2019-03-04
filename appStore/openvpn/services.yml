@@ -1,0 +1,29 @@
+---
+version: '2'
+services:
+  openvpn:
+    cap_add:
+     - NET_ADMIN
+    image: kylemanna/openvpn
+    container_name: openvpn
+    ports:
+     - "1194:1194/udp"
+    restart: always
+    volumes:
+     - openvpn-data:/etc/openvpn
+
+  pki:
+    cap_add:
+     - NET_ADMIN
+    image: kylemanna/openvpn
+    container_name: openvpn
+    ports:
+     - "1194:1194/udp"
+    restart: unless-stopped
+    command: "/bin/bash -c 'trap : TERM INT; sleep infinity & wait'"
+    volumes:
+     - openvpn-data:/etc/openvpn
+
+volumes:
+  openvpn-data:
+    driver: local

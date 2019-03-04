@@ -8,14 +8,17 @@ class Scanner
       begin
         case job
         when 'spawn_scanners'
-            DrivePartition.joins(:source).where("sources.status = ?", :mounted).each do |device|
-                next if !device.index or device.index.status != "completed"
-                Rails.logger.info("Spawning scanner for #{device.index.es_index_name} ?")        
-                index = device.index        
+            DrivePartition.joins(:source).where("sources.status = ?", Source.statuses[:mounted]).each do |device|
+                if !device.source.index or device.source.index.status != "completed"
+                    Rails.logger.info("Skipping device #{device} because it either has no index or its indexing has not completed yet")
+                    next
+                end
+                Rails.logger.info("Spawning scanner for #{device.source.index.es_index_name} ?")        
+                index = device.source.index        
                 fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{index.name}"
                 fscrawler_index_dir = "#{fscrawler_config_dir}/#{index.crawler_job_name}"   
-                self.setup_scanner(device.index, fscrawler_config_dir, fscrawler_index_dir)
-                pid_file = "/var/run/#{device.index.crawler_job_name}.pid"
+                self.setup_scanner(index, fscrawler_config_dir, fscrawler_index_dir)
+                pid_file = "/var/run/#{index.crawler_job_name}.pid"
                 if FileTest.exists?(pid_file)
                     Rails.logger.info("PID file exists")
                     current_pid = File.read(pid_file).to_i

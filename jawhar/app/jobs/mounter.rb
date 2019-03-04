@@ -87,7 +87,7 @@ class Mounter
                 }
                 Mounter.update_drive(drive, device)
                 drive.save!
-                Rails.logger.info("Discover the following JSON #{JSON.pretty_generate(drive.as_json)}")
+                Rails.logger.info("Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
             end
             detached = Drive.where.not(unique_id: attached_devs).update_all(status: :detached)
 

@@ -1,6 +1,5 @@
 class SearchController < ApplicationController
     def search
-        index = Index.first()
         q = params[:q] || ""
         from = (params[:from] || "0 ").to_i
         to = (params[:to] || "30").to_i

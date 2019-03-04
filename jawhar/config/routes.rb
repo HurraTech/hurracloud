@@ -26,6 +26,10 @@ Rails.application.routes.draw do
     get '_cancel', to: 'indices#cancel'
   end
 
+  resources :apps, :param => :unique_id, :defaults => { :format => 'json' } do
+    post '_exec', to: 'apps#exec'
+    post '_install', to: 'apps#install'
+  end
   mount Resque::Server.new, at: "/resque"
 
 end

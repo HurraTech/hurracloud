@@ -1,0 +1,17 @@
+version: '2.3'
+services:
+  <%=app_unique_id%>_runner:
+    image: aimannajjar/hurracloud:app-runner-v1
+    user: root
+    volumes:
+      - <%=host_apps_path%>/<%=app_unique_id%>/CONTENT/ui:/usr/src/app-runner/src/HurraApp
+    ports:
+      - <%=port_number%>:3000
+    networks:
+      - <%=app_unique_id%>_runner
+    environment:
+      - NODE_ENV=development
+    command: sh -c "yarn install && yarn start"    
+
+networks:
+  <%=app_unique_id%>_runner: {}

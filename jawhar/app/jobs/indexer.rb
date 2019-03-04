@@ -86,7 +86,7 @@ class Indexer
             path = "#{index_segment.index.full_path}#{index_segment.relative_path}"
             
             Rails.logger.info "Starting index process for #{path}"
-            fscrawler_config_dir = "#{Settings.fscrawler_root}/#{index_segment.index.name}"
+            fscrawler_config_dir = "#{Settings.fscrawler_root_path}/#{index_segment.index.name}"
             fscrawler_index_dir = "#{fscrawler_config_dir}/segment_#{index_segment_id}"
             FileUtils.mkdir_p fscrawler_index_dir
             File.write("#{fscrawler_index_dir}/_settings.json", index_segment.fscrawler_settings)

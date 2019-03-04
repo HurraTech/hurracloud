@@ -17,7 +17,7 @@ class SingleFileIndexer
         parsed_path = file.sub("/usr/share/hurracloud/mounts/", "").scan(/[^\/]*/).reject { |i| i.empty? }
         source_id = parsed_path[0]
         filename = parsed_path.last
-        source = Source.where(source_id: source_id).first()
+        source = Source.where(id: source_id).first()
         if !source.index 
             Rails.logger.info("Skipping #{file} as this source is not indexed")
             return

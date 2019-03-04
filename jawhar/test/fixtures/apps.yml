@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  app_unique_id: MyString
+  deployment_port: 1
+  status: 1
+
+two:
+  app_unique_id: MyString
+  deployment_port: 1
+  status: 1

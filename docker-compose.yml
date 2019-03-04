@@ -18,6 +18,8 @@ services:
       - ./data/db:/usr/share/hurracloud/jawhar/data
       - ./data/logs:/usr/share/hurracloud/jawhar/log
       - ./data/gdfuse:/usr/share/hurracloud/jawhar/gdfuse
+      - ./data/apps:/usr/share/hurracloud/jawhar/apps
+      - ./appStore:/usr/share/hurracloud/jawhar/appStore-temp ## must be replaced by store.hurrranet.net
       - ./key:/root/.ssh/id_rsa
       - /dev/bus/usb:/dev/bus/usb
       - type: bind
@@ -27,6 +29,7 @@ services:
           propagation: shared
     environment:
     - HOST_GDFUSE_PATH=/usr/share/hurracloud/data/gdfuse
+    - HOST_APPS_PATH=/usr/share/hurracloud/data/apps
     networks:
       - hurracloud
     privileged: true
@@ -36,6 +39,8 @@ services:
     image: aimannajjar/hurracloud:samaa-v1
     networks:
       - hurracloud
+    volumes:
+      - ./apps:/usr/src/samaa/src/apps
     environment:
       - NODE_ENV=production
     restart: always

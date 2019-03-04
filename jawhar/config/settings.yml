@@ -15,6 +15,7 @@ inline_files: # files that can be returned as "inline" content-disposition for v
 mounts_path: /usr/share/hurracloud/mounts
 gdfuse_path: /usr/share/hurracloud/jawhar/gdfuse
 fscrawler_root_path: /usr/share/hurracloud/zahif/indices 
+apps_path: /usr/share/hurracloud/jawhar/apps
 skip_partitions:
   - /dev/sdb1
   - /dev/sdb2
