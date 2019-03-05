@@ -27,8 +27,8 @@ Rails.application.routes.draw do
   end
 
   resources :apps, :param => :unique_id, :defaults => { :format => 'json' } do
-    post '_exec', to: 'apps#exec'
     post '_install', to: 'apps#install'
+    post '_start', to: 'apps#start'
   end
   mount Resque::Server.new, at: "/resque"
 

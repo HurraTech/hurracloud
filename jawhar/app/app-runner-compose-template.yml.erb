@@ -4,7 +4,7 @@ services:
     image: aimannajjar/hurracloud:app-runner-v1
     user: root
     volumes:
-      - <%=host_apps_path%>/<%=app_unique_id%>/CONTENT/ui:/usr/src/app-runner/src/HurraApp
+      - <%=host_app_path%>/CONTENT/ui:/usr/src/app-runner/src/HurraApp
     ports:
       - <%=port_number%>:3000
     networks:

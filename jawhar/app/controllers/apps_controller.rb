@@ -10,6 +10,7 @@ class AppsController < ApplicationController
             a.app_unique_id = auid
         }
         app.install()
+        render json: { app: app }
     end
 
 end

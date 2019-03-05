@@ -101,7 +101,18 @@ class Mounter
                 end
                 account.save!
             end
+        when 'start_app'    
+            app_id = data["app_id"]
+            app = App.find(app_id)
+            Rails.logger.info("Starting app ID #{app}")
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/docker-compose.runner.yml up -d)'"
+            result = `#{cmd}`
+            app.status = :started
+            app.save()
+            Rails.logger.info "Ran `#{cmd}`"
+            Rails.logger.info "Result #{result}"
         end
+        
     end
 
     def self.update_drive(s, device)

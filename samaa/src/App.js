@@ -15,6 +15,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MailIcon from '@material-ui/icons/Mail';
 import NotificationsIcon from '@material-ui/icons/Notifications';
+import HomeIcon from '@material-ui/icons/Home'
 import MoreIcon from '@material-ui/icons/MoreVert';
 import classNames from 'classnames';
 import axios from 'axios';
@@ -46,6 +47,7 @@ import {
   createMuiTheme,
 } from '@material-ui/core/styles';
 import blackThemeFile from './themes/black';
+import HomePage from './home/HomePage';
 
 const jss = create({
   ...jssPreset(),
@@ -448,15 +450,16 @@ class App extends React.Component {
               )}
             </IconButton>
           </div>
+
           <Divider />
           <List>
-            <Link to={`/search/`} style={{ textDecoration: 'none' }}>
-                <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
-                  <ListItemIcon><SearchIcon /></ListItemIcon>
-                  <ListItemText primary="Search" style={{color:'black'}} />
+            <Link to={`/`} style={{ textDecoration: 'none' }}>
+                <ListItem button key="Home" selected={this.props.history.location.pathname == "/"}>
+                  <ListItemIcon><HomeIcon /></ListItemIcon>
+                  <ListItemText primary="Home" style={{color:'black'}} />
                 </ListItem>
             </Link>        
-                              
+            <Divider />
             <ListItem button key="Browse" selected={this.props.history.location.pathname.startsWith(`/browse/`)} onClick={this.handleBrowserClick}>
                 <ListItemIcon><BrowserIcon /></ListItemIcon>
                 <ListItemText primary="Cloud Drive" style={{color:'black'}} />
@@ -488,6 +491,12 @@ class App extends React.Component {
                   })}
                 </List>
               </Collapse>
+              <Link to={`/search/`} style={{ textDecoration: 'none' }}>
+                <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
+                  <ListItemIcon><SearchIcon /></ListItemIcon>
+                  <ListItemText primary="Search" style={{color:'black'}} />
+                </ListItem>
+              </Link>
               <Divider />
               <Link to={`/appStore/`} style={{ textDecoration: 'none' }}>
                 <ListItem button key="AppStore" selected={this.props.history.location.pathname.startsWith(`/appStore/`)}>
@@ -511,7 +520,7 @@ class App extends React.Component {
           })}
         >
           <div className={classes.drawerHeader} />
-          <Route exact={true} path="/" render={() => (<Redirect from="/" to="/search/" />)} />          
+          <Route exact={true} path="/" render={() => (<HomePage />)}/>
           <Route path="/browse/:path+" render={({match}) => (<BrowserPage path={match.params.path || ""} />)}/>
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>
