@@ -97,14 +97,16 @@ class AppLoader extends React.Component {
 
     constructor(props, context) {
         super(props)
+        console.log(props)
         this.state = {
             port: 0,
+            auid: props.auid,
         }
     }
 
     componentDidMount = () => {
       axios
-      .get(`http://192.168.1.2:5000/apps`)
+      .get(`http://192.168.1.2:5000/apps/${this.state.auid}`)
       .then(res => {
           const response = res.data;
           this.setState({ port: response.deployment_port })

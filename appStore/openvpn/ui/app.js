@@ -1,18 +1,17 @@
 import React from 'react';
+import Button from '@material-ui/core/Button';
 
-class HurraApp extends React.PureComponent {
+class HurraApp extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-    };
+  };
+
+  render() {
+    return     <Button variant="contained" color="primary">
+    Hello World
+  </Button>
 
   }
-
-    render() {
-        return (
-            <div>AIMAN ROCKS :)!~!!!</div>
-        )
-    }
 }
 
 

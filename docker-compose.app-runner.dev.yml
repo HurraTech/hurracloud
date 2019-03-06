@@ -13,7 +13,7 @@ services:
       - ./app-runner/public:/usr/src/app-runner/public
       - ./app-runner/package.json:/usr/src/app-runner/package.json
       - ./app-runner/yarn.lock:/usr/src/app-runner/yarn.lock
-      - ./apps/openvpn:/usr/src/app-runner/src/HurraApp
+      - ./apps/openvpn:/usr/src/app-runner/HurraApp
     ports:
       - 3001:3000
     networks:
