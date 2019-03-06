@@ -29,8 +29,16 @@ class ApiController < ApplicationController
 
     private 
     def inject_resource(resource=nil)
-        resource ||= resource_class.find(params[:id]) or render json: { error: "not found"}                
+        resource ||= resource_class.where("#{id_field} = ?", id_value).first() or render json: { error: "not found"}                
         instance_variable_set("@#{resource_name}", resource)
+    end
+
+    def id_field
+        "id"
+    end
+
+    def id_value
+        params[:id]
     end
 
     def resource_name

@@ -1,7 +1,7 @@
 ---
-version: '2.2'
+version: '2'
 services:
-  server:
+  openvpn_server:
     cap_add:
      - NET_ADMIN
     image: kylemanna/openvpn
@@ -11,7 +11,7 @@ services:
     volumes:
      - openvpn-data:/etc/openvpn
 
-  pki:
+  openvpn_pki:
     image: kylemanna/openvpn
     restart: unless-stopped
     command: "/bin/bash -c 'trap : TERM INT; (while sleep 3600; do :; done) & wait'"

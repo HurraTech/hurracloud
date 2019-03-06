@@ -48,6 +48,7 @@ import {
 } from '@material-ui/core/styles';
 import blackThemeFile from './themes/black';
 import HomePage from './home/HomePage';
+import AppLoader from './appLoader/AppLoader';
 
 const jss = create({
   ...jssPreset(),
@@ -525,6 +526,7 @@ class App extends React.Component {
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>
           <Route path="/appStore" render={() => (<AppStorePage sources={this.state.sources} />)}/>
+          <Route path="/apps/:auid+" render={({match}) => (<AppLoader auid={match.params.auid} />)}/>
 
         </main>
       </div>

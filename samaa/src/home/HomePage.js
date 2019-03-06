@@ -14,6 +14,7 @@ import OpenIcon from '@material-ui/icons/OpenInNew'
 import Chip from '@material-ui/core/Chip';
 import FaceIcon from '@material-ui/icons/Face';
 import RunningIcon from '@material-ui/icons/CheckCircle';
+import Utils from '../utils';
 
 const styles = theme => ({
     root: {
@@ -99,6 +100,7 @@ class HomePage extends React.Component {
         this.state = {
             selectedTab: 0,
             expandedApp: '',
+            apps: []
         }
     }
 
@@ -110,17 +112,77 @@ class HomePage extends React.Component {
         
     changeTab = (event, selectedTab) => {
         this.setState({ selectedTab });
-      };
+    };
+
+    componentDidMount = () => {
+        this.getApplications()
+    }
+
+    getApplications = () => {
+        axios
+        .get(`http://192.168.1.2:5000/apps`)
+        .then(res => {
+            const response = res.data;
+            this.setState({ apps: response })
+        })
+    };
     
     /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
+        
         return (
             <Grid container className={classes.root} spacing={16}>
                 <Grid item xs={12}>
                 <Grid container className={classes.demo} justify="left" spacing={24}>
+                    {this.state.apps.map(app => {
+                        let icon = Utils.jsonToElement("svg", app.iconSvg)
+                        return (<Grid key={app.auid} item>
+                            <Card className={classes.card}>
+                                    <div className={classes.cardButton}>
+                                        <div className={classes.details}>
+                                            <CardMedia>
+                                                <SvgIcon className={classes.appIcon} color="primary" fontSize="large" viewBox={app.iconSvg["viewBox"]}>
+                                                    {icon.props.children}
+                                                </SvgIcon>                                
+                                            </CardMedia>
+                                            <CardContent className={classes.content}>
+                                                <Typography variant="h6" className={classes.title}>{app.name}</Typography>
+                                                <Chip
+                                                    label="RUNNING"
+                                                    icon={<RunningIcon fontSize="small" />}
+                                                    className={classes.chip}
+                                                    color="secondary"
+                                                />
 
-                    {/* APP CARD BEGINS HERE */}
+                                                <Chip
+                                                    label={`v${app.version}`}
+                                                    className={classes.chip}
+                                                    color="primary"
+                                                />
+
+                                            </CardContent>
+                                        </div>
+                                        <CardContent className={classes.appDescription} >
+                                            <Typography variant="subtitle2" color="textSecondary">
+                                                {app.description}
+                                            </Typography>
+                                        </CardContent>
+                                        <CardActions>                                            
+                                            
+                                            <Button variant="contained" size="small" color="primary" component={Link} to={`/apps/${app.app_unique_id}`} style={{textDeocration: 'none'}}>
+                                                <OpenIcon className={classNames(classes.leftIcon, classes.iconSmall)} />
+                                                Open
+                                            </Button>
+                                            <Button variant="contained"  size="small" color="secondary">Restart</Button>
+                                            <Button variant="contained"  size="small" color="secondary">Delete</Button>
+                                        </CardActions>
+                                    </div>
+                            </Card>
+                        </Grid>)
+                        })
+                    }
+                    {/* APP CARD BEGINS HERE
                     <Grid key="app1" item>
                         <Card className={classes.card}>
                                 <div className={classes.cardButton}>
@@ -165,9 +227,7 @@ class HomePage extends React.Component {
                                 </div>
                         </Card>
                     </Grid>
-                    {/* APP CARD ENDS HERE */}
 
-                    {/* APP CARD BEGINS HERE */}
                     <Grid key="app1" item>
                         <Card className={classes.card}>
                                 <div className={classes.cardButton}>
@@ -214,8 +274,7 @@ class HomePage extends React.Component {
                                 </div>
                         </Card>
                     </Grid>
-                    {/* APP CARD ENDS HERE */}
-
+                    */}
 
 
                 </Grid>

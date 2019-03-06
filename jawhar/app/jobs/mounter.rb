@@ -101,12 +101,30 @@ class Mounter
                 end
                 account.save!
             end
+        when 'init_app'    
+            app_id = data["app_id"]
+            app = App.find(app_id)
+            app.initCommands.each do |cmd|
+                ## TODO very dangerous, change when switching to public app store
+                cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml run --rm #{cmd})'"                
+                Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
+                result = `#{cmd}`
+                Rails.logger.info("Ran command, results: #{result}")
+            end
+            Resque.enqueue(Mounter, 'start_app', :app_id => app_id)    
         when 'start_app'    
             app_id = data["app_id"]
             app = App.find(app_id)
-            Rails.logger.info("Starting app ID #{app}")
+            Rails.logger.info("Starting UI for app ID #{app}")
             cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/docker-compose.runner.yml up -d)'"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             result = `#{cmd}`
+
+            Rails.logger.info("Starting services for app ID #{app}")
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml up -d)'"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
+            result = `#{cmd}`
+
             app.status = :started
             app.save()
             Rails.logger.info "Ran `#{cmd}`"
