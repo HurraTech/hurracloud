@@ -13,6 +13,14 @@ class AppsController < ApiController
         render json: { app: app }
     end
 
+    def exec
+        auid = params[:app_auid]
+        container = params[:container]
+        cmd = params[:cmd]
+        env = params[:env]
+        App.find_by(app_unique_id: auid).exec(container, cmd, env || [])
+        render json: { done: true }
+    end    
     def id_field
         "app_unique_id"
     end

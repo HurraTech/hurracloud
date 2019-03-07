@@ -8,6 +8,7 @@ class App < ApplicationRecord
     serialize :initCommands, Array
 
     def install
+        
         FileUtils.mkdir_p self.app_path
 
         self.deployment_port = rand(5001..6000)## TODO: Exclude already used ports
@@ -35,6 +36,10 @@ class App < ApplicationRecord
         Resque.enqueue(Mounter, 'init_app', :app_id => self.id)    
     end
 
+    def exec(container, cmd, env)
+        Resque.enqueue(Mounter, 'exec_app', :app_id => self.id, :container => container, :cmd => cmd, :env => env)    
+    end
+
     def startApp
         self.status = :starting
         self.save()
@@ -50,10 +55,13 @@ class App < ApplicationRecord
     end
 
     def compose_file_contents
+        compose_tpl = IO.read(File.join(Rails.root, 'app', 'app-runner-compose-template.yml.erb')) 
+        ##TODO: change above to constant
+
         app_unique_id = self.app_unique_id
         port_number = self.deployment_port
         host_app_path = self.host_app_path
-        ERB.new(COMPOSE_TEMPLATE).result(binding)    
+        ERB.new(compose_tpl).result(binding)    
     end
 
 end

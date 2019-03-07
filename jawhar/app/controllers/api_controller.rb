@@ -25,7 +25,7 @@ class ApiController < ApplicationController
 
     def update
         if get_resource.update(resource_params)
-            render json: get_resource, status: :updated
+            render json: get_resource, status: 200
         else
           render json: get_resource.errors, status: :unprocessable_entity
         end

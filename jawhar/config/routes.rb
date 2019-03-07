@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   resources :apps, :param => :auid, :defaults => { :format => 'json' } do
     post '_install', to: 'apps#install'
     post '_start', to: 'apps#start'
+    post '/:container/_exec', to: 'apps#exec'
   end
   mount Resque::Server.new, at: "/resque"
 

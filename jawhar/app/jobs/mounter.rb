@@ -129,6 +129,16 @@ class Mounter
             app.save()
             Rails.logger.info "Ran `#{cmd}`"
             Rails.logger.info "Result #{result}"
+        when 'exec_app'    
+            app_id = data["app_id"]
+            container = data["container"]
+            cmd = data["cmd"] ### TODO: SECURITY RISK ..
+            app = App.find(app_id)
+            ## TODO very dangerous stuff here
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml exec -T #{container} #{cmd})'"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
+            result = `#{cmd}`
+            Rails.logger.info("Ran command, results: #{result}")
         end
         
     end

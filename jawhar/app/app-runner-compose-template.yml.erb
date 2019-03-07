@@ -16,6 +16,7 @@ services:
       - <%=app_unique_id%>_runner
     environment:
       - NODE_ENV=development
+      - REACT_APP_AUID=<%=app_unique_id%>
     command: sh -c "yarn install && yarn start"    
 
 networks:

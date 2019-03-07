@@ -17,8 +17,8 @@ module Api
 
     config.middleware.insert_before 0, Rack::Cors do
       allow do
-        origins 'http://192.168.1.2:3000'
-        resource '*', headers: :any, methods: [:get, :post, :options]
+        origins '*' ## TODO: Restrict origins dummy!!!!
+        resource '*', headers: :any, methods: [:get, :post, :options, :put]
       end
     end
 

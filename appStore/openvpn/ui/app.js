@@ -82,7 +82,8 @@ class HurraApp extends React.Component {
   };
 
   savePassword = (event) => {
-
+    console.log("Saving password", event)
+    HurraUtils.setState({initialized: true}).then(state => {  console.log(state) })
   }
 
   render() {
@@ -141,7 +142,7 @@ class HurraApp extends React.Component {
                       />
               </form>
             </div>
-            <div><Button variant="contained" color="primary" onClick={this.savePassword()}>Save Password</Button></div>
+            <div><Button variant="contained" color="primary" onClick={() => { this.savePassword()}}>Save Password</Button></div>
       </Paper>
 
   }
