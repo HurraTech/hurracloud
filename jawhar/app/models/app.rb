@@ -4,16 +4,22 @@ class App < ApplicationRecord
     COMPOSE_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'app-runner-compose-template.yml.erb'))
     enum status: [ :installed, :starting, :started, :stopping, :stopped ]
     serialize :iconSvg, Hash
+    serialize :state, Hash
     serialize :initCommands, Array
 
     def install
         FileUtils.mkdir_p self.app_path
 
         self.deployment_port = rand(5001..6000)## TODO: Exclude already used ports
-        File.write("#{self.app_path}/docker-compose.runner.yml", self.compose_file_contents)        
+        File.open("#{self.app_path}/docker-compose.runner.yml", "w") do |f|
+            f.write(self.compose_file_contents)
+        end
+          
         #TODO: TEMP LOGIC UNTIL APP STORE SERVICE IS READY
         # FileUtils.cp_r("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}", "#{self.app_path}/CONTENT")
-        FileUtils.ln_s("/usr/local/src/hurracloud/appStore/#{self.app_unique_id}", "#{self.app_path}/CONTENT")
+        if !File.symlink?("#{self.app_path}/CONTENT") #check if already exists
+            FileUtils.ln_s("/usr/local/src/hurracloud/appStore/#{self.app_unique_id}", "#{self.app_path}/CONTENT") 
+        end
         svg = (IO.read("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}/icon.svg"))
         metadata = YAML.load_file("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}/metadata.yml")
         self.iconSvg = XmlSimple.xml_in(svg, KeepRoot: false, SuppressEmpty: true, KeyToSymbol: false, ForceArray: true)

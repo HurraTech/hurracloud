@@ -7,6 +7,7 @@ class CreateApps < ActiveRecord::Migration[5.1]
       t.string :description
       t.integer :deployment_port
       t.integer :status
+      t.text :state
       t.text :iconSvg
       t.text :initCommands
       t.timestamps

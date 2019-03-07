@@ -21,4 +21,9 @@ class AppsController < ApiController
         params[:auid]
     end
 
+    private
+    def app_params
+        params.require(:app).permit(:state => { })
+    end
+
 end
