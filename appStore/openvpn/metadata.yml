@@ -2,5 +2,3 @@ name: OpenVPN Server
 description: Allows you to securely access your HurraCloud Device remotely from anywhere using Internet-connected smartphone or computer
 version: 0.1.1
 initCommands: []
-# - "pki ovpn_genconfig -u udp://hurravpn"
-# - "-e \"EASYRSA_BATCH=1\" -e \"EASYRSA_REQ_CN=HurraVPN\" pki ovpn_initpki nopass"

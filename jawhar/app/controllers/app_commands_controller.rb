@@ -1,0 +1,3 @@
+class AppCommandsController < ApiController
+
+end

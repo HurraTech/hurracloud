@@ -82,8 +82,18 @@ class HurraApp extends React.Component {
   };
 
   savePassword = (event) => {
-    console.log("Saving password", event)
-    HurraUtils.setState({initialized: true}).then(state => {  console.log(state) })
+    // HurraUtils.setState({initialized: true}).then(state => {  console.log(state) })
+    HurraUtils.exec_block("pki", "ovpn_genconfig -u udp://hurravpn", {}).then((command) => {
+      HurraUtils.exec_block("pki", "ovpn_initpki",
+        {
+          "EASYRSA_BATCH": 1,
+          "EASYRSA_REQ_CN": "HurraVPN",
+          "CA_PASS": this.state.password,
+        }).then((command) => {
+          console.log("command result", command)
+      })
+      
+    })
   }
 
   render() {

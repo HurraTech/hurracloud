@@ -37,7 +37,11 @@ class App < ApplicationRecord
     end
 
     def exec(container, cmd, env)
-        Resque.enqueue(Mounter, 'exec_app', :app_id => self.id, :container => container, :cmd => cmd, :env => env)    
+        cmd = AppCommand.new(:command => cmd, :container => container, :environment => env, :status => :pending)
+        cmd.app = self
+        cmd.save()
+        Resque.enqueue(Mounter, 'exec_app', :cmd_id => cmd.id)
+        cmd
     end
 
     def startApp

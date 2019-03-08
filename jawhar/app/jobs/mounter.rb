@@ -130,14 +130,22 @@ class Mounter
             Rails.logger.info "Ran `#{cmd}`"
             Rails.logger.info "Result #{result}"
         when 'exec_app'    
-            app_id = data["app_id"]
-            container = data["container"]
-            cmd = data["cmd"] ### TODO: SECURITY RISK ..
-            app = App.find(app_id)
+            cmd_id = data["cmd_id"]
+            command = AppCommand.find(cmd_id)
+            container = command.container
+            cmd = command.command ### TODO: SECURITY RISK .. Think of secure approach to invoke commands within container
+            env = ""
+            env = "-e #{command.environment.map{ |k,v| "#{k}=\"#{v.to_s.gsub('"', '\"')}\"" }.join(" -e ")}" unless !command.environment || command.environment.length == 0 
+            app = command.app
             ## TODO very dangerous stuff here
-            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml exec -T #{container} #{cmd})'"
+            command.status = :executing
+            command.save()
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml exec #{env} -T #{container} bash -c \"#{cmd}\")'"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
             result = `#{cmd}`
+            command.status = :completed
+            command.save()
+
             Rails.logger.info("Ran command, results: #{result}")
         end
         

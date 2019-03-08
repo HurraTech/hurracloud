@@ -30,6 +30,7 @@ Rails.application.routes.draw do
     post '_install', to: 'apps#install'
     post '_start', to: 'apps#start'
     post '/:container/_exec', to: 'apps#exec'
+    resources :app_commands, :defaults => { :format => 'json' }
   end
   mount Resque::Server.new, at: "/resque"
 

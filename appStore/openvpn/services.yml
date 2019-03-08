@@ -17,6 +17,8 @@ services:
     command: "/bin/bash -c 'trap : TERM INT; (while sleep 3600; do :; done) & wait'"
     volumes:
      - openvpn-data:/etc/openvpn
+     - ./scripts/easyrsa.sh:/usr/local/bin/easyrsa
+     - ./scripts/ovpn_initpki.sh:/usr/local/bin/ovpn_initpki
 
 volumes:
   openvpn-data:
