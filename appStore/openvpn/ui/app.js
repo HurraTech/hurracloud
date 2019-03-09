@@ -4,11 +4,9 @@ import Paper from '@material-ui/core/Paper';
 import {TextField, Typography} from '@material-ui/core';
 import  HurraUtils from '../Utils'
 import { withStyles } from '@material-ui/core/styles';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
-import classNames from 'classnames';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Visibility from '@material-ui/icons/Visibility';
+import { Route, withRouter, Redirect } from 'react-router-dom';
+import SetupPage from './SetupPage'
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 const styles = theme => ({
   root: {
@@ -17,6 +15,12 @@ const styles = theme => ({
     paddingBottom: theme.spacing.unit * 2,
     display: 'flex',
     flexDirection: 'column'
+  },
+
+  loader: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   logoRow: {
@@ -62,10 +66,7 @@ class HurraApp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showPassword: false,
-      showConfirmPassword: false,
-      password: '',
-      passwordConfirm: '',
+      loading: false,
     }
   };
 
@@ -81,82 +82,53 @@ class HurraApp extends React.Component {
     this.setState(state => ({ showConfirmPassword: !state.showConfirmPassword }));
   };
 
-  savePassword = (event) => {
-    // HurraUtils.setState({initialized: true}).then(state => {  console.log(state) })
-    HurraUtils.exec_block("pki", "ovpn_genconfig -u udp://hurravpn", {}).then((command) => {
-      HurraUtils.exec_block("pki", "ovpn_initpki",
-        {
-          "EASYRSA_BATCH": 1,
-          "EASYRSA_REQ_CN": "HurraVPN",
-          "CA_PASS": this.state.password,
-        }).then((command) => {
-          console.log("command result", command)
+  componentDidMount = () => {
+    this.refreshState()
+  }
+
+  onSetupComplete = () => {
+    console.log("Setup done!")
+    this.setState({loading: false, initialized: true})
+  }
+
+  refreshState = () => {
+    this.setState({loading: true}, () => {
+      HurraUtils.getState().then(state => {  
+        this.setState({loading: false, initialized: state.initialized || false})
       })
-      
     })
   }
 
+  reset = () => {
+    this.setState({loading: true}, () => {
+      HurraUtils.exec_block("pki", "rm -rf /etc/openvpn/*", {}).then((command) => {
+          HurraUtils.setState({initialized: false}).then(state => {
+            this.refreshState()
+          })
+      })
+    })
+  }  
+
   render() {
     const { classes } = this.props;
+    if (this.state.loading)
+      return (<div className={classes.loader}>
+                <CircularProgress className={classes.progress} />
+              </div>)
 
     return <Paper className={classes.root} >
             <div className={classes.logoRow}><span className={classes.logo} /><Typography variant="h6" className={classes.title}>OpenVPN Server</Typography></div>
-            <div className={classes.welcomeTextContainer}>
-              <Typography variant="body">
-                Welcome! Since this is your first time, we need to setup a password for managing your OpenVPN Server. This password will be used to add or remove users, it will not be used when connecting  to the server.                 
-              </Typography>
-
-              <form className={classes.container} noValidate autoComplete="off">
-                <TextField
-                  id="outlined-adornment-password"
-                  className={classNames(classes.margin, classes.textField)}
-                  variant="outlined"
-                  type={this.state.showPassword ? 'text' : 'password'}
-                  label="Password"
-                  value={this.state.password}
-                  onChange={this.handleChange('password')}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="Toggle password visibility"
-                          onClick={this.handleClickShowPassword}
-                        >
-                          {this.state.showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-              <TextField
-                        id="outlined-adornment-password"
-                        className={classNames(classes.margin, classes.textField)}
-                        variant="outlined"
-                        type={this.state.showConfirmPassword ? 'text' : 'password'}
-                        label="Confirm Password"
-                        value={this.state.passwordConfirm}
-                        onChange={this.handleChange('passwordConfirm')}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                aria-label="Toggle password visibility"
-                                onClick={this.handleClickShowConfirmPassword}
-                              >
-                                {this.state.showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-              </form>
-            </div>
-            <div><Button variant="contained" color="primary" onClick={() => { this.savePassword()}}>Save Password</Button></div>
-      </Paper>
+            <Route path="/setup" render={() => (<SetupPage onSetupComplete={this.onSetupComplete} />)}/>
+            <Route exact path="/" render={() => (
+                !this.state.initialized ? (<Redirect to="/setup" />) : (<>
+                    <div>Welcome</div>
+                    <div><Button variant="contained" color="secondary" onClick={() => { this.reset()}}>Reset</Button></div>
+                  </>
+                ))} />
+            </Paper> 
 
   }
 }
 
 
-export default withStyles(styles)(HurraApp);
+export default withRouter(withStyles(styles)(HurraApp));
