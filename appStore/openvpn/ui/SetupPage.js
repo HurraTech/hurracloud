@@ -84,21 +84,20 @@ class SetupPage extends React.Component {
     }
   
     refreshState = () => {
-        this.setState({loading: true}, () => {
-            HurraClient.getState().then((state) => {                  
-                if (state.status === "initializing") {
-                  this.setState({loading: true, status: state.status}, () => {
-                    setTimeout(this.refreshState, 1000);
-                  })
-                } else if (state.status === "initialized") {
-                  this.setState({loading: false, status: "initialized"}, this.props.onSetupComplete())                  
-                }
-                else
-                {
-                  this.setState({loading: false, status: state.status})
-                }                
-            })
-        })
+        this.setState({loading: true}, async () => {
+            let status = (await (await fetch('/status')).json()).status;
+            if (status === "initializing") {
+              this.setState({loading: true, status: status}, () => {
+                setTimeout(this.refreshState, 1000);
+              })
+            } else if (status === "initialized") {
+              this.setState({loading: false, status: status}, this.props.onSetupComplete())                  
+            }
+            else
+            {
+              this.setState({loading: false, status: status})
+            }
+      })
     }
   
     savePassword = () => {

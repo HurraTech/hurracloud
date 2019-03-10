@@ -133,11 +133,11 @@ class HurraApp extends React.Component {
     this.setState({loading: false, status: "initialized"})
   }
 
-  refreshState = () => {
-    this.setState({loading: true}, () => {
-      HurraClient.getState().then(state => {  
-        this.setState({loading: false, status: state.status || "uninitialized"})
-      })
+  refreshState = () => {    
+    this.setState({loading: true}, async () => {
+        let status = (await (await fetch('/status')).json()).status;
+        console.log("Status is", status)
+        this.setState({loading: false, status: status })
     })
   }
 

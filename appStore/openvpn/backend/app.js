@@ -20,6 +20,11 @@ class HurraApp {
               })
         });
 
+        this.server.get('/status', async (req, res) => {
+            let state = await HurraServer.getState()
+            res.send({status: state.status || "uninitialized"})            
+        })
+
         this.server.post('/setup', (req, res) => {
             HurraServer.setState({status: "initializing"})
             HurraServer.exec_block("pki", "ovpn_genconfig -u udp://hurravpn", {}).then((command) => {
