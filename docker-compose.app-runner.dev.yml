@@ -8,19 +8,15 @@ services:
         - BUILD_DEV=1
     user: root
     volumes:
-      - ./app-runner/src:/usr/src/app-runner/src
-      - ./app-runner/node_modules:/usr/src/app-runner/node_modules
-      - ./app-runner/public:/usr/src/app-runner/public
-      - ./app-runner/package.json:/usr/src/app-runner/package.json
-      - ./app-runner/yarn.lock:/usr/src/app-runner/yarn.lock
-      - ./apps/openvpn:/usr/src/app-runner/HurraApp
+      - ./appStore/openvpn/ui:/usr/src/app-runner/client/src/HurraApp
+      - ./appStore/openvpn/backend:/usr/src/app-runner/server/src/HurraApp
     ports:
       - 3001:3000
     networks:
       - app-network
     environment:
       - NODE_ENV=development
-    command: sh -c "yarn install && yarn start"    
+    command: sh -c "yarn install && yarn startRunner"    
 
 networks:
   app-network: {}

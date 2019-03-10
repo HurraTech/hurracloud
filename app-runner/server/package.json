@@ -1,0 +1,21 @@
+{
+  "name": "app-runner",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.18.0",
+    "express": "^4.16.4"
+  },
+  "proxy": "http://localhost:5000/",
+  "scripts": {
+    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files",
+    "server": "babel-watch --watch HurraApp server.js HurraServer.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.3.4",
+    "babel-watch": "^7.0.0",
+    "rimraf": "^2.6.3"
+  }
+}

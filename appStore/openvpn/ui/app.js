@@ -1,20 +1,28 @@
 import React from 'react';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
-import {TextField, Typography} from '@material-ui/core';
-import  HurraUtils from '../Utils'
+import {Table, TableHead, TableBody, TableRow, TableCell, Typography, IconButton} from '@material-ui/core';
+import  HurraClient from '../HurraClient'
+import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
-import { Route, withRouter, Redirect } from 'react-router-dom';
+import { Route, withRouter, Redirect, } from 'react-router-dom';
 import SetupPage from './SetupPage'
 import CircularProgress from '@material-ui/core/CircularProgress';
+import DownloadIcon from '@material-ui/icons/GetApp';
+import Tooltip from '@material-ui/core/Tooltip';
 
-const styles = theme => ({
+
+const styles = theme => ({  
   root: {
-    ...theme.mixins.gutters(),
-    paddingTop: theme.spacing.unit * 2,
-    paddingBottom: theme.spacing.unit * 2,
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    padding: 0,
+    marginBottom:15
+  },
+
+  paddedPaper: {
+    padding: 15,
+    borderRadius: 0,
   },
 
   loader: {
@@ -50,14 +58,48 @@ const styles = theme => ({
     fontWeight: 'bold',
   },
 
-  welcomeTextContainer: {
+  table: {
     marginBottom: 15,
   },
 
   margin: {
     marginTop: 15,
+  },
+
+
+
+  content: {
+    flexGrow: 1,
+    paddingLeft: theme.spacing.unit * 3,
+    paddingRight: theme.spacing.unit * 3,
+    paddingTop: theme.spacing.unit * 3,
+  },
+
+  button: {
+    marginRight: 10,
+  },
+
+  tableCell: {
+    flex: 1,
+  },
+
+  tableHeaderCell: {
+    flex: 1,
+    backgroundColor: 'black',
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+    height:42,
+  },
+
+  tableHeaderRow: {
+    height:32,
+  },
+
+  actionBar: {
+    padding: 15
   }
-  
+
 
 });
   
@@ -66,7 +108,8 @@ class HurraApp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loading: false,
+      loading: true,
+      status: "",
     }
   };
 
@@ -87,25 +130,23 @@ class HurraApp extends React.Component {
   }
 
   onSetupComplete = () => {
-    console.log("Setup done!")
-    this.setState({loading: false, initialized: true})
+    this.setState({loading: false, status: "initialized"})
   }
 
   refreshState = () => {
     this.setState({loading: true}, () => {
-      HurraUtils.getState().then(state => {  
-        this.setState({loading: false, initialized: state.initialized || false})
+      HurraClient.getState().then(state => {  
+        this.setState({loading: false, status: state.status || "uninitialized"})
       })
     })
   }
 
   reset = () => {
-    this.setState({loading: true}, () => {
-      HurraUtils.exec_block("pki", "rm -rf /etc/openvpn/*", {}).then((command) => {
-          HurraUtils.setState({initialized: false}).then(state => {
-            this.refreshState()
-          })
-      })
+    this.setState({loading: true}, async () => {
+    const response = await fetch('/reset');
+    const body = await response.json();
+    if (response.status !== 200) throw Error(body.message);
+      this.refreshState()
     })
   }  
 
@@ -116,16 +157,45 @@ class HurraApp extends React.Component {
                 <CircularProgress className={classes.progress} />
               </div>)
 
-    return <Paper className={classes.root} >
-            <div className={classes.logoRow}><span className={classes.logo} /><Typography variant="h6" className={classes.title}>OpenVPN Server</Typography></div>
-            <Route path="/setup" render={() => (<SetupPage onSetupComplete={this.onSetupComplete} />)}/>
-            <Route exact path="/" render={() => (
-                !this.state.initialized ? (<Redirect to="/setup" />) : (<>
-                    <div>Welcome</div>
-                    <div><Button variant="contained" color="secondary" onClick={() => { this.reset()}}>Reset</Button></div>
-                  </>
-                ))} />
-            </Paper> 
+    return <main className={classes.content} >
+              <div className={classes.logoRow}><span className={classes.logo} /><Typography variant="h6" className={classes.title}>OpenVPN Server</Typography></div>               
+                <Route path="/setup" render={() => (<SetupPage onSetupComplete={this.onSetupComplete} />)}/>
+                <Route exact path="/" render={() => (
+                    this.state.status != "initialized" ? (<Redirect to="/setup" />) : (<>
+                      <Paper className={classes.root} >
+                        <Table className={classes.table}>
+                          <TableHead>
+                              <TableRow className={classes.tableHeaderRow}>
+                                <TableCell variant="head" className={classes.tableHeaderCell} colSpan={2}>Users List</TableCell>
+                              </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                                <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">Aiman Najjar</TableCell>
+                                <TableCell variant="body">
+                                  <Tooltip title="Donwload File">
+                                    <IconButton href={`http://192.168.1.2:5000/files/download/` } >
+                                      <DownloadIcon color="inherit" color="primary" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </TableCell>
+
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <div className={classes.actionBar}>
+                          <Button variant="contained" color="primary" className={classes.button} onClick={() => { }}>Add New User</Button>
+                          <Button variant="contained" color="secondary" className={classes.button}  onClick={() => { this.reset()}}>Reset</Button>
+                        </div>      
+                        <div className={classes.actionBar}>
+                          <Typography variant="subtitle2">
+                            Create a user above for each person and device you would like to grant remote access. It is recommended to create separate user for each device you own. For example, you can create one for your iOS, and another for your laptop,..and so on.                            
+                          </Typography>                        
+                        </div>
+                      </Paper>
+                      </>
+                    ))} />
+            </main>
 
   }
 }

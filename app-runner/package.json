@@ -3,27 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "^3.9.2",
-    "@material-ui/icons": "^3.0.2",
-    "axios": "^0.18.0",
-    "react": "^16.8.3",
-    "react-dom": "^16.8.3",
-    "react-router-dom": "^4.3.1",
-    "react-scripts": "2.1.5"
+    "concurrently": "^4.0.1"    
   },
+
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+    "client": "cd client && yarn start",
+    "server": "cd server && yarn server",
+    "install_client_deps": "cd client && yarn install",
+    "install_server_deps": "cd server && yarn install",
+    "install_deps": "concurrently \"yarn install_client_deps\" \"yarn install_server_deps\"",
+    "startRunner": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
+  }
+
 }
+

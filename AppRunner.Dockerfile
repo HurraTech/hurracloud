@@ -3,16 +3,17 @@ ARG BUILD_DEV
 # Set a working directory
 WORKDIR /usr/src/app-runner
 
-COPY ./app-runner/package.json .
-#COPY ./app-runner/yarn.lock .
-# COPY ./app-runner/node_modules ./node_modules
-COPY ./app-runner/public ./public
-COPY ./app-runner/src ./src
+COPY ./app-runner/package.json ./package.json
+COPY ./app-runner/client ./client
+COPY ./app-runner/server ./server
 
 # Install Node.js dependencies
-RUN [ -z "${BUILD_DEV}" ] && yarn install --production --no-progress ||  yarn install
+RUN yarn install
+RUN yarn install_deps
+
+RUN npm i nodemon -g 
 
 # Run the container under "node" user by default
 USER node
 
-CMD [ "node", "server" ]
+CMD [ "yarn", "startRunner" ]

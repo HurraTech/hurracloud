@@ -3,9 +3,11 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import classNames from 'classnames';
 import Visibility from '@material-ui/icons/Visibility';
 import {InputAdornment, IconButton, Button, TextField, Typography, withStyles} from '@material-ui/core';
-import HurraUtils from '../Utils'
+import HurraClient from '../HurraClient'
 import { withRouter, Redirect } from 'react-router-dom';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Paper from '@material-ui/core/Paper';
+import axios from 'axios'
 
 const styles = theme => ({
     root: {
@@ -16,12 +18,13 @@ const styles = theme => ({
       flexDirection: 'column'
     },
   
-    logoRow: {
+    title: {
       flexDirection: 'row',
-      height:80,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
+      fontWeight: 'bold',
+      marginBottom:10
     },
   
     logo: {
@@ -37,10 +40,6 @@ const styles = theme => ({
       display: 'flex',
       flexWrap: 'wrap',
       flexDirection: 'column',    
-    },
-  
-    title: {
-      fontWeight: 'bold',
     },
   
     welcomeTextContainer: {
@@ -66,6 +65,7 @@ class SetupPage extends React.Component {
         stage: "",
       }
     };
+
   
     handleChange = prop => event => {
       this.setState({ [prop]: event.target.value });
@@ -85,43 +85,43 @@ class SetupPage extends React.Component {
   
     refreshState = () => {
         this.setState({loading: true}, () => {
-            HurraUtils.getState().then(state => {  
-                this.setState({loading: false, initialized: state.initialized || false})
+            HurraClient.getState().then((state) => {                  
+                if (state.status === "initializing") {
+                  this.setState({loading: true, status: state.status}, () => {
+                    setTimeout(this.refreshState, 1000);
+                  })
+                } else if (state.status === "initialized") {
+                  this.setState({loading: false, status: "initialized"}, this.props.onSetupComplete())                  
+                }
+                else
+                {
+                  this.setState({loading: false, status: state.status})
+                }                
             })
         })
     }
   
-    savePassword = (event) => {
-        this.setState({loading: true}, () => {
-            HurraUtils.exec_block("pki", "ovpn_genconfig -u udp://hurravpn", {}).then((command) => {
-                HurraUtils.exec_block("pki", "ovpn_initpki",
-                {
-                    "EASYRSA_BATCH": 1,
-                    "EASYRSA_REQ_CN": "HurraVPN",
-                    "CA_PASS": this.state.password,
-                }).then(() => {
-                    console.log("Done!")
-                    HurraUtils.setState({initialized: true}).then(() => {
-                        this.setState({loading: false, initialized: true}, this.props.onSetupComplete())                        
-                    })
-                })
-            })
-        })
+    savePassword = () => {
+        this.setState({loading: true}, async () => {
+          let response = await axios.post('/setup', { password: this.state.password });
+          this.setState({loading: false, status: "initialized"}, this.props.onSetupComplete())
+        });
     }
   
     render = () => {
         const { classes } = this.props;
+        if (this.state.status === "initialized")
+            return <Redirect to='/' />; 
         if (this.state.loading)
-            return (<div className={classes.loader}>
+            return (<div className={classes.root}>
                     <CircularProgress className={classes.progress} />
                     </div>)  
-        if (this.state.initialized)
-            return <Redirect to='/' />; 
         return (
-            <div>
+            <Paper className={classes.root}>
+                <div className={classes.title} ><Typography variant="h6">Setup</Typography></div>
                 <div className={classes.welcomeTextContainer}>
                     <Typography variant="body">
-                        Welcome! Since this is your first time, we need to setup a password for managing your OpenVPN Server. This password will be used to add or remove users, it will not be used when connecting  to the server.                 
+                       Since this is your first time, we need to setup a password for managing your OpenVPN Server. This password will be used to add or remove users, it will not be used when connecting  to the server.                 
                     </Typography>
 
                     <form className={classes.container} noValidate autoComplete="off">
@@ -173,7 +173,7 @@ class SetupPage extends React.Component {
                 <div>
                     <Button variant="contained" color="primary" onClick={() => { this.savePassword()}}>Save Password</Button>
                 </div>
-            </div>
+            </Paper>
         );
     }
 }

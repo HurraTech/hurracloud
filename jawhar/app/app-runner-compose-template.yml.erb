@@ -4,12 +4,12 @@ services:
     image: aimannajjar/hurracloud:app-runner-v1
     user: root
     volumes:
-      - <%=host_app_path%>/../../../app-runner/src:/usr/src/app-runner/src
-      - <%=host_app_path%>/../../../app-runner/node_modules:/usr/src/app-runner/node_modules
-      - <%=host_app_path%>/../../../app-runner/public:/usr/src/app-runner/public
-      - <%=host_app_path%>/../../../app-runner/package.json:/usr/src/app-runner/package.json
-      - <%=host_app_path%>/../../../app-runner/yarn.lock:/usr/src/app-runner/yarn.lock
-      - <%=host_app_path%>/CONTENT/ui:/usr/src/app-runner/src/HurraApp ## Use only this line eventually, rest should be baked into image
+      - <%=host_app_path%>/../../../app-runner/package.json:/usr/src/app-runner/package.json # remove
+      - <%=host_app_path%>/../../../app-runner/client:/usr/src/app-runner/client # remove
+      - <%=host_app_path%>/../../../app-runner/server:/usr/src/app-runner/server # remove
+      - <%=host_app_path%>/CONTENT/ui:/usr/src/app-runner/client/src/HurraApp
+      - <%=host_app_path%>/CONTENT/backend:/usr/src/app-runner/server/HurraApp
+
     ports:
       - <%=port_number%>:3000
     networks:
@@ -17,7 +17,7 @@ services:
     environment:
       - NODE_ENV=development
       - REACT_APP_AUID=<%=app_unique_id%>
-    command: sh -c "yarn install && yarn start"    
+    command: sh -c "yarn install_deps && yarn startRunner"    
 
 networks:
   <%=app_unique_id%>_runner: {}
