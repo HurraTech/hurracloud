@@ -657,7 +657,7 @@ key: $key_out
 # common signing backend
 sign_req() {
 	crt_type="$1"
-	opts=""
+	opts="-passin env:CA_PASS"
 	req_in="$EASYRSA_PKI/reqs/$2.req"
 	crt_out="$EASYRSA_PKI/issued/$2.crt"
 

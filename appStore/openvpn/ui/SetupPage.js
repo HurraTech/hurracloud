@@ -85,7 +85,7 @@ class SetupPage extends React.Component {
   
     refreshState = () => {
         this.setState({loading: true}, async () => {
-            let status = (await (await fetch('/status')).json()).status;
+            let status = (await (await fetch('/state')).json()).status;
             if (status === "initializing") {
               this.setState({loading: true, status: status}, () => {
                 setTimeout(this.refreshState, 1000);
