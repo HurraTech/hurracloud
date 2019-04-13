@@ -19,6 +19,7 @@ services:
      - openvpn-data:/etc/openvpn
      - ./scripts/easyrsa.sh:/usr/local/bin/easyrsa
      - ./scripts/ovpn_initpki.sh:/usr/local/bin/ovpn_initpki
+     - ./scripts/gen_client_ovpn.sh:/usr/local/bin/gen_client_ovpn
 
 volumes:
   openvpn-data:

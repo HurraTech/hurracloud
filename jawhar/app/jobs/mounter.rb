@@ -106,8 +106,8 @@ class Mounter
             app = App.find(app_id)
             app.initCommands.each do |cmd|
                 ## TODO very dangerous, change when switching to public app store
-                cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml run --rm #{cmd})'"                
-                Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
+                cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml run --rm #{cmd})'"                
+                Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
                 result = `#{cmd}`
                 Rails.logger.info("Ran command, results: #{result}")
             end
@@ -116,12 +116,12 @@ class Mounter
             app_id = data["app_id"]
             app = App.find(app_id)
             Rails.logger.info("Starting UI for app ID #{app}")
-            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/docker-compose.runner.yml up -d)'"
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml up -d)'"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             result = `#{cmd}`
 
             Rails.logger.info("Starting services for app ID #{app}")
-            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml up -d)'"
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml up -d)'"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             result = `#{cmd}`
 
@@ -140,10 +140,11 @@ class Mounter
             ## TODO very dangerous stuff here
             command.status = :executing
             command.save()
-            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -f #{app.host_app_path}/CONTENT/services.yml exec #{env} -T #{container} bash -c \"#{cmd}\")'"
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml exec #{env} -T #{container} bash -c \"#{cmd}\")'"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
             result = `#{cmd}`
             command.status = :completed
+            command.output = result
             command.save()
 
             Rails.logger.info("Ran command, results: #{result}")

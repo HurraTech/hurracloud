@@ -11,6 +11,7 @@ import DownloadIcon from '@material-ui/icons/GetApp';
 import Tooltip from '@material-ui/core/Tooltip';
 import AddUserDialog from './AddUserDialog'
 import axios from 'axios'
+import { saveAs } from 'file-saver';
 
 const styles = theme => ({  
   root: {
@@ -168,6 +169,19 @@ class HurraApp extends React.Component {
 
   }
 
+  downloadOVPN = async (client_key) => {
+    console.log("Downloading file", client_key)
+    const response = await fetch(`/users/${client_key}/ovpn`, {
+      headers: new Headers({
+        'Accept': 'text/plain'
+      }), 
+    });
+    const ovpn_text = await response.text()
+    console.log("DONE", ovpn_text)
+    var blob = new Blob([ovpn_text], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "hurracloud.ovpn");    
+  }
+
   render() {
     const { classes } = this.props;
 
@@ -200,7 +214,7 @@ class HurraApp extends React.Component {
                                   <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]}</TableCell>
                                   <TableCell variant="body">
                                     <Tooltip title="Donwload File">
-                                      <IconButton href={`http://192.168.1.2:5000/files/download/` } >
+                                      <IconButton onClick={() => {this.downloadOVPN(user_key)}} >
                                         <DownloadIcon color="inherit" color="primary" />
                                       </IconButton>
                                     </Tooltip>

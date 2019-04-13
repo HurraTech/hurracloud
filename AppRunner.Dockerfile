@@ -11,7 +11,7 @@ COPY ./app-runner/server ./server
 RUN yarn install
 RUN yarn install_deps
 
-RUN npm i nodemon -g 
+RUN npm i nodemon json-merge -g 
 
 # Run the container under "node" user by default
 USER node

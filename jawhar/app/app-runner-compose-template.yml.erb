@@ -1,6 +1,6 @@
 version: '2.3'
 services:
-  <%=app_unique_id%>_runner:
+  runner:
     image: aimannajjar/hurracloud:app-runner-v1
     user: root
     volumes:
@@ -14,11 +14,11 @@ services:
     ports:
       - <%=port_number%>:3000
     networks:
-      - <%=app_unique_id%>_runner
+      - runner
     environment:
       - NODE_ENV=development
       - REACT_APP_AUID=<%=app_unique_id%>
     command: sh -c "yarn install_deps && yarn startRunner"    
 
 networks:
-  <%=app_unique_id%>_runner: {}
+  runner: {}

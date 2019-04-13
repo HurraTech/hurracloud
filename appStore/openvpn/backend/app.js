@@ -1,4 +1,5 @@
 import HurraServer from '../HurraServer'
+var fs = require('fs');
 
 class HurraApp {
 
@@ -66,7 +67,14 @@ class HurraApp {
                     })
                 })
         })
-                  
+
+        this.server.get('/users/:client_key/ovpn', async (req, res) => { 
+            HurraServer.exec_block("pki", `gen_client_ovpn ${req.params.client_key}`, {}).then((command) => {
+                res.set({"Content-Disposition":`attachment; filename=${req.params.client_key}.ovpn`});
+                res.send(command.output)
+            })
+        })
+
     }
 
     sanitize_client_name(name) {
