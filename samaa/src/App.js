@@ -241,7 +241,7 @@ class App extends React.Component {
 
   updateSources = (msg, data) => {
     axios
-    .get(`http://192.168.1.2:5000/sources`)
+    .get(`http://172.16.0.99:5000/sources`)
     .then(res => {
         const response = res.data;
         this.setState({ sources: response })

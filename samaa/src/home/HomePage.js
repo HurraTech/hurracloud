@@ -120,7 +120,7 @@ class HomePage extends React.Component {
 
     getApplications = () => {
         axios
-        .get(`http://192.168.1.2:5000/apps`)
+        .get(`http://172.16.0.99:5000/apps`)
         .then(res => {
             const response = res.data;
             this.setState({ apps: response })

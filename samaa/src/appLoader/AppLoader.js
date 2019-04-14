@@ -106,7 +106,7 @@ class AppLoader extends React.Component {
 
     componentDidMount = () => {
       axios
-      .get(`http://192.168.1.2:5000/apps/${this.state.auid}`)
+      .get(`http://172.16.0.99:5000/apps/${this.state.auid}`)
       .then(res => {
           const response = res.data;
           this.setState({ port: response.deployment_port })
@@ -120,7 +120,7 @@ class AppLoader extends React.Component {
         const { classes } = this.props;
         return (
             <Iframe
-            url={`http://192.168.1.2:${this.state.port}`}
+            url={`http://172.16.0.99:${this.state.port}`}
             width="100%"
             height="100vh"
             display="initial"

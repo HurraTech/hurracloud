@@ -129,7 +129,8 @@ class Mounter
             app.save()
             Rails.logger.info "Ran `#{cmd}`"
             Rails.logger.info "Result #{result}"
-        when 'exec_app'    
+        when 'exec_app'
+            # TODO: This whole dangerous approach on how commands are executed in other containers should be completely redone. 
             cmd_id = data["cmd_id"]
             command = AppCommand.find(cmd_id)
             container = command.container
@@ -148,8 +149,34 @@ class Mounter
             command.save()
 
             Rails.logger.info("Ran command, results: #{result}")
-        end
-        
+        when 'restart_container'    
+            container = data["container"]
+            app_id = data["app_id"]
+            app = App.find(app_id)
+            Rails.logger.info("Restarting container #{container} for app ID #{app.app_unique_id}")
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml restart #{container})'"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
+            result = `#{cmd}`
+            Rails.logger.info "Result #{result}"
+        when 'stop_container'    
+            container = data["container"]
+            app_id = data["app_id"]
+            app = App.find(app_id)
+            Rails.logger.info("Restarting container #{container} for app ID #{app.app_unique_id}")
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml stop #{container})'"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
+            result = `#{cmd}`
+            Rails.logger.info "Result #{result}"
+        when 'start_container'    
+            container = data["container"]
+            app_id = data["app_id"]
+            app = App.find(app_id)
+            Rails.logger.info("Restarting container #{container} for app ID #{app.app_unique_id}")
+            cmd = "ssh hurra@172.18.0.1 '(sudo docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml start #{container})'"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
+            result = `#{cmd}`
+            Rails.logger.info "Result #{result}"            
+        end        
     end
 
     def self.update_drive(s, device)

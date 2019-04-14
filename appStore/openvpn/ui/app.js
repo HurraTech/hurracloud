@@ -179,7 +179,7 @@ class HurraApp extends React.Component {
     const ovpn_text = await response.text()
     console.log("DONE", ovpn_text)
     var blob = new Blob([ovpn_text], {type: "text/plain;charset=utf-8"});
-    saveAs(blob, "hurracloud.ovpn");    
+    saveAs(blob, `HurraCloud-${client_key}.ovpn`);
   }
 
   render() {

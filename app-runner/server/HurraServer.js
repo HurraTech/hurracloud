@@ -5,7 +5,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`http://192.168.1.2:5000/apps/${auid}`)
+      .get(`http://172.16.0.99:5000/apps/${auid}`)
       .then(res => {
         console.log("RESULT OF STATE IS", res.data.state)
           resolve(res.data.state)
@@ -19,7 +19,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .put(`http://192.168.1.2:5000/apps/${auid}`, {
+      .put(`http://172.16.0.99:5000/apps/${auid}`, {
         app: {
           state: state
         }
@@ -35,7 +35,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .post(`http://192.168.1.2:5000/apps/${auid}/${container}/_exec`, {
+      .post(`http://172.16.0.99:5000/apps/${auid}/${container}/_exec`, {
         cmd: command,
         env: env
       })
@@ -46,11 +46,48 @@ export default class HurraServer {
     })    
   }
 
+  static restart_container(container) {
+    let auid = process.env.REACT_APP_AUID
+    return new Promise((resolve, reject) => {
+      axios
+      .get(`http://172.16.0.99:5000/apps/${auid}/${container}/_restart`)
+      .then(res => {
+          resolve(res.data)
+      })
+  
+    })    
+  }
+
+  static start_container(container) {
+    let auid = process.env.REACT_APP_AUID
+    return new Promise((resolve, reject) => {
+      axios
+      .get(`http://172.16.0.99:5000/apps/${auid}/${container}/_start`)
+      .then(res => {
+          resolve(res.data)
+      })
+  
+    })    
+  }
+
+  static stop_container(container) {
+    let auid = process.env.REACT_APP_AUID
+    return new Promise((resolve, reject) => {
+      axios
+      .get(`http://172.16.0.99:5000/apps/${auid}/${container}/_stop`)
+      .then(res => {
+          resolve(res.data)
+      })
+  
+    })    
+  }
+
+
   static exec_block(container, command, env = {}) {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .post(`http://192.168.1.2:5000/apps/${auid}/${container}/_exec`, {
+      .post(`http://172.16.0.99:5000/apps/${auid}/${container}/_exec`, {
         cmd: command,
         env: env
       })
@@ -76,7 +113,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`http://192.168.1.2:5000/apps/${auid}/app_commands/${cmd_id}`)
+      .get(`http://172.16.0.99:5000/apps/${auid}/app_commands/${cmd_id}`)
       .then((statusRes) => {
         console.log("Command Status", statusRes.data.status);
         resolve(statusRes.data)

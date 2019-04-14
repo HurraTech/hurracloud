@@ -187,7 +187,7 @@ class SettingsPage extends React.Component {
         let source_id = source.id
         currentSources.find(s => s.id === source_id).status = "mounting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://192.168.1.2:5000/sources/${source_id}/_mount`)
+            axios.get(`http://172.16.0.99:5000/sources/${source_id}/_mount`)
         })
     }
 
@@ -195,7 +195,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "pausing"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://192.168.1.2:5000/indices/${source.index.id}/_pause`)
+            axios.get(`http://172.16.0.99:5000/indices/${source.index.id}/_pause`)
         })
     }
 
@@ -203,7 +203,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "resuming"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://192.168.1.2:5000/indices/${source.index.id}/_resume`)
+            axios.get(`http://172.16.0.99:5000/indices/${source.index.id}/_resume`)
         })
     }
 
@@ -216,7 +216,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "cancelling"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://192.168.1.2:5000/indices/${source.index.id}/_cancel`)
+            axios.get(`http://172.16.0.99:5000/indices/${source.index.id}/_cancel`)
         })
 
     }
@@ -239,7 +239,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "deleting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://192.168.1.2:5000/indices/${source.index.id}/_delete`)
+            axios.get(`http://172.16.0.99:5000/indices/${source.index.id}/_delete`)
         })
 
     }
@@ -277,7 +277,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source_id).status = "unmounting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://192.168.1.2:5000/sources/${source_id}/_unmount`)
+            axios.get(`http://172.16.0.99:5000/sources/${source_id}/_unmount`)
         })
 
     }
@@ -309,7 +309,7 @@ class SettingsPage extends React.Component {
         }
         console.log("Calling create index with data", data)
         axios
-        .post('http://192.168.1.2:5000/indices/', data)
+        .post('http://172.16.0.99:5000/indices/', data)
         .then(res => {
             this.setState({
                 indexDialogOpen: false,
@@ -382,7 +382,7 @@ class SettingsPage extends React.Component {
             authCode: this.state.googleAuthCode
         }
         axios
-        .post('http://192.168.1.2:5000/google_drive_accounts/', data)
+        .post('http://172.16.0.99:5000/google_drive_accounts/', data)
         .then(res => {
             this.setState({
                 addDialogOpen: false,

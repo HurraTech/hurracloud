@@ -9,6 +9,7 @@ CA_CRT=${CONF_DIR}/ca.crt
 CONF=${CONF_DIR}/client_configs/$1.ovpn
 KEY=${CONF_DIR}/private/$1.key
 CRT=${CONF_DIR}/issued/$1.crt
+TA=${CONF_DIR}/ta.key
 
 cat >$CONF <<EOL
 tls-client
@@ -25,8 +26,14 @@ verb 3
 topology subnet
 ifconfig 10.9.0.5 255.255.255.0
 cipher AES-256-CBC
+key-direction 1
 pull
 EOL
+
+printf "<tls-auth>\n" >> "$CONF"
+cat $TA >> "$CONF"
+printf "</tls-auth>\n" >> "$CONF"
+
 
 printf "<ca>\n" >> "$CONF"
 cat $CA_CRT >> "$CONF"

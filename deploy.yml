@@ -1,4 +1,4 @@
-# ansible-playbook -i 192.168.1.2, deploy.yml
+# ansible-playbook -i 172.16.0.99, deploy.yml
 ---
 - hosts: all
   user: root

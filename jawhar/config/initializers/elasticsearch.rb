@@ -1,6 +1,6 @@
 require 'elasticsearch'
 
-Rails.application.config.es_client = Elasticsearch::Client.new url: 'http://192.168.1.2:9200'
+Rails.application.config.es_client = Elasticsearch::Client.new url: 'http://172.16.0.99:9200'
 
 Rails.application.config.es_client.indices.put_template(name: "defaults", body:  
                                 {

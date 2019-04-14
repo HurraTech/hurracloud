@@ -23,7 +23,8 @@ class HurraApp {
     setupRoutes() {
         this.server.get('/reset', (req, res) => {
             console.log("Goingt to reset")
-            HurraServer.exec_block("pki", "rm -rf /etc/openvpn/*", {}).then((command) => {
+            HurraServer.exec_block("pki", "rm -rf /etc/openvpn/*", {}).then(async (command) => {
+                await HurraServer.stop_container("server")
                 HurraServer.setState({status: "uninitialized"}).then(state => {
                     res.send({done: true})
                   })
@@ -53,14 +54,15 @@ class HurraApp {
         
         this.server.post('/setup', async (req, res) => {
             await HurraServer.setState({status: "initializing"})
-            HurraServer.exec_block("pki", "ovpn_genconfig -u udp://hurravpn", {}).then((command) => {
+            HurraServer.exec_block("pki", "ovpn_genconfig -u udp://hurravpn -e \\\"topology subnet\\\" -e \\\"mode server\\\" -e \\\"tls-server\\\"", {}).then((command) => {
                 HurraServer.exec_block("pki", "ovpn_initpki",
                     {
                         "EASYRSA_BATCH": 1,
                         "EASYRSA_REQ_CN": "HurraVPN",
                         "CA_PASS": req.body.password,
-                    }).then(() => {
+                    }).then(async () => {
                         console.log("Done!")
+                        await HurraServer.start_container("server")
                         HurraServer.setState({status: "initialized"}).then(() => {
                             res.send({done: true})
                         })

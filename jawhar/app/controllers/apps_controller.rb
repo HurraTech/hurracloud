@@ -22,6 +22,27 @@ class AppsController < ApiController
         render json: { command: cmd } 
     end
 
+    def restart_container
+        auid = params[:app_auid]
+        container = params[:container]
+        cmd = App.find_by(app_unique_id: auid).restart_container(container)
+        render json: { status: :scheduled } 
+    end
+
+    def stop_container
+        auid = params[:app_auid]
+        container = params[:container]
+        cmd = App.find_by(app_unique_id: auid).stop_container(container)
+        render json: { status: :scheduled } 
+    end
+
+    def start_container
+        auid = params[:app_auid]
+        container = params[:container]
+        cmd = App.find_by(app_unique_id: auid).start_container(container)
+        render json: { status: :scheduled } 
+    end
+
     def id_field
         "app_unique_id"
     end

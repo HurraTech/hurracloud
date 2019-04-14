@@ -36,7 +36,7 @@ class FilesController < ApplicationController
 
     private
     def allow_iframe_cors
-        response.headers['Access-Control-Allow-Origin'] = 'http://192.168.1.2:3000'
+        response.headers['Access-Control-Allow-Origin'] = 'http://172.16.0.99:3000'
         response.headers['Access-Control-Allow-Methods'] = 'GET'
         response.headers.except! 'X-Frame-Options'
     end    
