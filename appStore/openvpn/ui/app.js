@@ -8,6 +8,7 @@ import { Route, withRouter, Redirect, } from 'react-router-dom';
 import SetupPage from './SetupPage'
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DownloadIcon from '@material-ui/icons/GetApp';
+import DeleteIcon from '@material-ui/icons/DeleteForever';
 import Tooltip from '@material-ui/core/Tooltip';
 import AddUserDialog from './AddUserDialog'
 import axios from 'axios'
@@ -218,6 +219,12 @@ class HurraApp extends React.Component {
                                         <DownloadIcon color="inherit" color="primary" />
                                       </IconButton>
                                     </Tooltip>
+                                    <Tooltip title="Revoke Credentials">
+                                      <IconButton onClick={() => {this.revokeCredentials(user_key)}} >
+                                        <DeleteIcon color="inherit" color="secondary" />
+                                      </IconButton>
+                                    </Tooltip>
+
                                   </TableCell>
                             </TableRow>)
                             })}

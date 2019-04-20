@@ -23,7 +23,7 @@ class HurraApp {
     setupRoutes() {
         this.server.get('/reset', (req, res) => {
             console.log("Goingt to reset")
-            HurraServer.exec_block("pki", "rm -rf /etc/openvpn/*", {}).then(async (command) => {
+            HurraServer.exec_sync("pki", "rm -rf /etc/openvpn/*", {}).then(async (command) => {
                 await HurraServer.stop_container("server")
                 HurraServer.setState({status: "uninitialized"}).then(state => {
                     res.send({done: true})
@@ -43,19 +43,31 @@ class HurraApp {
             console.log("Executing", `easyrsa build-client-full ${client_filename}`)
             console.log("ENV",  { "CA_PASS": req.body.password })
             await HurraServer.setState({status: "adding_removing_user"})
-            HurraServer.exec_block("pki", `easyrsa build-client-full ${client_filename} nopass`, { "CA_PASS": req.body.password }).then(async (command) => {
-                if (!state.users) state.users = {}
-                state.users[client_filename] = client_name;
-                state.status = "initialized"
-                await HurraServer.setState(state)
-                this.sendSafeState(res, state);
+            HurraServer.exec_sync("pki", `create_new_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
+                switch (command.output) {
+                    case "ERROR:1":
+                        res.send({error: `User name "${client_filename}" is already used`})
+                        break;
+                    case "ERROR:2":
+                        res.send({error: `Failed to add user. Make sure you entered correct Master Password`})
+                        break;
+                    case "SUCCESS":
+                        await this.updateClientsList()
+                        await HurraServer.setState({status: "ok"})
+                        res.sendSafeState()
+                        break;
+                    case "ERROR:3":
+                    default:
+                        res.send({error: `There was an unexpected error while creating user, please try again`})
+                        break;
+                }
             })
         })
         
         this.server.post('/setup', async (req, res) => {
             await HurraServer.setState({status: "initializing"})
-            HurraServer.exec_block("pki", "ovpn_genconfig -u udp://hurravpn -e \\\"topology subnet\\\" -e \\\"mode server\\\" -e \\\"tls-server\\\"", {}).then((command) => {
-                HurraServer.exec_block("pki", "ovpn_initpki",
+            HurraServer.exec_sync("pki", "setup_vpn_server", {}).then((command) => {
+                HurraServer.exec_sync("pki", "ovpn_initpki",
                     {
                         "EASYRSA_BATCH": 1,
                         "EASYRSA_REQ_CN": "HurraVPN",
@@ -71,7 +83,7 @@ class HurraApp {
         })
 
         this.server.get('/users/:client_key/ovpn', async (req, res) => { 
-            HurraServer.exec_block("pki", `gen_client_ovpn ${req.params.client_key}`, {}).then((command) => {
+            HurraServer.exec_sync("pki", `gen_client_ovpn ${req.params.client_key}`, {}).then((command) => {
                 res.set({"Content-Disposition":`attachment; filename=${req.params.client_key}.ovpn`});
                 res.send(command.output)
             })

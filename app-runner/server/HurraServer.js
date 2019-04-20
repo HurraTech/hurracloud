@@ -83,7 +83,7 @@ export default class HurraServer {
   }
 
 
-  static exec_block(container, command, env = {}) {
+  static exec_sync(container, command, env = {}) {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios

@@ -14,7 +14,7 @@ TA=${CONF_DIR}/ta.key
 cat >$CONF <<EOL
 tls-client
 remote hurracloud.duckdns.org
-port 24407
+port 1194
 dev tun
 proto udp
 route-gateway 10.9.0.1
