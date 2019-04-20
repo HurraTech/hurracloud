@@ -1,7 +1,7 @@
 class ApiController < ApplicationController
     respond_to :json, :html
 
-    prepend_before_action :inject_resource, only: [:destroy, :show, :update]
+    prepend_before_action :inject_resource, only: [:destroy, :show, :update, :patch]
     def get_resource
         instance_variable_get("@#{resource_name}")
     end

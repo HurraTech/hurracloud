@@ -30,7 +30,23 @@ export default class HurraServer {
   
     })
   }
+
+  static patchState(state) {
+    let auid = process.env.REACT_APP_AUID
+    return new Promise((resolve, reject) => {
+      axios
+      .patch(`http://172.16.0.99:5000/apps/${auid}`, {
+        app: {
+          state: state
+        }
+      })
+      .then(res => {
+          resolve(res.data.state)
+      })
   
+    })
+  }
+
   static exec(container, command, env = {}) {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {

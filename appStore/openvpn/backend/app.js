@@ -16,8 +16,34 @@ class HurraApp {
         this.setupRoutes()
     }
 
-    sendSafeState(res, state) {
+    async sendSafeState(res) {
+        var state = await HurraServer.getState()
         res.send({status: state.status || "uninitialized", users: state.users || {} })
+    }
+
+    updateClientsList(state) {
+        return new Promise( (resolve,reject) => {
+            console.log("Refreshing clients list")
+            HurraServer.exec_sync("pki", "ovpn_listclients").then(async (command) => {
+                var clients = command.output.split("\n")
+                clients.shift() // first element is just header
+                clients.forEach(client => {                                        
+                    var [client_key, created, expires, status] = client.split(",")                    
+                    if (client_key in state.users) {
+                        console.log(`Found ${client_key}`)
+                        state.users[client_key]["created"] = created
+                        state.users[client_key]["expires"] = expires
+                        state.users[client_key]["status"] = status
+                    } else {
+                        console.log(`Found ${client_key}, but was not found in our state?`)
+                        // WARNING: User seem to be added outside of UI. 
+                        // TODO: security alert or something
+                    }
+                });
+                console.log(`Updated state:`, state)
+                resolve(state)
+            })
+        })
     }
 
     setupRoutes() {
@@ -31,20 +57,20 @@ class HurraApp {
               })
         });
 
-        this.server.get('/state', async (req, res) => {
-            let state = await HurraServer.getState()
-            this.sendSafeState(res, state);
+        this.server.get('/state', async (req, res) => {            
+            this.sendSafeState(res);
         })
 
         this.server.post('/user', async (req,res) => {
             let client_filename = this.sanitize_client_name(req.body.name);
             let client_name = req.body.name
             let state = await HurraServer.getState()
-            console.log("Executing", `easyrsa build-client-full ${client_filename}`)
+            console.log("Executing", `create_new_user ${client_filename}`)
             console.log("ENV",  { "CA_PASS": req.body.password })
-            await HurraServer.setState({status: "adding_removing_user"})
             HurraServer.exec_sync("pki", `create_new_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
-                switch (command.output) {
+                var result = command.output.trim()
+                console.log(`Result is '${result}'`)
+                switch (result) {
                     case "ERROR:1":
                         res.send({error: `User name "${client_filename}" is already used`})
                         break;
@@ -52,9 +78,12 @@ class HurraApp {
                         res.send({error: `Failed to add user. Make sure you entered correct Master Password`})
                         break;
                     case "SUCCESS":
-                        await this.updateClientsList()
-                        await HurraServer.setState({status: "ok"})
-                        res.sendSafeState()
+                        if (!state.users) state.users = {}
+                        state.users[client_filename] = { client_name: client_name };
+                        console.log("Success. Updating our clients list")
+                        state = await this.updateClientsList(state)
+                        await HurraServer.patchState(state)
+                        this.sendSafeState(res)
                         break;
                     case "ERROR:3":
                     default:
@@ -75,7 +104,7 @@ class HurraApp {
                     }).then(async () => {
                         console.log("Done!")
                         await HurraServer.start_container("server")
-                        HurraServer.setState({status: "initialized"}).then(() => {
+                        HurraServer.setState({status: "ok"}).then(() => {
                             res.send({done: true})
                         })
                     })

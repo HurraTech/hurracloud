@@ -90,7 +90,7 @@ class SetupPage extends React.Component {
               this.setState({loading: true, status: status}, () => {
                 setTimeout(this.refreshState, 1000);
               })
-            } else if (status === "initialized") {
+            } else if (status === "ok") {
               this.setState({loading: false, status: status}, this.props.onSetupComplete())                  
             }
             else
@@ -103,13 +103,13 @@ class SetupPage extends React.Component {
     savePassword = () => {
         this.setState({loading: true}, async () => {
           let response = await axios.post('/setup', { password: this.state.password });
-          this.setState({loading: false, status: "initialized"}, this.props.onSetupComplete())
+          this.setState({loading: false, status: "ok"}, this.props.onSetupComplete())
         });
     }
   
     render = () => {
         const { classes } = this.props;
-        if (this.state.status === "initialized")
+        if (this.state.status === "ok")
             return <Redirect to='/' />; 
         if (this.state.loading)
             return (<div className={classes.root}>

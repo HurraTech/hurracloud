@@ -133,7 +133,7 @@ class HurraApp extends React.Component {
   }
 
   onSetupComplete = () => {
-    this.setState({loading: false, status: "initialized"})
+    this.setState({loading: false, status: "ok"})
   }
 
   refreshState = () => {    
@@ -165,7 +165,7 @@ class HurraApp extends React.Component {
   onAddUserSave = (name, adminPassword) => {
     this.setState({status: "adding_removing_user"}, async () => {
       await axios.post('/user', { password: adminPassword, name: name });
-      this.setState({status: "initialized"}, this.props.onSetupComplete())
+      this.setState({status: "ok"}, this.props.onSetupComplete())
     });
 
   }
@@ -212,7 +212,7 @@ class HurraApp extends React.Component {
                             {Object.keys(this.state.users).map(user_key => {
                               return (
                               <TableRow>
-                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]}</TableCell>
+                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["client_name"]}</TableCell>
                                   <TableCell variant="body">
                                     <Tooltip title="Donwload File">
                                       <IconButton onClick={() => {this.downloadOVPN(user_key)}} >

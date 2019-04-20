@@ -11,7 +11,7 @@ if [ -f /etc/openvpn/pki/issued/${CLIENT_NAME}.crt ]; then
     exit -1
 fi
 
-easyrsa build-client-full $1 nopass >/dev/null 2&>1
+easyrsa build-client-full $1 nopass >/dev/null 2>1
 retval=$?
 if [ $retval -ne 0 ]; then
     # Failed, clean up

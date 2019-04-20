@@ -26,7 +26,9 @@ Rails.application.routes.draw do
     get '_cancel', to: 'indices#cancel'
   end
 
-  resources :apps, :param => :auid, :defaults => { :format => 'json' } do
+  patch '/apps/:auid', to: 'apps#patch'
+  put '/apps/:auid', to: 'apps#update'
+  resources :apps, :param => :auid, except: :update, :defaults => { :format => 'json' } do
     post '_install', to: 'apps#install'
     post '_start', to: 'apps#start'
     post '/:container/_exec', to: 'apps#exec'

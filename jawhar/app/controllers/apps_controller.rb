@@ -1,4 +1,14 @@
 class AppsController < ApiController
+
+    def patch
+        state = get_resource.state.deep_merge(app_params[:state].to_h)
+        if get_resource.update({ :state => state })
+            render json: get_resource, status: 200
+        else
+          render json: get_resource.errors, status: :unprocessable_entity
+        end
+    end
+
     def exec
         auid = params[:app_unique_id]
         render json: { app_unique_id: params[:app_unique_id], params: params[:exec] }
