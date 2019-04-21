@@ -120,9 +120,13 @@ const styles = theme => ({
     padding: 15
   },
 
-  downloading: {
-  }
+  activeUser: {
+    color: 'green'
+  },
 
+  inactiveUser: {
+    color: 'red'
+  }
 
 });
   
@@ -331,7 +335,7 @@ class HurraApp extends React.Component {
                                             <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["client_name"]}</TableCell>
                                             <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["created"]}</TableCell>
                                             <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["expires"]}</TableCell>
-                                            <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{userStatus}</TableCell>
+                                            <TableCell variant="body" className={classNames(classes.tableRow, userStatus == "Active" ? classes.activeUser : classes.inactiveUser)} scope="row">{userStatus}</TableCell>
                                             <TableCell variant="body"  className={classNames(classes.tableRow, classes.rightAligned)} scope="row">
                                             { userStatus == "Active" && 
                                               <>                                              
