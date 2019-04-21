@@ -131,7 +131,7 @@ export default class HurraServer {
       axios
       .get(`http://172.16.0.99:5000/apps/${auid}/app_commands/${cmd_id}`)
       .then((statusRes) => {
-        console.log("Command Status", statusRes.data.status);
+        console.log(`Command ${cmd_id} Status`, statusRes.data.status);
         resolve(statusRes.data)
       })    
     })

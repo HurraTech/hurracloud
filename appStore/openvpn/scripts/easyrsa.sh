@@ -570,7 +570,7 @@ gen_dh() {
 	verify_pki_init
 
 	out_file="$EASYRSA_PKI/dh.pem"
-	"$EASYRSA_OPENSSL" dhparam -out "$out_file" "$EASYRSA_KEY_SIZE" || \
+	"$EASYRSA_OPENSSL" dhparam -dsaparam -out "$out_file" "$EASYRSA_KEY_SIZE" || \
 		die "Failed to build DH params"
 	notice "\
 DH parameters of size $EASYRSA_KEY_SIZE created at $out_file

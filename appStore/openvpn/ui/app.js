@@ -11,8 +11,14 @@ import DownloadIcon from '@material-ui/icons/GetApp';
 import DeleteIcon from '@material-ui/icons/DeleteForever';
 import Tooltip from '@material-ui/core/Tooltip';
 import AddUserDialog from './AddUserDialog'
+import RevokeUserDialog from './RevokeUserDialog'
 import axios from 'axios'
 import { saveAs } from 'file-saver';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 const styles = theme => ({  
   root: {
@@ -102,6 +108,10 @@ const styles = theme => ({
     textAlign: 'right' 
   },
 
+  centerAligned: {
+    textAlign: 'center' 
+  },
+
   tableHeaderRow: {
     height:32,
   },
@@ -120,7 +130,11 @@ class HurraApp extends React.Component {
     this.state = {
       loading: true,
       status: "",
+      errorDialogMessage: "",
       addUserDialog: false,
+      errorDialogOpen: false,
+      revokeUserDialog: false,
+      selectedUser: null
     }
   };
 
@@ -144,12 +158,26 @@ class HurraApp extends React.Component {
     this.setState({loading: false, status: "ok"})
   }
 
+  refreshAll = async () => {
+    await this.setState({loading: true})
+    let state = (await (await fetch('/refresh')).json());
+    let status = state.status
+    console.log("Status is", status)
+    this.setState({loading: false, status: status, users: state.users })
+  }
+
   refreshState = () => {    
     this.setState({loading: true}, async () => {
         let state = (await (await fetch('/state')).json());
         let status = state.status
         console.log("Status is", status)
-        this.setState({loading: false, status: status, users: state.users })
+        if (status === "initializing") {
+          this.setState({loading: true, status: status}, () => {
+            setTimeout(this.refreshState, 1000);
+          })
+        } else {        
+          this.setState({loading: false, status: status, users: state.users })
+        }
     })
   }
 
@@ -171,9 +199,14 @@ class HurraApp extends React.Component {
   }
 
   onAddUserSave = (name, adminPassword) => {
-    this.setState({status: "adding_removing_user"}, async () => {
-      await axios.post('/user', { password: adminPassword, name: name });
-      this.setState({status: "ok"}, this.props.onSetupComplete())
+    this.setState({status: "adding_user", addUserDialog: false}, async () => {
+      let response = (await axios.post('/user', { password: adminPassword, name: name })).data;      
+      if (response.status && response.status == "ok") {
+        this.setState({status: response.status, users: response.users })
+      } else {
+        await this.setState({status: "ok"})
+        this.showErrorDialog(response.error)
+      }
     });
 
   }
@@ -191,16 +224,34 @@ class HurraApp extends React.Component {
     saveAs(blob, `HurraCloud-${client_key}.ovpn`);
   }
 
-  revokeCredentials = async (client_key) => {
-    console.log("Revoking client", client_key)
-    const response = await fetch(`/users/${client_key}`, {
-      method: 'DELETE',
-      headers: new Headers({
-        'Accept': 'text/plain'
-      }), 
-    });
+  openRevokeUserDialog = (client_key) => {
+    this.setState({revokeUserDialog: true, selectedUser: client_key})
+  }
 
-  }  
+  cancelRevokeUserDialog = () => {
+    this.setState({revokeUserDialog: false, selectedUser: null})
+  }
+
+  onRevokeUserSave = async (adminPassword) => {
+    console.log("Revoking client", this.state.selectedUser)
+    await this.setState({revokeUserDialog: false, status: `removing_${this.state.selectedUser}` })
+    let response = (await axios.delete(`/users/${this.state.selectedUser}`, { data: { password: adminPassword }})).data
+    if (response.status && response.status == "ok") {
+      this.setState({status: response.status, users: response.users, selectedUser: null })
+    } else {
+      await this.setState({status: "ok"})
+      this.showErrorDialog(response.error)
+    }
+  }
+  
+  showErrorDialog = (message) => {
+    this.setState({errorDialogOpen: true, errorDialogMessage: message})
+  }
+
+  closeErrorDialog = () => {
+    this.setState({errorDialogOpen: false, errorDialogMessage: ""})
+  }
+
   render() {
     const { classes } = this.props;
 
@@ -210,11 +261,36 @@ class HurraApp extends React.Component {
               </div>)
 
     return <main className={classes.content} >
+
+            <Dialog
+                open={this.state.errorDialogOpen}
+                onClose={this.closeErrorDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+                <DialogTitle id="alert-dialog-title">{"Error"}</DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-description">
+                    {this.state.errorDialogMessage}
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={this.closeErrorDialog} color="primary" autoFocus>
+                    OK
+                  </Button>
+                </DialogActions>
+              </Dialog>
+
               <AddUserDialog 
                   open={this.state.addUserDialog} 
                   onClose={this.cancelAddUserDialog.bind(this)}
                   onSave={this.onAddUserSave}
               />    
+              <RevokeUserDialog 
+                  open={this.state.revokeUserDialog} 
+                  onClose={this.cancelRevokeUserDialog.bind(this)}
+                  onSave={this.onRevokeUserSave}
+              />
               <div className={classes.logoRow}><span className={classes.logo} /><Typography variant="h6" className={classes.title}>OpenVPN Server</Typography></div>               
                 <Route path="/setup" render={() => (<SetupPage onSetupComplete={this.onSetupComplete} />)}/>
                 <Route exact path="/" render={() => (
@@ -232,34 +308,47 @@ class HurraApp extends React.Component {
                           </TableHead>
                           <TableBody>
                             {Object.keys(this.state.users).map(user_key => {
-                              return (
-                              <TableRow>
-                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["client_name"]}</TableCell>
-                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["created"]}</TableCell>
-                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["expires"]}</TableCell>
-                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["status"]}</TableCell>
-                                  <TableCell variant="body"  className={classNames(classes.tableRow, classes.rightAligned)} scope="row">
-                                    <Tooltip title="Donwload File">
-                                      <Button  color="inherit" className={classNames(classes.tableButton)} onClick={() => {this.downloadOVPN(user_key)}} >
-                                        <DownloadIcon color="inherit" />
-                                        OpenVPN Config
-                                      </Button>
-                                    </Tooltip>
-                                    <Tooltip title="Revoke Credentials">
-                                      <Button color="inherit" className={classNames(classes.tableButton)}  onClick={() => {this.revokeCredentials(user_key)}} >
-                                        <DeleteIcon color="inherit" />
-                                        Revoke Access
-                                      </Button>
-                                    </Tooltip>
-
-                                  </TableCell>
-                            </TableRow>)
+                              let userStatus = (this.state.users[user_key]["status"] == "INVALID") ? "Inactive" : "Active"
+                              if (this.state.status == `removing_${user_key}`) {
+                                return (<TableRow><TableCell variant="body" className={classNames(classes.tableRow, classes.centerAligned)} scope="row" colSpan={5} >
+                                <CircularProgress className={classes.progress} size={30} />
+                                </TableCell></TableRow>)
+                              } else {
+                                  return (<TableRow>
+                                            <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["client_name"]}</TableCell>
+                                            <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["created"]}</TableCell>
+                                            <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["expires"]}</TableCell>
+                                            <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{userStatus}</TableCell>
+                                            <TableCell variant="body"  className={classNames(classes.tableRow, classes.rightAligned)} scope="row">
+                                            { userStatus == "Active" && 
+                                              <>
+                                              <Tooltip title="Donwload File">
+                                                <Button  color="inherit" className={classNames(classes.tableButton)} onClick={() => {this.downloadOVPN(user_key)}} >
+                                                  <DownloadIcon color="inherit" />
+                                                  OpenVPN Config
+                                                </Button>
+                                              </Tooltip>
+                                              <Tooltip title="Revoke Credentials">
+                                                <Button color="inherit" className={classNames(classes.tableButton)}  onClick={() => {this.openRevokeUserDialog(user_key)}} >
+                                                  <DeleteIcon color="inherit" />
+                                                  Revoke Access
+                                                </Button>
+                                              </Tooltip></>}
+                                            </TableCell>
+                                  </TableRow>)
+                              }
                             })}
+                            { this.state.status == "adding_user" && <TableRow>
+                              <TableCell variant="body" className={classNames(classes.tableRow, classes.centerAligned)} scope="row" colSpan={5} >
+                                <CircularProgress className={classes.progress} size={30} />
+                              </TableCell>
+                          </TableRow>}
                           </TableBody>
                         </Table>
                         <div className={classes.actionBar}>
                           <Button variant="contained" color="primary" className={classes.button} onClick={this.openAddUserDialog.bind(this)}>Add New User</Button>
                           <Button variant="contained" color="secondary" className={classes.button}  onClick={() => { this.reset()}}>Reset</Button>
+                          <Button variant="contained" className={classes.button} onClick={this.refreshAll}>Refresh</Button>
                           <Button variant="contained" className={classes.button} onClick={this.openAddUserDialog.bind(this)}>Help</Button>
                         </div>      
                         <div className={classes.actionBar}>

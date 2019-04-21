@@ -51,12 +51,11 @@ const DEFAULT_EXCLUDES_LIST = [
     ""
 ]
 
-class AddUserDialog extends React.Component {
+class RevokeUserDialog extends React.Component {
 
   state = {
     open: false,
     adminPassword: "",
-    name: ""
   };
 
   componentDidUpdate(prevProps) {
@@ -67,7 +66,7 @@ class AddUserDialog extends React.Component {
 
 
   handleSave = () => {
-    this.props.onSave(this.state.name, this.state.adminPassword)
+    this.props.onSave(this.state.adminPassword)
   }
 
   handleFieldChange = fieldName => event => {
@@ -84,10 +83,10 @@ class AddUserDialog extends React.Component {
           onClose={onClose}
           TransitionComponent={Transition}
         >
-          <DialogTitle id="form-dialog-title">Create VPN User</DialogTitle>
+          <DialogTitle id="form-dialog-title">Are you sure?</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Please enter the Master Password you setup initially, and the name of the user you want to create.
+              Please enter your Master Password proceed. Note that this is cannot be undone, you will have to create a new user and new credentials as you cannot reinstate revoked credentials.
             </DialogContentText>
             <TextField
               margin="normal"
@@ -98,23 +97,13 @@ class AddUserDialog extends React.Component {
               onChange={this.handleFieldChange("adminPassword")}
               fullWidth
             />                        
-            <TextField
-              margin="normal"
-              id="name"
-              label="Name"
-              type="text"
-              value={this.state.name}
-              onChange={this.handleFieldChange("name")}
-              fullWidth
-            />
-
           </DialogContent>
           <DialogActions>
             <Button onClick={onClose} color="primary">
               Cancel
             </Button>
             <Button onClick={this.handleSave} color="primary">
-              Create
+              Revoke User's Access
             </Button>
           </DialogActions>
 
@@ -124,8 +113,8 @@ class AddUserDialog extends React.Component {
   }
 }
 
-AddUserDialog.propTypes = {
+RevokeUserDialog.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(AddUserDialog);
+export default withStyles(styles)(RevokeUserDialog);

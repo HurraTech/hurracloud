@@ -33,6 +33,7 @@ class HurraApp {
                 clients.shift() // first element is just header
                 clients.forEach(client => {                                        
                     var [client_key, created, expires, status] = client.split(",")                    
+                    if (client_key.trim() == "") return
                     if (client_key in state.users) {
                         console.log(`Found ${client_key}`)
                         state.users[client_key]["created"] = created
@@ -45,7 +46,7 @@ class HurraApp {
                     }
                 });
                 console.log(`Updated state:`, state)
-                await HurraServer.patchState(state)
+                await HurraServer.patchState({ users: state.users})
                 resolve(state)
             })
         })
@@ -63,18 +64,25 @@ class HurraApp {
         });
 
         this.server.get('/state', async (req, res) => {            
-            this.updateClientsList() // run it async because it's a long running operation and real-time results are not essential
             this.sendSafeState(res);
+        })
+
+        this.server.get('/refresh', async (req, res) => {            
+            await this.updateClientsList()
+            this.sendSafeState(res)
         })
 
         this.server.delete('/users/:client_key', async (req,res) => {
             var client_filename = req.params.client_key
             console.log("Executing", `revoke_user ${client_filename}`)
+            console.log("Request Body", req.body)
             console.log("ENV",  { "CA_PASS": req.body.password })
+            await HurraServer.patchState({status: `removing_${client_filename}`})
             HurraServer.exec_sync("pki", `revoke_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
                 var result = command.output.trim()
                 var result = command.output.trim()
                 console.log(`Result is '${result}'`)
+                await HurraServer.patchState({status: "ok"})
                 switch (result) {
                     case "ERROR":
                         res.send({error: `Failed to delete '${client_filename}'. Make sure you entered correct Master Password`})
@@ -94,8 +102,10 @@ class HurraApp {
             let state = await HurraServer.getState()
             console.log("Executing", `create_new_user ${client_filename}`)
             console.log("ENV",  { "CA_PASS": req.body.password })
+            await HurraServer.patchState({status: "adding_user"})
             HurraServer.exec_sync("pki", `create_new_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
                 var result = command.output.trim()
+                await HurraServer.patchState({status: "ok"})
                 console.log(`Result is '${result}'`)
                 switch (result) {
                     case "ERROR:1":
