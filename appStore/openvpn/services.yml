@@ -24,6 +24,7 @@ services:
      - ./scripts/gen_client_ovpn.sh:/usr/local/bin/gen_client_ovpn
      - ./scripts/setup_vpn_server.sh:/usr/local/bin/setup_vpn_server
      - ./scripts/create_new_user.sh:/usr/local/bin/create_new_user
+     - ./scripts/revoke_user.sh:/usr/local/bin/revoke_user
 
 volumes:
   openvpn-data:

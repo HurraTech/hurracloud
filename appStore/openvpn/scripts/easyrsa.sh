@@ -844,7 +844,7 @@ at: $crt_in"
 	# make safessl-easyrsa.cnf
 	make_ssl_config
 
-	"$EASYRSA_OPENSSL" ca -utf8 -revoke "$crt_in" -config "$EASYRSA_SAFE_CONF" || die "\
+	"$EASYRSA_OPENSSL" ca -utf8 -revoke "$crt_in" -config "$EASYRSA_SAFE_CONF" -passin env:CA_PASS || die "\
 Failed to revoke certificate: revocation command failed."
 
 	notice "\

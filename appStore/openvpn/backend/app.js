@@ -21,8 +21,12 @@ class HurraApp {
         res.send({status: state.status || "uninitialized", users: state.users || {} })
     }
 
-    updateClientsList(state) {
-        return new Promise( (resolve,reject) => {
+    async updateClientsList(state) {
+        if (typeof state === 'undefined') {
+            state = await HurraServer.getState()
+        }
+
+        return new Promise((resolve,reject) => {
             console.log("Refreshing clients list")
             HurraServer.exec_sync("pki", "ovpn_listclients").then(async (command) => {
                 var clients = command.output.split("\n")
@@ -41,6 +45,7 @@ class HurraApp {
                     }
                 });
                 console.log(`Updated state:`, state)
+                await HurraServer.patchState(state)
                 resolve(state)
             })
         })
@@ -58,7 +63,29 @@ class HurraApp {
         });
 
         this.server.get('/state', async (req, res) => {            
+            this.updateClientsList() // run it async because it's a long running operation and real-time results are not essential
             this.sendSafeState(res);
+        })
+
+        this.server.delete('/users/:client_key', async (req,res) => {
+            var client_filename = req.params.client_key
+            console.log("Executing", `revoke_user ${client_filename}`)
+            console.log("ENV",  { "CA_PASS": req.body.password })
+            HurraServer.exec_sync("pki", `revoke_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
+                var result = command.output.trim()
+                var result = command.output.trim()
+                console.log(`Result is '${result}'`)
+                switch (result) {
+                    case "ERROR":
+                        res.send({error: `Failed to delete '${client_filename}'. Make sure you entered correct Master Password`})
+                        break;
+                    case "SUCCESS":
+                        await this.updateClientsList()
+                        this.sendSafeState(res)
+                        break;
+                }
+
+            })
         })
 
         this.server.post('/user', async (req,res) => {
@@ -81,8 +108,7 @@ class HurraApp {
                         if (!state.users) state.users = {}
                         state.users[client_filename] = { client_name: client_name };
                         console.log("Success. Updating our clients list")
-                        state = await this.updateClientsList(state)
-                        await HurraServer.patchState(state)
+                        await this.updateClientsList(state)
                         this.sendSafeState(res)
                         break;
                     case "ERROR:3":

@@ -68,8 +68,6 @@ const styles = theme => ({
     marginTop: 15,
   },
 
-
-
   content: {
     flexGrow: 1,
     paddingLeft: theme.spacing.unit * 3,
@@ -79,6 +77,12 @@ const styles = theme => ({
 
   button: {
     marginRight: 10,
+  },
+
+  tableButton: {
+    marginLeft: theme.spacing.unit * 2,
+    fontSize: 12,
+    paddingLeft: theme.spacing.unit,
   },
 
   tableCell: {
@@ -92,6 +96,10 @@ const styles = theme => ({
     fontSize: 14,
     fontWeight: 'bold',
     height:42,
+  },
+
+  rightAligned: {
+    textAlign: 'right' 
   },
 
   tableHeaderRow: {
@@ -171,7 +179,7 @@ class HurraApp extends React.Component {
   }
 
   downloadOVPN = async (client_key) => {
-    console.log("Downloading file", client_key)
+    console.log("Downloading OVPN", client_key)
     const response = await fetch(`/users/${client_key}/ovpn`, {
       headers: new Headers({
         'Accept': 'text/plain'
@@ -183,6 +191,16 @@ class HurraApp extends React.Component {
     saveAs(blob, `HurraCloud-${client_key}.ovpn`);
   }
 
+  revokeCredentials = async (client_key) => {
+    console.log("Revoking client", client_key)
+    const response = await fetch(`/users/${client_key}`, {
+      method: 'DELETE',
+      headers: new Headers({
+        'Accept': 'text/plain'
+      }), 
+    });
+
+  }  
   render() {
     const { classes } = this.props;
 
@@ -205,7 +223,11 @@ class HurraApp extends React.Component {
                         <Table className={classes.table}>
                           <TableHead>
                               <TableRow className={classes.tableHeaderRow}>
-                                <TableCell variant="head" className={classes.tableHeaderCell} colSpan={2}>Users List</TableCell>
+                                <TableCell variant="head" className={classes.tableHeaderCell}>Users List</TableCell>
+                                <TableCell variant="head" className={classes.tableHeaderCell}>Created</TableCell>
+                                <TableCell variant="head" className={classes.tableHeaderCell}>Expires</TableCell>
+                                <TableCell variant="head" className={classes.tableHeaderCell}>Status</TableCell>
+                                <TableCell variant="head" className={classes.tableHeaderCell}></TableCell>
                               </TableRow>
                           </TableHead>
                           <TableBody>
@@ -213,16 +235,21 @@ class HurraApp extends React.Component {
                               return (
                               <TableRow>
                                   <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["client_name"]}</TableCell>
-                                  <TableCell variant="body">
+                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["created"]}</TableCell>
+                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["expires"]}</TableCell>
+                                  <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{this.state.users[user_key]["status"]}</TableCell>
+                                  <TableCell variant="body"  className={classNames(classes.tableRow, classes.rightAligned)} scope="row">
                                     <Tooltip title="Donwload File">
-                                      <IconButton onClick={() => {this.downloadOVPN(user_key)}} >
-                                        <DownloadIcon color="inherit" color="primary" />
-                                      </IconButton>
+                                      <Button  color="inherit" className={classNames(classes.tableButton)} onClick={() => {this.downloadOVPN(user_key)}} >
+                                        <DownloadIcon color="inherit" />
+                                        OpenVPN Config
+                                      </Button>
                                     </Tooltip>
                                     <Tooltip title="Revoke Credentials">
-                                      <IconButton onClick={() => {this.revokeCredentials(user_key)}} >
-                                        <DeleteIcon color="inherit" color="secondary" />
-                                      </IconButton>
+                                      <Button color="inherit" className={classNames(classes.tableButton)}  onClick={() => {this.revokeCredentials(user_key)}} >
+                                        <DeleteIcon color="inherit" />
+                                        Revoke Access
+                                      </Button>
                                     </Tooltip>
 
                                   </TableCell>
@@ -233,6 +260,7 @@ class HurraApp extends React.Component {
                         <div className={classes.actionBar}>
                           <Button variant="contained" color="primary" className={classes.button} onClick={this.openAddUserDialog.bind(this)}>Add New User</Button>
                           <Button variant="contained" color="secondary" className={classes.button}  onClick={() => { this.reset()}}>Reset</Button>
+                          <Button variant="contained" className={classes.button} onClick={this.openAddUserDialog.bind(this)}>Help</Button>
                         </div>      
                         <div className={classes.actionBar}>
                           <Typography variant="subtitle2">
