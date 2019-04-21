@@ -80,15 +80,15 @@ class HurraApp {
             await HurraServer.patchState({status: `removing_${client_filename}`})
             HurraServer.exec_sync("pki", `revoke_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
                 var result = command.output.trim()
-                var result = command.output.trim()
-                console.log(`Result is '${result}'`)
-                await HurraServer.patchState({status: "ok"})
+                console.log(`Result is '${result}'`)                
                 switch (result) {
                     case "ERROR":
+                        await HurraServer.patchState({status: "ok"})
                         res.send({error: `Failed to delete '${client_filename}'. Make sure you entered correct Master Password`})
                         break;
                     case "SUCCESS":
                         await this.updateClientsList()
+                        await HurraServer.patchState({status: "ok"})
                         this.sendSafeState(res)
                         break;
                 }
@@ -105,13 +105,14 @@ class HurraApp {
             await HurraServer.patchState({status: "adding_user"})
             HurraServer.exec_sync("pki", `create_new_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
                 var result = command.output.trim()
-                await HurraServer.patchState({status: "ok"})
                 console.log(`Result is '${result}'`)
                 switch (result) {
                     case "ERROR:1":
+                        await HurraServer.patchState({status: "ok"})
                         res.send({error: `User name "${client_filename}" is already used`})
                         break;
                     case "ERROR:2":
+                        await HurraServer.patchState({status: "ok"})
                         res.send({error: `Failed to add user. Make sure you entered correct Master Password`})
                         break;
                     case "SUCCESS":
@@ -119,10 +120,12 @@ class HurraApp {
                         state.users[client_filename] = { client_name: client_name };
                         console.log("Success. Updating our clients list")
                         await this.updateClientsList(state)
+                        await HurraServer.patchState({status: "ok"})
                         this.sendSafeState(res)
                         break;
                     case "ERROR:3":
                     default:
+                        await HurraServer.patchState({status: "ok"})
                         res.send({error: `There was an unexpected error while creating user, please try again`})
                         break;
                 }

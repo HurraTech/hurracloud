@@ -169,16 +169,22 @@ class HurraApp extends React.Component {
     this.setState({loading: false, status: status, users: state.users })
   }
 
-  refreshState = () => {    
-    this.setState({loading: true}, async () => {
+  backgroundRefreshState = () => {
+    this.refreshState(true)
+  }
+
+  refreshState = (background=false) => {    
+    this.setState({loading: !background}, async () => {
         let state = (await (await fetch('/state')).json());
         let status = state.status
         console.log("Status is", status)
-        if (status === "initializing") {
+        if (status === "initializing" ) {
           this.setState({loading: true, status: status}, () => {
             setTimeout(this.refreshState, 1000);
           })
-        } else {        
+        } else {
+          if (status == "adding_user" || status.startsWith("removing_"))
+            setTimeout(this.backgroundRefreshState, 1000);
           this.setState({loading: false, status: status, users: state.users })
         }
     })
