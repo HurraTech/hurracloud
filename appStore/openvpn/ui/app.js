@@ -118,6 +118,9 @@ const styles = theme => ({
 
   actionBar: {
     padding: 15
+  },
+
+  downloading: {
   }
 
 
@@ -213,6 +216,8 @@ class HurraApp extends React.Component {
 
   downloadOVPN = async (client_key) => {
     console.log("Downloading OVPN", client_key)
+    this.state.users[client_key]["downloadingConfig"] = true
+    this.forceUpdate()
     const response = await fetch(`/users/${client_key}/ovpn`, {
       headers: new Headers({
         'Accept': 'text/plain'
@@ -221,6 +226,8 @@ class HurraApp extends React.Component {
     const ovpn_text = await response.text()
     console.log("DONE", ovpn_text)
     var blob = new Blob([ovpn_text], {type: "text/plain;charset=utf-8"});
+    this.state.users[client_key]["downloadingConfig"] = false
+    this.forceUpdate()
     saveAs(blob, `HurraCloud-${client_key}.ovpn`);
   }
 
@@ -285,7 +292,7 @@ class HurraApp extends React.Component {
                   open={this.state.addUserDialog} 
                   onClose={this.cancelAddUserDialog.bind(this)}
                   onSave={this.onAddUserSave}
-              />    
+              />
               <RevokeUserDialog 
                   open={this.state.revokeUserDialog} 
                   onClose={this.cancelRevokeUserDialog.bind(this)}
@@ -321,15 +328,19 @@ class HurraApp extends React.Component {
                                             <TableCell variant="body" className={classNames(classes.tableRow)} scope="row">{userStatus}</TableCell>
                                             <TableCell variant="body"  className={classNames(classes.tableRow, classes.rightAligned)} scope="row">
                                             { userStatus == "Active" && 
-                                              <>
-                                              <Tooltip title="Donwload File">
-                                                <Button  color="inherit" className={classNames(classes.tableButton)} onClick={() => {this.downloadOVPN(user_key)}} >
-                                                  <DownloadIcon color="inherit" />
-                                                  OpenVPN Config
-                                                </Button>
-                                              </Tooltip>
+                                              <>                                              
+                                                {(() => { if ("downloadingConfig" in this.state.users[user_key] &&
+                                                              this.state.users[user_key]["downloadingConfig"] === true) {
+                                                                  return <CircularProgress className={classes.downloading} size={15} />
+                                                          } else {
+                                                            return (<Tooltip title="Donwload File"><Button  color="inherit" className={classNames(classes.tableButton)} onClick={() => {this.downloadOVPN(user_key)}} >
+                                                            <DownloadIcon color="inherit" />OpenVPN Config
+                                                          </Button></Tooltip>)
+                                                          }
+
+                                                })()}
                                               <Tooltip title="Revoke Credentials">
-                                                <Button color="inherit" className={classNames(classes.tableButton)}  onClick={() => {this.openRevokeUserDialog(user_key)}} >
+                                                <Button color="inherit" className={classNames(classes.tableButton)}  onClick={() => {this.openRevokeUserDialog(user_key)}} disabled={this.state.status != "ok"}>
                                                   <DeleteIcon color="inherit" />
                                                   Revoke Access
                                                 </Button>
@@ -346,9 +357,9 @@ class HurraApp extends React.Component {
                           </TableBody>
                         </Table>
                         <div className={classes.actionBar}>
-                          <Button variant="contained" color="primary" className={classes.button} onClick={this.openAddUserDialog.bind(this)}>Add New User</Button>
-                          <Button variant="contained" color="secondary" className={classes.button}  onClick={() => { this.reset()}}>Reset</Button>
-                          <Button variant="contained" className={classes.button} onClick={this.refreshAll}>Refresh</Button>
+                          <Button variant="contained" color="primary" className={classes.button} onClick={this.openAddUserDialog.bind(this)} disabled={this.state.status != "ok"}>Add New User</Button>
+                          <Button variant="contained" color="secondary" className={classes.button}  onClick={() => { this.reset()}} disabled={this.state.status != "ok"}>Reset</Button>
+                          <Button variant="contained" className={classes.button} onClick={this.refreshAll} disabled={this.state.status != "ok"}>Refresh</Button>
                           <Button variant="contained" className={classes.button} onClick={this.openAddUserDialog.bind(this)}>Help</Button>
                         </div>      
                         <div className={classes.actionBar}>
