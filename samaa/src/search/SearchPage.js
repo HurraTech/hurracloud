@@ -89,7 +89,7 @@ class Content extends React.Component {
       },
       () => {
         axios
-          .get(`http://172.16.0.99:5000/files/is_viewable/${path}`)
+          .get(`http://jawhar.cloud/files/is_viewable/${path}`)
           .then(res => {
             this.setState({ isAjaxInProgress: false }, () => {
               const isViewable = res.data.is_viewable;
@@ -100,7 +100,7 @@ class Content extends React.Component {
                   isPreviewOpen: false,
                 });
               } else {
-                window.location = `http://172.16.0.99:5000/files/download/${path}`;
+                window.location = `http://jawhar.cloud/files/download/${path}`;
               }
             });
           });
@@ -156,7 +156,7 @@ class Content extends React.Component {
     const query = this.state.q || '';
     return new Promise((resolve, reject) => {
       axios
-        .get(`http://172.16.0.99:5000/search?q=${query}&from=${from}&to=${to}`)
+        .get(`http://jawhar.cloud/search?q=${query}&from=${from}&to=${to}`)
         .then(res => {
           const response = res.data;
           this.setState(

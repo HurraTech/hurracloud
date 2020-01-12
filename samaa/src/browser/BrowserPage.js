@@ -125,7 +125,7 @@ class BrowserPage extends React.Component {
   
       this.setState({isAjaxInProgress: true}, () => {
         axios
-        .get(`http://172.16.0.99:5000/files/is_viewable/${this.state.path.replace('_open_/', '')}`)
+        .get(`http://jawhar.cloud/files/is_viewable/${this.state.path.replace('_open_/', '')}`)
         .then(res => {
           this.setState({ isAjaxInProgress: false }, () => {
             const isViewable = res.data.is_viewable;
@@ -136,7 +136,7 @@ class BrowserPage extends React.Component {
                 isPreviewOpen: false,
               });
             } else {
-              window.location = `http://172.16.0.99:5000/files/download/${this.state.path.replace('_open_/', '')}`;
+              window.location = `http://jawhar.cloud/files/download/${this.state.path.replace('_open_/', '')}`;
               let path = `/browse/${this.state.path.substring(0, this.state.path.lastIndexOf("/")).replace("_open_/", "")}`
               this.props.history.push({ pathname: path});
             }
@@ -157,7 +157,7 @@ class BrowserPage extends React.Component {
     }
     return new Promise((resolve, reject) => {
       this.setState({isAjaxInProgress: true}, () => {
-        axios.get(`http://172.16.0.99:5000/files/browse/${this.state.path}`).then(res => {
+        axios.get(`http://jawhar.cloud/files/browse/${this.state.path}`).then(res => {
           const response = res.data;
           console.log("Response", response)
           this.setState(

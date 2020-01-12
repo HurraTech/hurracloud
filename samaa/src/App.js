@@ -242,7 +242,7 @@ class App extends React.Component {
 
   updateSources = (msg, data) => {
     axios
-    .get(`http://172.16.0.99:5000/sources`)
+    .get(`http://jawhar.cloud/sources`)
     .then(res => {
         const response = res.data;
         this.setState({ sources: response })

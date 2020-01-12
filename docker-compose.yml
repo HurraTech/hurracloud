@@ -1,7 +1,7 @@
 version: '2.3'
 services:
   zahif:
-    image: aimannajjar/hurracloud:jawhar-v1
+    image: registry.local:10001/hurracloud:jawhar-v1
     volumes_from:
     - jawhar
     command: ./bin/start_zahif.sh
@@ -12,7 +12,7 @@ services:
     restart: always
 
   jawhar:
-    image: aimannajjar/hurracloud:jawhar-v1
+    image: registry.local:10001/hurracloud:jawhar-v1
     volumes:
       - ./data/indices:/usr/share/hurracloud/zahif/indices
       - ./data/db:/usr/share/hurracloud/jawhar/data
@@ -36,7 +36,7 @@ services:
     restart: always
 
   samaa:
-    image: aimannajjar/hurracloud:samaa-v1
+    image: registry.local:10001/hurracloud:samaa-v1
     networks:
       - hurracloud
     volumes:
@@ -100,6 +100,25 @@ services:
         bind:
           propagation: shared
     command: '-u "aiman;Ytz8fJaaxqhdQkpAMnGLOyOkix1" -s "drives;/mount;yes;no;no;aiman;aiman,aiman" -w "HURRA"'
+
+  webdav:
+    image: registry.local:10001/webdav:latest    
+    build:
+      context: .
+      dockerfile: WebDAV.Dockerfile      
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      AUTH_TYPE: Digest
+      USERNAME: aiman
+      PASSWORD: Ytz8fJaaxqhdQkpAMnGLOyOkix1
+    volumes:
+      - type: bind
+        source: /usr/share/hurracloud/mounts
+        target: /var/lib/dav/data
+        bind:
+          propagation: shared
 
 volumes:
   es-data:

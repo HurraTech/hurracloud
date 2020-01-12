@@ -5,7 +5,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`http://172.16.0.99:5000/apps/${auid}`)
+      .get(`http://jawhar.cloud/apps/${auid}`)
       .then(res => {
         console.log("RESULT OF STATE IS", res.data.state)
           resolve(res.data.state)
@@ -19,7 +19,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .put(`http://172.16.0.99:5000/apps/${auid}`, {
+      .put(`http://jawhar.cloud/apps/${auid}`, {
         app: {
           state: state
         }
@@ -35,7 +35,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .patch(`http://172.16.0.99:5000/apps/${auid}`, {
+      .patch(`http://jawhar.cloud/apps/${auid}`, {
         app: {
           state: state
         }
@@ -51,7 +51,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .post(`http://172.16.0.99:5000/apps/${auid}/${container}/_exec`, {
+      .post(`http://jawhar.cloud/apps/${auid}/${container}/_exec`, {
         cmd: command,
         env: env
       })
@@ -66,7 +66,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`http://172.16.0.99:5000/apps/${auid}/${container}/_restart`)
+      .get(`http://jawhar.cloud/apps/${auid}/${container}/_restart`)
       .then(res => {
           resolve(res.data)
       })
@@ -78,7 +78,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`http://172.16.0.99:5000/apps/${auid}/${container}/_start`)
+      .get(`http://jawhar.cloud/apps/${auid}/${container}/_start`)
       .then(res => {
           resolve(res.data)
       })
@@ -90,7 +90,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`http://172.16.0.99:5000/apps/${auid}/${container}/_stop`)
+      .get(`http://jawhar.cloud/apps/${auid}/${container}/_stop`)
       .then(res => {
           resolve(res.data)
       })
@@ -103,7 +103,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .post(`http://172.16.0.99:5000/apps/${auid}/${container}/_exec`, {
+      .post(`http://jawhar.cloud/apps/${auid}/${container}/_exec`, {
         cmd: command,
         env: env
       })
@@ -129,7 +129,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`http://172.16.0.99:5000/apps/${auid}/app_commands/${cmd_id}`)
+      .get(`http://jawhar.cloud/apps/${auid}/app_commands/${cmd_id}`)
       .then((statusRes) => {
         console.log(`Command ${cmd_id} Status`, statusRes.data.status);
         resolve(statusRes.data)

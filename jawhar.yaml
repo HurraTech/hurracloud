@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: jawhar
+  name: jawhar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jawhar
+  template:
+    metadata:
+      labels:
+        app: jawhar
+    spec:
+      containers:
+      - image: registry.local:5000/hurracloud:jawhar-v1
+        name: jawhar
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jawhar
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: jawhar
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: jawhar
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: jawhar.cloud
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: jawhar
+          servicePort: 80

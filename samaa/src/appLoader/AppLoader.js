@@ -106,7 +106,7 @@ class AppLoader extends React.Component {
 
     componentDidMount = () => {
       axios
-      .get(`http://172.16.0.99:5000/apps/${this.state.auid}`)
+      .get(`http://jawhar.cloud/apps/${this.state.auid}`)
       .then(res => {
           const response = res.data;
           this.setState({ port: response.deployment_port })

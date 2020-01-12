@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: samaa
+  name: samaa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: samaa
+  template:
+    metadata:
+      labels:
+        app: samaa
+    spec:
+      containers:
+      - image: registry.local:5000/hurracloud:samaa-v1
+        name: samaa
+        command:
+        - /bin/sh
+        - -c
+        - yarn start
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samaa
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: samaa
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: samaa
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: hurra.cloud
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: samaa
+          servicePort: 80

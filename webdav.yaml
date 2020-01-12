@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webdav
+  name: webdav
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webdav
+  template:
+    metadata:
+      labels:
+        app: webdav
+    spec:
+      containers:
+      - image: registry.local:5000/webdav:latest
+        name: webdav
+        volumeMounts:
+        - mountPath: /var/lib/dav/data
+          name: webdav-data
+        env:
+        - name: AUTH_TYPE
+          value: Digest
+        - name: USERNAME
+          value: aiman
+        - name: PASSWORD
+          value: Ytz8fJaaxqhdQkpAMnGLOyOkix1
+      volumes:
+      - name: webdav-data
+        hostPath:
+          path: /usr/share/hurracloud/mounts
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webdav
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: webdav
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: webdav
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: webdav
+          servicePort: 80

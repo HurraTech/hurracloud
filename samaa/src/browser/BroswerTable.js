@@ -191,7 +191,7 @@ class BrowserTable extends React.PureComponent {
             padding="none"
           >
             <Tooltip title="Donwload File">
-              <IconButton href={`http://172.16.0.99:5000/files/download/${cellData.path}` } >
+              <IconButton href={`http://jawhar.cloud/files/download/${cellData.path}` } >
                 <DownloadIcon color="inherit" color="primary" />
               </IconButton>
             </Tooltip>
@@ -211,7 +211,7 @@ class BrowserTable extends React.PureComponent {
           >
             <Tooltip title="Open in New Window">
               <IconButton
-                href="http://172.16.0.99:5000/files/view"
+                href="http://jawhar.cloud/files/view"
                 target="_blank"
               >
                 <OpenIcon color="inherit" color="primary" />
