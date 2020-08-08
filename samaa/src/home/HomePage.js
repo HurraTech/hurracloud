@@ -128,6 +128,14 @@ class HomePage extends React.Component {
         })
     };
 
+    deleteApp = (app_id) => {
+        axios
+        .post(`${JAWHAR_API}/apps/${app_id}/_uninstall`)
+        .then(res => {
+            this.getApplications()
+        })
+    }
+
     /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
@@ -176,7 +184,7 @@ class HomePage extends React.Component {
                                                 Open
                                             </Button>
                                             <Button variant="contained"  size="small" color="secondary">Restart</Button>
-                                            <Button variant="contained"  size="small" color="secondary">Delete</Button>
+                                            <Button variant="contained"  size="small" color="secondary" onClick={() => this.deleteApp(app.app_unique_id)} >Delete</Button>
                                         </CardActions>
                                     </div>
                             </Card>

@@ -10,7 +10,7 @@
   "proxy": "http://localhost:5000/",
   "scripts": {
     "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files",
-    "server": "babel-watch --watch HurraApp server.js HurraServer.js"
+    "server": "env JAWHAR_IP=$(route -n | grep 'UG[ \t]' | awk '{print $2}') babel-watch --watch HurraApp server.js HurraServer.js"
   },
   "devDependencies": {
     "@babel/core": "^7.3.4",

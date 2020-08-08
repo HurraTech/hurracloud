@@ -1,1 +1,1 @@
-export const JAWHAR_API = process.env.REACT_APP_JAWHAR_API
+export const JAWHAR_API = "http://" + process.env.JAWHAR_IP + ":5000"

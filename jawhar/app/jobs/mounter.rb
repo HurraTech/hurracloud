@@ -50,10 +50,11 @@ class Mounter
                                  partitions: [] }
                 devices[dev][:uuid] = `blkid #{dev} | grep -o 'PTUUID=".[^"]*"' | cut -d '"' -f 2`.chomp()
                 `blkid #{dev}[1-9]*`.split("\n").each_with_index do |line|
+					Rails.logger.info("BLKID output is #{line}")
                     (path, attributes) = line.split(": ",2)
                     next if Settings.skip_partitions.include?(path)
                     partition = { path: path}
-                    re = /(([^=]*)="([^"]*)")\s+/m
+                    re = /(([^=]*)="([^"]*)")\s*/m
                     attributes.scan(re) do |match|
                         key = match[1]
                         value = match[2]
@@ -114,18 +115,38 @@ class Mounter
                 Rails.logger.info("Ran command, results: #{result}")
             end
             Resque.enqueue(Mounter, 'start_app', :app_id => app_id)
+        when 'delete_app'
+            app_id = data["app_id"]
+            app = App.find(app_id)
+
+            Rails.logger.info("Shutting down UI for app ID #{app}")
+            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml down)"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
+            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
+
+            Rails.logger.info("Shutting down services for app ID #{app}")
+            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml down)"
+            Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
+            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
+
+			Rails.logger.info("Delete app files #{app.app_path}")
+			FileUtils.rm_rf(app.app_path)
+
+			app.destroy
+
         when 'start_app'
             app_id = data["app_id"]
             app = App.find(app_id)
+
             Rails.logger.info("Starting UI for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml up -d)"
+            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml up --remove-orphans -d)"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
+
             Rails.logger.info("Starting services for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml up -d)"
-            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
+            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml up --remove-orphans -d)"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
-            result = `#{cmd}`
+            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 
             app.status = :started
             app.save()
@@ -145,9 +166,9 @@ class Mounter
             command.save()
             cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml exec #{env} -T #{container} bash -c \"#{cmd}\")"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd}")
-            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
+            result = $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
             command.status = :completed
-            command.output = result
+            command.output = result.message
             command.save()
 
             Rails.logger.info("Ran command, results: #{result}")

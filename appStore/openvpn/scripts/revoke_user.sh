@@ -1,5 +1,5 @@
 #!/bin/bash
-if [$CA_PASS == ""]; then
+if [[ "$CA_PASS" == "" ]]; then
     echo "ERROR";
     exit -1;
 fi

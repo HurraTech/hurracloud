@@ -1,4 +1,5 @@
 name: OpenVPN Server
 description: Allows you to securely access your HurraCloud Device remotely from anywhere using Internet-connected smartphone or computer
+publisher: HurraNet LLC
 version: 0.1.1
 initCommands: []

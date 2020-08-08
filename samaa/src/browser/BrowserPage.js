@@ -31,6 +31,9 @@ const styles = theme => ({
   contentWrapper: {
     margin: '0px 0px',
   },
+  progressWrapper: {
+    bottom: 0,
+  }
 });
 
 class BrowserPage extends React.Component {
@@ -181,7 +184,7 @@ class BrowserPage extends React.Component {
   render() {
     const { classes } = this.props;
     const { items } = this.state;
-    return (
+    return (<span>
       <Paper className={classes.paper}>
         <FilePreview
           open={this.state.isInlineViewerOpen}
@@ -227,8 +230,8 @@ class BrowserPage extends React.Component {
             ]}
           />
         </div>
-        {this.state.isAjaxInProgress && <ProgressIndicator />}
       </Paper>
+      <div class={classes.progressWrapper}>{this.state.isAjaxInProgress && <ProgressIndicator />}</div></span>
     );
   }
 }

@@ -182,7 +182,7 @@ class Content extends React.Component {
 
     const { items } = this.state;
     return (
-      <Paper className={classes.paper}>
+      <span><Paper className={classes.paper}>
         <QuickPreview
           open={this.state.isPreviewOpen}
           onCloseClick={this.handlePreviewCloseClick.bind(this)}
@@ -246,8 +246,8 @@ class Content extends React.Component {
             ]}
           />
         </div>
-        {this.state.isAjaxInProgress && <ProgressIndicator />}
       </Paper>
+      <div>{this.state.isAjaxInProgress && <ProgressIndicator />}</div></span>
     );
   }
 }

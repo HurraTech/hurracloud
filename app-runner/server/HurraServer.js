@@ -104,6 +104,11 @@ export default class HurraServer {
 
   static exec_sync(container, command, env = {}) {
     let auid = process.env.REACT_APP_AUID
+    console.log(`EXECUTING COMMAND ${JAWHAR_API}/apps/${auid}/${container}/_exec`,{
+        cmd: command,
+        env: env
+    })
+
     return new Promise((resolve, reject) => {
       axios
       .post(`${JAWHAR_API}/apps/${auid}/${container}/_exec`, {
@@ -120,9 +125,10 @@ export default class HurraServer {
   static wait_for_cmd(command, resolver)
   {
     HurraServer.get_command(command.id).then(command_update => {
-      if (command_update.status == "completed")
+      if (command_update.status == "completed") {
+        console.log("Command completed", command_update)
         resolver(command_update)
-      else {
+      } else {
         setTimeout(() => { HurraServer.wait_for_cmd(command, resolver) }, 1000)
       }
     })

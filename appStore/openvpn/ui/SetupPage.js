@@ -17,7 +17,7 @@ const styles = theme => ({
       display: 'flex',
       flexDirection: 'column'
     },
-  
+
     title: {
       flexDirection: 'row',
       display: 'flex',
@@ -26,7 +26,7 @@ const styles = theme => ({
       fontWeight: 'bold',
       marginBottom:10
     },
-  
+
     logo: {
       backgroundRepeat: 'no-repeat',
       backgroundImage: 'url("/static/icon.svg")',
@@ -35,25 +35,25 @@ const styles = theme => ({
       width: 80,
       display: 'inline-block'
     },
-  
+
     container: {
       display: 'flex',
       flexWrap: 'wrap',
-      flexDirection: 'column',    
+      flexDirection: 'column',
     },
-  
+
     welcomeTextContainer: {
       marginBottom: 15,
     },
-  
+
     margin: {
       marginTop: 15,
     }
-    
-  
+
+
   });
-    
-  
+
+
 class SetupPage extends React.Component {
     constructor(props) {
       super(props);
@@ -66,23 +66,23 @@ class SetupPage extends React.Component {
       }
     };
 
-  
+
     handleChange = prop => event => {
       this.setState({ [prop]: event.target.value });
     };
-  
+
     handleClickShowPassword = () => {
       this.setState(state => ({ showPassword: !state.showPassword }));
     };
-  
+
     handleClickShowConfirmPassword = () => {
       this.setState(state => ({ showConfirmPassword: !state.showConfirmPassword }));
     };
-  
+
     componentDidMount = () => {
       this.refreshState()
     }
-  
+
     refreshState = () => {
         this.setState({loading: true}, async () => {
             let status = (await (await fetch('/state')).json()).status;
@@ -91,7 +91,7 @@ class SetupPage extends React.Component {
                 setTimeout(this.refreshState, 1000);
               })
             } else if (status === "ok") {
-              this.setState({loading: false, status: status}, this.props.onSetupComplete())                  
+              this.setState({loading: false, status: status}, this.props.onSetupComplete())
             }
             else
             {
@@ -99,28 +99,28 @@ class SetupPage extends React.Component {
             }
       })
     }
-  
+
     savePassword = () => {
         this.setState({loading: true}, async () => {
           let response = await axios.post('/setup', { password: this.state.password });
           this.setState({loading: false, status: "ok"}, this.props.onSetupComplete())
         });
     }
-  
+
     render = () => {
         const { classes } = this.props;
         if (this.state.status === "ok")
-            return <Redirect to='/' />; 
+            return <Redirect to='/' />;
         if (this.state.loading)
             return (<div className={classes.root}>
                     <CircularProgress className={classes.progress} />
-                    </div>)  
+                    </div>)
         return (
             <Paper className={classes.root}>
-                <div className={classes.title} ><Typography variant="h6">Setup</Typography></div>
+                <div className={classes.title} ><Typography variant="h6">Create Master Password</Typography></div>
                 <div className={classes.welcomeTextContainer}>
                     <Typography variant="body">
-                       Since this is your first time, we need to setup a password for managing your OpenVPN Server. This password will be used to add or remove users, it will not be used when connecting  to the server.                 
+                       Since this is your first time, we need to setup a password for managing your OpenVPN Server. This password will be used to add or remove users, it will not be used when connecting  to the server.
                     </Typography>
 
                     <form className={classes.container} noValidate autoComplete="off">

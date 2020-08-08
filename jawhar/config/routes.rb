@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   end
 
   resources :google_drive_accounts,  format: false
-  
+
   resources :indices, :defaults => { :format => 'json' } do
     resources :index_segments,  :defaults => { :format => 'json' }
     get '_pause', to: 'indices#pause'
@@ -28,13 +28,15 @@ Rails.application.routes.draw do
 
   patch '/apps/:auid', to: 'apps#patch'
   put '/apps/:auid', to: 'apps#update'
+  get '/apps/store', to: 'apps#app_store'
   resources :apps, :param => :auid, except: :update, :defaults => { :format => 'json' } do
     post '_install', to: 'apps#install'
+    post '_uninstall', to: 'apps#uninstall'
     post '_start', to: 'apps#start'
     post '/:container/_exec', to: 'apps#exec'
     get '/:container/_restart', to: 'apps#restart_container'
     get '/:container/_stop', to: 'apps#stop_container'
-    get '/:container/_start', to: 'apps#start_container'        
+    get '/:container/_start', to: 'apps#start_container'
     resources :app_commands, :defaults => { :format => 'json' }
   end
   mount Resque::Server.new, at: "/resque"

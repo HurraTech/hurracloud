@@ -2,13 +2,13 @@ require 'xmlsimple'
 require 'yaml'
 class App < ApplicationRecord
     COMPOSE_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'app-runner-compose-template.yml.erb'))
-    enum status: [ :installed, :starting, :started, :stopping, :stopped ]
+    enum status: [ :installed, :starting, :started, :stopping, :stopped, :installing, :deleting ]
     serialize :iconSvg, Hash
     serialize :state, Hash
     serialize :initCommands, Array
+    has_many :app_commands, :dependent => :delete_all
 
     def install
-
         FileUtils.mkdir_p self.app_path
 
         self.deployment_port = rand(5001..6000)## TODO: Exclude already used ports
@@ -34,6 +34,11 @@ class App < ApplicationRecord
         self.status = :installed
         self.save()
         Resque.enqueue(Mounter, 'init_app', :app_id => self.id)
+    end
+
+    def uninstall
+        self.status = :deleting
+        Resque.enqueue(Mounter, 'delete_app', :app_id => self.id)
     end
 
     def exec(container, cmd, env)

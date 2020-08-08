@@ -544,6 +544,7 @@ class SettingsPage extends React.Component {
                                                 <TableCell align="left"  className={classNames(classes.bodyCell, classes.actionsCell)}>
                                                 <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
                                                     { (() => {
+														console.log("SOURCE ",source)
                                                         if (source.status == "mounted")
                                                             return <Tooltip title="Unmounting the drive will make it inaccessible.">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source)} }>
@@ -552,7 +553,7 @@ class SettingsPage extends React.Component {
                                                                             {source.sourcable_type == "DrivePartition" ? "Eject" : "Disconnect"}
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (sources.is_mountable && source.status == "unmounted")
+                                                        else if (source.sourcable.is_mountable && source.status == "unmounted")
                                                             return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
                                                                             {source.sourcable_type == "DrivePartition" && <MountIcon className={classes.leftIcon}></MountIcon>}
@@ -561,7 +562,7 @@ class SettingsPage extends React.Component {
 
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (!source.is_mountable && source.status == "unmounted")
+                                                        else if (!source.sourcable.is_mountable && source.status == "unmounted")
                                                             return <Tooltip title={"TYPE" in source.metadata ? `This partition's filesystem ${source.metadata.TYPE} is not supported` :
 																						"Partition is not formatted or could not determine filesystem" }><span>
                                                                         <Button variant="outline" disabled="true" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
