@@ -15,10 +15,6 @@ services:
       dockerfile: Jawhar.Dockerfile
     volumes:
       - ./jawhar:/usr/share/hurracloud/jawhar
-    environment:
-    - HOST_GDFUSE_PATH=/usr/local/src/hurracloud/data/gdfuse
-    - HOST_APPS_PATH=/usr/local/src/hurracloud/data/apps
-
     ports:
       - 5000:3000
     command: sh -c "bundle update google-protobuf && bundle install && ./bin/start_jawhar.sh"

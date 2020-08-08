@@ -234,7 +234,7 @@ class App extends React.Component {
   componentDidMount() {
     this.updateSources()
     //TODO: Uncomment this out
-    this.updateSourcesTimer = setInterval(()=> this.updateSources(), 1000);
+    // this.updateSourcesTimer = setInterval(()=> this.updateSources(), 1000);
   }
 
   componentWillUnmount() {

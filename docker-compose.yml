@@ -24,20 +24,23 @@ services:
       - ./key:/root/.ssh/id_rsa
       - /dev/bus/usb:/dev/bus/usb
       - type: bind
-        source: ${MOUNTS_DIR:?err}
+        source: ${PWD}/mounts
         target: /usr/share/hurracloud/mounts
         bind:
           propagation: shared
     environment:
-    - HOST_GDFUSE_PATH=/usr/share/hurracloud/data/gdfuse
-    - HOST_APPS_PATH=/usr/share/hurracloud/data/apps
-    - HOST_MOUNTS_PATH=${MOUNTS_DIR:?err}
+    - HOST_GDFUSE_PATH=${PWD}/data/gdfuse
+    - HOST_APPS_PATH=${PWD}/data/apps
+    - HOST_MOUNTS_PATH=${PWD}/mounts
     - SKIP_PARTITIONS="" # comma-separated list
     - SAMAA_ROOT_URL=http://localhost:3000
+    - HOST_APP_STORE_PATH=${PWD}/appStore
     networks:
       - hurracloud
     privileged: true
     restart: "always"
+    ports:
+      - 5000:3000
 
   samaa:
     image: registry.local:10001/hurracloud:samaa-v1
@@ -48,6 +51,7 @@ services:
     environment:
       - NODE_ENV=production
       - REACT_APP_JAWHAR_API=http://localhost:5000
+      - REACT_APP_APP_RUNNER_HOSTNAME=http://localhost
     restart: always
 
   elasticsearch:
@@ -100,7 +104,7 @@ services:
     tty: true
     volumes:
       - type: bind
-        source: ${MOUNTS_DIR:?err}
+        source: ${PWD}/mounts
         target: /mount
         bind:
           propagation: shared
@@ -120,7 +124,7 @@ services:
       PASSWORD: Ytz8fJaaxqhdQkpAMnGLOyOkix1
     volumes:
       - type: bind
-        source: ${MOUNTS_DIR:?err}
+        source: ${PWD}/mounts
         target: /var/lib/dav/data
         bind:
           propagation: shared

@@ -18,7 +18,13 @@ services:
     environment:
       - NODE_ENV=development
       - REACT_APP_AUID=<%=app_unique_id%>
+      - REACT_APP_JAWHAR_API=http://172.22.0.1:5000
     command: sh -c "yarn install_deps && yarn startRunner"    
 
+
 networks:
-  runner: {}
+  runner:
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
