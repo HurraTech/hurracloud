@@ -8,6 +8,7 @@ import FilePreview from '../components/FilePreview';
 import SearchResultsTable from './SearchResultsTable';
 import ProgressIndicator from '../components/ProgressIndicator';
 import QueryString from 'query-string';
+import { JAWHAR_API  } from '../constants';
 
 const SIZE = 30;
 
@@ -89,7 +90,7 @@ class Content extends React.Component {
       },
       () => {
         axios
-          .get(`http://jawhar.cloud/files/is_viewable/${path}`)
+          .get(`${JAWHAR_API}/files/is_viewable/${path}`)
           .then(res => {
             this.setState({ isAjaxInProgress: false }, () => {
               const isViewable = res.data.is_viewable;
@@ -100,7 +101,7 @@ class Content extends React.Component {
                   isPreviewOpen: false,
                 });
               } else {
-                window.location = `http://jawhar.cloud/files/download/${path}`;
+                window.location = `${JAWHAR_API}/files/download/${path}`;
               }
             });
           });
@@ -156,7 +157,7 @@ class Content extends React.Component {
     const query = this.state.q || '';
     return new Promise((resolve, reject) => {
       axios
-        .get(`http://jawhar.cloud/search?q=${query}&from=${from}&to=${to}`)
+        .get(`${JAWHAR_API}/search?q=${query}&from=${from}&to=${to}`)
         .then(res => {
           const response = res.data;
           this.setState(

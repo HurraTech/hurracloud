@@ -20,6 +20,7 @@ import PreviewIcon from '@material-ui/icons/ChromeReaderMode';
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import DownloadIcon from '@material-ui/icons/GetApp';
 import FilterIcon from '@material-ui/icons/FilterList';
+import { JAWHAR_API  } from '../constants';
 
 const STATUS_LOADING = 1;
 const STATUS_LOADED = 2;
@@ -169,7 +170,7 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Donwload File">
               <IconButton
-                href={`http://jawhar.cloud/files/download/${
+                href={`${JAWHAR_API}/files/download/${
                   cellData._source.path
                 }`}
               >
@@ -192,7 +193,7 @@ class SearchResultsTable extends React.PureComponent {
           >
             <Tooltip title="Open in New Window">
               <IconButton
-                href={`http://jawhar.cloud/files/view/${
+                href={`${JAWHAR_API}/files/view/${
                   cellData._source.path
                 }`}
                 target="_blank"

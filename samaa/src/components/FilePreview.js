@@ -3,6 +3,7 @@ import Paper from '@material-ui/core/Paper';
 import Draggable from 'react-draggable';
 import Dialog from '@material-ui/core/Dialog';
 import Iframe from 'react-iframe';
+import { JAWHAR_API  } from '../constants';
 
 function PaperComponent(props) {
   return (
@@ -43,7 +44,7 @@ class FilePreview extends React.Component {
         PaperComponent={PaperComponent}
       >
         <Iframe
-          url={`http://jawhar.cloud/files/view/${this.state.file}`}
+          url={`${JAWHAR_API}/files/view/${this.state.file}`}
           width="100%"
           height="100vh"
           display="initial"

@@ -49,6 +49,7 @@ import {
 import blackThemeFile from './themes/black';
 import HomePage from './home/HomePage';
 import AppLoader from './appLoader/AppLoader';
+import { JAWHAR_API  } from './constants';
 
 const jss = create({
   ...jssPreset(),
@@ -233,7 +234,7 @@ class App extends React.Component {
   componentDidMount() {
     this.updateSources()
     //TODO: Uncomment this out
-    // this.updateSourcesTimer = setInterval(()=> this.updateSources(), 1000);   
+    // this.updateSourcesTimer = setInterval(()=> this.updateSources(), 1000);
   }
 
   componentWillUnmount() {
@@ -242,11 +243,11 @@ class App extends React.Component {
 
   updateSources = (msg, data) => {
     axios
-    .get(`http://jawhar.cloud/sources`)
+    .get(`${JAWHAR_API}/sources`)
     .then(res => {
         const response = res.data;
         this.setState({ sources: response })
-    });        
+    });
   }
 
   transition = event => {
@@ -270,7 +271,7 @@ class App extends React.Component {
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
       this.props.history.push({
-        pathname: `/search/${event.target.value}`        
+        pathname: `/search/${event.target.value}`
       });
     }
   };
@@ -325,7 +326,7 @@ class App extends React.Component {
               <SettingsIcon />
           </IconButton>
           <p>Manage</p>
-        </MenuItem>      
+        </MenuItem>
         {/* <MenuItem>
           <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">
@@ -460,7 +461,7 @@ class App extends React.Component {
                   <ListItemIcon><HomeIcon /></ListItemIcon>
                   <ListItemText primary="Home" style={{color:'black'}} />
                 </ListItem>
-            </Link>        
+            </Link>
             <Divider />
             <ListItem button key="Browse" selected={this.props.history.location.pathname.startsWith(`/browse/`)} onClick={this.handleBrowserClick}>
                 <ListItemIcon><BrowserIcon /></ListItemIcon>
@@ -468,7 +469,7 @@ class App extends React.Component {
                 {this.state.browserListOpen ? <ExpandLess /> : <ExpandMore />}
               </ListItem>
               <Collapse in={this.state.browserListOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>                    
+              <List component="div" disablePadding>
                   {this.state.sources.filter(s => s.status == "mounted").map(source => {
                     let icon_class = "fab fa-usb"
                     if (source.sourcable_type == "DrivePartition")
@@ -479,13 +480,13 @@ class App extends React.Component {
                         return <Link
                         to={`/browse/${source.id}/`}
                         style={{ textDecoration: 'none', color:'black' }}
-                        >       
+                        >
                             <ListItem button className={classes.nested}>
                                 <div style={{float:'left'}}><span
                                       className={`${icon_class}`}
                                       style={{ marginRight: '0.5em', width:'10px', }}
                                       />
-                                      </div> 
+                                      </div>
                             <ListItemText inset primary={source.name} className={classes.sourceNameText} />
                           </ListItem>
                           </Link>

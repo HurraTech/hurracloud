@@ -15,6 +15,7 @@ import Chip from '@material-ui/core/Chip';
 import FaceIcon from '@material-ui/icons/Face';
 import RunningIcon from '@material-ui/icons/CheckCircle';
 import Iframe from 'react-iframe';
+import { JAWHAR_API  } from '../constants';
 
 const styles = theme => ({
     root: {
@@ -29,14 +30,14 @@ const styles = theme => ({
         '&:hover': {
             backgroundColor: fade(theme.palette.common.white, 0.02),
           },
-  
+
       },
       cardButton: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'left',
       },
-    
+
       details: {
         display: 'flex',
         width: '100%',
@@ -88,8 +89,8 @@ const styles = theme => ({
           paddingTop: 0,
           paddingBottom: 2
       }
-    
-    
+
+
 });
 
 
@@ -106,7 +107,7 @@ class AppLoader extends React.Component {
 
     componentDidMount = () => {
       axios
-      .get(`http://jawhar.cloud/apps/${this.state.auid}`)
+      .get(`${JAWHAR_API}/apps/${this.state.auid}`)
       .then(res => {
           const response = res.data;
           this.setState({ port: response.deployment_port })
@@ -114,7 +115,7 @@ class AppLoader extends React.Component {
 
     }
 
-    
+
     /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
@@ -130,7 +131,7 @@ class AppLoader extends React.Component {
           />
         );
     }
-        
+
 }
 
 AppLoader.propTypes = {

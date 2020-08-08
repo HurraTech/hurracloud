@@ -18,6 +18,7 @@ import Utils from '../utils';
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import DownloadIcon from '@material-ui/icons/GetApp';
 import FilterIcon from '@material-ui/icons/FilterList';
+import { JAWHAR_API  } from '../constants';
 
 const STATUS_LOADING = 1;
 const STATUS_LOADED = 2;
@@ -147,7 +148,7 @@ class BrowserTable extends React.PureComponent {
             href={cellData.open_link ? cellData.open_link : ""}
             target="_new"
             onClick={() => { if (!cellData.open_link) { this.props.onFilenameClick(rowIndex)}  }}
-  
+
           >
             <span
               className={`fiv-sqo fiv-icon-blank fiv-icon-${cellData.type}`}
@@ -191,7 +192,7 @@ class BrowserTable extends React.PureComponent {
             padding="none"
           >
             <Tooltip title="Donwload File">
-              <IconButton href={`http://jawhar.cloud/files/download/${cellData.path}` } >
+              <IconButton href={`${JAWHAR_API}/files/download/${cellData.path}` } >
                 <DownloadIcon color="inherit" color="primary" />
               </IconButton>
             </Tooltip>
@@ -211,7 +212,7 @@ class BrowserTable extends React.PureComponent {
           >
             <Tooltip title="Open in New Window">
               <IconButton
-                href="http://jawhar.cloud/files/view"
+                href="${JAWHAR_API}/files/view"
                 target="_blank"
               >
                 <OpenIcon color="inherit" color="primary" />

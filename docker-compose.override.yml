@@ -1,8 +1,8 @@
 version: '2.3'
 services:
-  elasticsearch:
-    ports:
-      - 9200:9200
+    # elasticsearch:
+    #   ports:
+    #     - 9200:9200
     
   zahif:
     volumes:
@@ -21,7 +21,7 @@ services:
 
     ports:
       - 5000:3000
-    command: sh -c "bundle install && ./bin/start_jawhar.sh"
+    command: sh -c "bundle update google-protobuf && bundle install && ./bin/start_jawhar.sh"
 
   samaa:
     image: registry.local:10001/hurracloud:samaa-v1

@@ -39,6 +39,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
 import TextField from '@material-ui/core/TextField';
+import { JAWHAR_API  } from '../constants';
 
 const styles = theme => ({
     root: {
@@ -88,7 +89,7 @@ const styles = theme => ({
     iconSmall: {
         fontSize: 20,
     },
-    
+
     tableButton: {
         margin: theme.spacing.unit,
     },
@@ -127,7 +128,7 @@ const styles = theme => ({
     },
 
     availableCell: {
-        width: '100px'        
+        width: '100px'
     },
 
     actionsCell: {
@@ -152,7 +153,7 @@ const styles = theme => ({
         marginTop: theme.spacing.unit,
         marginLeft: theme.spacing.unit * 5,
         padding:'2px'
-      },    
+      },
 
 });
 class SettingsPage extends React.Component {
@@ -187,7 +188,7 @@ class SettingsPage extends React.Component {
         let source_id = source.id
         currentSources.find(s => s.id === source_id).status = "mounting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://jawhar.cloud/sources/${source_id}/_mount`)
+            axios.get(`${JAWHAR_API}/sources/${source_id}/_mount`)
         })
     }
 
@@ -195,7 +196,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "pausing"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://jawhar.cloud/indices/${source.index.id}/_pause`)
+            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_pause`)
         })
     }
 
@@ -203,7 +204,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "resuming"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://jawhar.cloud/indices/${source.index.id}/_resume`)
+            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_resume`)
         })
     }
 
@@ -216,7 +217,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "cancelling"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://jawhar.cloud/indices/${source.index.id}/_cancel`)
+            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_cancel`)
         })
 
     }
@@ -226,7 +227,7 @@ class SettingsPage extends React.Component {
         this.setState({ cancelIndexAlertOpen: false });
     }
 
-    cancelCancelAlert = () => {        
+    cancelCancelAlert = () => {
         this.setState({ cancelIndexAlertOpen: false });
     }
 
@@ -239,17 +240,17 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source.id).index.status = "deleting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://jawhar.cloud/indices/${source.index.id}/_delete`)
+            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_delete`)
         })
 
     }
-    
+
     confirmDeleteAlert = () => {
         this.doDeleteIndex(this.state.selectedSource);
         this.setState({ deleteIndexAlertOpen: false });
     }
 
-    cancelDeleteAlert = () => {        
+    cancelDeleteAlert = () => {
         this.setState({ deleteIndexAlertOpen: false });
     }
 
@@ -259,11 +260,11 @@ class SettingsPage extends React.Component {
             this.setState({ unmountAlertOpen: true, selectedSource: source });
         }
         else {
-            this.doUnmountParition(source.id)            
+            this.doUnmountParition(source.id)
         }
     }
 
-    confirmUnmountAlert = () => { 
+    confirmUnmountAlert = () => {
         this.doUnmountParition(this.state.selectedSource.id)
         this.setState({ unmountAlertOpen: false });
     }
@@ -277,7 +278,7 @@ class SettingsPage extends React.Component {
         var currentSources = [...this.state.sources]
         currentSources.find(s => s.id === source_id).status = "unmounting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`http://jawhar.cloud/sources/${source_id}/_unmount`)
+            axios.get(`${JAWHAR_API}/sources/${source_id}/_unmount`)
         })
 
     }
@@ -309,12 +310,12 @@ class SettingsPage extends React.Component {
         }
         console.log("Calling create index with data", data)
         axios
-        .post('http://jawhar.cloud/indices/', data)
+        .post('${JAWHAR_API}/indices/', data)
         .then(res => {
             this.setState({
                 indexDialogOpen: false,
                 selectedSource: {}
-            })    
+            })
         })
     }
 
@@ -322,7 +323,7 @@ class SettingsPage extends React.Component {
     /* ---------- Update Sources --------- */
     componentDidUpdate = (prevProps, prevState, snapshot) => {
         if (JSON.stringify(this.props.sources) != JSON.stringify(prevProps.sources)) {
-            this.setState({ 
+            this.setState({
                 sources: this.props.sources
             }, () => {
                 this.forceUpdate()
@@ -330,7 +331,7 @@ class SettingsPage extends React.Component {
                     $(".meter > span").each(function() {
                         $(this).css("max-width", "1000px")
                     })
-                }); 
+                });
             })
         }
     }
@@ -360,14 +361,14 @@ class SettingsPage extends React.Component {
             googleAuthCode: "",
             selectedSource: source,
             consentFlowState: "enterGoogleAuthCode",
-            addDialogOpen: true            
+            addDialogOpen: true
         })
     }
 
     createGoogleAuthWindow = () => {
-        this.currentAuthWindow = <NewWindow 
+        this.currentAuthWindow = <NewWindow
                 key={Math.random().toString(36).replace(/[^a-z]+/g, '') }
-                url="https://accounts.google.com/o/oauth2/v2/auth?scope=email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.metadata&response_type=code&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=647498924470-rvr9l3drsfmnc3k7cnghrvn8jd2k42l8.apps.googleusercontent.com" 
+                url="https://accounts.google.com/o/oauth2/v2/auth?scope=email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.metadata&response_type=code&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=647498924470-rvr9l3drsfmnc3k7cnghrvn8jd2k42l8.apps.googleusercontent.com"
                 center="screen" />
     }
 
@@ -382,7 +383,7 @@ class SettingsPage extends React.Component {
             authCode: this.state.googleAuthCode
         }
         axios
-        .post('http://jawhar.cloud/google_drive_accounts/', data)
+        .post('${JAWHAR_API}/google_drive_accounts/', data)
         .then(res => {
             this.setState({
                 addDialogOpen: false,
@@ -390,8 +391,8 @@ class SettingsPage extends React.Component {
             })
         })
     }
-      
-      
+
+
     /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
@@ -400,8 +401,8 @@ class SettingsPage extends React.Component {
             <div>
                 {this.state.googleAuthConsentOpen && this.currentAuthWindow}
 
-                <IndexDialog 
-                    open={indexDialogOpen} 
+                <IndexDialog
+                    open={indexDialogOpen}
                     partitionObject={selectedSource}
                     onClose={this.cancelIndexDialog.bind(this)}
                     onSave={this.onIndexDialogSave}
@@ -411,7 +412,7 @@ class SettingsPage extends React.Component {
                     cancelButton="Cancel"
                     okButton="Yes"
                     title="This will interrupt indexing progress. Continue?"
-                    message="Indexing is currently in progress. Unmounting the storage partition will interrupt the indexing process and may cause some loss of progress. Are you sure you want to continue?" 
+                    message="Indexing is currently in progress. Unmounting the storage partition will interrupt the indexing process and may cause some loss of progress. Are you sure you want to continue?"
                     onCancel={this.cancelUnmountAlert}
                     onOk={this.confirmUnmountAlert}
                 />
@@ -459,9 +460,9 @@ class SettingsPage extends React.Component {
                             </DialogContentText>
                             <List>
                                 <ListItem>
-                                    <TextField 
-                                        variant="outlined" 
-                                        fullWidth 
+                                    <TextField
+                                        variant="outlined"
+                                        fullWidth
                                         label="Authorization Code"
                                         value={this.state.googleAuthCode}
                                         onChange={(e) => { this.setState({googleAuthCode: e.target.value}) }}
@@ -528,7 +529,7 @@ class SettingsPage extends React.Component {
                                                 <TableCell scope="row" className={classes.iconCell}>
                                                     <div style={{float:'left'}}>
                                                         <span className={`${icon_class}`} style={{ marginRight: '0.5em' }} />
-                                                    </div>                                                         
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
                                                     {source.name}
@@ -542,7 +543,7 @@ class SettingsPage extends React.Component {
                                                 <TableCell align="left"  className={classNames(classes.bodyCell, classes.actionsCell)}>
                                                 <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
                                                     { (() => {
-                                                        if (source.status == "mounted") 
+                                                        if (source.status == "mounted")
                                                             return <Tooltip title="Unmounting the drive will make it inaccessible.">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source)} }>
                                                                             {source.sourcable_type == "DrivePartition" && <UnmountIcon className={classes.leftIcon}></UnmountIcon>}
@@ -550,7 +551,7 @@ class SettingsPage extends React.Component {
                                                                             {source.sourcable_type == "DrivePartition" ? "Eject" : "Disconnect"}
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (source.status == "unmounted") 
+                                                        else if (source.status == "unmounted")
                                                             return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
                                                                             {source.sourcable_type == "DrivePartition" && <MountIcon className={classes.leftIcon}></MountIcon>}
@@ -587,7 +588,7 @@ class SettingsPage extends React.Component {
                                                     }
                                                     {source.index && source.index.status === "cancelling"  && (
                                                         <CircularProgress className={classes.progress} size={20} />
-                                                    )}                             
+                                                    )}
 
                                                     {source.index && source.status == "mounted" && source.index.status === "indexing" && (
                                                     <Button variant="outline"
@@ -595,7 +596,7 @@ class SettingsPage extends React.Component {
                                                         onClick={() => { this.handlePauseClick(source)}}>
                                                         <PauseIcon className={classes.leftIcon}></PauseIcon>Pause
                                                     </Button>)}
-                                                    
+
                                                     {source.index && source.status == "mounted" && source.index.status === "paused" && (
                                                     <Button variant="outline"
                                                         color="primary" size="small"
@@ -605,7 +606,7 @@ class SettingsPage extends React.Component {
 
                                                     {source.index && (source.index.status === "resuming" || source.index.status === "pausing")  && (
                                                         <CircularProgress className={classes.progress} size={20} />
-                                                    )}                             
+                                                    )}
                                                     </div>
                                                     <div style={{width: "180px", float: 'left', clear: 'right', minHeight: '1px'}}>
                                                     {source.index && (source.index.status === "paused" || source.index.status === "completed") && (
@@ -617,10 +618,10 @@ class SettingsPage extends React.Component {
                                                     )}
                                                     {source.index && source.index.status === "deleting"  && (
                                                         <CircularProgress className={classes.progress} size={20} />
-                                                    )}                             
+                                                    )}
 
                                                     </div>
-                                                    
+
                                                 </TableCell>
                                                 {source.index && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
                                                     <div className="indexingDone" style={{display: source.index.status == "completed" ? "block" : "none" }}>
@@ -636,10 +637,10 @@ class SettingsPage extends React.Component {
                                                     { (source.index.status == "init" || source.index.status == "indexing") && source.index.progress < 100 && (<div className="meter orange">
                                                                                                 <span style={{width: `${source.index.progress}%` }} />
                                                                                             </div>)}
-                                                    {source.index.status == "scheduled" && "Scheduled" }                                                                                                  
+                                                    {source.index.status == "scheduled" && "Scheduled" }
                                                     {source.index.status == "init" && "Initializing index (scanning files)" }
                                                     {!["init", "scheduled", "cancelling", "deleting"].includes(source.index.status) && `${source.index.indexed_count} document(s) ${indexingProgress}`}
-                                                    
+
                                                 </TableCell>
                                                 </>}
                                                 {!source.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
@@ -649,13 +650,13 @@ class SettingsPage extends React.Component {
                                     </TableBody>
                                 </Table>
                             </Paper>
-                        </Grid>                
+                        </Grid>
                     </Grid>
                 </Grid>
             </div>
             );
     }
-        
+
 }
 
 SettingsPage.propTypes = {
