@@ -17,6 +17,7 @@ const styles = theme => ({
     maxWidth: '100%',
     margin: 'auto',
     overflow: 'hidden',
+    height: "85vh"
   },
   searchBar: {
     borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
@@ -32,6 +33,8 @@ const styles = theme => ({
   },
   contentWrapper: {
     margin: '0px 0px',
+    height: "100vh",
+    flex: 1,
   },
 });
 
@@ -191,7 +194,7 @@ class Content extends React.Component {
           onCloseClick={this.handlePreviewCloseClick.bind(this)}
           file={this.state.openedFile}
         />
-        <div className={classes.contentWrapper}>
+        <div className={classes.contentWrapper} >
           <SearchResultsTable
             rowCount={this.state.totalResults}
             rowGetter={({ index }) => ({ file: items[index] })}

@@ -60,7 +60,7 @@ type hurraAgentServer struct {
 
 // ExecCommand returns the feature at the given point.
 func (s *hurraAgentServer) ExecCommand(ctx context.Context, command *pb.Command) (*pb.Result, error) {
-	out, err := exec.Command("bash", "-c", command.Command).Output()
+	out, err := exec.Command("bash", "-c", command.Command).CombinedOutput()
 	exitCode := int32(0)
     if err != nil {
 		out = []byte(err.Error())

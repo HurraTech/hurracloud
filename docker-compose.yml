@@ -50,27 +50,27 @@ services:
       - REACT_APP_JAWHAR_API=http://localhost:5000
     restart: always
 
-    #   elasticsearch:
-    #     image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
-    #     container_name: elasticsearch
-    #     environment:
-    #       - cluster.name=hurracloud
-    #       - bootstrap.memory_lock=true
-    #       - discovery.type=single-node
-    #       - network.host=0.0.0.0
-    #       - http.cors.enabled=true
-    #       - cluster.routing.allocation.disk.threshold_enabled=false
-    #       - "http.cors.allow-origin=*"
-    #       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    #     ulimits:
-    #       memlock:
-    #         soft: -1
-    #         hard: -1
-    #     volumes:
-    #       - es-data:/usr/share/elasticsearch/data
-    #     networks:
-    #       - hurracloud
-    #     restart: always
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+    container_name: elasticsearch
+    environment:
+      - cluster.name=hurracloud
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - network.host=0.0.0.0
+      - http.cors.enabled=true
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - "http.cors.allow-origin=*"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - hurracloud
+    restart: always
 
   redis:
     image: redis:5.0.3-alpine

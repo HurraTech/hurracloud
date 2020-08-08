@@ -17,7 +17,8 @@ class Mounter
             FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
             Rails.logger.info "Mounting (!) #{dev_path} #{host_mount_path}"
             cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path}) || (mount #{dev_path} #{host_mount_path})"
-            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
+            result = $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
+			Rails.logger.info("HURRAGE AGENT RESP #{result.inspect}")
             `touch /usr/share/hurracloud/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
             Resque.enqueue(Mounter, 'update_sources')
         when 'unmount_source'

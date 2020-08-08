@@ -83,7 +83,7 @@ class IndexDialog extends React.Component {
         if (this.props.partitionObject.index)
         {
             console.log(" I am here?")
-            excludes = this.props.partitionObject.index.settings &&  
+            excludes = this.props.partitionObject.index.settings &&
                           this.props.partitionObject.index.settings.excludes ?
                             this.props.partitionObject.index.settings.excludes : [""]
         }
@@ -116,7 +116,7 @@ class IndexDialog extends React.Component {
             excludes: this.state.excludeList.filter(pattern => pattern.trim().length > 0)
         })
   }
-  
+
 
   render() {
     const { classes, onClose, onSave } = this.props;
@@ -136,6 +136,7 @@ class IndexDialog extends React.Component {
     }
     return (
       <div>
+        { this.state.open && (
         <Dialog
           fullScreen
           open={this.state.open}
@@ -148,7 +149,7 @@ class IndexDialog extends React.Component {
                 <CloseIcon />
               </IconButton>
               <Typography variant="h6" color="inherit" className={classes.flex}>
-                {editIndexId > 0 ? "Edit Index" : `Create New Index for ${partitionObject.label}`}
+                {editIndexId > 0 ? "Edit Index" : `Create New Index for ${partitionObject.metadata.LABEL}`}
               </Typography>
             </Toolbar>
           </AppBar>
@@ -177,7 +178,8 @@ class IndexDialog extends React.Component {
             </Toolbar>
           </AppBar>
           </List>
-        </Dialog>
+        </Dialog>)
+        }
       </div>
     );
   }

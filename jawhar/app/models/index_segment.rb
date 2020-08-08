@@ -18,7 +18,7 @@ class IndexSegment < ApplicationRecord
       includes = [url[url.rindex("/")..-1]]
       url = url[0..url.rindex("/")-1]
     end
-    excludes = self.index.index_segments.select{|s| 
+    excludes = self.index.index_segments.select{|s|
       s.id != self.id && (self.is_root? || s.relative_path.index(self.path_without_wildcard) == 0)
     }.map {|segment|
       exclude_path = self.is_root? ? segment.relative_path :
@@ -27,7 +27,7 @@ class IndexSegment < ApplicationRecord
       "#{start_slash}#{exclude_path}"
     }
     excludes = excludes.concat(self.index.settings['excludes'] || [])
-    
+
     includes = includes || "null"
     ocr = self.index.settings['ocr'] || false
     ERB.new(FSCRAWLER_TEMPLATE).result(binding)
@@ -35,7 +35,7 @@ class IndexSegment < ApplicationRecord
 
   def fscrawler_settings_json
     ActiveSupport::JSON.decode(fscrawler_settings)
-  end  
+  end
 
   def fscrawler_log4j_config
     log_file = "#{Rails.root.join('log', "zahif/#{self.index.name}/segment-#{self.id}.log")}"

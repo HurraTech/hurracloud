@@ -9,7 +9,7 @@ class Index < ApplicationRecord
 
     FSCRAWLER_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_template.json.erb'))
     FSCRAWLER_LOG4J_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_log4j.xml.erb'))
-      
+
     before_save do
         self.status ||= :scheduled
     end
@@ -31,7 +31,7 @@ class Index < ApplicationRecord
             rescue
                 Rails.logger.info("Failed to kill process")
             end
-        end        
+        end
         fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{self.name}"
         FileUtils.rm_rf("#{Rails.root.join('log', "zahif/#{self.name}")}")
         FileUtils.rm_rf(fscrawler_config_dir)
@@ -53,7 +53,17 @@ class Index < ApplicationRecord
     end
 
     def name
-        self.source.name
+      self.sanitize(self.source.name)
+    end
+
+    def sanitize(filename)
+      # Bad as defined by wikipedia: https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
+      # Also have to escape the backslash
+      bad_chars = [ '/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', '.', ' ' ]
+      bad_chars.each do |bad_char|
+        filename.gsub!(bad_char, '_')
+      end
+      filename
     end
 
     def full_path
@@ -69,28 +79,30 @@ class Index < ApplicationRecord
         return 100 if self.status == "completed"
         ((self.indexed_count / self.count.to_f) * 100).round(2)
     end
-    
+
     def indexed_count
+        Rails.logger.info "Attempting to find documents count of index #{self.es_index_name}"
         begin
             (Rails.application.config.es_client.count index: self.es_index_name)["count"]
         rescue => exception
-            return 0            
+        	Rails.logger.error "Failed to find documents count of index #{self.es_index_name}: #{exception}"
+            return 0
         end
     end
 
     def es_index_name
-        "hurracloud_#{self.name}".gsub(/[\*\/\-_\. ]/, '_').downcase        
+        "hurracloud_#{self.name}".gsub(/[\*\/\-_\. ]/, '_').downcase
     end
 
     def as_json(options={})
         super(options.merge!(methods: [:name, :progress, :indexed_count]))
     end
-    
+
     def fscrawler_settings
         name = self.crawler_job_name
         index_name = self.es_index_name
         url = "#{self.full_path}"
-        excludes = self.settings['excludes'] || []        
+        excludes = self.settings['excludes'] || []
         includes = "null"
         ocr = self.settings['ocr'] || false
         ERB.new(FSCRAWLER_TEMPLATE).result(binding)
@@ -98,7 +110,7 @@ class Index < ApplicationRecord
 
     def fscrawler_settings_json
         ActiveSupport::JSON.decode(fscrawler_settings)
-    end  
+    end
 
     def fscrawler_log4j_config
         log_file = "#{Rails.root.join('log', "zahif/scanner-#{self.es_index_name}.log")}"
@@ -108,5 +120,5 @@ class Index < ApplicationRecord
     def crawler_job_name
         "#{self.name}_rescan".gsub(/[\*\/\-_\. ]/, '_').downcase
     end
-    
+
 end

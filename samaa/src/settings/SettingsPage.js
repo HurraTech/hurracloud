@@ -287,6 +287,7 @@ class SettingsPage extends React.Component {
     /* ------- Create Index ------- */
 
     openIndexDialog(source) {
+        console.log("Opening Index Dialog for Source ", source);
         this.setState({
             indexDialogOpen: true,
             selectedSource: source
@@ -310,7 +311,7 @@ class SettingsPage extends React.Component {
         }
         console.log("Calling create index with data", data)
         axios
-        .post('${JAWHAR_API}/indices/', data)
+        .post(`${JAWHAR_API}/indices/`, data)
         .then(res => {
             this.setState({
                 indexDialogOpen: false,
@@ -499,7 +500,7 @@ class SettingsPage extends React.Component {
 
                                 <div className={classes.tableDescriptionWrapper}>
                                     <Typography variant="title" className={classes.descriptionTitle}>
-                                    Storage Indexes
+                                    Drives & Indexes
                                     </Typography>
                                     <Typography variant="body" align="justify" className={classes.descriptionContent}>
                                         Your HurraCloud device comes with internal storage. You can also connect external USB devices or connect with online cloud storage such as Google Drive, Dropbox and iCloud
@@ -551,7 +552,7 @@ class SettingsPage extends React.Component {
                                                                             {source.sourcable_type == "DrivePartition" ? "Eject" : "Disconnect"}
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (source.status == "unmounted")
+                                                        else if (sources.is_mountable && source.status == "unmounted")
                                                             return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
                                                                             {source.sourcable_type == "DrivePartition" && <MountIcon className={classes.leftIcon}></MountIcon>}
@@ -559,6 +560,15 @@ class SettingsPage extends React.Component {
                                                                             {source.sourcable_type == "DrivePartition" ? "Mount" : "Reconnect"}
 
                                                                         </Button>
+                                                                    </Tooltip>
+                                                        else if (!source.is_mountable && source.status == "unmounted")
+                                                            return <Tooltip title={"TYPE" in source.metadata ? `This partition's filesystem ${source.metadata.TYPE} is not supported` :
+																						"Partition is not formatted or could not determine filesystem" }><span>
+                                                                        <Button variant="outline" disabled="true" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
+                                                                            {source.sourcable_type == "DrivePartition" && <MountIcon className={classes.leftIcon}></MountIcon>}
+                                                                            {source.sourcable_type == "GoogleDriveAccount" && <ReconnectIcon className={classes.leftIcon}></ReconnectIcon>}
+                                                                            {source.sourcable_type == "DrivePartition" ? "Mount" : "Reconnect"}
+                                                                        </Button></span>
                                                                     </Tooltip>
                                                         else
                                                             return <CircularProgress className={classes.progress} size={20} />

@@ -1,9 +1,9 @@
 version: '2.3'
 services:
-    # elasticsearch:
-    #   ports:
-    #     - 9200:9200
-    
+  elasticsearch:
+    ports:
+      - 9200:9200
+  
   zahif:
     volumes:
       - ./jawhar:/usr/share/hurracloud/jawhar

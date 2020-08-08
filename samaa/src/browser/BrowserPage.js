@@ -14,6 +14,7 @@ const styles = theme => ({
     maxWidth: '100%',
     margin: 'auto',
     overflow: 'hidden',
+    height: "85vh",
   },
   searchBar: {
     borderBottom: '1px solid rgba(0, 0, 0, 0.12)',

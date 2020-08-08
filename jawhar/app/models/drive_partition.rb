@@ -1,5 +1,5 @@
 class DrivePartition < ApplicationRecord
-  include ActsAsSourcable  
+  include ActsAsSourcable
   acts_as_sourcable
   belongs_to :drive
 
@@ -22,7 +22,10 @@ class DrivePartition < ApplicationRecord
   end
 
   def as_json(options={})
-    super(options.merge!(methods: [:drive_type]))
+    super(options.merge!(methods: [:drive_type, :is_mountable]))
   end
 
+  def is_mountable
+    self.metadata.key?("TYPE") && Settings.supported_fs_types.include?(self.metadata["TYPE"])
+  end
 end
