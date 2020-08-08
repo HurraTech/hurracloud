@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: zahif
+  name: zahif
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zahif
+  template:
+    metadata:
+      labels:
+        app: zahif
+    spec:
+      containers:
+      - image: registry.local:5000/hurracloud:jawhar-v1
+        name: zahif
+        command:
+        - /bin/sh
+        - -c
+        - bundle install && ./bin/start_zahif.sh
+        volumeMounts:
+        - mountPath: /usr/share/hurracloud/jawhar/data
+          name: hurracloud-data
+      volumes:
+      - name: hurracloud-data
+        hostPath:
+          path: /usr/share/hurracloud/jawhar/data
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zahif
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: zahif
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: zahif
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: zahif.cloud
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: zahif
+          servicePort: 80

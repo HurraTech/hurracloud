@@ -39,7 +39,7 @@ fi
 ### Mounter is responsible for processing mount and unmount jobs that are sent by Jawhar backend
 ### Metadata Updater simply changes status of index to paused or delete it (invoked after WorkerManager has completed descheduling, see WorkerManger)
 ### Scanners is responsible for starting background fscrawler processes for scheduled index refreshes
-echo "Starting up Zahif mounter" 
+echo "Starting up Zahif mounter"
 QUEUE=metadata_updates,mounter,scanners BACKGROUND=yes rake resque:work
 status=$?
 if [ $status -ne 0 ]; then
@@ -50,7 +50,7 @@ fi
 ## Startup Zahif Files Monitor
 ### Mounts monitor responsible for spawning files monitor whenever there is new mount / unmount operations
 ### Files montior is responsible for enqueing index jobs when mounts have file changes
-echo "Starting up Zahif mounts monitor" 
+echo "Starting up Zahif mounts monitor"
 ./bin/mounts_monitor.sh &> log/mounts_monitor.log &
 status=$?
 if [ $status -ne 0 ]; then

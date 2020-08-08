@@ -17,9 +17,6 @@ spec:
       containers:
       - image: registry.local:5000/webdav:latest
         name: webdav
-        volumeMounts:
-        - mountPath: /var/lib/dav/data
-          name: webdav-data
         env:
         - name: AUTH_TYPE
           value: Digest
@@ -27,6 +24,9 @@ spec:
           value: aiman
         - name: PASSWORD
           value: Ytz8fJaaxqhdQkpAMnGLOyOkix1
+        volumeMounts:
+        - mountPath: /var/lib/dav/data
+          name: webdav-data
       volumes:
       - name: webdav-data
         hostPath:

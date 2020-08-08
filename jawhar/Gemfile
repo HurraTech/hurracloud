@@ -19,7 +19,9 @@ gem 'resque-retry'
 gem 'google-api-client'
 gem 'google_drive'
 gem 'jwt'
-
+gem 'google-protobuf', '=3.9.0'
+# gem 'protobuf'
+gem 'grpc'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.6'

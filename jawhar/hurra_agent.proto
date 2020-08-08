@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "proto";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.routeguide";
+option java_outer_classname = "RouteGuideProto";
+
+package proto;
+
+service HurraAgent {
+    rpc ExecCommand(Command) returns (Result) {}
+}
+
+message Result {
+  int32 exitCode = 1;
+  string message = 2;
+}
+
+message Command {
+  string command = 3;
+}
+

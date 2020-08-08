@@ -10,29 +10,65 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190211224920) do
+ActiveRecord::Schema.define(version: 20190308203901) do
 
-  create_table "drive_partitions", force: :cascade do |t|
-    t.integer "source_id"
-    t.string "uuid"
-    t.integer "partitionNumber"
-    t.string "deviceFile"
-    t.string "label"
-    t.string "filesystem"
-    t.integer "size"
-    t.integer "available"
+  create_table "app_commands", force: :cascade do |t|
+    t.string "command"
+    t.string "container"
+    t.text "environment"
     t.integer "status"
-    t.text "raw"
+    t.text "output"
+    t.integer "app_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["source_id"], name: "index_drive_partitions_on_source_id"
+    t.index ["app_id"], name: "index_app_commands_on_app_id"
+  end
+
+  create_table "apps", force: :cascade do |t|
+    t.string "app_unique_id"
+    t.string "name"
+    t.string "version"
+    t.string "description"
+    t.integer "deployment_port"
+    t.integer "status"
+    t.text "state"
+    t.text "iconSvg"
+    t.text "initCommands"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "drive_partitions", force: :cascade do |t|
+    t.integer "drive_id"
+    t.integer "partitionNumber"
+    t.string "deviceFile"
+    t.string "filesystem"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["drive_id"], name: "index_drive_partitions_on_drive_id"
+  end
+
+  create_table "drives", force: :cascade do |t|
+    t.string "name"
+    t.string "drive_type"
+    t.string "url"
+    t.string "unique_id"
+    t.integer "capacity", limit: 8
+    t.integer "available", limit: 8
+    t.text "metadata"
+    t.integer "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "google_drive_accounts", force: :cascade do |t|
     t.string "accessToken"
-    t.string "googleId"
-    t.integer "expires_in"
+    t.string "authCode"
+    t.string "refreshToken"
     t.string "email"
+    t.string "idToken"
+    t.datetime "issuedAt"
+    t.datetime "expiresAt"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -58,27 +94,29 @@ ActiveRecord::Schema.define(version: 20190211224920) do
   end
 
   create_table "indices", force: :cascade do |t|
-    t.integer "drive_partition_id"
+    t.integer "source_id"
     t.text "settings"
     t.integer "status"
     t.integer "count"
     t.integer "size"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["drive_partition_id"], name: "index_indices_on_drive_partition_id"
+    t.index ["source_id"], name: "index_indices_on_source_id"
   end
 
   create_table "sources", force: :cascade do |t|
+    t.string "sourcable_type"
+    t.integer "sourcable_id"
     t.string "name"
-    t.integer "source_type"
-    t.string "url"
     t.string "unique_id"
-    t.integer "capacity", limit: 8
-    t.integer "available", limit: 8
-    t.text "metadata"
     t.integer "status"
+    t.integer "size", limit: 8
+    t.integer "used", limit: 8
+    t.integer "free", limit: 8
+    t.text "metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["sourcable_type", "sourcable_id"], name: "index_sources_on_sourcable_type_and_sourcable_id"
   end
 
 end

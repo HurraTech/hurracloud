@@ -17,6 +17,14 @@ spec:
       containers:
       - image: registry.local:5000/hurracloud:jawhar-v1
         name: jawhar
+        volumeMounts:
+        - mountPath: /usr/share/hurracloud/jawhar/data
+          name: hurracloud-data
+      volumes:
+      - name: hurracloud-data
+        hostPath:
+          path: /usr/share/hurracloud/jawhar/data
+          type: Directory
 ---
 apiVersion: v1
 kind: Service

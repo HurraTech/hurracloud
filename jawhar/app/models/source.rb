@@ -12,6 +12,10 @@ class Source < ApplicationRecord
         "#{Settings.mounts_path}/#{self.id}"
     end
 
+    def host_mount_path
+        "#{Settings.host_mounts_path}/#{self.id}"
+    end
+
     def browse(requested_path=nil)
         path = "#{self.mount_path}/#{requested_path}"
         { 
