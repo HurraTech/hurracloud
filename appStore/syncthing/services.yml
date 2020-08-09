@@ -15,7 +15,7 @@ services:
     volumes:
       - syncthing-config:/config
       - type: bind
-        source: ${PWD}/../../mounts
+        source: ${PWD}/../mounts
         target: /data
         bind:
           propagation: shared
@@ -24,13 +24,9 @@ services:
       - 22000
       - 21027/udp
     restart: unless-stopped
-    networks:
-      - app_syncthing_default
 
 volumes:
   syncthing-config:
     driver: local
-networks:
-  app_syncthing_default:
-    external: true
+
 

@@ -120,13 +120,8 @@ class Mounter
             app_id = data["app_id"]
             app = App.find(app_id)
 
-            Rails.logger.info("Shutting down UI for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml down -v --remove-orphans)"
-            Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
-            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
-
-            Rails.logger.info("Shutting down services for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml down -v --remove-orphans)"
+            Rails.logger.info("Shutting down #{app}")
+            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml -f #{app.host_app_path}/CONTENT/services.yml down -v --remove-orphans)"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 
@@ -140,15 +135,9 @@ class Mounter
             app = App.find(app_id)
 
             Rails.logger.info("Starting UI for app ID #{app}")
-            cmd = "docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml up -d"
+            cmd = "docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml -f #{app.host_app_path}/CONTENT/services.yml up -d"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
-
-            Rails.logger.info("Starting services for app ID #{app}")
-            cmd = "docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml up -d"
-            Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
-            $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
-
             app.status = :started
             app.save()
         when 'exec_app'
