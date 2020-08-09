@@ -3,9 +3,10 @@ class CreateApps < ActiveRecord::Migration[5.1]
     create_table :apps do |t|
       t.string :app_unique_id
       t.string :name
-      t.string :version      
+      t.string :version
       t.string :description
       t.integer :deployment_port
+      t.integer :proxy_port
       t.integer :status
       t.text :state
       t.text :iconSvg

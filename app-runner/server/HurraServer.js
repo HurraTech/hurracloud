@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { JAWHAR_API } from './constants';
+const http = require('http');
 
 export default class HurraServer {
   static getState() {
@@ -144,6 +145,61 @@ export default class HurraServer {
         resolve(statusRes.data)
       })
     })
+  }
+
+
+  static service_http_proxy = (proxy_host, proxy_port=80) => (oreq,ores) => {
+	console.log("MAKING PROXY REQ TO", proxy_host, oreq.path, oreq.method)
+     const options = {
+       // host to forward to
+       host: proxy_host,
+       // port to forward to
+       port: proxy_port,
+       // path to forward to
+       path: `${oreq.path}.html`,
+       // request method
+       method: oreq.method,
+       // headers to send
+       headers: oreq.headers,
+     };
+
+     const creq = http
+       .request(options, pres => {
+         // set encoding
+         // pres.setEncoding('utf8');
+
+         // set http status code based on proxied response
+         ores.writeHead(pres.statusCode);
+
+         // wait for data
+         pres.on('data', chunk => {
+           ores.write(chunk);
+         });
+
+         pres.on('close', () => {
+           // closed, let's end client request as well
+           ores.end();
+         });
+
+         pres.on('end', () => {
+           // finished, let's finish client request as well
+           ores.end();
+         });
+       })
+       .on('error', e => {
+         // we got an error
+         console.log(e.message);
+         try {
+           // attempt to set error message and http status
+           ores.writeHead(500);
+           ores.write(e.message);
+         } catch (e) {
+           // ignore
+         }
+         ores.end();
+       });
+
+     creq.end();
   }
 
 }

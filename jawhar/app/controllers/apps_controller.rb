@@ -7,7 +7,7 @@ class AppsController < ApiController
         app_metadata = YAML.load_file(metadata_file)
         app_metadata["auid"] =  File.basename((File.expand_path("..", metadata_file)))
         svg = (IO.read("#{File.expand_path("..", metadata_file)}/icon.svg"))
-        app_metadata["icon"] = XmlSimple.xml_in(svg, KeepRoot: false, SuppressEmpty: true, KeyToSymbol: false, ForceArray: true)
+        app_metadata["icon"] = svg.sub("<svg ", "<svg class=\"appStoreIcon\" ");
         app_metadata.delete("initCommands")
         apps.append(app_metadata)
       end

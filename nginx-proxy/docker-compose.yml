@@ -1,0 +1,10 @@
+version: '2'
+services:
+  nginx-proxy:
+    build:
+      context: .
+    image: aimannajjar/hurracloud:nginx-proxy
+    container_name: nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+

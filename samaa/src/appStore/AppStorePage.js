@@ -92,8 +92,6 @@ const styles = theme => ({
 
 
     appIcon: {
-        fontSize: '68px',
-        marginLeft:'0px'
     },
 
     appMetadataLabelCell: {
@@ -241,18 +239,15 @@ class AppStorePage extends React.Component {
             </AppBar>
             {selectedTab === 0 && <Paper square={true}>
                {this.state.apps.map(app => {
-                 let icon = Utils.jsonToElement("svg", app.icon)
+                 // let icon = Utils.jsonToElement("svg", app.icon)
                  return (
                     <ExpansionPanel expanded={expandedApp === app.auid} onChange={this.expandApp(app.auid)}>
                         <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                             <List>
                                 <ListItem>
-                                  <CardMedia>
-                                    <SvgIcon className={classes.appIcon} color="primary" fontSize="large" viewBox={app.icon["viewBox"]}>
-                                        {icon.props.children}
-                                    </SvgIcon>
+                                  <CardMedia dangerouslySetInnerHTML={{__html: app.icon}}>
                                   </CardMedia>
-                                    <ListItemText primary="OpenVPN Server"
+                                    <ListItemText primary={app.name}
                                             secondary={app.description}
                                     />
                                 </ListItem>

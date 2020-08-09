@@ -12,3 +12,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.appStoreIcon {
+    width: 70px;
+    height: 70px;
+}
+
+.appIcon {
+    width: 70px;
+    height: 70px;
+    margin-left:10px;
+}

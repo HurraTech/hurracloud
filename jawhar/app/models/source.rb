@@ -9,22 +9,22 @@ class Source < ApplicationRecord
     end
 
     def mount_path
-        "#{Settings.mounts_path}/#{self.id}"
+        "#{Settings.mounts_path}/#{self.sourcable.normalized_name}"
     end
 
     def host_mount_path
-        "#{Settings.host_mounts_path}/#{self.id}"
+        "#{Settings.host_mounts_path}/#{self.sourcable.normalized_name}"
     end
 
     def browse(requested_path=nil)
         path = "#{self.mount_path}/#{requested_path}"
-        { 
+        {
           contents: Dir.entries(path).map {|i|
             if self.sourcable.respond_to?(:file_to_json)
                 self.sourcable.file_to_json(requested_path, i)
             else
                 self.file_to_json(requested_path, i)
-            end            
+            end
           }.select{ |e| e[:name] != '.' && ( !requested_path.nil? || e[:name] != '..') }
            .sort{ |e1,e2| e1[:type] == "folder" ? -1 : 1 }
       }
@@ -51,6 +51,6 @@ class Source < ApplicationRecord
         self.save()
         Resque.enqueue(Mounter, 'unmount_source', :source_id => self.id)
     end
-    
-    
+
+
 end

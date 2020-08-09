@@ -15,4 +15,12 @@ services:
     environment:
       - NODE_ENV=development
       - REACT_APP_AUID=<%=app_unique_id%>
-    command: sh -c "yarn install_deps && yarn startRunner"    
+      - REACT_APP_PROXY_PORT=<%=proxy_port_number%>
+    command: sh -c "yarn install_deps && yarn startRunner"
+
+  nginx-proxy:
+    image: aimannajjar/hurracloud:nginx-proxy
+    ports:
+      - <%=proxy_port_number%>:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro

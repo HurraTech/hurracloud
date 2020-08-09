@@ -30,6 +30,7 @@ ActiveRecord::Schema.define(version: 20190308203901) do
     t.string "version"
     t.string "description"
     t.integer "deployment_port"
+    t.integer "proxy_port"
     t.integer "status"
     t.text "state"
     t.text "iconSvg"

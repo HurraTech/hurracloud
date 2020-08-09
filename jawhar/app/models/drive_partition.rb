@@ -9,6 +9,15 @@ class DrivePartition < ApplicationRecord
     Resque.enqueue(Mounter, 'mount_partition', :partition_id => self.id)
   end
 
+  def normalized_name()
+    normalized_name = self.name
+    bad_chars = [ '/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', '.', ' ', '#', '@']
+    bad_chars.each do |bad_char|
+      normalized_name.gsub!(bad_char, '_')
+    end
+    "#{self.id}-#{normalized_name}"
+  end
+
   def browse(requestedPath)
     self.source.browse(requestedPath) ## Use the common browse logic
   end
@@ -22,7 +31,7 @@ class DrivePartition < ApplicationRecord
   end
 
   def as_json(options={})
-    super(options.merge!(methods: [:drive_type, :is_mountable]))
+    super(options.merge!(methods: [:drive_type, :is_mountable, :normalized_name]))
   end
 
   def is_mountable

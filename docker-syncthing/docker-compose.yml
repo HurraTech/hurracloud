@@ -1,0 +1,6 @@
+version: '2'
+services:
+  syncthing:
+    build:
+      context: .
+    image: aimannajjar/hurracloud:syncthing

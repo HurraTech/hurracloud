@@ -478,7 +478,7 @@ class App extends React.Component {
                     //   icon_class = "fab fa-hdd"
                     // return source.drive_partitions.filter(p => p.status == "mounted").map(partition => {
                         return <Link
-                        to={`/browse/${source.id}/`}
+                        to={`/browse/${source.sourcable.normalized_name}/`}
                         style={{ textDecoration: 'none', color:'black' }}
                         >
                             <ListItem button className={classes.nested}>

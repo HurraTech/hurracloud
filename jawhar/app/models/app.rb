@@ -3,7 +3,7 @@ require 'yaml'
 class App < ApplicationRecord
     COMPOSE_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'app-runner-compose-template.yml.erb'))
     enum status: [ :installed, :starting, :started, :stopping, :stopped, :installing, :deleting ]
-    serialize :iconSvg, Hash
+    # serialize :iconSvg, Hash
     serialize :state, Hash
     serialize :initCommands, Array
     has_many :app_commands, :dependent => :delete_all
@@ -12,6 +12,7 @@ class App < ApplicationRecord
         FileUtils.mkdir_p self.app_path
 
         self.deployment_port = rand(5001..6000)## TODO: Exclude already used ports
+        self.proxy_port = rand(5001..6000)## TODO: Exclude already used ports
         File.open("#{self.app_path}/docker-compose.runner.yml", "w") do |f|
             f.write(self.compose_file_contents)
         end
@@ -23,7 +24,7 @@ class App < ApplicationRecord
         end
         svg = (IO.read("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}/icon.svg"))
         metadata = YAML.load_file("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}/metadata.yml")
-        self.iconSvg = XmlSimple.xml_in(svg, KeepRoot: false, SuppressEmpty: true, KeyToSymbol: false, ForceArray: true)
+        self.iconSvg = svg.sub("<svg ", "<svg class=\"appIcon\" ");
         self.description = metadata["description"]
         self.name = metadata["name"]
         self.version = metadata["version"]
@@ -81,6 +82,7 @@ class App < ApplicationRecord
 
         app_unique_id = self.app_unique_id
         port_number = self.deployment_port
+        proxy_port_number = self.proxy_port
         host_app_path = self.host_app_path
         ERB.new(compose_tpl).result(binding)
     end

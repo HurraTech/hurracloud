@@ -1,0 +1,22 @@
+#!/usr/bin/with-contenv bash
+
+UMASK_SET=${UMASK_SET:-022}
+
+umask "$UMASK_SET"
+
+echo "Generating default configuration (if not already exists)"
+(! (syncthing -generate /config  | grep -q 'Config exists')) && \
+    sed 's,Default Folder,HurraCloud,g' -i /config/config.xml && \
+    sed 's,\/config\/Sync,\/data,g' -i /config/config.xml && \
+    sed -i "s,$HOSTNAME,HurraCloud,g" /config/config.xml && \
+    rm /config/*.pem && \
+    chown -Rv abc:users /config && \
+    echo "Done generating new config"
+
+s6-setuidgid abc mkdir /data/.stfolder
+
+echo "Starting syncthing service"
+exec \
+	s6-setuidgid abc syncthing \
+	-home=/config -no-browser -no-restart \
+	--gui-address="0.0.0.0:8384"

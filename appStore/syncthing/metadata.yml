@@ -1,0 +1,7 @@
+name: Syncthing
+description: Allows you to sync your computer files, documents and photos with your HurraCloud drive automatically (e.g. for backup and sharing) 
+publisher: HurraNet LLC
+version: 0.1.1
+initCommands: []
+permissions:
+- drives

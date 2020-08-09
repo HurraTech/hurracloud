@@ -145,16 +145,11 @@ class HomePage extends React.Component {
                 <Grid item xs={12}>
                 <Grid container className={classes.demo} justify="left" spacing={24}>
                     {this.state.apps.map(app => {
-                        let icon = Utils.jsonToElement("svg", app.iconSvg)
                         return (<Grid key={app.auid} item>
                             <Card className={classes.card}>
                                     <div className={classes.cardButton}>
                                         <div className={classes.details}>
-                                            <CardMedia>
-                                                <SvgIcon className={classes.appIcon} color="primary" fontSize="large" viewBox={app.iconSvg["viewBox"]}>
-                                                    {icon.props.children}
-                                                </SvgIcon>
-                                            </CardMedia>
+                                            <CardMedia dangerouslySetInnerHTML={{__html: app.iconSvg}} />
                                             <CardContent className={classes.content}>
                                                 <Typography variant="h6" className={classes.title}>{app.name}</Typography>
                                                 <Chip

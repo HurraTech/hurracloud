@@ -120,12 +120,12 @@ class Mounter
             app = App.find(app_id)
 
             Rails.logger.info("Shutting down UI for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml down)"
+            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml down -v --remove-orphans)"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 
             Rails.logger.info("Shutting down services for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml down)"
+            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml down -v --remove-orphans)"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 

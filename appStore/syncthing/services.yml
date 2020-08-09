@@ -1,0 +1,36 @@
+---
+version: '2.3'
+services:
+  syncthing:
+    image: aimannajjar/hurracloud:syncthing
+    container_name: syncthing
+    environment:
+      - PUID=1000
+      - PGID=1000
+      # - TZ=Europe/London
+      # - UMASK_SET=<022>
+      - VIRTUAL_HOST=synchthing.local
+      - VIRTUAL_PORT=8384
+      - HTTPS_METHOD=nohttps
+    volumes:
+      - syncthing-config:/config
+      - type: bind
+        source: ${PWD}/../../mounts
+        target: /data
+        bind:
+          propagation: shared
+    ports:
+      - 8384
+      - 22000
+      - 21027/udp
+    restart: unless-stopped
+    networks:
+      - app_syncthing_default
+
+volumes:
+  syncthing-config:
+    driver: local
+networks:
+  app_syncthing_default:
+    external: true
+

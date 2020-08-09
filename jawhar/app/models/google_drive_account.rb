@@ -2,7 +2,7 @@ require "googleauth"
 require 'google/apis/drive_v3'
 
 class GoogleDriveAccount < ApplicationRecord
-    include ActsAsSourcable  
+    include ActsAsSourcable
     acts_as_sourcable
 
     GDFUSE_STATE_TEMPLATE  = IO.read(File.join(Rails.root, 'app', 'gdfuse_state_template.erb'))
@@ -16,6 +16,15 @@ class GoogleDriveAccount < ApplicationRecord
         self.source.free = self.source.size - self.source.used
     end
 
+    def normalized_name()
+      normalized_email = self.email
+      bad_chars = [ '/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', '.', ' ', '#', '@']
+      bad_chars.each do |bad_char|
+        normalized_email.gsub!(bad_char, '_')
+      end
+      "#{self.id}-google-#{normalized_email}"
+    end
+
     def api_browse(requested_path)
         parent = "root"
         parent = requested_path if !requested_path.nil?
@@ -23,7 +32,7 @@ class GoogleDriveAccount < ApplicationRecord
             client.list_files(fields: 'files(name,size,modifiedTime,mimeType,id,webContentLink)', order_by: 'folder', q: "'#{parent}' in parents").files.map{|file| self.normalize_file_entry(file) }
         }
         response[:contents].unshift({ name: "..", internal_name: "..", type: "folder" }) if !requested_path.nil?
-        response        
+        response
     end
 
     def browse(requestedPath)
@@ -33,11 +42,11 @@ class GoogleDriveAccount < ApplicationRecord
     def file_to_json(requested_path, file)
         path = "#{self.source.mount_path}/#{requested_path}"
         file_path = "#{path}/#{file}"
-        
-        return self.source.file_to_json(requested_path, file) if ! /^.*\.desktop(\s\([^\)]*\))?/.match?(file) || FileTest.directory?(file_path) 
+
+        return self.source.file_to_json(requested_path, file) if ! /^.*\.desktop(\s\([^\)]*\))?/.match?(file) || FileTest.directory?(file_path)
         normalized_name = file.scan(/^(.*)\.desktop(\s\([^\)]*\))?/).last.first
-        
-        # Process .desktop files differently as they are actually links to Google Documents        
+
+        # Process .desktop files differently as they are actually links to Google Documents
         url_line = IO.readlines(file_path)[3]
         url = url_line.split("=")[1]
 
@@ -54,7 +63,7 @@ class GoogleDriveAccount < ApplicationRecord
 
         }
     end
-    
+
 
     def client
         @client ||= Google::Apis::DriveV3::DriveService.new
@@ -65,7 +74,7 @@ class GoogleDriveAccount < ApplicationRecord
     def mount
         self.status = :mounting
         self.save()
-        Resque.enqueue(Mounter, 'mount_gdrive_account', :gdrive_account_id => self.id)    
+        Resque.enqueue(Mounter, 'mount_gdrive_account', :gdrive_account_id => self.id)
     end
 
     def unmount
@@ -136,7 +145,7 @@ class GoogleDriveAccount < ApplicationRecord
         when 'document'
             'gdoc'
         when 'spreadsheets'
-            'gsheet'            
+            'gsheet'
         when 'presentation'
             'gslide'
         when 'site'

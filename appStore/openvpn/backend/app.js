@@ -9,7 +9,7 @@ class HurraApp {
     }
 
     init() {
-        
+
     }
 
     start() {
@@ -31,8 +31,8 @@ class HurraApp {
             HurraServer.exec_sync("pki", "ovpn_listclients").then(async (command) => {
                 var clients = command.output.split("\n")
                 clients.shift() // first element is just header
-                clients.forEach(client => {                                        
-                    var [client_key, created, expires, status] = client.split(",")                    
+                clients.forEach(client => {
+                    var [client_key, created, expires, status] = client.split(",")
                     if (client_key.trim() == "") return
                     if (client_key in state.users) {
                         console.log(`Found ${client_key}`)
@@ -41,7 +41,7 @@ class HurraApp {
                         state.users[client_key]["status"] = status
                     } else {
                         console.log(`Found ${client_key}, but was not found in our state?`)
-                        // WARNING: User seem to be added outside of UI. 
+                        // WARNING: User seem to be added outside of UI.
                         // TODO: security alert or something
                     }
                 });
@@ -63,11 +63,11 @@ class HurraApp {
               })
         });
 
-        this.server.get('/state', async (req, res) => {            
+        this.server.get('/state', async (req, res) => {
             this.sendSafeState(res);
         })
 
-        this.server.get('/refresh', async (req, res) => {            
+        this.server.get('/refresh', async (req, res) => {
             await this.updateClientsList()
             this.sendSafeState(res)
         })
@@ -80,7 +80,7 @@ class HurraApp {
             await HurraServer.patchState({status: `removing_${client_filename}`})
             HurraServer.exec_sync("pki", `revoke_user ${client_filename}`, { "CA_PASS": req.body.password }).then(async (command) => {
                 var result = command.output.trim()
-                console.log(`Result is '${result}'`)                
+                console.log(`Result is '${result}'`)
                 switch (result) {
                     case "ERROR":
                         await HurraServer.patchState({status: "ok"})
@@ -131,7 +131,7 @@ class HurraApp {
                 }
             })
         })
-        
+
         this.server.post('/setup', async (req, res) => {
             await HurraServer.setState({status: "initializing"})
             HurraServer.exec_sync("pki", "setup_vpn_server", {}).then((command) => {
@@ -150,13 +150,12 @@ class HurraApp {
                 })
         })
 
-        this.server.get('/users/:client_key/ovpn', async (req, res) => { 
+        this.server.get('/users/:client_key/ovpn', async (req, res) => {
             HurraServer.exec_sync("pki", `gen_client_ovpn ${req.params.client_key}`, {}).then((command) => {
                 res.set({"Content-Disposition":`attachment; filename=${req.params.client_key}.ovpn`});
                 res.send(command.output)
             })
         })
-
     }
 
     sanitize_client_name(name) {
