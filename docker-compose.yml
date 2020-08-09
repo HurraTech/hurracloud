@@ -35,6 +35,7 @@ services:
     - SKIP_PARTITIONS="" # comma-separated list
     - SAMAA_ROOT_URL=http://localhost:3000
     - HOST_APP_STORE_PATH=${PWD}/appStore
+   # - HOST_UID=1000
     networks:
       - hurracloud
     privileged: true

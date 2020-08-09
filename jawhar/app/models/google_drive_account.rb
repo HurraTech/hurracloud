@@ -25,6 +25,14 @@ class GoogleDriveAccount < ApplicationRecord
       "#{self.source.id}-google-#{normalized_email}"
     end
 
+    def mount_path
+		"#{Settings.mounts_path}/#{self.normalized_name}/Google"
+    end
+
+    def host_mount_path
+        "#{Settings.host_mounts_path}/#{self.normalized_name}/Google"
+    end
+
 	def is_mountable
 		true
 	end

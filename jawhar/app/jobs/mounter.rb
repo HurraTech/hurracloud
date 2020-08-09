@@ -16,7 +16,7 @@ class Mounter
             host_mount_path = partition.source.host_mount_path
             FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
             Rails.logger.info "Mounting (!) #{dev_path} #{host_mount_path}"
-            cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path}) || (mount #{dev_path} #{host_mount_path})"
+            cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path} -o umask=000)"
             result = $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 			Rails.logger.info("HURRAGE AGENT RESP #{result.inspect}")
             `touch /usr/share/hurracloud/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
@@ -35,9 +35,10 @@ class Mounter
             FileUtils.mkdir_p gdrive_account.gdfuse_config_directory
             FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
             # Generate state and config files
+			Rails.logger.info("Creating Google Fuse Config File at #{gdrive_account.gdfuse_config_directory} with contents:\n#{gdrive_account.gdfuse_config}")
             File.write("#{gdrive_account.gdfuse_config_directory}/config", gdrive_account.gdfuse_config)
             File.write("#{gdrive_account.gdfuse_config_directory}/state", gdrive_account.gdfuse_state)
-            $hurraAgent.exec_command(::Proto::Command.new(command: "google-drive-ocamlfuse -label #{gdrive_account.source.id} -config #{gdrive_account.host_gdfuse_config_directory}/config #{host_mount_path}"))
+            $hurraAgent.exec_command(::Proto::Command.new(command: "google-drive-ocamlfuse -label #{gdrive_account.source.id} -o allow_other -config #{gdrive_account.host_gdfuse_config_directory}/config #{host_mount_path}"))
             Resque.enqueue(Mounter, 'update_sources')
         when 'update_sources'
             devices = { }

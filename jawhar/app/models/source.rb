@@ -9,10 +9,16 @@ class Source < ApplicationRecord
     end
 
     def mount_path
-        "#{Settings.mounts_path}/#{self.sourcable.normalized_name}"
+        if self.sourcable.respond_to?(:mount_path)
+           return self.sourcable.mount_path
+        end
+		"#{Settings.mounts_path}/#{self.sourcable.normalized_name}"
     end
 
     def host_mount_path
+        if self.sourcable.respond_to?(:host_mount_path)
+           return self.sourcable.host_mount_path
+        end
         "#{Settings.host_mounts_path}/#{self.sourcable.normalized_name}"
     end
 
@@ -39,7 +45,7 @@ class Source < ApplicationRecord
             name: file,
             internal_name: file,
             type: FileTest.directory?(entry_path) ? "folder": file_extension,
-            path: "#{self.id}/#{requested_path}/#{file}",
+            path: "#{self.sourcable.normalized_name}/#{requested_path}/#{file}",
             last_modified: File.mtime(entry_path),
             filesize: File.size(entry_path)
         }

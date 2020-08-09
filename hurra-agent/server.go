@@ -24,6 +24,7 @@ package main
 
 import (
 	"context"
+    "syscall"
 //	"encoding/json"
 	"flag"
 	"fmt"
@@ -52,6 +53,7 @@ var (
 	keyFile    = flag.String("key_file", "", "The TLS key file")
 	jsonDBFile = flag.String("json_db_file", "", "A json file containing a list of features")
 	port       = flag.Int("port", 10000, "The server port")
+	uid		   = flag.Int("uid", -1, "Run commands using this user ID")
 )
 
 type hurraAgentServer struct {
@@ -60,7 +62,12 @@ type hurraAgentServer struct {
 
 // ExecCommand returns the feature at the given point.
 func (s *hurraAgentServer) ExecCommand(ctx context.Context, command *pb.Command) (*pb.Result, error) {
-	out, err := exec.Command("bash", "-c", command.Command).CombinedOutput()
+	cmd := exec.Command("bash", "-c", command.Command)
+    cmd.SysProcAttr = &syscall.SysProcAttr{}
+	if (*uid != -1) {
+       cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(*uid), Gid: uint32(*uid)}
+    }
+    out, err := cmd.CombinedOutput()
 	exitCode := int32(0)
     if err != nil {
 		out = []byte(err.Error())

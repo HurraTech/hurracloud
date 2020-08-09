@@ -3,7 +3,9 @@ class FilesController < ApplicationController
     after_action :allow_iframe_cors
 
     def proxy
-        file = "#{Settings.mounts_path}/#{params[:path]}"
+        source_id = params[:path].split("-")[0]
+        source = Source.find(source_id) or render json: { error: "not found"}
+        file = "#{source.mount_path}/#{params[:path].sub(source.sourcable.normalized_name, "")}"
 
         disposition = :attachment # file will be downloaded by browser
         if ! ["view", "download", "is_viewable"].include?(params[:file_action])
