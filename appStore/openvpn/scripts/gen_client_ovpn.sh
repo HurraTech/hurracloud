@@ -11,9 +11,11 @@ KEY=${CONF_DIR}/private/$1.key
 CRT=${CONF_DIR}/issued/$1.crt
 TA=${CONF_DIR}/ta.key
 
+EXTERNAL_IP=`wget -qO- https://ifconfig.co`
+
 cat >$CONF <<EOL
 tls-client
-remote hurracloud.duckdns.org
+remote ${EXTERNAL_IP}
 port 1194
 dev tun
 proto udp

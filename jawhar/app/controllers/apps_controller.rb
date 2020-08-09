@@ -1,4 +1,5 @@
 require 'yaml'
+require 'xmlsimple'
 class AppsController < ApiController
     def app_store
       apps = []

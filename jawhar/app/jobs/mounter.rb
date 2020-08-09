@@ -139,19 +139,17 @@ class Mounter
             app = App.find(app_id)
 
             Rails.logger.info("Starting UI for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml up --remove-orphans -d)"
+            cmd = "docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/docker-compose.runner.yml up -d"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 
             Rails.logger.info("Starting services for app ID #{app}")
-            cmd = "(docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml up --remove-orphans -d)"
+            cmd = "docker-compose -p APP_#{app.app_unique_id} -f #{app.host_app_path}/CONTENT/services.yml up -d"
             Rails.logger.info("RUNNIND THIS CMD: #{cmd})")
             $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 
             app.status = :started
             app.save()
-            Rails.logger.info "Ran `#{cmd}`"
-            Rails.logger.info "Result #{result}"
         when 'exec_app'
             # TODO: This whole dangerous approach on how commands are executed in other containers should be completely redone.
             cmd_id = data["cmd_id"]
