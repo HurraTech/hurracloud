@@ -384,7 +384,7 @@ class SettingsPage extends React.Component {
             authCode: this.state.googleAuthCode
         }
         axios
-        .post('${JAWHAR_API}/google_drive_accounts/', data)
+        .post(`${JAWHAR_API}/google_drive_accounts/`, data)
         .then(res => {
             this.setState({
                 addDialogOpen: false,

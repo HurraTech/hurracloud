@@ -15,7 +15,7 @@ class DrivePartition < ApplicationRecord
     bad_chars.each do |bad_char|
       normalized_name.gsub!(bad_char, '_')
     end
-    "#{self.id}-#{normalized_name}"
+    "#{self.source.id}-#{normalized_name}"
   end
 
   def browse(requestedPath)

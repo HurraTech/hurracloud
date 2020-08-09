@@ -22,7 +22,15 @@ class GoogleDriveAccount < ApplicationRecord
       bad_chars.each do |bad_char|
         normalized_email.gsub!(bad_char, '_')
       end
-      "#{self.id}-google-#{normalized_email}"
+      "#{self.source.id}-google-#{normalized_email}"
+    end
+
+	def is_mountable
+		true
+	end
+
+    def as_json(options={})
+      super(options.merge!(methods: [:is_mountable, :normalized_name]))
     end
 
     def api_browse(requested_path)

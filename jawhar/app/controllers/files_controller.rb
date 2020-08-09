@@ -4,7 +4,7 @@ class FilesController < ApplicationController
 
     def proxy
         file = "#{Settings.mounts_path}/#{params[:path]}"
-        
+
         disposition = :attachment # file will be downloaded by browser
         if ! ["view", "download", "is_viewable"].include?(params[:file_action])
             render :json => { :error => "Invalid action #{params[:file_action]}. Valid actions: 'view', 'download'" }, :status => 400
@@ -29,7 +29,9 @@ class FilesController < ApplicationController
     end
 
     def browse
-        source_id = params[:source_id]        
+        Rails.logger.info("Browsing request: #{params.inspect}")
+        source_id = params[:source_id].split("-")[0]
+        Rails.logger.info("Real source id: #{source_id}")
         source = Source.find(source_id) or render json: { error: "not found"}
         render json: source.sourcable.browse(params[:path])
     end
@@ -39,6 +41,6 @@ class FilesController < ApplicationController
         response.headers['Access-Control-Allow-Origin'] = Settings.samaa_root_url
         response.headers['Access-Control-Allow-Methods'] = 'GET'
         response.headers.except! 'X-Frame-Options'
-    end    
+    end
 
 end

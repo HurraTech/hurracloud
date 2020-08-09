@@ -37,7 +37,7 @@ class Mounter
             # Generate state and config files
             File.write("#{gdrive_account.gdfuse_config_directory}/config", gdrive_account.gdfuse_config)
             File.write("#{gdrive_account.gdfuse_config_directory}/state", gdrive_account.gdfuse_state)
-            $hurraAgent.exec_command(::Proto::Command.new(command: "/usr/local/bin/google-drive-ocamlfuse -label #{gdrive_account.source.id} -config #{gdrive_account.host_gdfuse_config_directory}/config #{host_mount_path}'"))
+            $hurraAgent.exec_command(::Proto::Command.new(command: "google-drive-ocamlfuse -label #{gdrive_account.source.id} -config #{gdrive_account.host_gdfuse_config_directory}/config #{host_mount_path}"))
             Resque.enqueue(Mounter, 'update_sources')
         when 'update_sources'
             devices = { }
