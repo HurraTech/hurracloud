@@ -10,6 +10,7 @@ class DrivePartition < ApplicationRecord
   end
 
   def normalized_name()
+    return self.source.unique_id if self.drive_type == "internal"
     normalized_name = self.name
     bad_chars = [ '/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', '.', ' ', '#', '@']
     bad_chars.each do |bad_char|
@@ -35,6 +36,6 @@ class DrivePartition < ApplicationRecord
   end
 
   def is_mountable
-    self.metadata.key?("TYPE") && Settings.supported_fs_types.include?(self.metadata["TYPE"])
+    Settings.supported_fs_types.include?(self.filesystem)
   end
 end

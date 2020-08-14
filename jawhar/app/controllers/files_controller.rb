@@ -4,7 +4,11 @@ class FilesController < ApplicationController
 
     def proxy
         source_id = params[:path].split("-")[0]
-        source = Source.find(source_id) or render json: { error: "not found"}
+        if source_id == "internal" # internal storage has different treatment
+          source =  Source.where(unique_id: params[:path].split("/")[0]).first() or render json: { error: "not found"}
+        else
+          source = Source.find(source_id) or render json: { error: "not found"}
+        end
         file = "#{source.mount_path}/#{params[:path].sub(source.sourcable.normalized_name, "")}"
 
         disposition = :attachment # file will be downloaded by browser
@@ -33,8 +37,12 @@ class FilesController < ApplicationController
     def browse
         Rails.logger.info("Browsing request: #{params.inspect}")
         source_id = params[:source_id].split("-")[0]
+        if source_id == "internal" # internal storage has different treatment
+          source =  Source.where(unique_id: params[:source_id]).first() or render json: { error: "not found"}
+        else
+          source = Source.find(source_id) or render json: { error: "not found"}
+        end
         Rails.logger.info("Real source id: #{source_id}")
-        source = Source.find(source_id) or render json: { error: "not found"}
         render json: source.sourcable.browse(params[:path])
     end
 

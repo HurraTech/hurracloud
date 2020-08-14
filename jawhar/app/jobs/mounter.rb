@@ -90,7 +90,7 @@ class Mounter
                 }
                 Mounter.update_drive(drive, device)
                 drive.save!
-                Rails.logger.info("Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
+                Rails.logger.info("(n) Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
             end
             detached = Drive.where.not(unique_id: attached_devs).update_all(status: :detached)
 
@@ -104,6 +104,24 @@ class Mounter
                 end
                 account.save!
             end
+
+			#### Update Internal Storage ####
+			internal_mounts = Dir.glob("#{Settings.mounts_path}/internal-*").map{ |s| File.basename(s) }
+            Rails.logger.info("Discovered the following internal mounts #{internal_mounts}")
+            drive = Drive.where(unique_id: "internal").first_or_create { |s|
+                s.unique_id = "internal"
+                s.drive_type = :internal
+            }
+            drive.save!
+			internal_mounts.each do |mount_name|
+                i = mount_name.split("-")[1].to_i
+                partition = DrivePartition.create_source(mount_name)
+                partition.drive = drive
+                partition.name = "Internal Storage #{i > 1 ? "- #{i}" : ""}".strip()
+                partition.status = :mounted
+                partition.filesystem = "ext4"
+                partition.save!
+			end
         when 'init_app'
             app_id = data["app_id"]
             app = App.find(app_id)
