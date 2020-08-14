@@ -2,7 +2,7 @@ class Source < ApplicationRecord
     belongs_to :sourcable, :polymorphic => true
     has_one :index
     serialize :metadata, JSON
-    enum status: [ :unmounted, :mounting, :unmounting, :mounted ]
+    enum status: [ :unmounted, :mounting, :unmounting, :mounted, :unavailable ]
 
     def as_json(options={})
         super(options.merge!(methods: [:sourcable, :index]))

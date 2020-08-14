@@ -92,7 +92,12 @@ class Mounter
                 drive.save!
                 Rails.logger.info("(n) Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
             end
-            detached = Drive.where.not(unique_id: attached_devs).update_all(status: :detached)
+            Rails.logger.info("Attached Devs #{attached_devs}")
+            Drive.where.not(unique_id: attached_devs, drive_type: :internal).each do |d|
+              d.drive_partitions.each { |d| d.source.status = :unavailable; d.save! }
+              d.status = :detached
+              d.save!
+            end
 
             ### Update Google Drive Mounts statuses
             GoogleDriveAccount.all().each do |account|
