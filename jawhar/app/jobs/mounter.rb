@@ -16,7 +16,7 @@ class Mounter
             host_mount_path = partition.source.host_mount_path
             FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
             Rails.logger.info "Mounting (!) #{dev_path} #{host_mount_path}"
-            cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path} -o umask=000)"
+            cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path})"
             result = $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 			Rails.logger.info("HURRAGE AGENT RESP #{result.inspect}")
             `touch /usr/share/hurracloud/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
@@ -49,8 +49,12 @@ class Mounter
                                  capacity: (size.to_i) /1024,
                                  path: dev,
                                  partitions: [] }
-                devices[dev][:uuid] = `blkid #{dev} | grep -o 'PTUUID=".[^"]*"' | cut -d '"' -f 2`.chomp()
-                `blkid #{dev}[1-9]*`.split("\n").each_with_index do |line|
+                res = $hurraAgent.exec_command(::Proto::Command.new(command: "blkid #{dev} | grep -o 'PTUUID=\".[^\"]*\"' | cut -d '\"' -f 2"))
+                devices[dev][:uuid] = res.message.chomp()
+                res = $hurraAgent.exec_command(::Proto::Command.new(command: "blkid #{dev}[1-9]*"))
+                output_lines = res.message.split("\n")
+                output_lines.pop() # last line is exit status
+                output_lines.each_with_index do |line|
 					Rails.logger.info("BLKID output is #{line}")
                     (path, attributes) = line.split(": ",2)
                     next if Settings.skip_partitions.include?(path)
