@@ -21,6 +21,8 @@ SRC_URI = "${GLIBC_GIT_URI};branch=${SRCBRANCH};name=glibc \
            git://github.com/kraj/localedef;branch=master;name=localedef;destsuffix=git/localedef \
            file://fix_for_centos_5.8.patch \
 	   file://strcoll-Remove-incorrect-STRDIFF-based-optimization-.patch \
+           file://config.guess \
+           file://config.sub \
            ${EGLIBCPATCHES} \
 "
 EGLIBCPATCHES = "\
@@ -50,6 +52,7 @@ EXTRA_OECONF = "--with-glibc=${S}"
 CFLAGS += "-fgnu89-inline -std=gnu99 -DIS_IN\(x\)='0'"
 
 do_configure () {
+        cp ${WORKDIR}/config.guess ${WORKDIR}/config.sub ${S}/localedef/
 	${S}/localedef/configure ${EXTRA_OECONF}
 }
 
