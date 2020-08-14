@@ -149,7 +149,7 @@ class IndexDialog extends React.Component {
                 <CloseIcon />
               </IconButton>
               <Typography variant="h6" color="inherit" className={classes.flex}>
-                {editIndexId > 0 ? "Edit Index" : `Create New Index for ${partitionObject.metadata.LABEL}`}
+                {editIndexId > 0 ? "Edit Index" : `Create New Index for ${partitionObject.name}`}
               </Typography>
             </Toolbar>
           </AppBar>
