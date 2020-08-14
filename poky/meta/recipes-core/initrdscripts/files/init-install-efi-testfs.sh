@@ -27,7 +27,7 @@ do
                 # Try sleeping here to avoid getting kernel messages
                 # obscuring/confusing user
                 sleep 5
-                echo "Found drive at /dev/${device}. Do you want to install this image there ? [y/n]"
+                echo "Found drive at /dev/${device}. Do you want to install this image there? [y/n]"
                 read answer
                 if [ "$answer" = "y" ] ; then
                     break
@@ -171,19 +171,19 @@ if [ -f /run/media/$1/EFI/BOOT/grub.cfg ]; then
 fi
 
 if [ -d /run/media/$1/loader ]; then
-    GUMMIBOOT_CFGS="/ssd/loader/entries/*.conf"
-    # copy config files for gummiboot
+    SYSTEMDBOOT_CFGS="/ssd/loader/entries/*.conf"
+    # copy config files for systemd-boot
     cp -dr /run/media/$1/loader /ssd
     # delete the install entry
     rm -f /ssd/loader/entries/install.conf
     # delete the initrd lines
-    sed -i "/initrd /d" $GUMMIBOOT_CFGS
+    sed -i "/initrd /d" $SYSTEMDBOOT_CFGS
     # delete any LABEL= strings
-    sed -i "s/ LABEL=[^ ]*/ /" $GUMMIBOOT_CFGS
+    sed -i "s/ LABEL=[^ ]*/ /" $SYSTEMDBOOT_CFGS
     # delete any root= strings
-    sed -i "s/ root=[^ ]*/ /" $GUMMIBOOT_CFGS
+    sed -i "s/ root=[^ ]*/ /" $SYSTEMDBOOT_CFGS
     # add the root= and other standard boot options
-    sed -i "s@options *@options root=$rootfs rw $rootwait quiet @" $GUMMIBOOT_CFGS
+    sed -i "s@options *@options root=$rootfs rw $rootwait quiet @" $SYSTEMDBOOT_CFGS
     # Add the test label
     echo -ne "title test\nlinux /test-kernel\noptions root=$testfs rw $rootwait quiet\n" > /ssd/loader/entries/test.conf
 fi

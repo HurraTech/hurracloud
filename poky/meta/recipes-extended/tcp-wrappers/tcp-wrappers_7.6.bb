@@ -1,12 +1,14 @@
 SUMMARY = "Security tool that is a wrapper for TCP daemons"
+HOMEPAGE = "http://www.softpanorama.org/Net/Network_security/TCP_wrappers/"
 DESCRIPTION = "Tools for monitoring and filtering incoming requests for tcp \
                services."
 SECTION = "console/network"
 
-LICENSE = "BSD"
+LICENSE = "BSD-1-Clause"
 LIC_FILES_CHKSUM = "file://DISCLAIMER;md5=071bd69cb78b18888ea5e3da5c3127fa"
 PR ="r10"
 
+DEPENDS += "libnsl2"
 
 PACKAGES = "${PN}-dbg libwrap libwrap-doc libwrap-dev libwrap-staticdev ${PN} ${PN}-doc"
 FILES_libwrap = "${base_libdir}/lib*${SOLIBS}"
@@ -16,7 +18,7 @@ FILES_libwrap-staticdev = "${libdir}/lib*.a"
 FILES_${PN} = "${sbindir}"
 FILES_${PN}-doc = "${mandir}/man8"
 
-SRC_URI = "ftp://ftp.porcupine.org/pub/security/tcp_wrappers_${PV}.tar.gz \
+SRC_URI = "http://ftp.porcupine.org/pub/security/tcp_wrappers_${PV}.tar.gz \
            file://00_man_quoting.diff \
            file://01_man_portability.patch \
            file://05_wildcard_matching.patch \
@@ -43,6 +45,11 @@ SRC_URI = "ftp://ftp.porcupine.org/pub/security/tcp_wrappers_${PV}.tar.gz \
            file://try-from.8 \
            file://safe_finger.8 \
            file://makefile-fix-parallel.patch \
+           file://musl-decls.patch \
+           file://0001-Fix-build-with-clang.patch \
+           file://fix_warnings.patch \
+           file://fix_warnings2.patch \
+           file://0001-Remove-fgets-extern-declaration.patch \
            "
 
 SRC_URI[md5sum] = "e6fa25f71226d090f34de3f6b122fb5a"
@@ -64,7 +71,6 @@ EXTRA_OEMAKE = "'CC=${CC}' \
                 'KILL_OPT=-DKILL_IP_OPTIONS' \
                 'UMASK=-DDAEMON_UMASK=022' \
                 'NETGROUP=${EXTRA_OEMAKE_NETGROUP}' \
-                'LIBS=-lnsl' \
                 'ARFLAGS=rv' \
                 'AUX_OBJ=weak_symbols.o' \
                 'TLI=' \
@@ -72,7 +78,9 @@ EXTRA_OEMAKE = "'CC=${CC}' \
                 'EXTRA_CFLAGS=${CFLAGS} -DSYS_ERRLIST_DEFINED -DHAVE_STRERROR -DHAVE_WEAKSYMS -D_REENTRANT -DINET6=1 -Dss_family=__ss_family -Dss_len=__ss_len'"
 
 EXTRA_OEMAKE_NETGROUP = "-DNETGROUP -DUSE_GETDOMAIN"
-EXTRA_OEMAKE_NETGROUP_libc-uclibc = "-DUSE_GETDOMAIN"
+EXTRA_OEMAKE_NETGROUP_libc-musl = "-DUSE_GETDOMAIN"
+
+EXTRA_OEMAKE_append_libc-musl = " 'LIBS='"
 
 do_compile () {
 	oe_runmake 'TABLES=-DHOSTS_DENY=\"${sysconfdir}/hosts.deny\" -DHOSTS_ALLOW=\"${sysconfdir}/hosts.allow\"' \

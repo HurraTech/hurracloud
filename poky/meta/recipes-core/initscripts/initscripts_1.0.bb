@@ -1,4 +1,5 @@
 SUMMARY = "SysV init scripts"
+HOMEPAGE = "https://github.com/fedora-sysv/initscripts"
 DESCRIPTION = "Initscripts provide the basic system startup initialization scripts for the system.  These scripts include actions such as filesystem mounting, fsck, RTC manipulation and other actions routinely performed at system startup.  In addition, the scripts are also used during system shutdown to reverse the actions performed at startup."
 SECTION = "base"
 LICENSE = "GPLv2"
@@ -39,22 +40,23 @@ SRC_URI = "file://functions \
 S = "${WORKDIR}"
 
 SRC_URI_append_arm = " file://alignment.sh"
+SRC_URI_append_armeb = " file://alignment.sh"
 
 KERNEL_VERSION = ""
 
-inherit update-alternatives
 DEPENDS_append = " update-rc.d-native"
-DEPENDS_append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
+PACKAGE_WRITE_DEPS_append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
 
-PACKAGES =+ "${PN}-functions"
-RDEPENDS_${PN} = "${PN}-functions \
-                  ${@bb.utils.contains('DISTRO_FEATURES','selinux','bash','',d)} \
+PACKAGES =+ "${PN}-functions ${PN}-sushell"
+RDEPENDS_${PN} = "initd-functions \
+                  ${@bb.utils.contains('DISTRO_FEATURES','selinux','${PN}-sushell','',d)} \
 		 "
+# Recommend pn-functions so that it will be a preferred default provider for initd-functions
+RRECOMMENDS_${PN} = "${PN}-functions"
+RPROVIDES_${PN}-functions = "initd-functions"
+RCONFLICTS_${PN}-functions = "lsbinitscripts"
 FILES_${PN}-functions = "${sysconfdir}/init.d/functions*"
-
-ALTERNATIVE_PRIORITY_${PN}-functions = "90"
-ALTERNATIVE_${PN}-functions = "functions"
-ALTERNATIVE_LINK_NAME[functions] = "${sysconfdir}/init.d/functions"
+FILES_${PN}-sushell = "${base_sbindir}/sushell"
 
 HALTARGS ?= "-d -f"
 
@@ -102,6 +104,9 @@ do_install () {
 	install -m 0755    ${WORKDIR}/read-only-rootfs-hook.sh ${D}${sysconfdir}/init.d
 	install -m 0755    ${WORKDIR}/save-rtc.sh	${D}${sysconfdir}/init.d
 	install -m 0644    ${WORKDIR}/volatiles		${D}${sysconfdir}/default/volatiles/00_core
+	if [ ${@ oe.types.boolean('${VOLATILE_LOG_DIR}') } = True ]; then
+		echo "l root root 0755 /var/log /var/volatile/log" >> ${D}${sysconfdir}/default/volatiles/00_core
+	fi
 	install -m 0755    ${WORKDIR}/dmesg.sh		${D}${sysconfdir}/init.d
 	install -m 0644    ${WORKDIR}/logrotate-dmesg.conf ${D}${sysconfdir}/
 
@@ -123,7 +128,7 @@ do_install () {
 #
 	update-rc.d -r ${D} rmnologin.sh start 99 2 3 4 5 .
 	update-rc.d -r ${D} sendsigs start 20 0 6 .
-	update-rc.d -r ${D} urandom start 30 S 0 6 .
+	update-rc.d -r ${D} urandom start 38 S 0 6 .
 	update-rc.d -r ${D} umountnfs.sh start 31 0 1 6 .
 	update-rc.d -r ${D} umountfs start 40 0 6 .
 	update-rc.d -r ${D} reboot start 90 6 .
@@ -134,11 +139,11 @@ do_install () {
 	update-rc.d -r ${D} mountall.sh start 03 S .
 	update-rc.d -r ${D} hostname.sh start 39 S .
 	update-rc.d -r ${D} mountnfs.sh start 15 2 3 4 5 .
-	update-rc.d -r ${D} bootmisc.sh start 55 S .
+	update-rc.d -r ${D} bootmisc.sh start 36 S .
 	update-rc.d -r ${D} sysfs.sh start 02 S .
 	update-rc.d -r ${D} populate-volatile.sh start 37 S .
 	update-rc.d -r ${D} read-only-rootfs-hook.sh start 29 S .
-	update-rc.d -r ${D} devpts.sh start 38 S .
+	update-rc.d -r ${D} devpts.sh start 06 S .
 	if [ "${TARGET_ARCH}" = "arm" ]; then
 	        update-rc.d -r ${D} alignment.sh start 06 S .
 	fi
@@ -164,7 +169,7 @@ MASKED_SCRIPTS = " \
   urandom"
 
 pkg_postinst_${PN} () {
-	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
+	if type systemctl >/dev/null 2>/dev/null; then
 		if [ -n "$D" ]; then
 			OPTS="--root=$D"
 		fi

@@ -5,7 +5,6 @@
 SUMMARY = "Standard full-featured Linux system"
 DESCRIPTION = "Package group bringing in packages needed for a more traditional full-featured Linux system"
 PR = "r6"
-LICENSE = "MIT"
 
 inherit packagegroup
 
@@ -32,7 +31,7 @@ python __anonymous () {
     namemap["packagegroup-core-full-cmdline-initscripts"] = "packagegroup-core-initscripts"
     namemap["packagegroup-core-full-cmdline-sys-services"] = "packagegroup-core-sys-services"
 
-    packages = d.getVar("PACKAGES", True).split()
+    packages = d.getVar("PACKAGES").split()
     for pkg in packages:
         if pkg.endswith('-dev'):
             mapped = namemap.get(pkg[:-4], None)
@@ -82,24 +81,20 @@ RDEPENDS_packagegroup-core-full-cmdline-utils = "\
     gawk \
     gmp \
     grep \
+    less \
     makedevs \
     mc \
     mc-fish \
     mc-helpers \
     mc-helpers-perl \
-    mc-helpers-python \
-    mktemp \
     ncurses \
     net-tools \
-    pax \
-    popt \
     procps \
     psmisc \
     sed \
     tar \
     time \
     util-linux \
-    zlib \
     "
 
 RDEPENDS_packagegroup-core-full-cmdline-extended = "\
@@ -111,16 +106,12 @@ RDEPENDS_packagegroup-core-full-cmdline-extended = "\
     "
 
 RDEPENDS_packagegroup-core-full-cmdline-dev-utils = "\
-    byacc \
     diffutils \
     m4 \
     make \
     patch \
     "
 
-VIRTUAL-RUNTIME_initscripts ?= "initscripts"
-VIRTUAL-RUNTIME_init_manager ?= "sysvinit"
-VIRTUAL-RUNTIME_login_manager ?= "busybox"
 VIRTUAL-RUNTIME_syslog ?= "sysklogd"
 RDEPENDS_packagegroup-core-full-cmdline-initscripts = "\
     ${VIRTUAL-RUNTIME_initscripts} \
@@ -131,32 +122,16 @@ RDEPENDS_packagegroup-core-full-cmdline-initscripts = "\
     "
 
 RDEPENDS_packagegroup-core-full-cmdline-multiuser = "\
+    bzip2 \
     cracklib \
     gzip \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'pam', 'libuser', '', d)} \
     shadow \
     sudo \
     "
 
 RDEPENDS_packagegroup-core-full-cmdline-sys-services = "\
     at \
-    bzip2 \
     cronie \
-    dbus \
-    dbus-glib \
-    python-dbus \
-    elfutils \
-    gzip \
-    less \
-    libcap \
-    libevent \
     logrotate \
-    nfs-utils \
-    pciutils \
-    libpcre \
-    rpcbind \
-    sysfsutils \
-    tcp-wrappers \
-    tzdata \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'nfs', 'nfs-utils rpcbind', '', d)} \
     "
-

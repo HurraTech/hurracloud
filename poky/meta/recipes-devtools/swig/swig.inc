@@ -1,4 +1,7 @@
-DESCRIPTION = "SWIG - Simplified Wrapper and Interface Generator"
+SUMMARY = "SWIG - Simplified Wrapper and Interface Generator"
+DESCRIPTION = "SWIG is a compiler that makes it easy to integrate C and C++ \
+code with other languages including Perl, Tcl, Ruby, Python, Java, Guile, \
+Mzscheme, Chicken, OCaml, Pike, and C#."
 HOMEPAGE = "http://swig.sourceforge.net/"
 LICENSE = "BSD & GPLv3"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=e7807a6282784a7dde4c846626b08fc6 \
@@ -7,14 +10,14 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=e7807a6282784a7dde4c846626b08fc6 \
 
 SECTION = "devel"
 
-DEPENDS = "libpcre python"
+DEPENDS = "libpcre bison-native"
 
 SRC_URI = "${SOURCEFORGE_MIRROR}/${BPN}/${BPN}-${PV}.tar.gz"
 
-inherit autotools pythonnative
+inherit autotools python3native pkgconfig
 
 EXTRA_OECONF = " \
-    --with-python=${PYTHON} \
+    --with-python3=${PYTHON} \
     --without-allegrocl \
     --without-android \
     --without-boost \
@@ -33,20 +36,19 @@ EXTRA_OECONF = " \
     --without-perl5 \
     --without-pike \
     --without-php \
-    --without-python3 \
     --without-r \
     --without-ruby \
     --without-tcl \
 "
 
+EXTRA_AUTORECONF += "-I Tools/config"
+
 BBCLASSEXTEND = "native nativesdk"
 
-do_configure() {
-    install -m 0755 ${STAGING_DATADIR_NATIVE}/gnu-config/config.guess ${S}/Tools/config
-    install -m 0755 ${STAGING_DATADIR_NATIVE}/gnu-config/config.sub ${S}/Tools/config
-    install -m 0755 ${STAGING_DATADIR_NATIVE}/gnu-config/config.guess ${S}
-    install -m 0755 ${STAGING_DATADIR_NATIVE}/gnu-config/config.sub ${S}
-    oe_runconf
+# necessary together with bison dependency until a new upstream version after
+# 3.0.12 includes 0001-Fix-generated-code-for-constant-expressions-containi.patch
+do_configure_append() {
+    mkdir -p ${B}/Source/CParse
 }
 
 do_install_append_class-nativesdk() {
@@ -55,8 +57,8 @@ do_install_append_class-nativesdk() {
 }
 
 def swiglib_relpath(d):
-    swiglib = d.getVar('datadir', True) + "/" + d.getVar('BPN', True) + "/" + d.getVar('PV', True)
-    return os.path.relpath(swiglib, d.getVar('bindir', True))
+    swiglib = d.getVar('datadir') + "/" + d.getVar('BPN') + "/" + d.getVar('PV')
+    return os.path.relpath(swiglib, d.getVar('bindir'))
 
 do_install_append_class-native() {
     create_wrapper ${D}${bindir}/swig SWIG_LIB='`dirname $''realpath`'/${@swiglib_relpath(d)}

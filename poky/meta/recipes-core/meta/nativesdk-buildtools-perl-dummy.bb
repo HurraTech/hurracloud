@@ -1,26 +1,37 @@
-SUMMARY = "Dummy package which ensures perl is excluded from buildtools"
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+DUMMYARCH = "buildtools-dummy-${SDKPKGSUFFIX}"
 
-inherit allarch
+DUMMYPROVIDES_PACKAGES = "\
+    nativesdk-perl \
+    nativesdk-libxml-parser-perl \
+    nativesdk-perl-module-bytes \
+    nativesdk-perl-module-carp \
+    nativesdk-perl-module-constant \
+    nativesdk-perl-module-data-dumper \
+    nativesdk-perl-module-errno \
+    nativesdk-perl-module-exporter \
+    nativesdk-perl-module-file-basename \
+    nativesdk-perl-module-file-compare \
+    nativesdk-perl-module-file-copy \
+    nativesdk-perl-module-file-find \
+    nativesdk-perl-module-file-glob \
+    nativesdk-perl-module-file-path \
+    nativesdk-perl-module-file-spec \
+    nativesdk-perl-module-file-stat \
+    nativesdk-perl-module-getopt-long \
+    nativesdk-perl-module-io-file \
+    nativesdk-perl-module-overloading \
+    nativesdk-perl-module-posix \
+    nativesdk-perl-module-thread-queue \
+    nativesdk-perl-module-threads \
+    nativesdk-perl-module-warnings \
+"
 
-PR = "r1"
+DUMMYPROVIDES = "\
+    /usr/bin/perl \
+    "
 
-python() {
-    # Put the package somewhere separate to ensure it's never used except
-    # when we want it
-    # (note that we have to do this in anonymous python here to avoid
-    # allarch.bbclass disabling itself)
-    d.setVar('PACKAGE_ARCH', 'buildtools-dummy-${SDKPKGSUFFIX}')
-}
+PR = "r2"
 
-PERLPACKAGES = "nativesdk-perl \
-                nativesdk-perl-module-file-path"
+require dummy-sdk-package.inc
 
-ALLOW_EMPTY_${PN} = "1"
-
-python populate_packages_prepend() {
-    d.appendVar('RPROVIDES_${PN}', '${PERLPACKAGES}')
-    d.appendVar('RCONFLICTS_${PN}', '${PERLPACKAGES}')
-}
-
+inherit nativesdk

@@ -5,6 +5,7 @@
 # Filename: alsa-state.bb
 
 SUMMARY = "Alsa scenario files to enable alsa state restoration"
+HOMEPAGE = "http://www.alsa-project.org/"
 DESCRIPTION = "Alsa Scenario Files - an init script and state files to restore \
 sound state at system boot and save it at system shut down."
 LICENSE = "MIT"
@@ -61,7 +62,7 @@ pkg_postinst_${PN}() {
 	then
 		if test -x ${sbindir}/alsactl
 		then
-			${sbindir}/alsactl -f ${localstatedir}/lib/alsa/asound.state restore
+			${sbindir}/alsactl -g -f ${localstatedir}/lib/alsa/asound.state restore
 		fi
 	fi
 }

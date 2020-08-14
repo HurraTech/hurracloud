@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 """
    class for handling configuration data files
 
@@ -11,18 +8,8 @@
 # Copyright (C) 2003, 2004  Chris Larson
 # Copyright (C) 2003, 2004  Phil Blundell
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import errno
 import re
@@ -32,8 +19,8 @@ from bb.parse import ParseError, resolve_file, ast, logger, handle
 
 __config_regexp__  = re.compile( r"""
     ^
-    (?P<exp>export\s*)?
-    (?P<var>[a-zA-Z0-9\-~_+.${}/]+?)
+    (?P<exp>export\s+)?
+    (?P<var>[a-zA-Z0-9\-_+.${}/~]+?)
     (\[(?P<flag>[a-zA-Z0-9\-_+.]+)\])?
 
     \s* (
@@ -56,7 +43,9 @@ __config_regexp__  = re.compile( r"""
     """, re.X)
 __include_regexp__ = re.compile( r"include\s+(.+)" )
 __require_regexp__ = re.compile( r"require\s+(.+)" )
-__export_regexp__ = re.compile( r"export\s+([a-zA-Z0-9\-_+.${}/]+)$" )
+__export_regexp__ = re.compile( r"export\s+([a-zA-Z0-9\-_+.${}/~]+)$" )
+__unset_regexp__ = re.compile( r"unset\s+([a-zA-Z0-9\-_+.${}/~]+)$" )
+__unset_flag_regexp__ = re.compile( r"unset\s+([a-zA-Z0-9\-_+.${}/~]+)\[([a-zA-Z0-9\-_+.]+)\]$" )
 
 def init(data):
     topdir = data.getVar('TOPDIR', False)
@@ -67,30 +56,38 @@ def init(data):
 def supports(fn, d):
     return fn[-5:] == ".conf"
 
-def include(parentfn, fn, lineno, data, error_out):
+def include(parentfn, fns, lineno, data, error_out):
     """
     error_out: A string indicating the verb (e.g. "include", "inherit") to be
     used in a ParseError that will be raised if the file to be included could
     not be included. Specify False to avoid raising an error in this case.
     """
+    fns = data.expand(fns)
+    parentfn = data.expand(parentfn)
+
+    # "include" or "require" accept zero to n space-separated file names to include.
+    for fn in fns.split():
+        include_single_file(parentfn, fn, lineno, data, error_out)
+
+def include_single_file(parentfn, fn, lineno, data, error_out):
+    """
+    Helper function for include() which does not expand or split its parameters.
+    """
     if parentfn == fn: # prevent infinite recursion
         return None
 
-    fn = data.expand(fn)
-    parentfn = data.expand(parentfn)
-
     if not os.path.isabs(fn):
         dname = os.path.dirname(parentfn)
-        bbpath = "%s:%s" % (dname, data.getVar("BBPATH", True))
+        bbpath = "%s:%s" % (dname, data.getVar("BBPATH"))
         abs_fn, attempts = bb.utils.which(bbpath, fn, history=True)
         if abs_fn and bb.parse.check_dependency(data, abs_fn):
-            logger.warn("Duplicate inclusion for %s in %s" % (abs_fn, data.getVar('FILE', True)))
+            logger.warning("Duplicate inclusion for %s in %s" % (abs_fn, data.getVar('FILE')))
         for af in attempts:
             bb.parse.mark_dependency(data, af)
         if abs_fn:
             fn = abs_fn
     elif bb.parse.check_dependency(data, fn):
-        logger.warn("Duplicate inclusion for %s in %s" % (fn, data.getVar('FILE', True)))
+        logger.warning("Duplicate inclusion for %s in %s" % (fn, data.getVar('FILE')))
 
     try:
         bb.parse.handle(fn, data, True)
@@ -122,33 +119,30 @@ def handle(fn, data, include):
         oldfile = data.getVar('FILE', False)
 
     abs_fn = resolve_file(fn, data)
-    f = open(abs_fn, 'r')
+    with open(abs_fn, 'r') as f:
 
-    if include:
-        bb.parse.mark_dependency(data, abs_fn)
-
-    statements = ast.StatementGroup()
-    lineno = 0
-    while True:
-        lineno = lineno + 1
-        s = f.readline()
-        if not s:
-            break
-        w = s.strip()
-        # skip empty lines
-        if not w:
-            continue
-        s = s.rstrip()
-        while s[-1] == '\\':
-            s2 = f.readline().strip()
+        statements = ast.StatementGroup()
+        lineno = 0
+        while True:
             lineno = lineno + 1
-            if (not s2 or s2 and s2[0] != "#") and s[0] == "#" :
-                bb.fatal("There is a confusing multiline, partially commented expression on line %s of file %s (%s).\nPlease clarify whether this is all a comment or should be parsed." % (lineno, fn, s))
-            s = s[:-1] + s2
-        # skip comments
-        if s[0] == '#':
-            continue
-        feeder(lineno, s, abs_fn, statements)
+            s = f.readline()
+            if not s:
+                break
+            w = s.strip()
+            # skip empty lines
+            if not w:
+                continue
+            s = s.rstrip()
+            while s[-1] == '\\':
+                s2 = f.readline().rstrip()
+                lineno = lineno + 1
+                if (not s2 or s2 and s2[0] != "#") and s[0] == "#" :
+                    bb.fatal("There is a confusing multiline, partially commented expression on line %s of file %s (%s).\nPlease clarify whether this is all a comment or should be parsed." % (lineno, fn, s))
+                s = s[:-1] + s2
+            # skip comments
+            if s[0] == '#':
+                continue
+            feeder(lineno, s, abs_fn, statements)
 
     # DONE WITH PARSING... time to evaluate
     data.setVar('FILE', abs_fn)
@@ -183,6 +177,16 @@ def feeder(lineno, s, fn, statements):
     m = __export_regexp__.match(s)
     if m:
         ast.handleExport(statements, fn, lineno, m)
+        return
+
+    m = __unset_regexp__.match(s)
+    if m:
+        ast.handleUnset(statements, fn, lineno, m)
+        return
+
+    m = __unset_flag_regexp__.match(s)
+    if m:
+        ast.handleUnsetFlag(statements, fn, lineno, m)
         return
 
     raise ParseError("unparsed line: '%s'" % s, fn, lineno);

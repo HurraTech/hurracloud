@@ -1,34 +1,27 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Development tool - utility functions for plugins
 #
 # Copyright (C) 2014 Intel Corporation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Devtool plugins module"""
 
 import os
 import sys
 import subprocess
 import logging
+import re
+import codecs
 
 logger = logging.getLogger('devtool')
 
-
 class DevtoolError(Exception):
     """Exception for handling devtool errors"""
-    pass
+    def __init__(self, message, exitcode=1):
+        super(DevtoolError, self).__init__(message)
+        self.exitcode = exitcode
 
 
 def exec_build_env_command(init_path, builddir, cmd, watch=False, **options):
@@ -58,16 +51,17 @@ def exec_build_env_command(init_path, builddir, cmd, watch=False, **options):
 def exec_watch(cmd, **options):
     """Run program with stdout shown on sys.stdout"""
     import bb
-    if isinstance(cmd, basestring) and not "shell" in options:
+    if isinstance(cmd, str) and not "shell" in options:
         options["shell"] = True
 
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **options
     )
 
+    reader = codecs.getreader('utf-8')(process.stdout)
     buf = ''
     while True:
-        out = process.stdout.read(1)
+        out = reader.read(1, 1)
         if out:
             sys.stdout.write(out)
             sys.stdout.flush()
@@ -83,13 +77,13 @@ def exec_watch(cmd, **options):
 def exec_fakeroot(d, cmd, **kwargs):
     """Run a command under fakeroot (pseudo, in fact) so that it picks up the appropriate file permissions"""
     # Grab the command and check it actually exists
-    fakerootcmd = d.getVar('FAKEROOTCMD', True)
+    fakerootcmd = d.getVar('FAKEROOTCMD')
     if not os.path.exists(fakerootcmd):
         logger.error('pseudo executable %s could not be found - have you run a build yet? pseudo-native should install this and if you have run any build then that should have been built')
         return 2
     # Set up the appropriate environment
     newenv = dict(os.environ)
-    fakerootenv = d.getVar('FAKEROOTENV', True)
+    fakerootenv = d.getVar('FAKEROOTENV')
     for varvalue in fakerootenv.split():
         if '=' in varvalue:
             splitval = varvalue.split('=', 1)
@@ -100,62 +94,80 @@ def setup_tinfoil(config_only=False, basepath=None, tracking=False):
     """Initialize tinfoil api from bitbake"""
     import scriptpath
     orig_cwd = os.path.abspath(os.curdir)
-    if basepath:
-        os.chdir(basepath)
-    bitbakepath = scriptpath.add_bitbake_lib_path()
-    if not bitbakepath:
-        logger.error("Unable to find bitbake by searching parent directory of this script or PATH")
-        sys.exit(1)
+    try:
+        if basepath:
+            os.chdir(basepath)
+        bitbakepath = scriptpath.add_bitbake_lib_path()
+        if not bitbakepath:
+            logger.error("Unable to find bitbake by searching parent directory of this script or PATH")
+            sys.exit(1)
 
-    import bb.tinfoil
-    tinfoil = bb.tinfoil.Tinfoil(tracking=tracking)
-    tinfoil.prepare(config_only)
-    tinfoil.logger.setLevel(logger.getEffectiveLevel())
-    os.chdir(orig_cwd)
+        import bb.tinfoil
+        tinfoil = bb.tinfoil.Tinfoil(tracking=tracking)
+        try:
+            tinfoil.logger.setLevel(logger.getEffectiveLevel())
+            tinfoil.prepare(config_only)
+        except bb.tinfoil.TinfoilUIException:
+            tinfoil.shutdown()
+            raise DevtoolError('Failed to start bitbake environment')
+        except:
+            tinfoil.shutdown()
+            raise
+    finally:
+        os.chdir(orig_cwd)
     return tinfoil
 
-def get_recipe_file(cooker, pn):
-    """Find recipe file corresponding a package name"""
-    import oe.recipeutils
-    recipefile = oe.recipeutils.pn_to_recipe(cooker, pn)
-    if not recipefile:
-        skipreasons = oe.recipeutils.get_unavailable_reasons(cooker, pn)
-        if skipreasons:
-            logger.error('\n'.join(skipreasons))
-        else:
-            logger.error("Unable to find any recipe file matching %s" % pn)
-    return recipefile
-
-def parse_recipe(config, tinfoil, pn, appends):
-    """Parse recipe of a package"""
-    import oe.recipeutils
-    recipefile = get_recipe_file(tinfoil.cooker, pn)
-    if not recipefile:
-        # Error already logged
+def parse_recipe(config, tinfoil, pn, appends, filter_workspace=True):
+    """Parse the specified recipe"""
+    try:
+        recipefile = tinfoil.get_recipe_file(pn)
+    except bb.providers.NoProvider as e:
+        logger.error(str(e))
         return None
     if appends:
-        append_files = tinfoil.cooker.collection.get_file_appends(recipefile)
-        # Filter out appends from the workspace
-        append_files = [path for path in append_files if
-                        not path.startswith(config.workspace_path)]
+        append_files = tinfoil.get_file_appends(recipefile)
+        if filter_workspace:
+            # Filter out appends from the workspace
+            append_files = [path for path in append_files if
+                            not path.startswith(config.workspace_path)]
     else:
         append_files = None
-    return oe.recipeutils.parse_recipe(recipefile, append_files,
-                                       tinfoil.config_data)
+    try:
+        rd = tinfoil.parse_recipe_file(recipefile, appends, append_files)
+    except Exception as e:
+        logger.error(str(e))
+        return None
+    return rd
 
-def check_workspace_recipe(workspace, pn, checksrc=True):
+def check_workspace_recipe(workspace, pn, checksrc=True, bbclassextend=False):
     """
     Check that a recipe is in the workspace and (optionally) that source
     is present.
     """
-    if not pn in workspace:
+
+    workspacepn = pn
+
+    for recipe, value in workspace.items():
+        if recipe == pn:
+            break
+        if bbclassextend:
+            recipefile = value['recipefile']
+            if recipefile:
+                targets = get_bbclassextend_targets(recipefile, recipe)
+                if pn in targets:
+                    workspacepn = recipe
+                    break
+    else:
         raise DevtoolError("No recipe named '%s' in your workspace" % pn)
+
     if checksrc:
-        srctree = workspace[pn]['srctree']
+        srctree = workspace[workspacepn]['srctree']
         if not os.path.exists(srctree):
-            raise DevtoolError("Source tree %s for recipe %s does not exist" % (srctree, pn))
+            raise DevtoolError("Source tree %s for recipe %s does not exist" % (srctree, workspacepn))
         if not os.listdir(srctree):
-            raise DevtoolError("Source tree %s for recipe %s is empty" % (srctree, pn))
+            raise DevtoolError("Source tree %s for recipe %s is empty" % (srctree, workspacepn))
+
+    return workspacepn
 
 def use_external_build(same_dir, no_same_dir, d):
     """
@@ -169,21 +181,25 @@ def use_external_build(same_dir, no_same_dir, d):
         logger.info('Using source tree as build directory since --same-dir specified')
     elif bb.data.inherits_class('autotools-brokensep', d):
         logger.info('Using source tree as build directory since recipe inherits autotools-brokensep')
-    elif d.getVar('B', True) == os.path.abspath(d.getVar('S', True)):
+    elif os.path.abspath(d.getVar('B')) == os.path.abspath(d.getVar('S')):
         logger.info('Using source tree as build directory since that would be the default for this recipe')
     else:
         b_is_s = False
     return b_is_s
 
-def setup_git_repo(repodir, version, devbranch, basetag='devtool-base'):
+def setup_git_repo(repodir, version, devbranch, basetag='devtool-base', d=None):
     """
     Set up the git repository for the source tree
     """
     import bb.process
+    import oe.patch
     if not os.path.exists(os.path.join(repodir, '.git')):
         bb.process.run('git init', cwd=repodir)
+        bb.process.run('git config --local gc.autodetach 0', cwd=repodir)
         bb.process.run('git add .', cwd=repodir)
-        commit_cmd = ['git', 'commit', '-q']
+        commit_cmd = ['git']
+        oe.patch.GitApplyTree.gitCommandUserOptions(commit_cmd, d=d)
+        commit_cmd += ['commit', '-q']
         stdout, _ = bb.process.run('git status --porcelain', cwd=repodir)
         if not stdout:
             commit_cmd.append('--allow-empty')
@@ -195,5 +211,164 @@ def setup_git_repo(repodir, version, devbranch, basetag='devtool-base'):
         commit_cmd += ['-m', commitmsg]
         bb.process.run(commit_cmd, cwd=repodir)
 
+    # Ensure singletask.lock (as used by externalsrc.bbclass) is ignored by git
+    excludes = []
+    excludefile = os.path.join(repodir, '.git', 'info', 'exclude')
+    try:
+        with open(excludefile, 'r') as f:
+            excludes = f.readlines()
+    except FileNotFoundError:
+        pass
+    if 'singletask.lock\n' not in excludes:
+        excludes.append('singletask.lock\n')
+    with open(excludefile, 'w') as f:
+        for line in excludes:
+            f.write(line)
+
     bb.process.run('git checkout -b %s' % devbranch, cwd=repodir)
     bb.process.run('git tag -f %s' % basetag, cwd=repodir)
+
+def recipe_to_append(recipefile, config, wildcard=False):
+    """
+    Convert a recipe file to a bbappend file path within the workspace.
+    NOTE: if the bbappend already exists, you should be using
+    workspace[args.recipename]['bbappend'] instead of calling this
+    function.
+    """
+    appendname = os.path.splitext(os.path.basename(recipefile))[0]
+    if wildcard:
+        appendname = re.sub(r'_.*', '_%', appendname)
+    appendpath = os.path.join(config.workspace_path, 'appends')
+    appendfile = os.path.join(appendpath, appendname + '.bbappend')
+    return appendfile
+
+def get_bbclassextend_targets(recipefile, pn):
+    """
+    Cheap function to get BBCLASSEXTEND and then convert that to the
+    list of targets that would result.
+    """
+    import bb.utils
+
+    values = {}
+    def get_bbclassextend_varfunc(varname, origvalue, op, newlines):
+        values[varname] = origvalue
+        return origvalue, None, 0, True
+    with open(recipefile, 'r') as f:
+        bb.utils.edit_metadata(f, ['BBCLASSEXTEND'], get_bbclassextend_varfunc)
+
+    targets = []
+    bbclassextend = values.get('BBCLASSEXTEND', '').split()
+    if bbclassextend:
+        for variant in bbclassextend:
+            if variant == 'nativesdk':
+                targets.append('%s-%s' % (variant, pn))
+            elif variant in ['native', 'cross', 'crosssdk']:
+                targets.append('%s-%s' % (pn, variant))
+    return targets
+
+def replace_from_file(path, old, new):
+    """Replace strings on a file"""
+
+    def read_file(path):
+        data = None
+        with open(path) as f:
+            data = f.read()
+        return data
+
+    def write_file(path, data):
+        if data is None:
+            return
+        wdata = data.rstrip() + "\n"
+        with open(path, "w") as f:
+            f.write(wdata)
+
+    # In case old is None, return immediately
+    if old is None:
+        return
+    try:
+        rdata = read_file(path)
+    except IOError as e:
+        # if file does not exit, just quit, otherwise raise an exception
+        if e.errno == errno.ENOENT:
+            return
+        else:
+            raise
+
+    old_contents = rdata.splitlines()
+    new_contents = []
+    for old_content in old_contents:
+        try:
+            new_contents.append(old_content.replace(old, new))
+        except ValueError:
+            pass
+    write_file(path, "\n".join(new_contents))
+
+
+def update_unlockedsigs(basepath, workspace, fixed_setup, extra=None):
+    """ This function will make unlocked-sigs.inc match the recipes in the
+    workspace plus any extras we want unlocked. """
+
+    if not fixed_setup:
+        # Only need to write this out within the eSDK
+        return
+
+    if not extra:
+        extra = []
+
+    confdir = os.path.join(basepath, 'conf')
+    unlockedsigs = os.path.join(confdir, 'unlocked-sigs.inc')
+
+    # Get current unlocked list if any
+    values = {}
+    def get_unlockedsigs_varfunc(varname, origvalue, op, newlines):
+        values[varname] = origvalue
+        return origvalue, None, 0, True
+    if os.path.exists(unlockedsigs):
+        with open(unlockedsigs, 'r') as f:
+            bb.utils.edit_metadata(f, ['SIGGEN_UNLOCKED_RECIPES'], get_unlockedsigs_varfunc)
+    unlocked = sorted(values.get('SIGGEN_UNLOCKED_RECIPES', []))
+
+    # If the new list is different to the current list, write it out
+    newunlocked = sorted(list(workspace.keys()) + extra)
+    if unlocked != newunlocked:
+        bb.utils.mkdirhier(confdir)
+        with open(unlockedsigs, 'w') as f:
+            f.write("# DO NOT MODIFY! YOUR CHANGES WILL BE LOST.\n" +
+                    "# This layer was created by the OpenEmbedded devtool" +
+                    " utility in order to\n" +
+                    "# contain recipes that are unlocked.\n")
+
+            f.write('SIGGEN_UNLOCKED_RECIPES += "\\\n')
+            for pn in newunlocked:
+                f.write('    ' + pn)
+            f.write('"')
+
+def check_prerelease_version(ver, operation):
+    if 'pre' in ver or 'rc' in ver:
+        logger.warning('Version "%s" looks like a pre-release version. '
+                       'If that is the case, in order to ensure that the '
+                       'version doesn\'t appear to go backwards when you '
+                       'later upgrade to the final release version, it is '
+                       'recommmended that instead you use '
+                       '<current version>+<pre-release version> e.g. if '
+                       'upgrading from 1.9 to 2.0-rc2 use "1.9+2.0-rc2". '
+                       'If you prefer not to reset and re-try, you can change '
+                       'the version after %s succeeds using "devtool rename" '
+                       'with -V/--version.' % (ver, operation))
+
+def check_git_repo_dirty(repodir):
+    """Check if a git repository is clean or not"""
+    stdout, _ = bb.process.run('git status --porcelain', cwd=repodir)
+    return stdout
+
+def check_git_repo_op(srctree, ignoredirs=None):
+    """Check if a git repository is in the middle of a rebase"""
+    stdout, _ = bb.process.run('git rev-parse --show-toplevel', cwd=srctree)
+    topleveldir = stdout.strip()
+    if ignoredirs and topleveldir in ignoredirs:
+        return
+    gitdir = os.path.join(topleveldir, '.git')
+    if os.path.exists(os.path.join(gitdir, 'rebase-merge')):
+        raise DevtoolError("Source tree %s appears to be in the middle of a rebase - please resolve this first" % srctree)
+    if os.path.exists(os.path.join(gitdir, 'rebase-apply')):
+        raise DevtoolError("Source tree %s appears to be in the middle of 'git am' or 'git apply' - please resolve this first" % srctree)

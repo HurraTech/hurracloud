@@ -1,25 +1,6 @@
-#
-# For now, we will skip building of a gcc package if it is a uclibc one
-# and our build is not a uclibc one, and we skip a glibc one if our build
-# is a uclibc build.
-#
-# See the note in gcc/gcc_3.4.0.oe
-#
-
-python __anonymous () {
-    import bb, re
-    uc_os = (re.match('.*uclibc*', d.getVar('TARGET_OS', True)) != None)
-    if uc_os:
-        raise bb.parse.SkipPackage("incompatible with target %s" %
-                                   d.getVar('TARGET_OS', True))
-}
-
-# Set this to zero if you don't want ldconfig in the output package
-USE_LDCONFIG ?= "1"
-
 INHIBIT_SYSROOT_STRIP = "1"
 
-PACKAGES = "${PN}-dbg catchsegv sln nscd ldd tzcode ${PN}-utils glibc-thread-db ${PN}-pic libcidn libmemusage libsegfault ${PN}-pcprofile libsotruss ${PN} glibc-extra-nss ${PN}-dev ${PN}-staticdev ${PN}-doc"
+PACKAGES = "${PN}-dbg catchsegv sln nscd ldconfig ldd tzcode glibc-thread-db ${PN}-pic libcidn libmemusage libnss-db libsegfault ${PN}-pcprofile libsotruss ${PN} ${PN}-utils glibc-extra-nss ${PN}-dev ${PN}-staticdev ${PN}-doc"
 
 # The ld.so in this glibc supports the GNU_HASH
 RPROVIDES_${PN} = "eglibc rtld(GNU_HASH)"
@@ -33,28 +14,37 @@ RPROVIDES_glibc-extra-nss = "eglibc-extra-nss"
 RPROVIDES_glibc-thread-db = "eglibc-thread-db"
 RPROVIDES_${PN}-pcprofile = "eglibc-pcprofile"
 RPROVIDES_${PN}-dbg = "eglibc-dbg"
-libc_baselibs = "${base_libdir}/libcrypt*.so.* ${base_libdir}/libcrypt-*.so ${base_libdir}/libc.so.* ${base_libdir}/libc-*.so ${base_libdir}/libm*.so.* ${base_libdir}/libm-*.so ${base_libdir}/libmvec-*.so ${base_libdir}/ld*.so.* ${base_libdir}/ld-*.so ${base_libdir}/libpthread*.so.* ${base_libdir}/libpthread-*.so ${base_libdir}/libresolv*.so.* ${base_libdir}/libresolv-*.so ${base_libdir}/librt*.so.* ${base_libdir}/librt-*.so ${base_libdir}/libutil*.so.* ${base_libdir}/libutil-*.so ${base_libdir}/libnsl*.so.* ${base_libdir}/libnsl-*.so ${base_libdir}/libnss_files*.so.* ${base_libdir}/libnss_files-*.so ${base_libdir}/libnss_compat*.so.* ${base_libdir}/libnss_compat-*.so ${base_libdir}/libnss_dns*.so.* ${base_libdir}/libnss_dns-*.so ${base_libdir}/libdl*.so.* ${base_libdir}/libdl-*.so ${base_libdir}/libanl*.so.* ${base_libdir}/libanl-*.so ${base_libdir}/libBrokenLocale*.so.* ${base_libdir}/libBrokenLocale-*.so"
-libc_baselibs_append_aarch64 = " /lib/ld-linux-aarch64*.so.1"
+libc_baselibs = "${base_libdir}/libc.so.* ${base_libdir}/libc-*.so ${base_libdir}/libm*.so.* ${base_libdir}/libm-*.so ${base_libdir}/libmvec-*.so ${base_libdir}/ld*.so.* ${base_libdir}/ld-*.so ${base_libdir}/libpthread*.so.* ${base_libdir}/libpthread-*.so ${base_libdir}/libresolv*.so.* ${base_libdir}/libresolv-*.so ${base_libdir}/librt*.so.* ${base_libdir}/librt-*.so ${base_libdir}/libutil*.so.* ${base_libdir}/libutil-*.so ${base_libdir}/libnsl*.so.* ${base_libdir}/libnsl-*.so ${base_libdir}/libnss_files*.so.* ${base_libdir}/libnss_files-*.so ${base_libdir}/libnss_compat*.so.* ${base_libdir}/libnss_compat-*.so ${base_libdir}/libnss_dns*.so.* ${base_libdir}/libnss_dns-*.so ${base_libdir}/libdl*.so.* ${base_libdir}/libdl-*.so ${base_libdir}/libanl*.so.* ${base_libdir}/libanl-*.so ${base_libdir}/libBrokenLocale*.so.* ${base_libdir}/libBrokenLocale-*.so"
+ARCH_DYNAMIC_LOADER = ""
+# The aarch64 ABI says the dynamic linker -must- be
+# /lib/ld-linux-aarch64{,_be}.so.1. With usrmerge, that may mean that
+# we need to install it in /usr/lib.
+ARCH_DYNAMIC_LOADER_aarch64 = "ld-linux-${TARGET_ARCH}.so.1"
+libc_baselibs_append = " ${@oe.utils.conditional('ARCH_DYNAMIC_LOADER', '', '', '${root_prefix}/lib/${ARCH_DYNAMIC_LOADER}', d)}"
 INSANE_SKIP_${PN}_append_aarch64 = " libdir"
 
-FILES_${PN} = "${libc_baselibs} ${libexecdir}/* ${@base_conditional('USE_LDCONFIG', '1', '${base_sbindir}/ldconfig ${sysconfdir}/ld.so.conf', '', d)}"
+FILES_${PN} = "${libc_baselibs} ${libexecdir}/*"
+RRECOMMENDS_${PN} = "${@bb.utils.filter('DISTRO_FEATURES', 'ldconfig', d)}"
+FILES_ldconfig = "${base_sbindir}/ldconfig ${sysconfdir}/ld.so.conf"
 FILES_ldd = "${bindir}/ldd"
 FILES_libsegfault = "${base_libdir}/libSegFault*"
 FILES_libcidn = "${base_libdir}/libcidn-*.so ${base_libdir}/libcidn.so.*"
 FILES_libmemusage = "${base_libdir}/libmemusage.so"
+FILES_libnss-db = "${base_libdir}/libnss_db.so.* ${base_libdir}/libnss_db-*.so ${localstatedir}/db/Makefile ${localstatedir}/db/makedbs.sh"
+RDEPENDS_libnss-db = "${PN}-utils"
 FILES_glibc-extra-nss = "${base_libdir}/libnss_*-*.so ${base_libdir}/libnss_*.so.*"
 FILES_sln = "${base_sbindir}/sln"
 FILES_${PN}-pic = "${libdir}/*_pic.a ${libdir}/*_pic.map ${libdir}/libc_pic/*.o"
 FILES_libsotruss = "${libdir}/audit/sotruss-lib.so"
 FILES_SOLIBSDEV = "${libdir}/lib*${SOLIBSDEV}"
-FILES_${PN}-dev += "${bindir}/rpcgen ${libdir}/*_nonshared.a ${base_libdir}/*_nonshared.a ${base_libdir}/*.o ${datadir}/aclocal"
+FILES_${PN}-dev += "${libdir}/*_nonshared.a ${base_libdir}/*_nonshared.a ${base_libdir}/*.o ${datadir}/aclocal"
+RDEPENDS_${PN}-dev = "linux-libc-headers-dev"
 FILES_${PN}-staticdev += "${libdir}/*.a ${base_libdir}/*.a"
 FILES_nscd = "${sbindir}/nscd* ${sysconfdir}/init.d/nscd ${systemd_unitdir}/system/nscd* ${sysconfdir}/tmpfiles.d/nscd.conf \
               ${sysconfdir}/nscd.conf ${sysconfdir}/default/volatiles/98_nscd ${localstatedir}/db/nscd"
 FILES_${PN}-mtrace = "${bindir}/mtrace"
 FILES_tzcode = "${bindir}/tzselect ${sbindir}/zic ${sbindir}/zdump"
 FILES_${PN}-utils = "${bindir}/* ${sbindir}/*"
-FILES_${PN}-dbg += "${libexecdir}/*/.debug ${libdir}/audit/.debug"
 FILES_catchsegv = "${bindir}/catchsegv"
 RDEPENDS_catchsegv = "libsegfault"
 FILES_${PN}-pcprofile = "${base_libdir}/libpcprofile.so"
@@ -71,109 +61,141 @@ DESCRIPTION_glibc-extra-nss = "glibc: nis, nisplus and hesiod search services."
 SUMMARY_ldd = "print shared library dependencies"
 DESCRIPTION_ldd = "${bindir}/ldd prints shared library dependencies for each program or shared library specified on the command line."
 SUMMARY_${PN}-utils = "Miscellaneous utilities provided by glibc"
-DESCRIPTION_${PN}-utils = "Miscellaneous utilities including getconf, iconv, locale, gencat, rpcgen, ..."
+DESCRIPTION_${PN}-utils = "Miscellaneous utilities including getconf, iconv, locale, gencat, ..."
 DESCRIPTION_libsotruss = "Library to support sotruss which traces calls through PLTs"
 DESCRIPTION_tzcode = "tzcode, timezone zoneinfo utils -- zic, zdump, tzselect"
 
-inherit libc-common multilib_header
+inherit multilib_header
 
-do_install_append () {
+do_install() {
+	oe_runmake install_root=${D} install
+	install -Dm 0644 ${WORKDIR}/etc/ld.so.conf ${D}/${sysconfdir}/ld.so.conf
+	install -d ${D}${localedir}
+	make -f ${WORKDIR}/generate-supported.mk IN="${S}/localedata/SUPPORTED" OUT="${WORKDIR}/SUPPORTED"
+	# get rid of some broken files...
+	for i in ${GLIBC_BROKEN_LOCALES}; do
+		sed -i "/$i/d" ${WORKDIR}/SUPPORTED
+	done
+	rm -f ${D}${sysconfdir}/rpc
+	rm -rf ${D}${datadir}/zoneinfo
+	rm -rf ${D}${libexecdir}/getconf
+
 	rm -f ${D}${sysconfdir}/localtime
-	rm -rf ${D}${localstatedir}
 
 	# remove empty glibc dir
-	if [ -d ${D}${libdir}/glibc -a ! -e ${D}${libdir}/glibc/pt_chown ]; then
-		rmdir ${D}${libdir}/glibc
+	if [ -d ${D}${libexecdir} ]; then
+		rmdir --ignore-fail-on-non-empty ${D}${libexecdir}
 	fi
-	oe_multilib_header bits/syscall.h
+
+	oe_multilib_header bits/syscall.h bits/long-double.h bits/floatn.h bits/endianness.h bits/struct_rwlock.h
 
 	if [ -f ${D}${bindir}/mtrace ]; then
 		sed -i -e '1s,#!.*perl,#! ${USRBINPATH}/env perl,' -e '2s,exec.*perl,exec ${USRBINPATH}/env perl,' ${D}${bindir}/mtrace
 	fi
-	rm -rf ${D}${includedir}/rpcsvc/rquota*
 	# Info dir listing isn't interesting at this point so remove it if it exists.
 	if [ -e "${D}${infodir}/dir" ]; then
 		rm -f ${D}${infodir}/dir
-	fi
-
-	if [ "${USE_LDCONFIG}" != "1" ]; then
-		# We won't ship these files (see FILES above) so let's not install them
-		rm -f ${D}${sysconfdir}/ld.so.conf
-		rm -f ${D}${base_sbindir}/ldconfig
-		# This directory will be empty now so remove it too.
-		# But check whether it exists first, since it won't for glibc-initial.
-		if [ -d ${D}${sysconfdir} ]; then
-			rmdir ${D}${sysconfdir}
-		fi
-	fi
-
-	if echo ${PN}|grep -q "glibc-initial"; then
-		return
 	fi
 
 	install -d ${D}${sysconfdir}/init.d
 	install -d ${D}${localstatedir}/db/nscd
 	install -m 0755 ${S}/nscd/nscd.init ${D}${sysconfdir}/init.d/nscd
 	install -m 0755 ${S}/nscd/nscd.conf ${D}${sysconfdir}/nscd.conf
+	install -m 0755 ${WORKDIR}/makedbs.sh ${D}${localstatedir}/db
 	sed -i "s%daemon%start-stop-daemon --start --exec%g" ${D}${sysconfdir}/init.d/nscd
+	sed -i "s|\(enable-cache\t\+netgroup\t\+\)yes|\1no|" ${D}${sysconfdir}/nscd.conf
 
 	install -d ${D}${systemd_unitdir}/system
 	install -m 0644 ${S}/nscd/nscd.service ${D}${systemd_unitdir}/system/
 
+	# The dynamic loader will have been installed into
+	# ${base_libdir}. However, if that isn't going to end up being
+	# available in the ABI-mandated location, then a symlink must
+	# be created.
+
+	if [ -n "${ARCH_DYNAMIC_LOADER}" -a ! -e "${D}${root_prefix}/lib/${ARCH_DYNAMIC_LOADER}" ]; then
+		install -d ${D}${root_prefix}/lib
+		ln -s ${@oe.path.relative('${root_prefix}/lib', '${base_libdir}')}/${ARCH_DYNAMIC_LOADER} \
+				${D}${root_prefix}/lib/${ARCH_DYNAMIC_LOADER}
+	fi
+}
+
+def get_libc_fpu_setting(bb, d):
+    if d.getVar('TARGET_FPU') in [ 'soft', 'ppc-efd' ]:
+        return "--without-fp"
+    return ""
+
+do_install_append_class-target() {
 	if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
 		install -d ${D}${sysconfdir}/tmpfiles.d
 		echo "d /run/nscd 755 root root -" \
 			> ${D}${sysconfdir}/tmpfiles.d/nscd.conf
-	else
+	fi
+
+	if ${@bb.utils.contains('DISTRO_FEATURES', 'sysvinit', 'true', 'false', d)}; then
 		install -d ${D}${sysconfdir}/default/volatiles
 		echo "d root root 0755 /var/run/nscd none" \
 			> ${D}${sysconfdir}/default/volatiles/98_nscd
 	fi
-}
 
+}
 do_install_append_aarch64 () {
-	if [ "${base_libdir}" != "/lib" ] ; then
-		# The aarch64 ABI says the dynamic linker -must- be /lib/ld-linux-aarch64[_be].so.1
-		install -d ${D}/lib
-		if [ -e ${D}${base_libdir}/ld-linux-aarch64.so.1 ]; then
-			ln -s ${@base_path_relative('/lib', '${base_libdir}')}/ld-linux-aarch64.so.1 \
-				${D}/lib/ld-linux-aarch64.so.1
-		elif [ -e ${D}${base_libdir}/ld-linux-aarch64_be.so.1 ]; then
-			ln -s ${@base_path_relative('/lib', '${base_libdir}')}/ld-linux-aarch64_be.so.1 \
-				${D}/lib/ld-linux-aarch64_be.so.1
-		fi
-	fi
+	do_install_armmultilib
 }
 
-do_install_locale () {
-	dest=${D}/${includedir}/glibc-locale-internal-${MULTIMACH_TARGET_SYS}
-	install -d ${dest}${base_libdir} ${dest}${bindir} ${dest}${libdir} ${dest}${datadir}
-	if [ "${base_libdir}" != "${libdir}" ]; then
-		cp -fpPR ${D}${base_libdir}/* ${dest}${base_libdir}
-	fi
-	if [ -e ${D}${bindir}/localedef ]; then
-		mv -f ${D}${bindir}/localedef ${dest}${bindir}
-	fi
-	if [ -e ${D}${libdir}/gconv ]; then
-		mv -f ${D}${libdir}/gconv ${dest}${libdir}
-	fi
-	if [ -e ${D}${exec_prefix}/lib ]; then
-		cp -fpPR ${D}${exec_prefix}/lib ${dest}${exec_prefix}
-	fi
-	if [ -e ${D}${datadir}/i18n ]; then
-		mv ${D}${datadir}/i18n ${dest}${datadir}
-	fi
-	cp -fpPR ${D}${datadir}/* ${dest}${datadir}
-	rm -rf ${D}${datadir}/locale/
-	cp -fpPR ${WORKDIR}/SUPPORTED ${dest}
+do_install_append_arm () {
+	do_install_armmultilib
 }
 
-addtask do_install_locale after do_install before do_populate_sysroot do_package
+do_install_append_armeb () {
+	do_install_armmultilib
+}
 
+do_install_armmultilib () {
+	oe_multilib_header bits/endian.h bits/fcntl.h bits/fenv.h bits/fp-fast.h bits/hwcap.h bits/ipc.h bits/link.h bits/wordsize.h
+	oe_multilib_header bits/local_lim.h bits/mman.h bits/msq.h bits/pthreadtypes.h bits/pthreadtypes-arch.h  bits/sem.h  bits/semaphore.h bits/setjmp.h
+	oe_multilib_header bits/shm.h bits/sigstack.h bits/stat.h bits/statfs.h bits/typesizes.h
+	oe_multilib_header bits/procfs-id.h bits/procfs.h bits/shmlba.h
+
+	oe_multilib_header fpu_control.h gnu/lib-names.h gnu/stubs.h ieee754.h
+
+	oe_multilib_header sys/elf.h sys/procfs.h sys/ptrace.h sys/ucontext.h sys/user.h
+}
+
+
+LOCALESTASH = "${WORKDIR}/stashed-locale"
 bashscripts = "mtrace sotruss xtrace"
 
-do_evacuate_scripts () {
-	target=${D}${includedir}/glibc-scripts-internal-${MULTIMACH_TARGET_SYS}
+do_stash_locale () {
+	dest=${LOCALESTASH}
+	install -d $dest${base_libdir} $dest${bindir} $dest${libdir} $dest${datadir}
+	# Hide away the locale data from the deployment
+	if [ -e ${D}${bindir}/localedef ]; then
+		cp -a ${D}${bindir}/localedef $dest${bindir}
+	fi
+	if [ -e ${D}${libdir}/gconv ]; then
+		cp -a ${D}${libdir}/gconv $dest${libdir}
+	fi
+	if [ -e ${D}${datadir}/i18n ]; then
+		cp -a  ${D}${datadir}/i18n $dest${datadir}
+	fi
+
+	# Make a copy of all the libraries into the locale stash
+	cp -fpPR ${D}${libdir}/* $dest${libdir}
+	if [ "${base_libdir}" != "${libdir}" ]; then
+		cp -fpPR ${D}${base_libdir}/* $dest${base_libdir}
+	fi
+	if [ -e ${D}${exec_prefix}/lib ]; then
+		if [ ${exec_prefix}/lib != ${base_libdir} ] && [ ${exec_prefix}/lib != ${libdir} ]; then
+			cp -fpPR ${D}${exec_prefix}/lib $dest${exec_prefix}
+		fi
+	fi
+
+	cp -fpPR ${D}${datadir}/* $dest${datadir}
+	rm -rf ${D}${datadir}/locale/
+	cp -fpPR ${WORKDIR}/SUPPORTED $dest
+
+	target=$dest/scripts
 	mkdir -p $target
 	for i in ${bashscripts}; do
 		if [ -f ${D}${bindir}/$i ]; then
@@ -182,21 +204,71 @@ do_evacuate_scripts () {
 	done
 }
 
-addtask evacuate_scripts after do_install before do_populate_sysroot do_package
+addtask do_stash_locale after do_install before do_populate_sysroot do_package
+do_stash_locale[dirs] = "${B}"
+do_stash_locale[cleandirs] = "${LOCALESTASH}"
+SSTATETASKS += "do_stash_locale"
+do_stash_locale[sstate-inputdirs] = "${LOCALESTASH}"
+do_stash_locale[sstate-outputdirs] = "${COMPONENTS_DIR}/${PACKAGE_ARCH}/glibc-stash-locale"
+do_stash_locale[sstate-fixmedir] = "${COMPONENTS_DIR}/${PACKAGE_ARCH}/glibc-stash-locale"
 
-PACKAGE_PREPROCESS_FUNCS += "glibc_package_preprocess"
+python do_stash_locale_setscene () {
+    sstate_setscene(d)
+}
+addtask do_stash_locale_setscene
 
-glibc_package_preprocess () {
-	rm -rf ${PKGD}/${includedir}/glibc-locale-internal-${MULTIMACH_TARGET_SYS}
-	rm -rf ${PKGD}/${includedir}/glibc-scripts-internal-${MULTIMACH_TARGET_SYS}
+PACKAGE_PREPROCESS_FUNCS += "stash_locale_package_cleanup"
+SYSROOT_PREPROCESS_FUNCS += "stash_locale_sysroot_cleanup"
+stash_locale_cleanup () {
+	cleanupdir=$1
+	# Remove all files which do_stash_locale() copies
 	for i in ${bashscripts}; do
-	    rm -f ${PKGD}${bindir}/$i
+		rm -f $cleanupdir${bindir}/$i
 	done
-	rm -rf ${PKGD}/${localedir}
-	if [ "${libdir}" != "${exec_prefix}/lib" ]; then
-		# This dir only exists to hold locales
-		rm -rf ${PKGD}${exec_prefix}/lib
+	rm -f $cleanupdir${bindir}/localedef
+	rm -rf $cleanupdir${datadir}/i18n
+	rm -rf $cleanupdir${libdir}/gconv
+	rm -rf $cleanupdir${localedir}
+	rm -rf $cleanupdir${datadir}/locale
+	rmdir --ignore-fail-on-non-empty $cleanupdir${datadir}
+
+	if [ "${libdir}" != "${exec_prefix}/lib" ] && [ "${root_prefix}/lib" != "${exec_prefix}/lib" ]; then
+		if [ -d "$cleanupdir${exec_prefix}/lib" ]; then
+			if [ -z "${ARCH_DYNAMIC_LOADER}" -o \
+			     ! -e "$cleanupdir${exec_prefix}/lib/${ARCH_DYNAMIC_LOADER}" ]; then
+				# error out if directory isn't empty
+				# this dir should only contain locale dir
+				# which has been deleted in the previous step
+				rmdir $cleanupdir${exec_prefix}/lib
+			fi
+		fi
 	fi
+}
+
+stash_locale_sysroot_cleanup() {
+	stash_locale_cleanup ${SYSROOT_DESTDIR}
+}
+stash_locale_package_cleanup() {
+	stash_locale_cleanup ${PKGD}
+}
+
+python populate_packages_prepend () {
+    if d.getVar('DEBIAN_NAMES'):
+        pkgs = d.getVar('PACKAGES').split()
+        bpn = d.getVar('BPN')
+        prefix = d.getVar('MLPREFIX') or ""
+        # Set the base package...
+        d.setVar('PKG_' + prefix + bpn, prefix + 'libc6')
+        libcprefix = prefix + bpn + '-'
+        for p in pkgs:
+            # And all the subpackages.
+            if p.startswith(libcprefix):
+                renamed = p.replace(bpn, 'libc6', 1)
+                d.setVar('PKG_' + p, renamed)
+        # For backward compatibility with old -dbg package
+        d.appendVar('RPROVIDES_' + libcprefix + 'dbg', ' ' + prefix + 'libc-dbg')
+        d.appendVar('RCONFLICTS_' + libcprefix + 'dbg', ' ' + prefix + 'libc-dbg')
+        d.appendVar('RREPLACES_' + libcprefix + 'dbg', ' ' + prefix + 'libc-dbg')
 }
 
 pkg_postinst_nscd () {

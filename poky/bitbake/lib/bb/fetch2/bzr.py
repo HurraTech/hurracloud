@@ -10,24 +10,11 @@ BitBake 'Fetch' implementation for bzr.
 #   BitBake build tools.
 #   Copyright (C) 2003, 2004  Chris Larson
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-import sys
-import logging
 import bb
-from bb import data
 from bb.fetch2 import FetchMethod
 from bb.fetch2 import FetchError
 from bb.fetch2 import runfetchcmd
@@ -42,15 +29,16 @@ class Bzr(FetchMethod):
         init bzr specific variable within url data
         """
         # Create paths to bzr checkouts
+        bzrdir = d.getVar("BZRDIR") or (d.getVar("DL_DIR") + "/bzr")
         relpath = self._strip_leading_slashes(ud.path)
-        ud.pkgdir = os.path.join(data.expand('${BZRDIR}', d), ud.host, relpath)
+        ud.pkgdir = os.path.join(bzrdir, ud.host, relpath)
 
-        ud.setup_revisons(d)
+        ud.setup_revisions(d)
 
         if not ud.revision:
             ud.revision = self.latest_revision(ud, d)
 
-        ud.localfile = data.expand('bzr_%s_%s_%s.tar.gz' % (ud.host, ud.path.replace('/', '.'), ud.revision), d)
+        ud.localfile = d.expand('bzr_%s_%s_%s.tar.gz' % (ud.host, ud.path.replace('/', '.'), ud.revision))
 
     def _buildbzrcommand(self, ud, d, command):
         """
@@ -58,7 +46,7 @@ class Bzr(FetchMethod):
         command is "fetch", "update", "revno"
         """
 
-        basecmd = data.expand('${FETCHCMD_bzr}', d)
+        basecmd = d.getVar("FETCHCMD_bzr") or "/usr/bin/env bzr"
 
         proto =  ud.parm.get('protocol', 'http')
 
@@ -88,28 +76,25 @@ class Bzr(FetchMethod):
             bzrcmd = self._buildbzrcommand(ud, d, "update")
             logger.debug(1, "BZR Update %s", ud.url)
             bb.fetch2.check_network_access(d, bzrcmd, ud.url)
-            os.chdir(os.path.join (ud.pkgdir, os.path.basename(ud.path)))
-            runfetchcmd(bzrcmd, d)
+            runfetchcmd(bzrcmd, d, workdir=os.path.join(ud.pkgdir, os.path.basename(ud.path)))
         else:
             bb.utils.remove(os.path.join(ud.pkgdir, os.path.basename(ud.pkgdir)), True)
             bzrcmd = self._buildbzrcommand(ud, d, "fetch")
             bb.fetch2.check_network_access(d, bzrcmd, ud.url)
             logger.debug(1, "BZR Checkout %s", ud.url)
             bb.utils.mkdirhier(ud.pkgdir)
-            os.chdir(ud.pkgdir)
             logger.debug(1, "Running %s", bzrcmd)
-            runfetchcmd(bzrcmd, d)
-
-        os.chdir(ud.pkgdir)
+            runfetchcmd(bzrcmd, d, workdir=ud.pkgdir)
 
         scmdata = ud.parm.get("scmdata", "")
         if scmdata == "keep":
             tar_flags = ""
         else:
-            tar_flags = "--exclude '.bzr' --exclude '.bzrtags'"
+            tar_flags = "--exclude='.bzr' --exclude='.bzrtags'"
 
         # tar them up to a defined filename
-        runfetchcmd("tar %s -czf %s %s" % (tar_flags, ud.localpath, os.path.basename(ud.pkgdir)), d, cleanup = [ud.localpath])
+        runfetchcmd("tar %s -czf %s %s" % (tar_flags, ud.localpath, os.path.basename(ud.pkgdir)),
+                    d, cleanup=[ud.localpath], workdir=ud.pkgdir)
 
     def supports_srcrev(self):
         return True

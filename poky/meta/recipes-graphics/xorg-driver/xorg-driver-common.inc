@@ -7,14 +7,15 @@ LICENSE = "MIT-X"
 PE = "2"
 INC_PR = "r21"
 
-DEPENDS = "virtual/xserver xproto randrproto util-macros"
+DEPENDS = "virtual/xserver xorgproto util-macros"
 
 SRC_URI = "${XORG_MIRROR}/individual/driver/${BPN}-${PV}.tar.bz2"
 
 FILES_${PN} += " ${libdir}/xorg/modules/drivers/*.so"
-FILES_${PN}-dbg += " ${libdir}/xorg/modules/drivers/.debug"
 
-inherit autotools pkgconfig distro_features_check
+XORGBUILDCLASS ??= "autotools"
+inherit ${XORGBUILDCLASS} pkgconfig features_check
+
 # depends on virtual/xserver
 REQUIRED_DISTRO_FEATURES = "x11"
 
@@ -34,8 +35,10 @@ def _add_xorg_abi_depends(d, name):
     }
 
     output = os.popen("pkg-config xorg-server --variable=%s" % abis[name]).read()
-    mlprefix = d.getVar('MLPREFIX', True) or ''
+    mlprefix = d.getVar('MLPREFIX') or ''
     abi = "%sxorg-abi-%s-%s" % (mlprefix, name, output.split(".")[0])
 
-    pn = d.getVar("PN", True)
+    pn = d.getVar("PN")
     d.appendVar('RDEPENDS_' + pn, ' ' + abi)
+
+SECURITY_LDFLAGS = "${SECURITY_X_LDFLAGS}"

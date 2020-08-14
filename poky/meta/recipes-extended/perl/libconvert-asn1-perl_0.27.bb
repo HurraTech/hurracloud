@@ -10,8 +10,11 @@ SRC_URI[sha256sum] = "74a4a78ae0c5e973100ac0a8f203a110f76fb047b79dae4fc1fd7d6814
 
 S = "${WORKDIR}/Convert-ASN1-${PV}"
 
-inherit cpan
+inherit cpan ptest-perl
 
 EXTRA_PERLFLAGS = "-I ${PERLHOSTLIB}"
+
+RDEPENDS_${PN} += "perl-module-exporter perl-module-constant perl-module-encode perl-module-encode-encoding perl-module-utf8 perl-module-socket perl-module-time-local perl-module-posix"
+RDEPENDS_${PN}-ptest += "perl-module-math-bigint perl-module-io-socket perl-module-data-dumper perl-module-math-bigint-calc"
 
 BBCLASSEXTEND = "native"

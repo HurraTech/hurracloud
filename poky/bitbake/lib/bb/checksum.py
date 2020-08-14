@@ -2,19 +2,11 @@
 #
 # Copyright (C) 2012 Intel Corporation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import glob
+import operator
 import os
 import stat
 import bb.utils
@@ -22,14 +14,6 @@ import logging
 from bb.cache import MultiProcessCache
 
 logger = logging.getLogger("BitBake.Cache")
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-    logger.info("Importing cPickle failed. "
-                "Falling back to a very slow implementation.")
-
 
 # mtime cache (non-persistent)
 # based upon the assumption that files do not change during bitbake run
@@ -88,3 +72,55 @@ class FileChecksumCache(MultiProcessCache):
                     dest[0][h] = source[0][h]
             else:
                 dest[0][h] = source[0][h]
+
+    def get_checksums(self, filelist, pn, localdirsexclude):
+        """Get checksums for a list of files"""
+
+        def checksum_file(f):
+            try:
+                checksum = self.get_checksum(f)
+            except OSError as e:
+                bb.warn("Unable to get checksum for %s SRC_URI entry %s: %s" % (pn, os.path.basename(f), e))
+                return None
+            return checksum
+
+        def checksum_dir(pth):
+            # Handle directories recursively
+            if pth == "/":
+                bb.fatal("Refusing to checksum /")
+            dirchecksums = []
+            for root, dirs, files in os.walk(pth, topdown=True):
+                [dirs.remove(d) for d in list(dirs) if d in localdirsexclude]
+                for name in files:
+                    fullpth = os.path.join(root, name)
+                    checksum = checksum_file(fullpth)
+                    if checksum:
+                        dirchecksums.append((fullpth, checksum))
+            return dirchecksums
+
+        checksums = []
+        for pth in filelist.split():
+            exist = pth.split(":")[1]
+            if exist == "False":
+                continue
+            pth = pth.split(":")[0]
+            if '*' in pth:
+                # Handle globs
+                for f in glob.glob(pth):
+                    if os.path.isdir(f):
+                        if not os.path.islink(f):
+                            checksums.extend(checksum_dir(f))
+                    else:
+                        checksum = checksum_file(f)
+                        if checksum:
+                            checksums.append((f, checksum))
+            elif os.path.isdir(pth):
+                if not os.path.islink(pth):
+                    checksums.extend(checksum_dir(pth))
+            else:
+                checksum = checksum_file(pth)
+                if checksum:
+                    checksums.append((pth, checksum))
+
+        checksums.sort(key=operator.itemgetter(1))
+        return checksums

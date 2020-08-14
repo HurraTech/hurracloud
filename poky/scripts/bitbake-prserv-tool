@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
 
 help ()
 {
@@ -85,6 +88,15 @@ do_migrate_localcount ()
 }
 
 [ $# -eq 0 ] && help  && exit 1
+
+case $2 in
+*.conf|*.inc)
+    ;;
+*)
+    echo ERROR: $2 must end with .conf or .inc!
+    exit 1
+    ;;
+esac
 
 case $1 in
 export)

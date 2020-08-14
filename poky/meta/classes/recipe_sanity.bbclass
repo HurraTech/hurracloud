@@ -1,5 +1,5 @@
 def __note(msg, d):
-    bb.note("%s: recipe_sanity: %s" % (d.getVar("P", True), msg))
+    bb.note("%s: recipe_sanity: %s" % (d.getVar("P"), msg))
 
 __recipe_sanity_badruntimevars = "RDEPENDS RPROVIDES RRECOMMENDS RCONFLICTS"
 def bad_runtime_vars(cfgdata, d):
@@ -7,20 +7,20 @@ def bad_runtime_vars(cfgdata, d):
             bb.data.inherits_class("cross", d):
         return
 
-    for var in d.getVar("__recipe_sanity_badruntimevars", True).split():
-        val = d.getVar(var, 0)
+    for var in d.getVar("__recipe_sanity_badruntimevars").split():
+        val = d.getVar(var, False)
         if val and val != cfgdata.get(var):
             __note("%s should be %s_${PN}" % (var, var), d)
 
 __recipe_sanity_reqvars = "DESCRIPTION"
 __recipe_sanity_reqdiffvars = ""
 def req_vars(cfgdata, d):
-    for var in d.getVar("__recipe_sanity_reqvars", True).split():
-        if not d.getVar(var, 0):
+    for var in d.getVar("__recipe_sanity_reqvars").split():
+        if not d.getVar(var, False):
             __note("%s should be set" % var, d)
 
-    for var in d.getVar("__recipe_sanity_reqdiffvars", True).split():
-        val = d.getVar(var, 0)
+    for var in d.getVar("__recipe_sanity_reqdiffvars").split():
+        val = d.getVar(var, False)
         cfgval = cfgdata.get(var)
 
         if not val:
@@ -29,7 +29,7 @@ def req_vars(cfgdata, d):
             __note("%s should be defined to something other than default (%s)" % (var, cfgval), d)
 
 def var_renames_overwrite(cfgdata, d):
-    renames = d.getVar("__recipe_sanity_renames", 0)
+    renames = d.getVar("__recipe_sanity_renames", False)
     if renames:
         for (key, newkey, oldvalue, newvalue) in renames:
             if oldvalue != newvalue and oldvalue != cfgdata.get(newkey):
@@ -38,11 +38,11 @@ def var_renames_overwrite(cfgdata, d):
 def incorrect_nonempty_PACKAGES(cfgdata, d):
     if bb.data.inherits_class("native", d) or \
             bb.data.inherits_class("cross", d):
-        if d.getVar("PACKAGES", True):
+        if d.getVar("PACKAGES"):
             return True
 
 def can_use_autotools_base(cfgdata, d):
-    cfg = d.getVar("do_configure", True)
+    cfg = d.getVar("do_configure")
     if not bb.data.inherits_class("autotools", d):
         return False
 
@@ -50,7 +50,7 @@ def can_use_autotools_base(cfgdata, d):
         if cfg.find(i) != -1:
             return False
 
-    for clsfile in d.getVar("__inherit_cache", 0):
+    for clsfile in d.getVar("__inherit_cache", False):
         (base, _) = os.path.splitext(os.path.basename(clsfile))
         if cfg.find("%s_do_configure" % base) != -1:
             __note("autotools_base usage needs verification, spotted %s_do_configure" % base, d)
@@ -60,8 +60,8 @@ def can_use_autotools_base(cfgdata, d):
 def can_delete_FILESPATH(cfgdata, d):
     expected = cfgdata.get("FILESPATH")
     expectedpaths = d.expand(expected)
-    unexpanded = d.getVar("FILESPATH", 0)
-    filespath = d.getVar("FILESPATH", True).split(":")
+    unexpanded = d.getVar("FILESPATH", False)
+    filespath = d.getVar("FILESPATH").split(":")
     filespath = [os.path.normpath(f) for f in filespath if os.path.exists(f)]
     for fp in filespath:
         if not fp in expectedpaths:
@@ -70,33 +70,17 @@ def can_delete_FILESPATH(cfgdata, d):
             return False
     return expected != unexpanded
 
-def can_delete_FILESDIR(cfgdata, d):
-    expected = cfgdata.get("FILESDIR")
-    #expected = "${@bb.utils.which(d.getVar('FILESPATH', True), '.')}"
-    unexpanded = d.getVar("FILESDIR", 0)
-    if unexpanded is None:
-        return False
-
-    expanded = os.path.normpath(d.getVar("FILESDIR", True))
-    filespath = d.getVar("FILESPATH", True).split(":")
-    filespath = [os.path.normpath(f) for f in filespath if os.path.exists(f)]
-
-    return unexpanded != expected and \
-           os.path.exists(expanded) and \
-           (expanded in filespath or
-            expanded == d.expand(expected))
-
 def can_delete_others(p, cfgdata, d):
     for k in ["S", "PV", "PN", "DESCRIPTION", "DEPENDS",
               "SECTION", "PACKAGES", "EXTRA_OECONF", "EXTRA_OEMAKE"]:
     #for k in cfgdata:
-        unexpanded = d.getVar(k, 0)
+        unexpanded = d.getVar(k, False)
         cfgunexpanded = cfgdata.get(k)
         if not cfgunexpanded:
             continue
 
         try:
-            expanded = d.getVar(k, True)
+            expanded = d.getVar(k)
             cfgexpanded = d.expand(cfgunexpanded)
         except bb.fetch.ParameterError:
             continue
@@ -108,16 +92,15 @@ def can_delete_others(p, cfgdata, d):
                        (p, cfgunexpanded, unexpanded, expanded))
 
 python do_recipe_sanity () {
-    p = d.getVar("P", True)
-    p = "%s %s %s" % (d.getVar("PN", True), d.getVar("PV", True), d.getVar("PR", True))
+    p = d.getVar("P")
+    p = "%s %s %s" % (d.getVar("PN"), d.getVar("PV"), d.getVar("PR"))
 
     sanitychecks = [
-        (can_delete_FILESDIR, "candidate for removal of FILESDIR"),
         (can_delete_FILESPATH, "candidate for removal of FILESPATH"),
         #(can_use_autotools_base, "candidate for use of autotools_base"),
         (incorrect_nonempty_PACKAGES, "native or cross recipe with non-empty PACKAGES"),
     ]
-    cfgdata = d.getVar("__recipe_sanity_cfgdata", 0)
+    cfgdata = d.getVar("__recipe_sanity_cfgdata", False)
 
     for (func, msg) in sanitychecks:
         if func(cfgdata, d):
@@ -143,9 +126,8 @@ python recipe_sanity_eh () {
 
     cfgdata = {}
     for k in d.keys():
-    #for k in ["S", "PR", "PV", "PN", "DESCRIPTION", "LICENSE", "DEPENDS",
-    #          "SECTION"]:
-        cfgdata[k] = d.getVar(k, 0)
+        if not isinstance(d.getVar(k, False), bb.data_smart.DataSmart):
+            cfgdata[k] = d.getVar(k, False)
 
     d.setVar("__recipe_sanity_cfgdata", cfgdata)
     #d.setVar("__recipe_sanity_cfgdata", d)

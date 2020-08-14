@@ -1,4 +1,9 @@
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
 import codecs
+import os
 
 def packaged(pkg, d):
     return os.access(get_subpkgedata_fn(pkg, d) + '.packaged', os.R_OK)
@@ -7,14 +12,13 @@ def read_pkgdatafile(fn):
     pkgdata = {}
 
     def decode(str):
-        c = codecs.getdecoder("string_escape")
+        c = codecs.getdecoder("unicode_escape")
         return c(str)[0]
 
     if os.access(fn, os.R_OK):
         import re
-        f = open(fn, 'r')
-        lines = f.readlines()
-        f.close()
+        with open(fn, 'r') as f:
+            lines = f.readlines()
         r = re.compile("([^:]+):\s*(.*)")
         for l in lines:
             m = r.match(l)
@@ -56,7 +60,7 @@ def read_subpkgdata_dict(pkg, d):
 def _pkgmap(d):
     """Return a dictionary mapping package to recipe name."""
 
-    pkgdatadir = d.getVar("PKGDATA_DIR", True)
+    pkgdatadir = d.getVar("PKGDATA_DIR")
 
     pkgmap = {}
     try:
@@ -65,7 +69,7 @@ def _pkgmap(d):
         bb.warn("No files in %s?" % pkgdatadir)
         files = []
 
-    for pn in filter(lambda f: not os.path.isdir(os.path.join(pkgdatadir, f)), files):
+    for pn in [f for f in files if not os.path.isdir(os.path.join(pkgdatadir, f))]:
         try:
             pkgdata = read_pkgdatafile(os.path.join(pkgdatadir, pn))
         except OSError:

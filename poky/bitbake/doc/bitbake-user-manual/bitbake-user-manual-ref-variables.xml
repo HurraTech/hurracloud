@@ -3,7 +3,7 @@
 [<!ENTITY % poky SYSTEM "../poky.ent"> %poky; ] >
 
 <!-- Dummy chapter -->
-<chapter id='ref-variables-glos'>
+<chapter id='ref-bb-variables-glos'>
 
 <title>Variables Glossary</title>
 
@@ -34,29 +34,29 @@
     </itemizedlist>
 </note>
 
-<glossary id='ref-variables-glossary'>
+<glossary id='ref-bb-variables-glossary'>
 
     <para>
-       <link linkend='var-ASSUME_PROVIDED'>A</link>
-       <link linkend='var-B'>B</link>
-       <link linkend='var-CACHE'>C</link>
-       <link linkend='var-DEFAULT_PREFERENCE'>D</link>
-       <link linkend='var-EXCLUDE_FROM_WORLD'>E</link>
-       <link linkend='var-FAKEROOT'>F</link>
-       <link linkend='var-GITDIR'>G</link>
-       <link linkend='var-HGDIR'>H</link>
-<!--       <link linkend='var-ICECC_DISABLED'>I</link> -->
+       <link linkend='var-bb-ASSUME_PROVIDED'>A</link>
+       <link linkend='var-bb-B'>B</link>
+       <link linkend='var-bb-CACHE'>C</link>
+       <link linkend='var-bb-DEFAULT_PREFERENCE'>D</link>
+       <link linkend='var-bb-EXCLUDE_FROM_WORLD'>E</link>
+       <link linkend='var-bb-FAKEROOT'>F</link>
+       <link linkend='var-bb-GITDIR'>G</link>
+       <link linkend='var-bb-HGDIR'>H</link>
+       <link linkend='var-bb-INHERIT'>I</link>
 <!--               <link linkend='var-glossary-j'>J</link> -->
 <!--       <link linkend='var-KARCH'>K</link> -->
-       <link linkend='var-LAYERDEPENDS'>L</link>
-       <link linkend='var-MIRRORS'>M</link>
+       <link linkend='var-bb-LAYERDEPENDS'>L</link>
+       <link linkend='var-bb-MIRRORS'>M</link>
 <!--               <link linkend='var-glossary-n'>N</link> -->
-       <link linkend='var-OVERRIDES'>O</link>
-       <link linkend='var-PACKAGES'>P</link>
+       <link linkend='var-bb-OVERRIDES'>O</link>
+       <link linkend='var-bb-P4DIR'>P</link>
 <!--       <link linkend='var-QMAKE_PROFILES'>Q</link> -->
-       <link linkend='var-RDEPENDS'>R</link>
-       <link linkend='var-SECTION'>S</link>
-       <link linkend='var-T'>T</link>
+       <link linkend='var-bb-RDEPENDS'>R</link>
+       <link linkend='var-bb-SECTION'>S</link>
+       <link linkend='var-bb-T'>T</link>
 <!--       <link linkend='var-UBOOT_CONFIG'>U</link> -->
 <!--               <link linkend='var-glossary-v'>V</link> -->
 <!--       <link linkend='var-WARN_QA'>W</link> -->
@@ -65,20 +65,20 @@
 <!--               <link linkend='var-glossary-z'>Z</link>-->
     </para>
 
-    <glossdiv id='var-glossary-a'><title>A</title>
+    <glossdiv id='var-bb-glossary-a'><title>A</title>
 
-        <glossentry id='var-ASSUME_PROVIDED'><glossterm>ASSUME_PROVIDED</glossterm>
+        <glossentry id='var-bb-ASSUME_PROVIDED'><glossterm>ASSUME_PROVIDED</glossterm>
             <glossdef>
                 <para>
                     Lists recipe names
-                    (<link linkend='var-PN'><filename>PN</filename></link>
+                    (<link linkend='var-bb-PN'><filename>PN</filename></link>
                     values) BitBake does not attempt to build.
                     Instead, BitBake assumes these recipes have already been
                     built.
                 </para>
 
                 <para>
-                    In OpenEmbedded Core, <filename>ASSUME_PROVIDED</filename>
+                    In OpenEmbedded-Core, <filename>ASSUME_PROVIDED</filename>
                     mostly specifies native tools that should not be built.
                     An example is <filename>git-native</filename>, which
                     when specified allows for the Git binary from the host to
@@ -91,9 +91,9 @@
     </glossdiv>
 
 
-    <glossdiv id='var-glossary-b'><title>B</title>
+    <glossdiv id='var-bb-glossary-b'><title>B</title>
 
-        <glossentry id='var-B'><glossterm>B</glossterm>
+        <glossentry id='var-bb-B'><glossterm>B</glossterm>
             <glossdef>
                 <para>
                     The directory in which BitBake executes functions
@@ -102,7 +102,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_ALLOWED_NETWORKS'><glossterm>BB_ALLOWED_NETWORKS</glossterm>
+        <glossentry id='var-bb-BB_ALLOWED_NETWORKS'><glossterm>BB_ALLOWED_NETWORKS</glossterm>
             <glossdef>
                 <para>
                     Specifies a space-delimited list of hosts that the fetcher
@@ -111,11 +111,12 @@
                     <itemizedlist>
                         <listitem><para>
                             This host list is only used if
-                            <link linkend='var-BB_NO_NETWORK'><filename>BB_NO_NETWORK</filename></link>
+                            <link linkend='var-bb-BB_NO_NETWORK'><filename>BB_NO_NETWORK</filename></link>
                             is either not set or set to "0".
                             </para></listitem>
                         <listitem><para>
-                            Limited support for wildcard matching against the
+                            Limited support for the "<filename>*</filename>"
+                            wildcard character for matching against the
                             beginning of host names exists.
                             For example, the following setting matches
                             <filename>git.gnu.org</filename>,
@@ -124,6 +125,20 @@
                             <literallayout class='monospaced'>
      BB_ALLOWED_NETWORKS = "*.gnu.org"
                             </literallayout>
+                            <note><title>Important</title>
+                                <para>The use of the "<filename>*</filename>"
+                                character only works at the beginning of
+                                a host name and it must be isolated from
+                                the remainder of the host name.
+                                You cannot use the wildcard character in any
+                                other location of the name or combined with
+                                the front part of the name.</para>
+
+                                <para>For example,
+                                <filename>*.foo.bar</filename> is supported,
+                                while <filename>*aa.foo.bar</filename> is not.
+                                </para>
+                            </note>
                             </para></listitem>
                         <listitem><para>
                             Mirrors not in the host list are skipped and
@@ -136,13 +151,13 @@
                     </itemizedlist>
                     Using <filename>BB_ALLOWED_NETWORKS</filename> in
                     conjunction with
-                    <link linkend='var-PREMIRRORS'><filename>PREMIRRORS</filename></link>
+                    <link linkend='var-bb-PREMIRRORS'><filename>PREMIRRORS</filename></link>
                     is very useful.
                     Adding the host you want to use to
                     <filename>PREMIRRORS</filename> results in the source code
                     being fetched from an allowed location and avoids raising
                     an error when a host that is not allowed is in a
-                    <link linkend='var-SRC_URI'><filename>SRC_URI</filename></link>
+                    <link linkend='var-bb-SRC_URI'><filename>SRC_URI</filename></link>
                     statement.
                     This is because the fetcher does not attempt to use the
                     host listed in <filename>SRC_URI</filename> after a
@@ -152,7 +167,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_CONSOLELOG'><glossterm>BB_CONSOLELOG</glossterm>
+        <glossentry id='var-bb-BB_CONSOLELOG'><glossterm>BB_CONSOLELOG</glossterm>
             <glossdef>
                 <para>
                     Specifies the path to a log file into which BitBake's user
@@ -161,7 +176,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_CURRENTTASK'><glossterm>BB_CURRENTTASK</glossterm>
+        <glossentry id='var-bb-BB_CURRENTTASK'><glossterm>BB_CURRENTTASK</glossterm>
             <glossdef>
                 <para>
                     Contains the name of the currently running task.
@@ -171,7 +186,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_DANGLINGAPPENDS_WARNONLY'><glossterm>BB_DANGLINGAPPENDS_WARNONLY</glossterm>
+        <glossentry id='var-bb-BB_DANGLINGAPPENDS_WARNONLY'><glossterm>BB_DANGLINGAPPENDS_WARNONLY</glossterm>
             <glossdef>
                 <para>
                     Defines how BitBake handles situations where an append
@@ -193,7 +208,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_DEFAULT_TASK'><glossterm>BB_DEFAULT_TASK</glossterm>
+        <glossentry id='var-bb-BB_DEFAULT_TASK'><glossterm>BB_DEFAULT_TASK</glossterm>
             <glossdef>
                 <para>
                     The default task to use when none is specified (e.g.
@@ -204,7 +219,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_DISKMON_DIRS'><glossterm>BB_DISKMON_DIRS</glossterm>
+        <glossentry id='var-bb-BB_DISKMON_DIRS'><glossterm>BB_DISKMON_DIRS</glossterm>
             <glossdef>
                 <para>
                     Monitors disk space and available inodes during the build
@@ -230,7 +245,7 @@
                       build when a threshold is broken.
                       Subsequent warnings are issued as
                       defined by the
-                      <link linkend='var-BB_DISKMON_WARNINTERVAL'>BB_DISKMON_WARNINTERVAL</link> variable,
+                      <link linkend='var-bb-BB_DISKMON_WARNINTERVAL'>BB_DISKMON_WARNINTERVAL</link> variable,
                       which must be defined.
 
         &lt;dir&gt; is:
@@ -260,7 +275,7 @@
      BB_DISKMON_DIRS = "ABORT,${TMPDIR},,100K"
                     </literallayout>
                     The first example works only if you also set
-                    the <link linkend='var-BB_DISKMON_WARNINTERVAL'><filename>BB_DISKMON_WARNINTERVAL</filename></link> variable.
+                    the <link linkend='var-bb-BB_DISKMON_WARNINTERVAL'><filename>BB_DISKMON_WARNINTERVAL</filename></link> variable.
                     This example causes the build system to immediately
                     abort when either the disk space in <filename>${TMPDIR}</filename> drops
                     below 1 Gbyte or the available free inodes drops below
@@ -294,7 +309,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_DISKMON_WARNINTERVAL'><glossterm>BB_DISKMON_WARNINTERVAL</glossterm>
+        <glossentry id='var-bb-BB_DISKMON_WARNINTERVAL'><glossterm>BB_DISKMON_WARNINTERVAL</glossterm>
             <glossdef>
                 <para>
                     Defines the disk space and free inode warning intervals.
@@ -304,7 +319,7 @@
                     If you are going to use the
                     <filename>BB_DISKMON_WARNINTERVAL</filename> variable, you must
                     also use the
-                    <link linkend='var-BB_DISKMON_DIRS'><filename>BB_DISKMON_DIRS</filename></link> variable
+                    <link linkend='var-bb-BB_DISKMON_DIRS'><filename>BB_DISKMON_DIRS</filename></link> variable
                     and define its action as "WARN".
                     During the build, subsequent warnings are issued each time
                     disk space or number of free inodes further reduces by
@@ -359,7 +374,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_ENV_WHITELIST'><glossterm>BB_ENV_WHITELIST</glossterm>
+        <glossentry id='var-bb-BB_ENV_WHITELIST'><glossterm>BB_ENV_WHITELIST</glossterm>
             <glossdef>
                 <para>
                     Specifies the internal whitelist of variables to allow
@@ -367,11 +382,11 @@
                     datastore.
                     If the value of this variable is not specified
                     (which is the default), the following list is used:
-                    <link linkend='var-BBPATH'><filename>BBPATH</filename></link>,
-                    <link linkend='var-BB_PRESERVE_ENV'><filename>BB_PRESERVE_ENV</filename></link>,
-                    <link linkend='var-BB_ENV_WHITELIST'><filename>BB_ENV_WHITELIST</filename></link>,
+                    <link linkend='var-bb-BBPATH'><filename>BBPATH</filename></link>,
+                    <link linkend='var-bb-BB_PRESERVE_ENV'><filename>BB_PRESERVE_ENV</filename></link>,
+                    <link linkend='var-bb-BB_ENV_WHITELIST'><filename>BB_ENV_WHITELIST</filename></link>,
                     and
-                    <link linkend='var-BB_ENV_EXTRAWHITE'><filename>BB_ENV_EXTRAWHITE</filename></link>.
+                    <link linkend='var-bb-BB_ENV_EXTRAWHITE'><filename>BB_ENV_EXTRAWHITE</filename></link>.
                     <note>
                         You must set this variable in the external environment
                         in order for it to work.
@@ -380,7 +395,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_ENV_EXTRAWHITE'><glossterm>BB_ENV_EXTRAWHITE</glossterm>
+        <glossentry id='var-bb-BB_ENV_EXTRAWHITE'><glossterm>BB_ENV_EXTRAWHITE</glossterm>
             <glossdef>
                 <para>
                     Specifies an additional set of variables to allow through
@@ -388,7 +403,7 @@
                     datastore.
                     This list of variables are on top of the internal list
                     set in
-                    <link linkend='var-BB_ENV_WHITELIST'><filename>BB_ENV_WHITELIST</filename></link>.
+                    <link linkend='var-bb-BB_ENV_WHITELIST'><filename>BB_ENV_WHITELIST</filename></link>.
                     <note>
                         You must set this variable in the external
                         environment in order for it to work.
@@ -397,22 +412,22 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_FETCH_PREMIRRORONLY'><glossterm>BB_FETCH_PREMIRRORONLY</glossterm>
+        <glossentry id='var-bb-BB_FETCH_PREMIRRORONLY'><glossterm>BB_FETCH_PREMIRRORONLY</glossterm>
             <glossdef>
                 <para>
                     When set to "1", causes BitBake's fetcher module to only
                     search
-                    <link linkend='var-PREMIRRORS'><filename>PREMIRRORS</filename></link>
+                    <link linkend='var-bb-PREMIRRORS'><filename>PREMIRRORS</filename></link>
                     for files.
                     BitBake will not search the main
-                    <link linkend='var-SRC_URI'><filename>SRC_URI</filename></link>
+                    <link linkend='var-bb-SRC_URI'><filename>SRC_URI</filename></link>
                     or
-                    <link linkend='var-MIRRORS'><filename>MIRRORS</filename></link>.
+                    <link linkend='var-bb-MIRRORS'><filename>MIRRORS</filename></link>.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_FILENAME'><glossterm>BB_FILENAME</glossterm>
+        <glossentry id='var-bb-BB_FILENAME'><glossterm>BB_FILENAME</glossterm>
             <glossdef>
                 <para>
                     Contains the filename of the recipe that owns the currently
@@ -425,12 +440,12 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_GENERATE_MIRROR_TARBALLS'><glossterm>BB_GENERATE_MIRROR_TARBALLS</glossterm>
+        <glossentry id='var-bb-BB_GENERATE_MIRROR_TARBALLS'><glossterm>BB_GENERATE_MIRROR_TARBALLS</glossterm>
             <glossdef>
                 <para>
                     Causes tarballs of the Git repositories, including the
                     Git metadata, to be placed in the
-                    <link linkend='var-DL_DIR'><filename>DL_DIR</filename></link>
+                    <link linkend='var-bb-DL_DIR'><filename>DL_DIR</filename></link>
                     directory.
                     Anyone wishing to create a source mirror would want to
                     enable this variable.
@@ -446,7 +461,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_HASHCONFIG_WHITELIST'><glossterm>BB_HASHCONFIG_WHITELIST</glossterm>
+        <glossentry id='var-bb-BB_HASHCONFIG_WHITELIST'><glossterm>BB_HASHCONFIG_WHITELIST</glossterm>
             <glossdef>
                 <para>
                     Lists variables that are excluded from base configuration
@@ -470,7 +485,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_HASHBASE_WHITELIST'><glossterm>BB_HASHBASE_WHITELIST</glossterm>
+        <glossentry id='var-bb-BB_HASHBASE_WHITELIST'><glossterm>BB_HASHBASE_WHITELIST</glossterm>
             <glossdef>
                 <para>
                     Lists variables that are excluded from checksum and
@@ -485,7 +500,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_HASHCHECK_FUNCTION'><glossterm>BB_HASHCHECK_FUNCTION</glossterm>
+        <glossentry id='var-bb-BB_HASHCHECK_FUNCTION'><glossterm>BB_HASHCHECK_FUNCTION</glossterm>
             <glossdef>
                 <para>
                     Specifies the name of the function to call during the
@@ -509,7 +524,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_INVALIDCONF'><glossterm>BB_INVALIDCONF</glossterm>
+        <glossentry id='var-bb-BB_INVALIDCONF'><glossterm>BB_INVALIDCONF</glossterm>
             <glossdef>
                 <para>
                     Used in combination with the
@@ -524,11 +539,22 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_LOGFMT'><glossterm>BB_LOGFMT</glossterm>
+        <glossentry id='var-bb-BB_LOGCONFIG'><glossterm>BB_LOGCONFIG</glossterm>
+            <glossdef>
+                <para>
+                    Specifies the name of a config file that contains the user
+                    logging configuration. See
+                    <link linkend="logging">Logging</link> for additional
+                    information
+                </para>
+            </glossdef>
+        </glossentry>
+
+        <glossentry id='var-bb-BB_LOGFMT'><glossterm>BB_LOGFMT</glossterm>
             <glossdef>
                 <para>
                     Specifies the name of the log files saved into
-                    <filename>${</filename><link linkend='var-T'><filename>T</filename></link><filename>}</filename>.
+                    <filename>${</filename><link linkend='var-bb-T'><filename>T</filename></link><filename>}</filename>.
                     By default, the <filename>BB_LOGFMT</filename> variable
                     is undefined and the log file names get created using the
                     following form:
@@ -541,7 +567,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_NICE_LEVEL'><glossterm>BB_NICE_LEVEL</glossterm>
+        <glossentry id='var-bb-BB_NICE_LEVEL'><glossterm>BB_NICE_LEVEL</glossterm>
             <glossdef>
                 <para>
                     Allows BitBake to run at a specific priority
@@ -549,13 +575,13 @@
                     System permissions usually mean that BitBake can reduce its
                     priority but not raise it again.
                     See
-                    <link linkend='var-BB_TASK_NICE_LEVEL'><filename>BB_TASK_NICE_LEVEL</filename></link>
+                    <link linkend='var-bb-BB_TASK_NICE_LEVEL'><filename>BB_TASK_NICE_LEVEL</filename></link>
                     for additional information.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_NO_NETWORK'><glossterm>BB_NO_NETWORK</glossterm>
+        <glossentry id='var-bb-BB_NO_NETWORK'><glossterm>BB_NO_NETWORK</glossterm>
             <glossdef>
                 <para>
                     Disables network access in the BitBake fetcher modules.
@@ -572,7 +598,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_NUMBER_THREADS'><glossterm>BB_NUMBER_THREADS</glossterm>
+        <glossentry id='var-bb-BB_NUMBER_THREADS'><glossterm>BB_NUMBER_THREADS</glossterm>
             <glossdef>
                 <para>
                     The maximum number of tasks BitBake should run in parallel
@@ -584,7 +610,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_NUMBER_PARSE_THREADS'><glossterm>BB_NUMBER_PARSE_THREADS</glossterm>
+        <glossentry id='var-bb-BB_NUMBER_PARSE_THREADS'><glossterm>BB_NUMBER_PARSE_THREADS</glossterm>
             <glossdef>
                 <para>
                     Sets the number of threads BitBake uses when parsing.
@@ -594,7 +620,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_ORIGENV'><glossterm>BB_ORIGENV</glossterm>
+        <glossentry id='var-bb-BB_ORIGENV'><glossterm>BB_ORIGENV</glossterm>
             <glossdef>
                 <para>
                     Contains a copy of the original external environment in
@@ -610,7 +636,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_PRESERVE_ENV'><glossterm>BB_PRESERVE_ENV</glossterm>
+        <glossentry id='var-bb-BB_PRESERVE_ENV'><glossterm>BB_PRESERVE_ENV</glossterm>
             <glossdef>
                 <para>
                     Disables whitelisting and instead allows all variables
@@ -624,12 +650,12 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_RUNFMT'><glossterm>BB_RUNFMT</glossterm>
+        <glossentry id='var-bb-BB_RUNFMT'><glossterm>BB_RUNFMT</glossterm>
             <glossdef>
                 <para>
                     Specifies the name of the executable script files
                     (i.e. run files) saved into
-                    <filename>${</filename><link linkend='var-T'><filename>T</filename></link><filename>}</filename>.
+                    <filename>${</filename><link linkend='var-bb-T'><filename>T</filename></link><filename>}</filename>.
                     By default, the <filename>BB_RUNFMT</filename> variable
                     is undefined and the run file names get created using the
                     following form:
@@ -642,19 +668,19 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_RUNTASK'><glossterm>BB_RUNTASK</glossterm>
+        <glossentry id='var-bb-BB_RUNTASK'><glossterm>BB_RUNTASK</glossterm>
             <glossdef>
                 <para>
                     Contains the name of the currently executing task.
-                    The value does not include the "do_" prefix.
+                    The value includes the "do_" prefix.
                     For example, if the currently executing task is
                     <filename>do_config</filename>, the value is
-                    "config".
+                    "do_config".
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_SCHEDULER'><glossterm>BB_SCHEDULER</glossterm>
+        <glossentry id='var-bb-BB_SCHEDULER'><glossterm>BB_SCHEDULER</glossterm>
             <glossdef>
                 <para>
                     Selects the name of the scheduler to use for the
@@ -680,7 +706,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_SCHEDULERS'><glossterm>BB_SCHEDULERS</glossterm>
+        <glossentry id='var-bb-BB_SCHEDULERS'><glossterm>BB_SCHEDULERS</glossterm>
             <glossdef>
                 <para>
                     Defines custom schedulers to import.
@@ -690,13 +716,13 @@
 
                 <para>
                     For information how to select a scheduler, see the
-                    <link linkend='var-BB_SCHEDULER'><filename>BB_SCHEDULER</filename></link>
+                    <link linkend='var-bb-BB_SCHEDULER'><filename>BB_SCHEDULER</filename></link>
                     variable.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_SETSCENE_DEPVALID'><glossterm>BB_SETSCENE_DEPVALID</glossterm>
+        <glossentry id='var-bb-BB_SETSCENE_DEPVALID'><glossterm>BB_SETSCENE_DEPVALID</glossterm>
             <glossdef>
                 <para>
                     Specifies a function BitBake calls that determines
@@ -716,7 +742,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_SETSCENE_VERIFY_FUNCTION'><glossterm>BB_SETSCENE_VERIFY_FUNCTION</glossterm>
+        <glossentry id='var-bb-BB_SETSCENE_VERIFY_FUNCTION2'><glossterm>BB_SETSCENE_VERIFY_FUNCTION2</glossterm>
             <glossdef>
                 <para>
                     Specifies a function to call that verifies the list of
@@ -737,7 +763,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_SIGNATURE_EXCLUDE_FLAGS'><glossterm>BB_SIGNATURE_EXCLUDE_FLAGS</glossterm>
+        <glossentry id='var-bb-BB_SIGNATURE_EXCLUDE_FLAGS'><glossterm>BB_SIGNATURE_EXCLUDE_FLAGS</glossterm>
             <glossdef>
                 <para>
                     Lists variable flags (varflags)
@@ -756,7 +782,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_SIGNATURE_HANDLER'><glossterm>BB_SIGNATURE_HANDLER</glossterm>
+        <glossentry id='var-bb-BB_SIGNATURE_HANDLER'><glossterm>BB_SIGNATURE_HANDLER</glossterm>
             <glossdef>
                 <para>
                     Defines the name of the signature handler BitBake uses.
@@ -775,7 +801,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_SRCREV_POLICY'><glossterm>BB_SRCREV_POLICY</glossterm>
+        <glossentry id='var-bb-BB_SRCREV_POLICY'><glossterm>BB_SRCREV_POLICY</glossterm>
             <glossdef>
                 <para>
                     Defines the behavior of the fetcher when it interacts with
@@ -802,7 +828,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_STAMP_POLICY'><glossterm>BB_STAMP_POLICY</glossterm>
+        <glossentry id='var-bb-BB_STAMP_POLICY'><glossterm>BB_STAMP_POLICY</glossterm>
             <glossdef>
                 <para>
                     Defines the mode used for how timestamps of stamp files
@@ -821,7 +847,7 @@
                         <listitem><para><emphasis>whitelist</emphasis> -
                             Identical to "full" mode except timestamp
                             comparisons are made for recipes listed in the
-                            <link linkend='var-BB_STAMP_WHITELIST'><filename>BB_STAMP_WHITELIST</filename></link>
+                            <link linkend='var-bb-BB_STAMP_WHITELIST'><filename>BB_STAMP_WHITELIST</filename></link>
                             variable.
                             </para></listitem>
                     </itemizedlist>
@@ -833,19 +859,19 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_STAMP_WHITELIST'><glossterm>BB_STAMP_WHITELIST</glossterm>
+        <glossentry id='var-bb-BB_STAMP_WHITELIST'><glossterm>BB_STAMP_WHITELIST</glossterm>
             <glossdef>
                 <para>
                     Lists files whose stamp file timestamps are compared when
                     the stamp policy mode is set to "whitelist".
                     For information on stamp policies, see the
-                    <link linkend='var-BB_STAMP_POLICY'><filename>BB_STAMP_POLICY</filename></link>
+                    <link linkend='var-bb-BB_STAMP_POLICY'><filename>BB_STAMP_POLICY</filename></link>
                     variable.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_STRICT_CHECKSUM'><glossterm>BB_STRICT_CHECKSUM</glossterm>
+        <glossentry id='var-bb-BB_STRICT_CHECKSUM'><glossterm>BB_STRICT_CHECKSUM</glossterm>
             <glossdef>
                 <para>
                     Sets a more strict checksum mechanism for non-local URLs.
@@ -856,7 +882,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_TASK_IONICE_LEVEL'><glossterm>BB_TASK_IONICE_LEVEL</glossterm>
+        <glossentry id='var-bb-BB_TASK_IONICE_LEVEL'><glossterm>BB_TASK_IONICE_LEVEL</glossterm>
             <glossdef>
                 <para>
                     Allows adjustment of a task's Input/Output priority.
@@ -867,7 +893,7 @@
                     variable to adjust the I/O priority of these tasks.
                     <note>
                         This variable works similarly to the
-                        <link linkend='var-BB_TASK_NICE_LEVEL'><filename>BB_TASK_NICE_LEVEL</filename></link>
+                        <link linkend='var-bb-BB_TASK_NICE_LEVEL'><filename>BB_TASK_NICE_LEVEL</filename></link>
                         variable except with a task's I/O priorities.
                     </note>
                 </para>
@@ -906,7 +932,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_TASK_NICE_LEVEL'><glossterm>BB_TASK_NICE_LEVEL</glossterm>
+        <glossentry id='var-bb-BB_TASK_NICE_LEVEL'><glossterm>BB_TASK_NICE_LEVEL</glossterm>
             <glossdef>
                 <para>
                     Allows specific tasks to change their priority
@@ -925,7 +951,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_TASKHASH'><glossterm>BB_TASKHASH</glossterm>
+        <glossentry id='var-bb-BB_TASKHASH'><glossterm>BB_TASKHASH</glossterm>
             <glossdef>
                 <para>
                     Within an executing task, this variable holds the hash
@@ -935,7 +961,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_VERBOSE_LOGS'><glossterm>BB_VERBOSE_LOGS</glossterm>
+        <glossentry id='var-bb-BB_VERBOSE_LOGS'><glossterm>BB_VERBOSE_LOGS</glossterm>
             <glossdef>
                 <para>
                     Controls how verbose BitBake is during builds.
@@ -945,7 +971,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BB_WORKERCONTEXT'><glossterm>BB_WORKERCONTEXT</glossterm>
+        <glossentry id='var-bb-BB_WORKERCONTEXT'><glossterm>BB_WORKERCONTEXT</glossterm>
             <glossdef>
                 <para>
                     Specifies if the current context is executing a task.
@@ -958,13 +984,13 @@
         </glossentry>
 
 
-        <glossentry id='var-BBCLASSEXTEND'><glossterm>BBCLASSEXTEND</glossterm>
+        <glossentry id='var-bb-BBCLASSEXTEND'><glossterm>BBCLASSEXTEND</glossterm>
             <glossdef>
                 <para>
                     Allows you to extend a recipe so that it builds variants
                     of the software.
                     Some examples of these variants for recipes from the
-                    OpenEmbedded Core metadata are "natives" such as
+                    OpenEmbedded-Core metadata are "natives" such as
                     <filename>quilt-native</filename>, which is a copy of
                     Quilt built to run on the build system; "crosses" such
                     as <filename>gcc-cross</filename>, which is a compiler
@@ -980,21 +1006,44 @@
                     amount of code, it usually is as simple as adding the
                     variable to your recipe.
                     Here are two examples.
-                    The "native" variants are from the OpenEmbedded Core
+                    The "native" variants are from the OpenEmbedded-Core
                     metadata:
                     <literallayout class='monospaced'>
      BBCLASSEXTEND =+ "native nativesdk"
      BBCLASSEXTEND =+ "multilib:<replaceable>multilib_name</replaceable>"
                     </literallayout>
+                    <note>
+                        <para>
+                        Internally, the <filename>BBCLASSEXTEND</filename>
+                        mechanism generates recipe variants by rewriting
+                        variable values and applying overrides such as
+                        <filename>_class-native</filename>.
+                        For example, to generate a native version of a recipe,
+                        a
+                        <link linkend='var-bb-DEPENDS'><filename>DEPENDS</filename></link>
+                        on "foo" is rewritten to a <filename>DEPENDS</filename>
+                        on "foo-native".
+                        </para>
+
+                        <para>
+                        Even when using <filename>BBCLASSEXTEND</filename>, the
+                        recipe is only parsed once.
+                        Parsing once adds some limitations.
+                        For example, it is not possible to
+                        include a different file depending on the variant,
+                        since <filename>include</filename> statements are
+                        processed when the recipe is parsed.
+                        </para>
+                    </note>
                 </para>
              </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBDEBUG'><glossterm>BBDEBUG</glossterm>
+        <glossentry id='var-bb-BBDEBUG'><glossterm>BBDEBUG</glossterm>
             <glossdef>
                 <para>
                     Sets the BitBake debug output level to a specific value
-                    as incremented by the <filename>-d</filename> command line
+                    as incremented by the <filename>-D</filename> command line
                     option.
                     <note>
                         You must set this variable in the external environment
@@ -1004,7 +1053,7 @@
              </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBFILE_COLLECTIONS'><glossterm>BBFILE_COLLECTIONS</glossterm>
+        <glossentry id='var-bb-BBFILE_COLLECTIONS'><glossterm>BBFILE_COLLECTIONS</glossterm>
             <glossdef>
                 <para>Lists the names of configured layers.
                     These names are used to find the other <filename>BBFILE_*</filename>
@@ -1015,10 +1064,10 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBFILE_PATTERN'><glossterm>BBFILE_PATTERN</glossterm>
+        <glossentry id='var-bb-BBFILE_PATTERN'><glossterm>BBFILE_PATTERN</glossterm>
             <glossdef>
                 <para>Variable that expands to match files from
-                    <link linkend='var-BBFILES'><filename>BBFILES</filename></link>
+                    <link linkend='var-bb-BBFILES'><filename>BBFILES</filename></link>
                     in a particular layer.
                     This variable is used in the <filename>conf/layer.conf</filename> file and must
                     be suffixed with the name of the specific layer (e.g.
@@ -1026,7 +1075,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBFILE_PRIORITY'><glossterm>BBFILE_PRIORITY</glossterm>
+        <glossentry id='var-bb-BBFILE_PRIORITY'><glossterm>BBFILE_PRIORITY</glossterm>
             <glossdef>
                 <para>Assigns the priority for recipe files in each layer.</para>
                 <para>This variable is useful in situations where the same recipe appears in
@@ -1036,7 +1085,7 @@
                     letting you control the precedence for the multiple layers.
                     The precedence established through this variable stands regardless of a
                     recipe's version
-                    (<link linkend='var-PV'><filename>PV</filename></link> variable).
+                    (<link linkend='var-bb-PV'><filename>PV</filename></link> variable).
                     For example, a layer that has a recipe with a higher <filename>PV</filename> value but for
                     which the <filename>BBFILE_PRIORITY</filename> is set to have a lower precedence still has a
                     lower precedence.</para>
@@ -1045,7 +1094,7 @@
                     For example, the value 6 has a higher precedence than the value 5.
                     If not specified, the <filename>BBFILE_PRIORITY</filename> variable is set based on layer
                     dependencies (see the
-                    <filename><link linkend='var-LAYERDEPENDS'>LAYERDEPENDS</link></filename> variable for
+                    <filename><link linkend='var-bb-LAYERDEPENDS'>LAYERDEPENDS</link></filename> variable for
                     more information.
                     The default priority, if unspecified
                     for a layer with no dependencies, is the lowest defined priority + 1
@@ -1057,13 +1106,25 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBFILES'><glossterm>BBFILES</glossterm>
+        <glossentry id='var-bb-BBFILES'><glossterm>BBFILES</glossterm>
             <glossdef>
-                <para>List of recipe files BitBake uses to build software.</para>
+                <para>
+                    A space-separated list of recipe files BitBake uses to
+                    build software.
+                </para>
+
+                <para>
+                    When specifying recipe files, you can pattern match using
+                    Python's
+                    <ulink url='https://docs.python.org/3/library/glob.html'><filename>glob</filename></ulink>
+                    syntax.
+                    For details on the syntax, see the documentation by
+                    following the previous link.
+                </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBINCLUDED'><glossterm>BBINCLUDED</glossterm>
+        <glossentry id='var-bb-BBINCLUDED'><glossterm>BBINCLUDED</glossterm>
             <glossdef>
                 <para>
                     Contains a space-separated list of all of all files that
@@ -1073,7 +1134,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBINCLUDELOGS'><glossterm>BBINCLUDELOGS</glossterm>
+        <glossentry id='var-bb-BBINCLUDELOGS'><glossterm>BBINCLUDELOGS</glossterm>
             <glossdef>
                 <para>
                     If set to a value, enables printing the task log when
@@ -1082,11 +1143,11 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBINCLUDELOGS_LINES'><glossterm>BBINCLUDELOGS_LINES</glossterm>
+        <glossentry id='var-bb-BBINCLUDELOGS_LINES'><glossterm>BBINCLUDELOGS_LINES</glossterm>
             <glossdef>
                 <para>
                     If
-                    <link linkend='var-BBINCLUDELOGS'><filename>BBINCLUDELOGS</filename></link>
+                    <link linkend='var-bb-BBINCLUDELOGS'><filename>BBINCLUDELOGS</filename></link>
                     is set, specifies the maximum number of lines from the
                     task log file to print when reporting a failed task.
                     If you do not set <filename>BBINCLUDELOGS_LINES</filename>,
@@ -1095,7 +1156,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBLAYERS'><glossterm>BBLAYERS</glossterm>
+        <glossentry id='var-bb-BBLAYERS'><glossterm>BBLAYERS</glossterm>
             <glossdef>
                 <para>Lists the layers to enable during the build.
                     This variable is defined in the <filename>bblayers.conf</filename> configuration
@@ -1116,12 +1177,10 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBLAYERS_FETCH_DIR'><glossterm>BBLAYERS_FETCH_DIR</glossterm>
+        <glossentry id='var-bb-BBLAYERS_FETCH_DIR'><glossterm>BBLAYERS_FETCH_DIR</glossterm>
             <glossdef>
                 <para>
                     Sets the base location where layers are stored.
-                    By default, this location is set to
-                    <filename>${COREBASE}</filename>.
                     This setting is used in conjunction with
                     <filename>bitbake-layers layerindex-fetch</filename> and
                     tells <filename>bitbake-layers</filename> where to place
@@ -1130,7 +1189,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBMASK'><glossterm>BBMASK</glossterm>
+        <glossentry id='var-bb-BBMASK'><glossterm>BBMASK</glossterm>
             <glossdef>
                 <para>
                     Prevents BitBake from processing recipes and recipe
@@ -1142,18 +1201,22 @@
                     to "hide" these <filename>.bb</filename> and
                     <filename>.bbappend</filename> files.
                     BitBake ignores any recipe or recipe append files that
-                    match the expression.
+                    match any of the expressions.
                     It is as if BitBake does not see them at all.
                     Consequently, matching files are not parsed or otherwise
-                    used by BitBake.</para>
+                    used by BitBake.
+                </para>
+
                 <para>
-                    The value you provide is passed to Python's regular
+                    The values you provide are passed to Python's regular
                     expression compiler.
-                    The expression is compared against the full paths to
+                    Consequently, the syntax follows Python's Regular
+                    Expression (re) syntax.
+                    The expressions are compared against the full paths to
                     the files.
                     For complete syntax information, see Python's
                     documentation at
-                    <ulink url='http://docs.python.org/release/2.3/lib/re-syntax.html'></ulink>.
+                    <ulink url='http://docs.python.org/3/library/re.html#re'></ulink>.
                 </para>
 
                 <para>
@@ -1165,18 +1228,16 @@
      BBMASK = "meta-ti/recipes-misc/"
                     </literallayout>
                     If you want to mask out multiple directories or recipes,
-                    use the vertical bar to separate the regular expression
-                    fragments.
+                    you can specify multiple regular expression fragments.
                     This next example masks out multiple directories and
                     individual recipes:
                     <literallayout class='monospaced'>
-     BBMASK = "meta-ti/recipes-misc/|meta-ti/recipes-ti/packagegroup/"
-     BBMASK .= "|.*meta-oe/recipes-support/"
-     BBMASK .= "|.*openldap"
-     BBMASK .= "|.*opencv"
-     BBMASK .= "|.*lzma"
+     BBMASK += "/meta-ti/recipes-misc/ meta-ti/recipes-ti/packagegroup/"
+     BBMASK += "/meta-oe/recipes-support/"
+     BBMASK += "/meta-foo/.*/openldap"
+     BBMASK += "opencv.*\.bbappend"
+     BBMASK += "lzma"
                     </literallayout>
-                    Notice how the vertical bar is used to append the fragments.
                     <note>
                         When specifying a directory name, use the trailing
                         slash character to ensure you match just that directory
@@ -1186,7 +1247,46 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBPATH'><glossterm>BBPATH</glossterm>
+        <glossentry id='var-bb-BBMULTICONFIG'><glossterm>BBMULTICONFIG</glossterm>
+            <info>
+                BBMULTICONFIG[doc] = "Enables BitBake to perform multiple configuration builds and lists each separate configuration (multiconfig)."
+            </info>
+            <glossdef>
+                <para role="glossdeffirst">
+<!--                <para role="glossdeffirst"><imagedata fileref="figures/define-generic.png" /> -->
+                    Enables BitBake to perform multiple configuration builds
+                    and lists each separate configuration (multiconfig).
+                    You can use this variable to cause BitBake to build
+                    multiple targets where each target has a separate
+                    configuration.
+                    Define <filename>BBMULTICONFIG</filename> in your
+                    <filename>conf/local.conf</filename> configuration file.
+                </para>
+
+                <para>
+                    As an example, the following line specifies three
+                    multiconfigs, each having a separate configuration file:
+                    <literallayout class='monospaced'>
+     BBMULTIFONFIG = "configA configB configC"
+                    </literallayout>
+                    Each configuration file you use must reside in the
+                    build directory within a directory named
+                    <filename>conf/multiconfig</filename> (e.g.
+                    <replaceable>build_directory</replaceable><filename>/conf/multiconfig/configA.conf</filename>).
+                </para>
+
+                <para>
+                    For information on how to use
+                    <filename>BBMULTICONFIG</filename> in an environment that
+                    supports building targets with multiple configurations,
+                    see the
+                    "<link linkend='executing-a-multiple-configuration-build'>Executing a Multiple Configuration Build</link>"
+                    section.
+                </para>
+            </glossdef>
+        </glossentry>
+
+        <glossentry id='var-bb-BBPATH'><glossterm>BBPATH</glossterm>
             <glossdef>
                 <para>
                     Used by BitBake to locate class
@@ -1213,7 +1313,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBSERVER'><glossterm>BBSERVER</glossterm>
+        <glossentry id='var-bb-BBSERVER'><glossterm>BBSERVER</glossterm>
             <glossdef>
                 <para>
                     Points to the server that runs memory-resident BitBake.
@@ -1223,7 +1323,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBTARGETS'><glossterm>BBTARGETS</glossterm>
+        <glossentry id='var-bb-BBTARGETS'><glossterm>BBTARGETS</glossterm>
             <glossdef>
                 <para>
                     Allows you to use a configuration file to add to the list
@@ -1232,14 +1332,14 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BBVERSIONS'><glossterm>BBVERSIONS</glossterm>
+        <glossentry id='var-bb-BBVERSIONS'><glossterm>BBVERSIONS</glossterm>
             <glossdef>
                 <para>
                     Allows a single recipe to build multiple versions of a
                     project from a single recipe file.
                     You also able to specify conditional metadata
                     using the
-                    <link linkend='var-OVERRIDES'><filename>OVERRIDES</filename></link>
+                    <link linkend='var-bb-OVERRIDES'><filename>OVERRIDES</filename></link>
                     mechanism for a single version or for an optionally named
                     range of versions.
                 </para>
@@ -1253,7 +1353,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BITBAKE_UI'><glossterm>BITBAKE_UI</glossterm>
+        <glossentry id='var-bb-BITBAKE_UI'><glossterm>BITBAKE_UI</glossterm>
             <glossdef>
                 <para>
                     Used to specify the UI module to use when running BitBake.
@@ -1267,7 +1367,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BUILDNAME'><glossterm>BUILDNAME</glossterm>
+        <glossentry id='var-bb-BUILDNAME'><glossterm>BUILDNAME</glossterm>
             <glossdef>
                 <para>
                     A name assigned to the build.
@@ -1277,7 +1377,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-BZRDIR'><glossterm>BZRDIR</glossterm>
+        <glossentry id='var-bb-BZRDIR'><glossterm>BZRDIR</glossterm>
             <glossdef>
                 <para>
                     The directory in which files checked out of a Bazaar
@@ -1288,9 +1388,9 @@
 
     </glossdiv>
 
-    <glossdiv id='var-glossary-c'><title>C</title>
+    <glossdiv id='var-bb-glossary-c'><title>C</title>
 
-        <glossentry id='var-CACHE'><glossterm>CACHE</glossterm>
+        <glossentry id='var-bb-CACHE'><glossterm>CACHE</glossterm>
             <glossdef>
                 <para>
                     Specifies the directory BitBake uses to store a cache
@@ -1300,7 +1400,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-CVSDIR'><glossterm>CVSDIR</glossterm>
+        <glossentry id='var-bb-CVSDIR'><glossterm>CVSDIR</glossterm>
             <glossdef>
                 <para>
                     The directory in which files checked out under the
@@ -1311,9 +1411,9 @@
 
     </glossdiv>
 
-    <glossdiv id='var-glossary-d'><title>D</title>
+    <glossdiv id='var-bb-glossary-d'><title>D</title>
 
-        <glossentry id='var-DEFAULT_PREFERENCE'><glossterm>DEFAULT_PREFERENCE</glossterm>
+        <glossentry id='var-bb-DEFAULT_PREFERENCE'><glossterm>DEFAULT_PREFERENCE</glossterm>
             <glossdef>
                 <para>
                     Specifies a weak bias for recipe selection priority.
@@ -1324,20 +1424,20 @@
                     piece of software.
                     Using the variable in this way causes the stable version
                     of the recipe to build by default in the absence of
-                    <filename><link linkend='var-PREFERRED_VERSION'>PREFERRED_VERSION</link></filename>
+                    <filename><link linkend='var-bb-PREFERRED_VERSION'>PREFERRED_VERSION</link></filename>
                     being used to build the development version.
                 </para>
                 <note>
                     The bias provided by <filename>DEFAULT_PREFERENCE</filename>
                     is weak and is overridden by
-                    <filename><link linkend='var-BBFILE_PRIORITY'>BBFILE_PRIORITY</link></filename>
+                    <filename><link linkend='var-bb-BBFILE_PRIORITY'>BBFILE_PRIORITY</link></filename>
                     if that variable is different between two layers
                     that contain different versions of the same recipe.
                 </note>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-DEPENDS'><glossterm>DEPENDS</glossterm>
+        <glossentry id='var-bb-DEPENDS'><glossterm>DEPENDS</glossterm>
             <glossdef>
                 <para>
                     Lists a recipe's build-time dependencies
@@ -1362,13 +1462,13 @@
 
                 <para>
                     For information on runtime dependencies, see the
-                    <link linkend='var-RDEPENDS'><filename>RDEPENDS</filename></link>
+                    <link linkend='var-bb-RDEPENDS'><filename>RDEPENDS</filename></link>
                     variable.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-DESCRIPTION'><glossterm>DESCRIPTION</glossterm>
+        <glossentry id='var-bb-DESCRIPTION'><glossterm>DESCRIPTION</glossterm>
             <glossdef>
                 <para>
                     A long description for the recipe.
@@ -1376,7 +1476,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-DL_DIR'><glossterm>DL_DIR</glossterm>
+        <glossentry id='var-bb-DL_DIR'><glossterm>DL_DIR</glossterm>
             <glossdef>
                 <para>
                     The central download directory used by the build process to
@@ -1385,7 +1485,7 @@
                     suitable for mirroring for everything except Git
                     repositories.
                     If you want tarballs of Git repositories, use the
-                    <link linkend='var-BB_GENERATE_MIRROR_TARBALLS'><filename>BB_GENERATE_MIRROR_TARBALLS</filename></link>
+                    <link linkend='var-bb-BB_GENERATE_MIRROR_TARBALLS'><filename>BB_GENERATE_MIRROR_TARBALLS</filename></link>
                     variable.
                 </para>
             </glossdef>
@@ -1393,9 +1493,9 @@
         </glossentry>
     </glossdiv>
 
-    <glossdiv id='var-glossary-e'><title>E</title>
+    <glossdiv id='var-bb-glossary-e'><title>E</title>
 
-        <glossentry id='var-EXCLUDE_FROM_WORLD'><glossterm>EXCLUDE_FROM_WORLD</glossterm>
+        <glossentry id='var-bb-EXCLUDE_FROM_WORLD'><glossterm>EXCLUDE_FROM_WORLD</glossterm>
             <glossdef>
                 <para>
                     Directs BitBake to exclude a recipe from world builds (i.e.
@@ -1423,9 +1523,9 @@
 
     </glossdiv>
 
-    <glossdiv id='var-glossary-f'><title>F</title>
+    <glossdiv id='var-bb-glossary-f'><title>F</title>
 
-        <glossentry id='var-FAKEROOT'><glossterm>FAKEROOT</glossterm>
+        <glossentry id='var-bb-FAKEROOT'><glossterm>FAKEROOT</glossterm>
             <glossdef>
                 <para>
                      Contains the command to use when running a shell script
@@ -1438,19 +1538,19 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FAKEROOTBASEENV'><glossterm>FAKEROOTBASEENV</glossterm>
+        <glossentry id='var-bb-FAKEROOTBASEENV'><glossterm>FAKEROOTBASEENV</glossterm>
             <glossdef>
                 <para>
                      Lists environment variables to set when executing
                      the command defined by
-                     <link linkend='var-FAKEROOTCMD'><filename>FAKEROOTCMD</filename></link>
+                     <link linkend='var-bb-FAKEROOTCMD'><filename>FAKEROOTCMD</filename></link>
                      that starts the bitbake-worker process
                      in the fakeroot environment.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FAKEROOTCMD'><glossterm>FAKEROOTCMD</glossterm>
+        <glossentry id='var-bb-FAKEROOTCMD'><glossterm>FAKEROOTCMD</glossterm>
             <glossdef>
                 <para>
                      Contains the command that starts the bitbake-worker
@@ -1459,7 +1559,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FAKEROOTDIRS'><glossterm>FAKEROOTDIRS</glossterm>
+        <glossentry id='var-bb-FAKEROOTDIRS'><glossterm>FAKEROOTDIRS</glossterm>
             <glossdef>
                 <para>
                      Lists directories to create before running a task in
@@ -1468,33 +1568,33 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FAKEROOTENV'><glossterm>FAKEROOTENV</glossterm>
+        <glossentry id='var-bb-FAKEROOTENV'><glossterm>FAKEROOTENV</glossterm>
             <glossdef>
                 <para>
                      Lists environment variables to set when running a task
                      in the fakeroot environment.
                      For additional information on environment variables and
                      the fakeroot environment, see the
-                     <link linkend='var-FAKEROOTBASEENV'><filename>FAKEROOTBASEENV</filename></link>
+                     <link linkend='var-bb-FAKEROOTBASEENV'><filename>FAKEROOTBASEENV</filename></link>
                      variable.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FAKEROOTNOENV'><glossterm>FAKEROOTNOENV</glossterm>
+        <glossentry id='var-bb-FAKEROOTNOENV'><glossterm>FAKEROOTNOENV</glossterm>
             <glossdef>
                 <para>
                      Lists environment variables to set when running a task
                      that is not in the fakeroot environment.
                      For additional information on environment variables and
                      the fakeroot environment, see the
-                     <link linkend='var-FAKEROOTENV'><filename>FAKEROOTENV</filename></link>
+                     <link linkend='var-bb-FAKEROOTENV'><filename>FAKEROOTENV</filename></link>
                      variable.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FETCHCMD'><glossterm>FETCHCMD</glossterm>
+        <glossentry id='var-bb-FETCHCMD'><glossterm>FETCHCMD</glossterm>
             <glossdef>
                 <para>
                     Defines the command the BitBake fetcher module
@@ -1506,7 +1606,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FILE'><glossterm>FILE</glossterm>
+        <glossentry id='var-bb-FILE'><glossterm>FILE</glossterm>
             <glossdef>
                 <para>
                     Points at the current file.
@@ -1518,25 +1618,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-FILESDIR'><glossterm>FILESDIR</glossterm>
-            <glossdef>
-                <para>
-                    Specifies directories BitBake uses when searching for
-                    patches and files.
-                    The "local" fetcher module uses these directories when
-                    handling <filename>file://</filename> URLs if the file
-                    was not found using
-                    <link linkend='var-FILESPATH'><filename>FILESPATH</filename></link>.
-                    <note>
-                        The <filename>FILESDIR</filename> variable is
-                        deprecated and you should use
-                        <filename>FILESPATH</filename> in all new code.
-                    </note>
-                </para>
-            </glossdef>
-        </glossentry>
-
-        <glossentry id='var-FILESPATH'><glossterm>FILESPATH</glossterm>
+        <glossentry id='var-bb-FILESPATH'><glossterm>FILESPATH</glossterm>
             <glossdef>
                 <para>
                     Specifies directories BitBake uses when searching for
@@ -1554,9 +1636,9 @@
     </glossdiv>
 
 
-    <glossdiv id='var-glossary-g'><title>G</title>
+    <glossdiv id='var-bb-glossary-g'><title>G</title>
 
-        <glossentry id='var-GITDIR'><glossterm>GITDIR</glossterm>
+        <glossentry id='var-bb-GITDIR'><glossterm>GITDIR</glossterm>
             <glossdef>
                 <para>
                     The directory in which a local copy of a Git repository
@@ -1568,9 +1650,9 @@
     </glossdiv>
 
 
-    <glossdiv id='var-glossary-h'><title>H</title>
+    <glossdiv id='var-bb-glossary-h'><title>H</title>
 
-        <glossentry id='var-HGDIR'><glossterm>HGDIR</glossterm>
+        <glossentry id='var-bb-HGDIR'><glossterm>HGDIR</glossterm>
             <glossdef>
                 <para>
                     The directory in which files checked out of a Mercurial
@@ -1579,7 +1661,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-HOMEPAGE'><glossterm>HOMEPAGE</glossterm>
+        <glossentry id='var-bb-HOMEPAGE'><glossterm>HOMEPAGE</glossterm>
             <glossdef>
                 <para>Website where more information about the software the recipe is building
                     can be found.</para>
@@ -1588,14 +1670,24 @@
 
     </glossdiv>
 
-    <glossdiv id='var-glossary-i'><title>I</title>
+    <glossdiv id='var-bb-glossary-i'><title>I</title>
 
-        <glossentry id='var-INHERIT'><glossterm>INHERIT</glossterm>
+        <glossentry id='var-bb-INHERIT'><glossterm>INHERIT</glossterm>
             <glossdef>
                 <para>
-                    Causes the named class to be inherited at
-                    this point during parsing.
-                    The variable is only valid in configuration files.
+                    Causes the named class or classes to be inherited globally.
+                    Anonymous functions in the class or classes
+                    are not executed for the
+                    base configuration and in each individual recipe.
+                    The OpenEmbedded build system ignores changes to
+                    <filename>INHERIT</filename> in individual recipes.
+                </para>
+
+                <para>
+                    For more information on <filename>INHERIT</filename>, see
+                    the
+                    "<link linkend="inherit-configuration-directive"><filename>INHERIT</filename> Configuration Directive</link>"
+                    section.
                 </para>
             </glossdef>
         </glossentry>
@@ -1610,15 +1702,15 @@
     </glossdiv>
 -->
 
-    <glossdiv id='var-glossary-l'><title>L</title>
+    <glossdiv id='var-bb-glossary-l'><title>L</title>
 
-        <glossentry id='var-LAYERDEPENDS'><glossterm>LAYERDEPENDS</glossterm>
+        <glossentry id='var-bb-LAYERDEPENDS'><glossterm>LAYERDEPENDS</glossterm>
             <glossdef>
                 <para>Lists the layers, separated by spaces, upon which this recipe depends.
                     Optionally, you can specify a specific layer version for a dependency
                     by adding it to the end of the layer name with a colon, (e.g. "anotherlayer:3"
                     to be compared against
-                    <link linkend='var-LAYERVERSION'><filename>LAYERVERSION</filename></link><filename>_anotherlayer</filename>
+                    <link linkend='var-bb-LAYERVERSION'><filename>LAYERVERSION</filename></link><filename>_anotherlayer</filename>
                     in this case).
                     BitBake produces an error if any dependency is missing or
                     the version numbers do not match exactly (if specified).</para>
@@ -1629,7 +1721,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-LAYERDIR'><glossterm>LAYERDIR</glossterm>
+        <glossentry id='var-bb-LAYERDIR'><glossterm>LAYERDIR</glossterm>
             <glossdef>
                 <para>When used inside the <filename>layer.conf</filename> configuration
                     file, this variable provides the path of the current layer.
@@ -1638,11 +1730,22 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-LAYERVERSION'><glossterm>LAYERVERSION</glossterm>
+        <glossentry id='var-bb-LAYERDIR_RE'><glossterm>LAYERDIR_RE</glossterm>
+            <glossdef>
+                <para>When used inside the <filename>layer.conf</filename> configuration
+                    file, this variable provides the path of the current layer,
+                    escaped for use in a regular expression
+                    (<link linkend='var-bb-BBFILE_PATTERN'><filename>BBFILE_PATTERN</filename></link>).
+                    This variable is not available outside of <filename>layer.conf</filename>
+                    and references are expanded immediately when parsing of the file completes.</para>
+            </glossdef>
+        </glossentry>
+
+        <glossentry id='var-bb-LAYERVERSION'><glossterm>LAYERVERSION</glossterm>
             <glossdef>
                 <para>Optionally specifies the version of a layer as a single number.
                     You can use this variable within
-                    <link linkend='var-LAYERDEPENDS'><filename>LAYERDEPENDS</filename></link>
+                    <link linkend='var-bb-LAYERDEPENDS'><filename>LAYERDEPENDS</filename></link>
                     for another layer in order to depend on a specific version
                     of the layer.</para>
                 <para>
@@ -1652,7 +1755,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-LICENSE'><glossterm>LICENSE</glossterm>
+        <glossentry id='var-bb-LICENSE'><glossterm>LICENSE</glossterm>
             <glossdef>
                 <para>
                     The list of source licenses for the recipe.
@@ -1662,9 +1765,9 @@
 
     </glossdiv>
 
-    <glossdiv id='var-glossary-m'><title>M</title>
+    <glossdiv id='var-bb-glossary-m'><title>M</title>
 
-        <glossentry id='var-MIRRORS'><glossterm>MIRRORS</glossterm>
+        <glossentry id='var-bb-MIRRORS'><glossterm>MIRRORS</glossterm>
             <glossdef>
                 <para>
                     Specifies additional paths from which BitBake gets source code.
@@ -1672,14 +1775,14 @@
                     tries the local download directory.
                     If that location fails, the build system tries locations
                     defined by
-                    <link linkend='var-PREMIRRORS'><filename>PREMIRRORS</filename></link>,
+                    <link linkend='var-bb-PREMIRRORS'><filename>PREMIRRORS</filename></link>,
                     the upstream source, and then locations specified by
                     <filename>MIRRORS</filename> in that order.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-MULTI_PROVIDER_WHITELIST'><glossterm>MULTI_PROVIDER_WHITELIST</glossterm>
+        <glossentry id='var-bb-MULTI_PROVIDER_WHITELIST'><glossterm>MULTI_PROVIDER_WHITELIST</glossterm>
             <glossdef>
                 <para>
                     Allows you to suppress BitBake warnings caused when
@@ -1688,7 +1791,7 @@
                 </para>
 
                 <para>
-                    Bitbake normally issues a warning when building two
+                    BitBake normally issues a warning when building two
                     different recipes where each provides the same output.
                     This scenario is usually something the user does not
                     want.
@@ -1712,9 +1815,9 @@
     </glossdiv>
 -->
 
-    <glossdiv id='var-glossary-o'><title>O</title>
+    <glossdiv id='var-bb-glossary-o'><title>O</title>
 
-        <glossentry id='var-OVERRIDES'><glossterm>OVERRIDES</glossterm>
+        <glossentry id='var-bb-OVERRIDES'><glossterm>OVERRIDES</glossterm>
             <glossdef>
                 <para>
                     BitBake uses <filename>OVERRIDES</filename> to control
@@ -1737,16 +1840,25 @@
         </glossentry>
     </glossdiv>
 
-    <glossdiv id='var-glossary-p'><title>P</title>
+    <glossdiv id='var-bb-glossary-p'><title>P</title>
 
-        <glossentry id='var-PACKAGES'><glossterm>PACKAGES</glossterm>
+        <glossentry id='var-bb-P4DIR'><glossterm>P4DIR</glossterm>
+            <glossdef>
+                <para>
+                    The directory in which a local copy of a Perforce depot
+                    is stored when it is fetched.
+                </para>
+            </glossdef>
+        </glossentry>
+
+        <glossentry id='var-bb-PACKAGES'><glossterm>PACKAGES</glossterm>
             <glossdef>
                 <para>The list of packages the recipe creates.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PACKAGES_DYNAMIC'><glossterm>PACKAGES_DYNAMIC</glossterm>
+        <glossentry id='var-bb-PACKAGES_DYNAMIC'><glossterm>PACKAGES_DYNAMIC</glossterm>
             <glossdef>
                 <para>
                     A promise that your recipe satisfies runtime dependencies
@@ -1755,7 +1867,7 @@
                     does not actually satisfy the dependencies, it only states that
                     they should be satisfied.
                     For example, if a hard, runtime dependency
-                    (<link linkend='var-RDEPENDS'><filename>RDEPENDS</filename></link>)
+                    (<link linkend='var-bb-RDEPENDS'><filename>RDEPENDS</filename></link>)
                     of another package is satisfied during the build
                     through the <filename>PACKAGES_DYNAMIC</filename>
                     variable, but a package with the module name is never actually
@@ -1764,7 +1876,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PE'><glossterm>PE</glossterm>
+        <glossentry id='var-bb-PE'><glossterm>PE</glossterm>
             <glossdef>
                 <para>
                     The epoch of the recipe.
@@ -1776,7 +1888,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PERSISTENT_DIR'><glossterm>PERSISTENT_DIR</glossterm>
+        <glossentry id='var-bb-PERSISTENT_DIR'><glossterm>PERSISTENT_DIR</glossterm>
             <glossdef>
                 <para>
                     Specifies the directory BitBake uses to store data that
@@ -1788,7 +1900,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PF'><glossterm>PF</glossterm>
+        <glossentry id='var-bb-PF'><glossterm>PF</glossterm>
             <glossdef>
                 <para>
                     Specifies the recipe or package name and includes all version and revision
@@ -1798,27 +1910,27 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PN'><glossterm>PN</glossterm>
+        <glossentry id='var-bb-PN'><glossterm>PN</glossterm>
             <glossdef>
                 <para>The recipe name.</para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PR'><glossterm>PR</glossterm>
+        <glossentry id='var-bb-PR'><glossterm>PR</glossterm>
             <glossdef>
                 <para>The revision of the recipe.
                     </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PREFERRED_PROVIDER'><glossterm>PREFERRED_PROVIDER</glossterm>
+        <glossentry id='var-bb-PREFERRED_PROVIDER'><glossterm>PREFERRED_PROVIDER</glossterm>
             <glossdef>
                 <para>
                     Determines which recipe should be given preference when
                     multiple recipes provide the same item.
                     You should always suffix the variable with the name of the
                     provided item, and you should set it to the
-                    <link linkend='var-PN'><filename>PN</filename></link>
+                    <link linkend='var-bb-PN'><filename>PN</filename></link>
                     of the recipe to which you want to give precedence.
                     Some examples:
                     <literallayout class='monospaced'>
@@ -1830,14 +1942,14 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PREFERRED_PROVIDERS'><glossterm>PREFERRED_PROVIDERS</glossterm>
+        <glossentry id='var-bb-PREFERRED_PROVIDERS'><glossterm>PREFERRED_PROVIDERS</glossterm>
             <glossdef>
                 <para>
                     Determines which recipe should be given preference for
                     cases where multiple recipes provide the same item.
                     Functionally,
                     <filename>PREFERRED_PROVIDERS</filename> is identical to
-                    <link linkend='var-PREFERRED_PROVIDER'><filename>PREFERRED_PROVIDER</filename></link>.
+                    <link linkend='var-bb-PREFERRED_PROVIDER'><filename>PREFERRED_PROVIDER</filename></link>.
                     However, the <filename>PREFERRED_PROVIDERS</filename>
                     variable lets you define preferences for multiple
                     situations using the following form:
@@ -1853,30 +1965,42 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PREFERRED_VERSION'><glossterm>PREFERRED_VERSION</glossterm>
+        <glossentry id='var-bb-PREFERRED_VERSION'><glossterm>PREFERRED_VERSION</glossterm>
             <glossdef>
                 <para>
                     If there are multiple versions of recipes available, this
                     variable determines which recipe should be given preference.
                     You must always suffix the variable with the
-                    <link linkend='var-PN'><filename>PN</filename></link>
+                    <link linkend='var-bb-PN'><filename>PN</filename></link>
                     you want to select, and you should set
-                    <link linkend='var-PV'><filename>PV</filename></link>
+                    <link linkend='var-bb-PV'><filename>PV</filename></link>
                     accordingly for precedence.
-                    You can use the "<filename>%</filename>" character as a
-                    wildcard to match any number of characters, which can be
-                    useful when specifying versions that contain long revision
-                    numbers that could potentially change.
+                </para>
+
+                <para>
+                    The <filename>PREFERRED_VERSION</filename> variable
+                    supports limited wildcard use through the
+                    "<filename>%</filename>" character.
+                    You can use the character to match any number of
+                    characters, which can be useful when specifying versions
+                    that contain long revision numbers that potentially change.
                     Here are two examples:
                     <literallayout class='monospaced'>
      PREFERRED_VERSION_python = "2.7.3"
-     PREFERRED_VERSION_linux-yocto = "3.10%"
+     PREFERRED_VERSION_linux-yocto = "4.12%"
                     </literallayout>
+                    <note><title>Important</title>
+                        The use of the "<filename>%</filename>" character
+                        is limited in that it only works at the end of the
+                        string.
+                        You cannot use the wildcard character in any other
+                        location of the string.
+                    </note>
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PREMIRRORS'><glossterm>PREMIRRORS</glossterm>
+        <glossentry id='var-bb-PREMIRRORS'><glossterm>PREMIRRORS</glossterm>
             <glossdef>
                 <para>
                     Specifies additional paths from which BitBake gets source code.
@@ -1885,7 +2009,7 @@
                     If that location fails, the build system tries locations
                     defined by <filename>PREMIRRORS</filename>, the upstream
                     source, and then locations specified by
-                    <link linkend='var-MIRRORS'><filename>MIRRORS</filename></link>
+                    <link linkend='var-bb-MIRRORS'><filename>MIRRORS</filename></link>
                     in that order.
                 </para>
 
@@ -1909,20 +2033,20 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PROVIDES'><glossterm>PROVIDES</glossterm>
+        <glossentry id='var-bb-PROVIDES'><glossterm>PROVIDES</glossterm>
             <glossdef>
                 <para>
                     A list of aliases by which a particular recipe can be
                     known.
                     By default, a recipe's own
-                    <filename><link linkend='var-PN'>PN</link></filename>
+                    <filename><link linkend='var-bb-PN'>PN</link></filename>
                     is implicitly already in its <filename>PROVIDES</filename>
                     list.
                     If a recipe uses <filename>PROVIDES</filename>, the
                     additional aliases are synonyms for the recipe and can
                     be useful satisfying dependencies of other recipes during
                     the build as specified by
-                    <filename><link linkend='var-DEPENDS'>DEPENDS</link></filename>.
+                    <filename><link linkend='var-bb-DEPENDS'>DEPENDS</link></filename>.
                 </para>
 
                 <para>
@@ -1935,14 +2059,35 @@
                     The <filename>PROVIDES</filename> statement results in
                     the "libav" recipe also being known as "libpostproc".
                 </para>
+
+                <para>
+                    In addition to providing recipes under alternate names,
+                    the <filename>PROVIDES</filename> mechanism is also used
+                    to implement virtual targets.
+                    A virtual target is a name that corresponds to some
+                    particular functionality (e.g. a Linux kernel).
+                    Recipes that provide the functionality in question list the
+                    virtual target in <filename>PROVIDES</filename>.
+                    Recipes that depend on the functionality in question can
+                    include the virtual target in
+                    <link linkend='var-bb-DEPENDS'><filename>DEPENDS</filename></link>
+                    to leave the choice of provider open.
+                </para>
+
+                <para>
+                    Conventionally, virtual targets have names on the form
+                    "virtual/function" (e.g. "virtual/kernel").
+                    The slash is simply part of the name and has no
+                    syntactical significance.
+                </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PRSERV_HOST'><glossterm>PRSERV_HOST</glossterm>
+        <glossentry id='var-bb-PRSERV_HOST'><glossterm>PRSERV_HOST</glossterm>
             <glossdef>
                 <para>
                     The network based
-                    <link linkend='var-PR'><filename>PR</filename></link>
+                    <link linkend='var-bb-PR'><filename>PR</filename></link>
                     service host and port.
                 </para>
 
@@ -1960,7 +2105,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-PV'><glossterm>PV</glossterm>
+        <glossentry id='var-bb-PV'><glossterm>PV</glossterm>
             <glossdef>
                 <para>The version of the recipe.
                  </para>
@@ -1974,9 +2119,9 @@
     </glossdiv>
 -->
 
-    <glossdiv id='var-glossary-r'><title>R</title>
+    <glossdiv id='var-bb-glossary-r'><title>R</title>
 
-        <glossentry id='var-RDEPENDS'><glossterm>RDEPENDS</glossterm>
+        <glossentry id='var-bb-RDEPENDS'><glossterm>RDEPENDS</glossterm>
             <glossdef>
                 <para>
                     Lists a package's runtime dependencies (i.e. other packages)
@@ -2031,20 +2176,30 @@
 
                 <para>
                     For information on build-time dependencies, see the
-                    <link linkend='var-DEPENDS'><filename>DEPENDS</filename></link>
+                    <link linkend='var-bb-DEPENDS'><filename>DEPENDS</filename></link>
                     variable.
                 </para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-RPROVIDES'><glossterm>RPROVIDES</glossterm>
+        <glossentry id='var-bb-REPODIR'><glossterm>REPODIR</glossterm>
+            <glossdef>
+                <para>
+                    The directory in which a local copy of a
+                    <filename>google-repo</filename> directory is stored
+                    when it is synced.
+                </para>
+            </glossdef>
+        </glossentry>
+
+        <glossentry id='var-bb-RPROVIDES'><glossterm>RPROVIDES</glossterm>
             <glossdef>
                 <para>
                     A list of package name aliases that a package also provides.
                     These aliases are useful for satisfying runtime dependencies
                     of other packages both during the build and on the target
                     (as specified by
-                    <filename><link linkend='var-RDEPENDS'>RDEPENDS</link></filename>).
+                    <filename><link linkend='var-bb-RDEPENDS'>RDEPENDS</link></filename>).
                 </para>
                 <para>
                    As with all package-controlling variables, you must always
@@ -2057,7 +2212,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-RRECOMMENDS'><glossterm>RRECOMMENDS</glossterm>
+        <glossentry id='var-bb-RRECOMMENDS'><glossterm>RRECOMMENDS</glossterm>
             <glossdef>
                 <para>
                     A list of packages that extends the usability of a package
@@ -2066,7 +2221,7 @@
                     packages in order to successfully build, but needs them for
                     the extended usability.
                     To specify runtime dependencies for packages, see the
-                    <filename><link linkend='var-RDEPENDS'>RDEPENDS</link></filename>
+                    <filename><link linkend='var-bb-RDEPENDS'>RDEPENDS</link></filename>
                     variable.
                 </para>
 
@@ -2099,15 +2254,15 @@
 
     </glossdiv>
 
-    <glossdiv id='var-glossary-s'><title>S</title>
+    <glossdiv id='var-bb-glossary-s'><title>S</title>
 
-        <glossentry id='var-SECTION'><glossterm>SECTION</glossterm>
+        <glossentry id='var-bb-SECTION'><glossterm>SECTION</glossterm>
             <glossdef>
                 <para>The section in which packages should be categorized.</para>
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-SRC_URI'><glossterm>SRC_URI</glossterm>
+        <glossentry id='var-bb-SRC_URI'><glossterm>SRC_URI</glossterm>
             <glossdef>
                 <para>
                     The list of source files - local or remote.
@@ -2128,7 +2283,7 @@
                             the metadata,
                             from the local machine.
                             The path is relative to the
-                            <link linkend='var-FILESPATH'><filename>FILESPATH</filename></link>
+                            <link linkend='var-bb-FILESPATH'><filename>FILESPATH</filename></link>
                             variable.</para></listitem>
                         <listitem><para><emphasis><filename>bzr://</filename> -</emphasis> Fetches files from a
                             Bazaar revision control repository.</para></listitem>
@@ -2178,7 +2333,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-SRCDATE'><glossterm>SRCDATE</glossterm>
+        <glossentry id='var-bb-SRCDATE'><glossterm>SRCDATE</glossterm>
             <glossdef>
                 <para>
                     The date of the source code used to build the package.
@@ -2187,7 +2342,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-SRCREV'><glossterm>SRCREV</glossterm>
+        <glossentry id='var-bb-SRCREV'><glossterm>SRCREV</glossterm>
             <glossdef>
                 <para>
                     The revision of the source code used to build the package.
@@ -2200,13 +2355,13 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-SRCREV_FORMAT'><glossterm>SRCREV_FORMAT</glossterm>
+        <glossentry id='var-bb-SRCREV_FORMAT'><glossterm>SRCREV_FORMAT</glossterm>
             <glossdef>
                 <para>
                     Helps construct valid
-                    <link linkend='var-SRCREV'><filename>SRCREV</filename></link>
+                    <link linkend='var-bb-SRCREV'><filename>SRCREV</filename></link>
                     values when multiple source controlled URLs are used in
-                    <link linkend='var-SRC_URI'><filename>SRC_URI</filename></link>.
+                    <link linkend='var-bb-SRC_URI'><filename>SRC_URI</filename></link>.
                 </para>
 
                 <para>
@@ -2227,7 +2382,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-STAMP'><glossterm>STAMP</glossterm>
+        <glossentry id='var-bb-STAMP'><glossterm>STAMP</glossterm>
             <glossdef>
                 <para>
                     Specifies the base path used to create recipe stamp files.
@@ -2237,12 +2392,12 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-STAMPCLEAN'><glossterm>STAMPCLEAN</glossterm>
+        <glossentry id='var-bb-STAMPCLEAN'><glossterm>STAMPCLEAN</glossterm>
             <glossdef>
                 <para>
                     Specifies the base path used to create recipe stamp files.
                     Unlike the
-                    <link linkend='var-STAMP'><filename>STAMP</filename></link>
+                    <link linkend='var-bb-STAMP'><filename>STAMP</filename></link>
                     variable, <filename>STAMPCLEAN</filename> can contain
                     wildcards to match the range of files a clean operation
                     should remove.
@@ -2252,7 +2407,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-SUMMARY'><glossterm>SUMMARY</glossterm>
+        <glossentry id='var-bb-SUMMARY'><glossterm>SUMMARY</glossterm>
             <glossdef>
                 <para>
                     A short summary for the recipe, which is 72 characters or less.
@@ -2260,7 +2415,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-SVNDIR'><glossterm>SVNDIR</glossterm>
+        <glossentry id='var-bb-SVNDIR'><glossterm>SVNDIR</glossterm>
             <glossdef>
                 <para>
                     The directory in which files checked out of a Subversion
@@ -2271,9 +2426,9 @@
 
     </glossdiv>
 
-    <glossdiv id='var-glossary-t'><title>T</title>
+    <glossdiv id='var-bb-glossary-t'><title>T</title>
 
-        <glossentry id='var-T'><glossterm>T</glossterm>
+        <glossentry id='var-bb-T'><glossterm>T</glossterm>
             <glossdef>
                 <para>Points to a directory were BitBake places
                     temporary files, which consist mostly of task logs and
@@ -2282,7 +2437,7 @@
             </glossdef>
         </glossentry>
 
-        <glossentry id='var-TOPDIR'><glossterm>TOPDIR</glossterm>
+        <glossentry id='var-bb-TOPDIR'><glossterm>TOPDIR</glossterm>
             <glossdef>
                 <para>
                     Points to the build directory.

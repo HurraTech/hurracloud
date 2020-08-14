@@ -3,12 +3,11 @@ python buildstats_summary () {
     import collections
     import os.path
 
-    bn = get_bn(e)
-    bsdir = os.path.join(e.data.getVar('BUILDSTATS_BASE', True), bn)
+    bsdir = e.data.expand("${BUILDSTATS_BASE}/${BUILDNAME}")
     if not os.path.exists(bsdir):
         return
 
-    sstatetasks = (e.data.getVar('SSTATETASKS', True) or '').split()
+    sstatetasks = (e.data.getVar('SSTATETASKS') or '').split()
     built = collections.defaultdict(lambda: [set(), set()])
     for pf in os.listdir(bsdir):
         taskdir = os.path.join(bsdir, pf)
@@ -31,7 +30,11 @@ python buildstats_summary () {
                 header_printed = True
                 bb.note("Build completion summary:")
 
-            bb.note("  {0}: {1}% sstate reuse ({2} setscene, {3} scratch)".format(t, 100*len(sstate)/(len(sstate)+len(no_sstate)), len(sstate), len(no_sstate)))
+            sstate_count = len(sstate)
+            no_sstate_count = len(no_sstate)
+            total_count = sstate_count + no_sstate_count
+            bb.note("  {0}: {1:.1f}% sstate reuse({2} setscene, {3} scratch)".format(
+                t, round(100 * sstate_count / total_count, 1), sstate_count, no_sstate_count))
 }
 addhandler buildstats_summary
 buildstats_summary[eventmask] = "bb.event.BuildCompleted"

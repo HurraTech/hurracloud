@@ -13,13 +13,9 @@ oe_multilib_header() {
 		;;
 	*)
 	esac
-        # We use
-        # For ARM: We don't support multilib builds.
         # For MIPS: "n32" is a special case, which needs to be
         # distinct from both 64-bit and 32-bit.
         case ${TARGET_ARCH} in
-        arm*)   return
-                ;;
         mips*)  case "${MIPSPKGSFX_ABI}" in
                 "-n32")
                        ident=n32   
@@ -31,9 +27,6 @@ oe_multilib_header() {
                 ;;
         *)      ident=${SITEINFO_BITS}
         esac
-	if echo ${TARGET_ARCH} | grep -q arm; then
-	    return
-	fi
 	for each_header in "$@" ; do
 	   if [ ! -f "${D}/${includedir}/$each_header" ]; then
 	      bberror "oe_multilib_header: Unable to find header $each_header."
@@ -50,5 +43,10 @@ oe_multilib_header() {
 # Dependencies on arch variables like MIPSPKGSFX_ABI can be problematic.
 # We don't need multilib headers for native builds so brute force things.
 oe_multilib_header_class-native () {
+	return
+}
+
+# Nor do we need multilib headers for nativesdk builds.
+oe_multilib_header_class-nativesdk () {
 	return
 }

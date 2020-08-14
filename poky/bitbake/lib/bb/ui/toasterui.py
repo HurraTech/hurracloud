@@ -7,18 +7,8 @@
 # Copyright (C) 2006-2012 Richard Purdie
 # Copyright (C) 2013      Intel Corporation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from __future__ import division
 import time
@@ -39,7 +29,7 @@ import os
 # module properties for UI modules are read by bitbake and the contract should not be broken
 
 
-featureSet = [bb.cooker.CookerFeatures.HOB_EXTRA_CACHES, bb.cooker.CookerFeatures.SEND_DEPENDS_TREE, bb.cooker.CookerFeatures.BASEDATASTORE_TRACKING, bb.cooker.CookerFeatures.SEND_SANITYEVENTS]
+featureSet = [bb.cooker.CookerFeatures.HOB_EXTRA_CACHES, bb.cooker.CookerFeatures.BASEDATASTORE_TRACKING, bb.cooker.CookerFeatures.SEND_SANITYEVENTS]
 
 logger = logging.getLogger("ToasterLogger")
 interactive = sys.stdout.isatty()
@@ -92,6 +82,45 @@ def _close_build_log(build_log):
         build_log.close()
         logger.removeHandler(build_log)
 
+_evt_list = [
+    "bb.build.TaskBase",
+    "bb.build.TaskFailed",
+    "bb.build.TaskFailedSilent",
+    "bb.build.TaskStarted",
+    "bb.build.TaskSucceeded",
+    "bb.command.CommandCompleted",
+    "bb.command.CommandExit",
+    "bb.command.CommandFailed",
+    "bb.cooker.CookerExit",
+    "bb.event.BuildInit",
+    "bb.event.BuildCompleted",
+    "bb.event.BuildStarted",
+    "bb.event.CacheLoadCompleted",
+    "bb.event.CacheLoadProgress",
+    "bb.event.CacheLoadStarted",
+    "bb.event.ConfigParsed",
+    "bb.event.DepTreeGenerated",
+    "bb.event.LogExecTTY",
+    "bb.event.MetadataEvent",
+    "bb.event.MultipleProviders",
+    "bb.event.NoProvider",
+    "bb.event.ParseCompleted",
+    "bb.event.ParseProgress",
+    "bb.event.ParseStarted",
+    "bb.event.RecipeParsed",
+    "bb.event.SanityCheck",
+    "bb.event.SanityCheckPassed",
+    "bb.event.TreeDataPreparationCompleted",
+    "bb.event.TreeDataPreparationStarted",
+    "bb.runqueue.runQueueTaskCompleted",
+    "bb.runqueue.runQueueTaskFailed",
+    "bb.runqueue.runQueueTaskSkipped",
+    "bb.runqueue.runQueueTaskStarted",
+    "bb.runqueue.sceneQueueTaskCompleted",
+    "bb.runqueue.sceneQueueTaskFailed",
+    "bb.runqueue.sceneQueueTaskStarted",
+    "logging.LogRecord"]
+
 def main(server, eventHandler, params):
     # set to a logging.FileHandler instance when a build starts;
     # see _open_build_log()
@@ -115,18 +144,41 @@ def main(server, eventHandler, params):
     console.setFormatter(formatter)
     logger.addHandler(console)
     logger.setLevel(logging.INFO)
+    llevel, debug_domains = bb.msg.constructLogOptions()
+    result, error = server.runCommand(["setEventMask", server.getEventHandle(), llevel, debug_domains, _evt_list])
+    if not result or error:
+        logger.error("can't set event mask: %s", error)
+        return 1
 
     # verify and warn
     build_history_enabled = True
     inheritlist, _ = server.runCommand(["getVariable", "INHERIT"])
 
     if not "buildhistory" in inheritlist.split(" "):
-        logger.warn("buildhistory is not enabled. Please enable INHERIT += \"buildhistory\" to see image details.")
+        logger.warning("buildhistory is not enabled. Please enable INHERIT += \"buildhistory\" to see image details.")
         build_history_enabled = False
 
+    if not "buildstats" in inheritlist.split(" "):
+        logger.warning("buildstats is not enabled. Please enable INHERIT += \"buildstats\" to generate build statistics.")
+
     if not params.observe_only:
-        logger.error("ToasterUI can only work in observer mode")
-        return 1
+        params.updateFromServer(server)
+        params.updateToServer(server, os.environ.copy())
+        cmdline = params.parseActions()
+        if not cmdline:
+            print("Nothing to do.  Use 'bitbake world' to build everything, or run 'bitbake --help' for usage information.")
+            return 1
+        if 'msg' in cmdline and cmdline['msg']:
+            logger.error(cmdline['msg'])
+            return 1
+
+        ret, error = server.runCommand(cmdline['action'])
+        if error:
+            logger.error("Command '%s' failed: %s" % (cmdline, error))
+            return 1
+        elif not ret:
+            logger.error("Command '%s' failed: returned %s" % (cmdline, ret))
+            return 1
 
     # set to 1 when toasterui needs to shut down
     main.shutdown = 0
@@ -138,7 +190,8 @@ def main(server, eventHandler, params):
     taskfailures = []
     first = True
 
-    buildinfohelper = BuildInfoHelper(server, build_history_enabled)
+    buildinfohelper = BuildInfoHelper(server, build_history_enabled,
+                                      os.getenv('TOASTER_BRBE'))
 
     # write our own log files into bitbake's log directory;
     # we're only interested in the path to the parent directory of
@@ -173,21 +226,39 @@ def main(server, eventHandler, params):
             # pylint: disable=protected-access
             # the code will look into the protected variables of the event; no easy way around this
 
-            # we treat ParseStarted as the first event of toaster-triggered
-            # builds; that way we get the Build Configuration included in the log
-            # and any errors that occur before BuildStarted is fired
+            if isinstance(event, bb.event.HeartbeatEvent):
+                continue
+
             if isinstance(event, bb.event.ParseStarted):
                 if not (build_log and build_log_file_path):
                     build_log, build_log_file_path = _open_build_log(log_dir)
+
+                buildinfohelper.store_started_build()
+                buildinfohelper.save_build_log_file_path(build_log_file_path)
+                buildinfohelper.set_recipes_to_parse(event.total)
                 continue
 
-            if isinstance(event, bb.event.BuildStarted):
-                # command-line builds don't fire a ParseStarted event,
-                # so we have to start the log file for those on BuildStarted instead
+            # create a build object in buildinfohelper from either BuildInit
+            # (if available) or BuildStarted (for jethro and previous versions)
+            if isinstance(event, (bb.event.BuildStarted, bb.event.BuildInit)):
                 if not (build_log and build_log_file_path):
                     build_log, build_log_file_path = _open_build_log(log_dir)
 
-                buildinfohelper.store_started_build(event, build_log_file_path)
+                buildinfohelper.save_build_targets(event)
+                buildinfohelper.save_build_log_file_path(build_log_file_path)
+
+                # get additional data from BuildStarted
+                if isinstance(event, bb.event.BuildStarted):
+                    buildinfohelper.save_build_layers_and_variables()
+                continue
+
+            if isinstance(event, bb.event.ParseProgress):
+                buildinfohelper.set_recipes_parsed(event.current)
+                continue
+
+            if isinstance(event, bb.event.ParseCompleted):
+                buildinfohelper.set_recipes_parsed(event.total)
+                continue
 
             if isinstance(event, (bb.build.TaskStarted, bb.build.TaskSucceeded, bb.build.TaskFailedSilent)):
                 buildinfohelper.update_and_store_task(event)
@@ -232,10 +303,6 @@ def main(server, eventHandler, params):
             # timing and error informations from the parsing phase in Toaster
             if isinstance(event, (bb.event.SanityCheckPassed, bb.event.SanityCheck)):
                 continue
-            if isinstance(event, bb.event.ParseProgress):
-                continue
-            if isinstance(event, bb.event.ParseCompleted):
-                continue
             if isinstance(event, bb.event.CacheLoadStarted):
                 continue
             if isinstance(event, bb.event.CacheLoadProgress):
@@ -243,29 +310,13 @@ def main(server, eventHandler, params):
             if isinstance(event, bb.event.CacheLoadCompleted):
                 continue
             if isinstance(event, bb.event.MultipleProviders):
-                logger.info("multiple providers are available for %s%s (%s)", event._is_runtime and "runtime " or "",
-                            event._item,
-                            ", ".join(event._candidates))
-                logger.info("consider defining a PREFERRED_PROVIDER entry to match %s", event._item)
+                logger.info(str(event))
                 continue
 
             if isinstance(event, bb.event.NoProvider):
                 errors = errors + 1
-                if event._runtime:
-                    r = "R"
-                else:
-                    r = ""
-
-                if event._dependees:
-                    text = "Nothing %sPROVIDES '%s' (but %s %sDEPENDS on or otherwise requires it)" % (r, event._item, ", ".join(event._dependees), r)
-                else:
-                    text = "Nothing %sPROVIDES '%s'" % (r, event._item)
-
+                text = str(event)
                 logger.error(text)
-                if event._reasons:
-                    for reason in event._reasons:
-                        logger.error("%s", reason)
-                        text += reason
                 buildinfohelper.store_log_error(text)
                 continue
 
@@ -287,8 +338,7 @@ def main(server, eventHandler, params):
             if isinstance(event, bb.runqueue.runQueueTaskFailed):
                 buildinfohelper.update_and_store_task(event)
                 taskfailures.append(event.taskstring)
-                logger.error("Task %s (%s) failed with exit code '%s'",
-                             event.taskid, event.taskstring, event.exitcode)
+                logger.error(str(event))
                 continue
 
             if isinstance(event, (bb.runqueue.sceneQueueTaskCompleted, bb.runqueue.sceneQueueTaskFailed)):
@@ -305,7 +355,10 @@ def main(server, eventHandler, params):
                 if isinstance(event, bb.command.CommandFailed):
                     errors += 1
                     errorcode = 1
-                    logger.error("Command execution failed: %s", event.error)
+                    logger.error(str(event))
+                elif isinstance(event, bb.event.BuildCompleted):
+                    buildinfohelper.scan_image_artifacts()
+                    buildinfohelper.clone_required_sdk_artifacts()
 
                 # turn off logging to the current build log
                 _close_build_log(build_log)
@@ -315,28 +368,30 @@ def main(server, eventHandler, params):
 
                 # update the build info helper on BuildCompleted, not on CommandXXX
                 buildinfohelper.update_build_information(event, errors, warnings, taskfailures)
+
+                brbe = buildinfohelper.brbe
                 buildinfohelper.close(errorcode)
-                # mark the log output; controllers may kill the toasterUI after seeing this log
-                logger.info("ToasterUI build done 1, brbe: %s", buildinfohelper.brbe )
 
                 # we start a new build info
-                if buildinfohelper.brbe is not None:
-                    logger.debug("ToasterUI under BuildEnvironment management - exiting after the build")
-                    server.terminateServer()
-                else:
+                if params.observe_only:
                     logger.debug("ToasterUI prepared for new build")
                     errors = 0
                     warnings = 0
                     taskfailures = []
                     buildinfohelper = BuildInfoHelper(server, build_history_enabled)
+                else:
+                    main.shutdown = 1
 
-                logger.info("ToasterUI build done 2")
+                logger.info("ToasterUI build done, brbe: %s", brbe)
                 continue
 
             if isinstance(event, (bb.command.CommandCompleted,
                                   bb.command.CommandFailed,
                                   bb.command.CommandExit)):
-                errorcode = 0
+                if params.observe_only:
+                    errorcode = 0
+                else:
+                    main.shutdown = 1
 
                 continue
 
@@ -351,14 +406,16 @@ def main(server, eventHandler, params):
                     buildinfohelper.store_target_package_data(event)
                 elif event.type == "MissedSstate":
                     buildinfohelper.store_missed_state_tasks(event)
-                elif event.type == "ImageFileSize":
-                    buildinfohelper.update_target_image_file(event)
-                elif event.type == "ArtifactFileSize":
-                    buildinfohelper.update_artifact_image_file(event)
-                elif event.type == "LicenseManifestPath":
-                    buildinfohelper.store_license_manifest_path(event)
+                elif event.type == "SDKArtifactInfo":
+                    buildinfohelper.scan_sdk_artifacts(event)
+                elif event.type == "SetBRBE":
+                    buildinfohelper.brbe = buildinfohelper._get_data_from_event(event)
+                elif event.type == "TaskArtifacts":
+                    buildinfohelper.scan_task_artifacts(event)
+                elif event.type == "OSErrorException":
+                    logger.error(event)
                 else:
-                    logger.error("Unprocessed MetadataEvent %s ", str(event))
+                    logger.error("Unprocessed MetadataEvent %s", event.type)
                 continue
 
             if isinstance(event, bb.cooker.CookerExit):
@@ -366,45 +423,43 @@ def main(server, eventHandler, params):
                 main.shutdown = 1
                 continue
 
-            # ignore
-            if isinstance(event, (bb.event.BuildBase,
-                                  bb.event.StampUpdate,
-                                  bb.event.RecipePreFinalise,
-                                  bb.runqueue.runQueueEvent,
-                                  bb.runqueue.runQueueExitWait,
-                                  bb.event.OperationProgress,
-                                  bb.command.CommandFailed,
-                                  bb.command.CommandExit,
-                                  bb.command.CommandCompleted,
-                                  bb.event.ReachableStamps)):
-                continue
-
             if isinstance(event, bb.event.DepTreeGenerated):
                 buildinfohelper.store_dependency_information(event)
                 continue
 
-            logger.warn("Unknown event: %s", event)
+            logger.warning("Unknown event: %s", event)
             return_value += 1
 
         except EnvironmentError as ioerror:
-            # ignore interrupted io
-            if ioerror.args[0] == 4:
-                pass
+            logger.warning("EnvironmentError: %s" % ioerror)
+            # ignore interrupted io system calls
+            if ioerror.args[0] == 4: # errno 4 is EINTR
+                logger.warning("Skipped EINTR: %s" % ioerror)
+            else:
+                raise
         except KeyboardInterrupt:
-            main.shutdown = 1
+            if params.observe_only:
+                print("\nKeyboard Interrupt, exiting observer...")
+                main.shutdown = 2
+            if not params.observe_only and main.shutdown == 1:
+                print("\nSecond Keyboard Interrupt, stopping...\n")
+                _, error = server.runCommand(["stateForceShutdown"])
+                if error:
+                    logger.error("Unable to cleanly stop: %s" % error)
+            if not params.observe_only and main.shutdown == 0:
+                print("\nKeyboard Interrupt, closing down...\n")
+                interrupted = True
+                _, error = server.runCommand(["stateShutdown"])
+                if error:
+                    logger.error("Unable to cleanly shutdown: %s" % error)
+            buildinfohelper.cancel_cli_build()
+            main.shutdown = main.shutdown + 1
         except Exception as e:
             # print errors to log
             import traceback
             from pprint import pformat
             exception_data = traceback.format_exc()
             logger.error("%s\n%s" , e, exception_data)
-
-            _, _, tb = sys.exc_info()
-            if tb is not None:
-                curr = tb
-                while curr is not None:
-                    logger.error("Error data dump %s\n%s\n" , traceback.format_tb(curr,1), pformat(curr.tb_frame.f_locals))
-                    curr = curr.tb_next
 
             # save them to database, if possible; if it fails, we already logged to console.
             try:
@@ -418,5 +473,5 @@ def main(server, eventHandler, params):
     if interrupted and return_value == 0:
         return_value += 1
 
-    logger.warn("Return value is %d", return_value)
+    logger.warning("Return value is %d", return_value)
     return return_value

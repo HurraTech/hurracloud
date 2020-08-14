@@ -1,5 +1,3 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 '''
 BitBake 'Fetch' implementations
 
@@ -29,24 +27,11 @@ IETF secsh internet draft:
 #            Copyright 2003 Holger Schurig
 #
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import re, os
-from   bb import data
 from   bb.fetch2 import FetchMethod
-from   bb.fetch2 import FetchError
-from   bb.fetch2 import logger
 from   bb.fetch2 import runfetchcmd
 
 
@@ -73,7 +58,7 @@ class SSH(FetchMethod):
     '''Class to fetch a module or modules via Secure Shell'''
 
     def supports(self, urldata, d):
-        return __pattern__.match(urldata.url) != None
+        return __pattern__.match(urldata.url) is not None
 
     def supports_checksum(self, urldata):
         return False
@@ -87,11 +72,11 @@ class SSH(FetchMethod):
         m = __pattern__.match(urldata.url)
         path = m.group('path')
         host = m.group('host')
-        urldata.localpath = os.path.join(d.getVar('DL_DIR', True),
+        urldata.localpath = os.path.join(d.getVar('DL_DIR'),
                 os.path.basename(os.path.normpath(path)))
 
     def download(self, urldata, d):
-        dldir = d.getVar('DL_DIR', True)
+        dldir = d.getVar('DL_DIR')
 
         m = __pattern__.match(urldata.url)
         path = m.group('path')
@@ -114,12 +99,10 @@ class SSH(FetchMethod):
             fr = host
         fr += ':%s' % path
 
-
-        import commands
         cmd = 'scp -B -r %s %s %s/' % (
             portarg,
-            commands.mkarg(fr),
-            commands.mkarg(dldir)
+            fr,
+            dldir
         )
 
         bb.fetch2.check_network_access(d, cmd, urldata.url)

@@ -16,12 +16,12 @@
 </para>
 
 <para>
-    Any <ulink url='&YOCTO_DOCS_DEV_URL;#metadata'>Metadata</ulink> usually
+    Any <link linkend='metadata'>Metadata</link> usually
     found in a recipe can also be placed in a class file.
     Class files are identified by the extension <filename>.bbclass</filename>
     and are usually placed in a <filename>classes/</filename> directory beneath
     the <filename>meta*/</filename> directory found in the
-    <ulink url='&YOCTO_DOCS_DEV_URL;#source-directory'>Source Directory</ulink>.
+    <link linkend='source-directory'>Source Directory</link>.
     Class files can also be pointed to by
     <link linkend='var-BUILDDIR'><filename>BUILDDIR</filename></link>
     (e.g. <filename>build/</filename>) in the same way as
@@ -35,8 +35,7 @@
 <para>
     This chapter discusses only the most useful and important classes.
     Other classes do exist within the <filename>meta/classes</filename>
-    directory in the
-    <ulink url='&YOCTO_DOCS_DEV_URL;#source-directory'>Source Directory</ulink>.
+    directory in the Source Directory.
     You can reference the <filename>.bbclass</filename> files directly
     for more information.
 </para>
@@ -94,7 +93,7 @@
     <para>
         For more details on the source archiver, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#maintaining-open-source-license-compliance-during-your-products-lifecycle'>Maintaining Open Source License Compliance During Your Product's Lifecycle</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
         You can also see the
         <link linkend='var-ARCHIVER_MODE'><filename>ARCHIVER_MODE</filename></link>
         variable for information about the variable flags (varflags)
@@ -122,16 +121,14 @@
         These classes can also work with software that emulates Autotools.
         For more information, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#new-recipe-autotooled-package'>Autotooled Package</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
     </para>
 
     <para>
         By default, the <filename>autotools*</filename> classes
         use out-of-tree builds (i.e.
-        <filename>autotools.bbclass</filename> and
-        <filename>autotools_stage.bbclass</filename>).
-        (<link linkend='var-B'><filename>B</filename></link> <filename>!=</filename>
-        <link linkend='var-S'><filename>S</filename></link>).
+        <filename>autotools.bbclass</filename> building with
+        <filename>B != S</filename>).
     </para>
 
     <para>
@@ -139,8 +136,7 @@
         using out-of-tree builds, you should have the recipe inherit the
         <filename>autotools-brokensep</filename> class.
         The <filename>autotools-brokensep</filename> class behaves the same
-        as the <filename>autotools</filename> and
-        <filename>autotools_stage</filename> classes but builds with
+        as the <filename>autotools</filename> class but builds with
         <link linkend='var-B'><filename>B</filename></link> ==
         <link linkend='var-S'><filename>S</filename></link>.
         This method is useful when out-of-tree build support is either not
@@ -163,13 +159,17 @@
                 cross-compilation.
                 You can pass additional parameters to
                 <filename>configure</filename> through the
-                <filename><link linkend='var-EXTRA_OECONF'>EXTRA_OECONF</link></filename> variable.
+                <filename><link linkend='var-EXTRA_OECONF'>EXTRA_OECONF</link></filename>
+                or
+                <link linkend='var-PACKAGECONFIG_CONFARGS'><filename>PACKAGECONFIG_CONFARGS</filename></link>
+                variables.
                 </para></listitem>
             <listitem><para><link linkend='ref-tasks-compile'><filename>do_compile</filename></link> -
                 Runs <filename>make</filename> with arguments that specify the
                 compiler and linker.
                 You can pass additional arguments through
-                the <filename><link linkend='var-EXTRA_OEMAKE'>EXTRA_OEMAKE</link></filename> variable.
+                the <filename><link linkend='var-EXTRA_OEMAKE'>EXTRA_OEMAKE</link></filename>
+                variable.
                 </para></listitem>
             <listitem><para><link linkend='ref-tasks-install'><filename>do_install</filename></link> -
                 Runs <filename>make install</filename> and passes in
@@ -196,8 +196,24 @@
         class or the
         <link linkend='ref-classes-package'><filename>package</filename></link>
         class.
+    </para>
+
+    <para>
         The class also contains some commonly used functions such as
+        <filename>oe_runmake</filename>, which runs
+        <filename>make</filename> with the arguments specified in
+        <link linkend='var-EXTRA_OEMAKE'><filename>EXTRA_OEMAKE</filename></link>
+        variable as well as the arguments passed directly to
         <filename>oe_runmake</filename>.
+    </para>
+</section>
+
+<section id='ref-classes-bash-completion'>
+    <title><filename>bash-completion.bbclass</filename></title>
+
+    <para>
+        Sets up packaging and dependencies appropriate for recipes that
+        build software that includes bash-completion data.
     </para>
 </section>
 
@@ -302,93 +318,6 @@
     </para>
 </section>
 
-<section id='ref-classes-bluetooth'>
-    <title><filename>bluetooth.bbclass</filename></title>
-
-    <para>
-        The <filename>bluetooth</filename> class defines a variable that
-        expands to the recipe (package) providing core
-        bluetooth support on the platform.
-    </para>
-
-    <para>
-        For details on how the class works, see the
-        <filename>meta/classes/bluetooth.bbclass</filename> file in the Yocto
-        Project
-        <ulink url='&YOCTO_DOCS_DEV_URL;#source-directory'>Source Directory</ulink>.
-    </para>
-</section>
-
-<section id='ref-classes-boot-directdisk'>
-    <title><filename>boot-directdisk.bbclass</filename></title>
-
-    <para>
-        The <filename>boot-directdisk</filename> class
-        creates an image that can be placed directly onto a hard disk using
-        <filename>dd</filename> and then booted.
-        The image uses SYSLINUX.
-    </para>
-
-    <para>
-        The end result is a 512 boot sector populated with a
-        Master Boot Record (MBR) and partition table followed by an MSDOS
-        FAT16 partition containing SYSLINUX and a Linux kernel completed by
-        the <filename>ext2</filename> and <filename>ext3</filename>
-        root filesystems.
-    </para>
-</section>
-
-<section id='ref-classes-bootimg'>
-    <title><filename>bootimg.bbclass</filename></title>
-
-    <para>
-        The <filename>bootimg</filename> class creates a bootable
-        image using SYSLINUX, your kernel, and an optional initial RAM disk
-        (<filename>initrd</filename>).
-    </para>
-
-    <para>
-        When you use this class, two things happen:
-        <itemizedlist>
-            <listitem><para>
-                A <filename>.hddimg</filename> file is created.
-                This file is an MSDOS filesystem that contains SYSLINUX,
-                a kernel, an <filename>initrd</filename>, and a root filesystem
-                image.
-                All three of these can be written to hard drives directly and
-                also booted on a USB flash disks using <filename>dd</filename>.
-                </para></listitem>
-            <listitem><para>
-                A CD <filename>.iso</filename> image is created.
-                When this file is booted, the <filename>initrd</filename>
-                boots and processes the label selected in SYSLINUX.
-                Actions based on the label are then performed (e.g. installing
-                to a hard drive).</para></listitem>
-        </itemizedlist>
-    </para>
-
-    <para>
-        The <filename>bootimg</filename> class supports the
-        <link linkend='var-INITRD'><filename>INITRD</filename></link>,
-        <link linkend='var-NOISO'><filename>NOISO</filename></link>,
-        <link linkend='var-NOHDD'><filename>NOHDD</filename></link>, and
-        <link linkend='var-ROOTFS'><filename>ROOTFS</filename></link>
-        variables.
-    </para>
-</section>
-
-<section id='ref-classes-bugzilla'>
-    <title><filename>bugzilla.bbclass</filename></title>
-
-    <para>
-        The <filename>bugzilla</filename> class supports setting up an
-        instance of Bugzilla in which you can automatically files bug reports
-        in response to build failures.
-        For this class to work, you need to enable the XML-RPC interface in
-        the instance of Bugzilla.
-    </para>
-</section>
-
 <section id='ref-classes-buildhistory'>
     <title><filename>buildhistory.bbclass</filename></title>
 
@@ -397,8 +326,8 @@
         history of build output metadata, which can be used to detect possible
         regressions as well as used for analysis of the build output.
         For more information on using Build History, see the
-        "<link linkend='maintaining-build-output-quality'>Maintaining Build Output Quality</link>"
-        section.
+        "<ulink url='&YOCTO_DOCS_DEV_URL;#maintaining-build-output-quality'>Maintaining Build Output Quality</ulink>"
+        section in the Yocto Project Development Tasks Manual.
     </para>
 </section>
 
@@ -447,8 +376,7 @@
     <title><filename>ccache.bbclass</filename></title>
 
     <para>
-        The <filename>ccache</filename> class enables the
-        <ulink url='http://ccache.samba.org/'>C/C++ Compiler Cache</ulink>
+        The <filename>ccache</filename> class enables the C/C++ Compiler Cache
         for the build.
         This class is used to give a minor performance boost during the build.
         However, using the class can lead to unexpected side-effects.
@@ -492,12 +420,21 @@
     <title><filename>cmake.bbclass</filename></title>
 
     <para>
-        The <filename>cmake</filename> class allows for
-        recipes that need to build software using the CMake build system.
+        The <filename>cmake</filename> class allows for recipes that need to
+        build software using the
+        <ulink url='https://cmake.org/overview/'>CMake</ulink> build system.
         You can use the
         <link linkend='var-EXTRA_OECMAKE'><filename>EXTRA_OECMAKE</filename></link>
-        variable to specify additional configuration options to be passed on
-        the <filename>cmake</filename> command line.
+        variable to specify additional configuration options to be passed
+        using the <filename>cmake</filename> command line.
+    </para>
+
+    <para>
+        On the occasion that you would be installing custom CMake toolchain
+        files supplied by the application being built, you should install them
+        to the preferred CMake Module directory:
+        <filename>${D}${datadir}/cmake/</filename> Modules during
+        <ulink url='&YOCTO_DOCS_REF_URL;#ref-tasks-install'><filename>do_install</filename></ulink>.
     </para>
 </section>
 
@@ -608,8 +545,9 @@
         provides support for the recipes that build the Canadian
         Cross-compilation tools for SDKs.
         See the
-        "<link linkend='cross-development-toolchain-generation'>Cross-Development Toolchain Generation</link>"
-        section for more discussion on these cross-compilation tools.
+        "<ulink url='&YOCTO_DOCS_OM_URL;#cross-development-toolchain-generation'>Cross-Development Toolchain Generation</ulink>"
+        section in the Yocto Project Overview and Concepts Manual for more
+        discussion on these cross-compilation tools.
     </para>
 </section>
 
@@ -621,8 +559,9 @@
         provides support for the recipes that build the cross-compilation
         tools used for building SDKs.
         See the
-        "<link linkend='cross-development-toolchain-generation'>Cross-Development Toolchain Generation</link>"
-        section for more discussion on these cross-compilation tools.
+        "<ulink url='&YOCTO_DOCS_OM_URL;#cross-development-toolchain-generation'>Cross-Development Toolchain Generation</ulink>"
+        section in the Yocto Project Overview and Concepts Manual for more
+        discussion on these cross-compilation tools.
     </para>
 </section>
 
@@ -681,8 +620,56 @@
         Distribution policy dictates whether to include this class.
         See the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#platdev-appdev-devshell'>Using a Development Shell</ulink>" section
-        in the Yocto Project Development Manual for more information about
+        in the Yocto Project Development Tasks Manual for more information about
         using <filename>devshell</filename>.
+    </para>
+</section>
+
+<section id='ref-classes-devupstream'>
+    <title><filename>devupstream.bbclass</filename></title>
+
+    <para>
+        The <filename>devupstream</filename> class uses
+        <link linkend='var-BBCLASSEXTEND'><filename>BBCLASSEXTEND</filename></link>
+        to add a variant of the recipe that fetches from an alternative URI
+        (e.g. Git) instead of a tarball.
+        Following is an example:
+        <literallayout class='monospaced'>
+     BBCLASSEXTEND = "devupstream:target"
+     SRC_URI_class-devupstream = "git://git.example.com/example"
+     SRCREV_class-devupstream = "abcd1234"
+        </literallayout>
+        Adding the above statements to your recipe creates a variant that has
+        <link linkend='var-DEFAULT_PREFERENCE'><filename>DEFAULT_PREFERENCE</filename></link>
+        set to "-1".
+        Consequently, you need to select the variant of the recipe to use it.
+        Any development-specific adjustments can be done by using the
+        <filename>class-devupstream</filename> override.
+        Here is an example:
+        <literallayout class='monospaced'>
+     DEPENDS_append_class-devupstream = " gperf-native"
+
+     do_configure_prepend_class-devupstream() {
+        touch ${S}/README
+     }
+        </literallayout>
+        The class currently only supports creating a development variant of
+        the target recipe, not <filename>native</filename> or
+        <filename>nativesdk</filename> variants.
+    </para>
+
+    <para>
+        The <filename>BBCLASSEXTEND</filename> syntax
+        (i.e. <filename>devupstream:target</filename>) provides support for
+        <filename>native</filename> and <filename>nativesdk</filename>
+        variants.
+        Consequently, this functionality can be added in a future release.
+    </para>
+
+    <para>
+        Support for other version control systems such as Subversion is
+        limited due to BitBake's automatic fetch dependencies (e.g.
+        <filename>subversion-native</filename>).
     </para>
 </section>
 
@@ -703,30 +690,6 @@
         variables.
         If any conditions specified in the recipe using the above variables are
         not met, the recipe will be skipped.
-    </para>
-</section>
-
-<section id='ref-classes-distrodata'>
-    <title><filename>distrodata.bbclass</filename></title>
-
-    <para>
-        The <filename>distrodata</filename> class
-        provides for automatic checking for upstream recipe updates.
-        The class creates a comma-separated value (CSV) spreadsheet that
-        contains information about the recipes.
-        The information provides the <filename>do_distrodata</filename> and
-        <filename>do_distro_check</filename> tasks, which do upstream checking
-        and also verify if a package is used in multiple major distributions.
-    </para>
-
-    <para>
-        The class is not included by default.
-        To use it, you must set the
-        <link linkend='var-INHERIT'><filename>INHERIT</filename></link>
-        variable:
-        <literallayout class='monospaced'>
-     INHERIT+= "distrodata"
-        </literallayout>
     </para>
 </section>
 
@@ -758,11 +721,6 @@
         The <filename>distutils-common-base</filename> class is required by
         some of the <filename>distutils*</filename> classes to provide common
         Python2 support.
-    </para>
-
-    <para>
-	    The <filename>distutils-tools</filename> class supports recipes for
-        additional "distutils" tools.
     </para>
 </section>
 
@@ -847,11 +805,11 @@
         For more information on the
         <filename>externalsrc</filename> class, see the comments in
         <filename>meta/classes/externalsrc.bbclass</filename> in the
-        <ulink url='&YOCTO_DOCS_DEV_URL;#source-directory'>Source Directory</ulink>.
+        <link linkend='source-directory'>Source Directory</link>.
         For information on how to use the <filename>externalsrc</filename>
         class, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#building-software-from-an-external-source'>Building Software from an External Source</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
     </para>
 </section>
 
@@ -970,21 +928,6 @@
     </para>
 </section>
 
-<section id='ref-classes-gnome'>
-    <title><filename>gnome.bbclass</filename></title>
-
-    <para>
-        The <filename>gnome</filename> class supports recipes that
-        build software from the GNOME stack.
-        This class inherits the
-        <link linkend='ref-classes-gnomebase'><filename>gnomebase</filename></link>,
-        <link linkend='ref-classes-gtk-icon-cache'><filename>gtk-icon-cache</filename></link>,
-        <link linkend='ref-classes-gconf'><filename>gconf</filename></link> and
-        <link linkend='ref-classes-mime'><filename>mime</filename></link> classes.
-        The class also disables GObject introspection where applicable.
-    </para>
-</section>
-
 <section id='ref-classes-gnomebase'>
     <title><filename>gnomebase.bbclass</filename></title>
 
@@ -996,6 +939,28 @@
         download the source from the GNOME mirrors as well as extending
         <link linkend='var-FILES'><filename>FILES</filename></link>
         with the typical GNOME installation paths.
+    </para>
+</section>
+
+<section id='ref-classes-gobject-introspection'>
+    <title><filename>gobject-introspection.bbclass</filename></title>
+
+    <para>
+        Provides support for recipes building software that
+        supports GObject introspection.
+        This functionality is only enabled if the
+        "gobject-introspection-data" feature is in
+        <link linkend='var-DISTRO_FEATURES'><filename>DISTRO_FEATURES</filename></link>
+        as well as "qemu-usermode" being in
+        <link linkend='var-MACHINE_FEATURES'><filename>MACHINE_FEATURES</filename></link>.
+        <note>
+            This functionality is backfilled by default and,
+            if not applicable, should be disabled through
+            <link linkend='var-DISTRO_FEATURES_BACKFILL_CONSIDERED'><filename>DISTRO_FEATURES_BACKFILL_CONSIDERED</filename></link>
+            or
+            <link linkend='var-MACHINE_FEATURES_BACKFILL_CONSIDERED'><filename>MACHINE_FEATURES_BACKFILL_CONSIDERED</filename></link>,
+            respectively.
+        </note>
     </para>
 </section>
 
@@ -1112,42 +1077,12 @@
     </para>
 </section>
 
-<section id='ref-classes-gummiboot'>
-    <title><filename>gummiboot.bbclass</filename></title>
-
-    <para>
-        The <filename>gummiboot</filename> class provides functions specific
-        to the gummiboot bootloader for building bootable images.
-        This is an internal class and is not intended to be
-        used directly.
-        Set the
-        <link linkend='var-EFI_PROVIDER'><filename>EFI_PROVIDER</filename></link>
-        variable to "gummiboot" to use this class.
-    </para>
-
-    <para>
-        For information on more variables used and supported in this class,
-        see the
-        <link linkend='var-GUMMIBOOT_CFG'><filename>GUMMIBOOT_CFG</filename></link>,
-        <link linkend='var-GUMMIBOOT_ENTRIES'><filename>GUMMIBOOT_ENTRIES</filename></link>,
-        and
-        <link linkend='var-GUMMIBOOT_TIMEOUT'><filename>GUMMIBOOT_TIMEOUT</filename></link>
-        variables.
-    </para>
-
-    <para>
-        You can also see the
-        <ulink url='http://freedesktop.org/wiki/Software/gummiboot/'>Gummiboot documentation</ulink>
-        for more information.
-    </para>
-</section>
-
 <section id='ref-classes-gzipnative'>
     <title><filename>gzipnative.bbclass</filename></title>
 
     <para>
-        The <filename>gzipnative</filename>
-        class enables the use of native versions of <filename>gzip</filename>
+        The <filename>gzipnative</filename> class enables the use of
+        different native versions of <filename>gzip</filename>
         and <filename>pigz</filename> rather than the versions of these tools
         from the build host.
     </para>
@@ -1286,10 +1221,10 @@
         </itemizedlist>
         For information on customizing images, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#usingpoky-extend-customimage'>Customizing Images</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
         For information on how images are created, see the
-        "<link linkend='images-dev-environment'>Images</link>" section elsewhere
-        in this manual.
+        "<ulink url='&YOCTO_DOCS_OM_URL;#images-dev-environment'>Images</ulink>"
+        section in the Yocto Project Overview and Concpets Manual.
     </para>
 </section>
 
@@ -1306,33 +1241,41 @@
     <title><filename>image_types.bbclass</filename></title>
 
     <para>
-        The <filename>image_types</filename> class defines all of
-        the standard image output types that you can enable through the
+        The <filename>image_types</filename> class defines all of the
+        standard image output types that you can enable through the
         <link linkend='var-IMAGE_FSTYPES'><filename>IMAGE_FSTYPES</filename></link>
         variable.
-        You can use this class as a reference on how to add support for custom
-        image output types.
+        You can use this class as a reference on how to add support for
+        custom image output types.
     </para>
 
     <para>
-        By default, this class is enabled through the
-        <link linkend='var-IMAGE_CLASSES'><filename>IMAGE_CLASSES</filename></link>
-        variable in
-        <link linkend='ref-classes-image'><filename>image.bbclass</filename></link>.
-        If you define your own image types using a custom BitBake class and
-        then use <filename>IMAGE_CLASSES</filename> to enable it, the custom
-        class must either inherit <filename>image_types</filename> or
-        <filename>image_types</filename> must also appear in
-        <filename>IMAGE_CLASSES</filename>.
+        By default, the
+        <link linkend='ref-classes-image'><filename>image</filename></link>
+        class automatically enables the <filename>image_types</filename> class.
+        The <filename>image</filename> class uses the
+        <filename>IMGCLASSES</filename> variable as follows:
+        <literallayout class='monospaced'>
+     IMGCLASSES = "rootfs_${IMAGE_PKGTYPE} image_types ${IMAGE_CLASSES}"
+     IMGCLASSES += "${@['populate_sdk_base', 'populate_sdk_ext']['linux' in d.getVar("SDK_OS")]}"
+     IMGCLASSES += "${@bb.utils.contains_any('IMAGE_FSTYPES', 'live iso hddimg', 'image-live', '', d)}"
+     IMGCLASSES += "${@bb.utils.contains('IMAGE_FSTYPES', 'container', 'image-container', '', d)}"
+     IMGCLASSES += "image_types_wic"
+     IMGCLASSES += "rootfs-postcommands"
+     IMGCLASSES += "image-postinst-intercepts"
+     inherit ${IMGCLASSES}
+        </literallayout>
     </para>
-</section>
-
-<section id='ref-classes-image_types_uboot'>
-    <title><filename>image_types_uboot.bbclass</filename></title>
 
     <para>
-        The <filename>image_types_uboot</filename> class
-        defines additional image types specifically for the U-Boot bootloader.
+        The <filename>image_types</filename> class also handles conversion and
+        compression of images.
+        <note>
+            To build a VMware VMDK image, you need to add "wic.vmdk" to
+            <filename>IMAGE_FSTYPES</filename>.
+            This would also be similar for Virtual Box Virtual Disk Image
+            ("vdi") and QEMU Copy On Write Version 2 ("qcow2") images.
+        </note>
     </para>
 </section>
 
@@ -1340,19 +1283,19 @@
     <title><filename>image-live.bbclass</filename></title>
 
     <para>
-        The <filename>image-live</filename> class supports building "live"
-        images.
+        This class controls building "live" (i.e. HDDIMG and ISO) images.
+        Live images contain syslinux for legacy booting, as well as the
+        bootloader specified by
+        <link linkend='var-EFI_PROVIDER'><filename>EFI_PROVIDER</filename></link>
+        if
+        <link linkend='var-MACHINE_FEATURES'><filename>MACHINE_FEATURES</filename></link>
+        contains "efi".
     </para>
 
     <para>
         Normally, you do not use this class directly.
         Instead, you add "live" to
         <link linkend='var-IMAGE_FSTYPES'><filename>IMAGE_FSTYPES</filename></link>.
-        For example, if you were building an ISO image, you would add "live"
-        to <filename>IMAGE_FSTYPES</filename>, set the
-        <link linkend='var-NOISO'><filename>NOISO</filename></link> variable to
-        "0" and the build system would use the <filename>image-live</filename>
-        class to build the ISO image.
     </para>
 </section>
 
@@ -1398,43 +1341,6 @@
         <literallayout class='monospaced'>
      USER_CLASSES ?= "buildstats image-mklibs image-prelink"
         </literallayout>
-    </para>
-</section>
-
-<section id='ref-classes-image-swab'>
-    <title><filename>image-swab.bbclass</filename></title>
-
-    <para>
-        The <filename>image-swab</filename> class enables the
-        <ulink url='&YOCTO_HOME_URL;/tools-resources/projects/swabber'>Swabber</ulink>
-        tool in order to detect and log accesses to the host system during
-        the OpenEmbedded build process.
-        <note>
-            This class is currently unmaintained.
-            The <filename>strace</filename> package needs to be installed
-            in the build host as a dependency for this tool.
-        </note>
-    </para>
-</section>
-
-<section id='ref-classes-image-vm'>
-    <title><filename>image-vm.bbclass</filename></title>
-
-    <para>
-        The <filename>image-vm</filename> class supports building VM
-        images.
-    </para>
-</section>
-
-<section id='ref-classes-image-vmdk'>
-    <title><filename>image-vmdk.bbclass</filename></title>
-
-    <para>
-        The <filename>image-vmdk</filename> class supports building VMware
-        VMDK images.
-        Normally, you do not use this class directly.
-        Instead, you add "vmdk" to
-        <link linkend='var-IMAGE_FSTYPES'><filename>IMAGE_FSTYPES</filename></link>.
     </para>
 </section>
 
@@ -1619,6 +1525,18 @@
                 <link linkend='var-FILES'><filename>FILES</filename></link>
                 variable values that contain "//", which is invalid.
                 </para></listitem>
+            <listitem><para id='insane-host-user-contaminated'>
+                <emphasis><filename>host-user-contaminated:</filename></emphasis>
+                Checks that no package produced by the recipe contains any
+                files outside of <filename>/home</filename> with a user or
+                group ID that matches the user running BitBake.
+                A match usually indicates that the files are being installed
+                with an incorrect UID/GID, since target IDs are independent
+                from host IDs.
+                For additional information, see the section describing the
+                <link linkend='ref-tasks-install'><filename>do_install</filename></link>
+                task.
+                </para></listitem>
             <listitem><para><emphasis><filename>incompatible-license:</filename></emphasis>
                 Report when packages are excluded from being created due to
                 being marked with a license that is in
@@ -1645,6 +1563,25 @@
                 These files can be deleted at the end of
                 <filename>do_install</filename> if the files are not
                 needed in any package.
+                </para></listitem>
+            <listitem><para><emphasis><filename>invalid-chars:</filename></emphasis>
+                Checks that the recipe metadata variables
+                <link linkend='var-DESCRIPTION'><filename>DESCRIPTION</filename></link>,
+                <link linkend='var-SUMMARY'><filename>SUMMARY</filename></link>,
+                <link linkend='var-LICENSE'><filename>LICENSE</filename></link>,
+                and
+                <link linkend='var-SECTION'><filename>SECTION</filename></link>
+                do not contain non-UTF-8 characters.
+                Some package managers do not support such characters.
+                </para></listitem>
+            <listitem><para><emphasis><filename>invalid-packageconfig:</filename></emphasis>
+                Checks that no undefined features are being added to
+                <link linkend='var-PACKAGECONFIG'><filename>PACKAGECONFIG</filename></link>.
+                For example, any name "foo" for which the following form
+                does not exist:
+                <literallayout class='monospaced'>
+     PACKAGECONFIG[foo] = "..."
+                </literallayout>
                 </para></listitem>
             <listitem><para><emphasis><filename>la:</filename></emphasis>
                 Checks <filename>.la</filename> files for any <filename>TMPDIR</filename>
@@ -1780,6 +1717,9 @@
                 <link linkend='qa-issue-textrel'><filename>ELF binary</filename></link>
                 message for more information regarding runtime performance issues.
                 </para></listitem>
+<!--
+This check was removed for YP 2.3 release
+
             <listitem><para><emphasis><filename>unsafe-references-in-binaries:</filename></emphasis>
                 Reports when a binary installed in
                 <filename>${base_libdir}</filename>,
@@ -1801,27 +1741,7 @@
                     <filename>/usr</filename>.
                 </note>
                 </para></listitem>
-            <listitem><para><emphasis><filename>unsafe-references-in-scripts:</filename></emphasis>
-                Reports when a script file installed in
-                <filename>${base_libdir}</filename>,
-                <filename>${base_bindir}</filename>, or
-                <filename>${base_sbindir}</filename>, depends on files
-                installed under <filename>${exec_prefix}</filename>.
-                This dependency is a concern if you want the system to remain
-                basically operable if <filename>/usr</filename> is mounted
-                separately and is not mounted.
-                <note>
-                    Defaults for binaries installed in
-                    <filename>${base_libdir}</filename>,
-                    <filename>${base_bindir}</filename>, and
-                    <filename>${base_sbindir}</filename> are
-                    <filename>/lib</filename>, <filename>/bin</filename>, and
-                    <filename>/sbin</filename>, respectively.
-                    The default for a binary installed
-                    under <filename>${exec_prefix}</filename> is
-                    <filename>/usr</filename>.
-                </note>
-                </para></listitem>
+-->
             <listitem><para><emphasis><filename>useless-rpaths:</filename></emphasis>
                 Checks for dynamic library load paths (rpaths) in the binaries that
                 by default on a standard system are searched by the linker (e.g.
@@ -1898,11 +1818,22 @@
     </para>
 
     <para>
-        This means that each built kernel module is packaged separately and inter-module
-        dependencies are created by parsing the <filename>modinfo</filename> output.
-        If all modules are required, then installing the <filename>kernel-modules</filename>
-        package installs all packages with modules and various other kernel packages
-        such as <filename>kernel-vmlinux</filename>.
+        This means that each built kernel module is packaged separately and
+        inter-module dependencies are created by parsing the
+        <filename>modinfo</filename> output.
+        If all modules are required, then installing the
+        <filename>kernel-modules</filename> package installs all packages with
+        modules and various other kernel packages such as
+        <filename>kernel-vmlinux</filename>.
+    </para>
+
+    <para>
+        The <filename>kernel</filename> class contains logic that allows
+        you to embed an initial RAM filesystem (initramfs) image when
+        you build the kernel image.
+        For information on how to build an initramfs, see the
+        "<ulink url='&YOCTO_DOCS_DEV_URL;#building-an-initramfs-image'>Building an Initial RAM Filesystem (initramfs) Image</ulink>"
+        section in the Yocto Project Development Tasks Manual.
     </para>
 
     <para>
@@ -1923,6 +1854,17 @@
         The <filename>kernel-arch</filename> class
         sets the <filename>ARCH</filename> environment variable for Linux
         kernel compilation (including modules).
+    </para>
+</section>
+
+<section id='ref-classes-kernel-devicetree'>
+    <title><filename>kernel-devicetree.bbclass</filename></title>
+
+    <para>
+        The <filename>kernel-devicetree</filename> class, which is inherited by
+        the
+        <link linkend='ref-classes-kernel'><filename>kernel</filename></link>
+        class, supports device tree generation.
     </para>
 </section>
 
@@ -2165,7 +2107,7 @@
 
     <para>
         For general information on out-of-tree Linux kernel modules, see the
-        "<ulink url='&YOCTO_DOCS_KERNEL_URL;#incorporating-out-of-tree-modules'>Incorporating Out-of-Tree Modules</ulink>"
+        "<ulink url='&YOCTO_DOCS_KERNEL_DEV_URL;#incorporating-out-of-tree-modules'>Incorporating Out-of-Tree Modules</ulink>"
         section in the Yocto Project Linux Kernel Development Manual.
     </para>
 </section>
@@ -2196,7 +2138,7 @@
     <para>
         For more information on using the Multilib feature, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#combining-multiple-versions-library-files-into-one-image'>Combining Multiple Versions of Library Files into One Image</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
     </para>
 </section>
 
@@ -2205,8 +2147,9 @@
 
     <para>
         The <filename>native</filename> class provides common
-        functionality for recipes that wish to build tools to run on the build
-        host (i.e. tools that use the compiler or other tools from the
+        functionality for recipes that build tools to run on the
+        <link linkend='hardware-build-system-term'>build host</link>
+        (i.e. tools that use the compiler or other tools from the
         build host).
     </para>
 
@@ -2214,21 +2157,34 @@
         You can create a recipe that builds tools that run natively on the
         host a couple different ways:
         <itemizedlist>
-            <listitem><para>Create a <replaceable>myrecipe</replaceable><filename>-native.bb</filename>
-                that inherits the <filename>native</filename> class.
+            <listitem><para>
+                Create a
+                <replaceable>myrecipe</replaceable><filename>-native.bb</filename>
+                recipe that inherits the <filename>native</filename> class.
                 If you use this method, you must order the inherit statement
                 in the recipe after all other inherit statements so that the
                 <filename>native</filename> class is inherited last.
+                <note><title>Warning</title>
+                    When creating a recipe this way, the recipe name must
+                    follow this naming convention:
+                    <literallayout class='monospaced'>
+     <replaceable>myrecipe</replaceable>-native.bb
+                    </literallayout>
+                    Not using this naming convention can lead to subtle
+                    problems caused by existing code that depends on that
+                    naming convention.
+                </note>
                 </para></listitem>
-            <listitem><para>Create or modify a target recipe that contains
-                the following:
+            <listitem><para>
+                Create or modify a target recipe that contains the following:
                 <literallayout class='monospaced'>
      <link linkend='var-BBCLASSEXTEND'><filename>BBCLASSEXTEND</filename></link> = "native"
                 </literallayout>
                 Inside the recipe, use <filename>_class-native</filename> and
                 <filename>_class-target</filename> overrides to specify any
                 functionality specific to the respective native or target
-                case.</para></listitem>
+                case.
+                </para></listitem>
         </itemizedlist>
     </para>
 
@@ -2272,6 +2228,14 @@
                 functionality specific to the respective SDK machine or target
                 case.</para></listitem>
         </itemizedlist>
+        <note><title>Warning</title>
+            When creating a recipe, you must follow this naming convention:
+            <literallayout class='monospaced'>
+     nativesdk-<replaceable>myrecipe</replaceable>.bb
+            </literallayout>
+            Not doing so can lead to subtle problems because code exists
+            that depends on the naming convention.
+        </note>
     </para>
 
     <para>
@@ -2284,6 +2248,32 @@
     </para>
 </section>
 
+<section id='ref-classes-nopackages'>
+    <title><filename>nopackages.bbclass</filename></title>
+
+    <para>
+        Disables packaging tasks for those recipes and classes where
+        packaging is not needed.
+    </para>
+</section>
+
+<section id='ref-classes-npm'>
+    <title><filename>npm.bbclass</filename></title>
+
+    <para>
+        Provides support for building Node.js software fetched using the
+        <ulink url='https://en.wikipedia.org/wiki/Npm_(software)'>node package manager (NPM)</ulink>.
+        <note>
+            Currently, recipes inheriting this class must use the
+            <filename>npm://</filename> fetcher to have dependencies fetched
+            and packaged automatically.
+        </note>
+        For information on how to create NPM packages, see the
+        "<ulink url='&YOCTO_DOCS_DEV_URL;#creating-node-package-manager-npm-packages'>Creating Node Package Manager (NPM) Packages</ulink>"
+        section in the Yocto Project Development Tasks Manual.
+    </para>
+</section>
+
 <section id='ref-classes-oelint'>
     <title><filename>oelint.bbclass</filename></title>
 
@@ -2291,7 +2281,7 @@
         The <filename>oelint</filename> class is an
         obsolete lint checking tool that exists in
         <filename>meta/classes</filename> in the
-        <ulink url='&YOCTO_DOCS_DEV_URL;#source-directory'>Source Directory</ulink>.
+        <link linkend='source-directory'>Source Directory</link>.
     </para>
 
     <para>
@@ -2356,7 +2346,7 @@
         <filename><link linkend='var-PACKAGE_CLASSES'>PACKAGE_CLASSES</link></filename>
         variable defined in your <filename>conf/local.conf</filename>
         configuration file, which is located in the
-        <ulink url='&YOCTO_DOCS_DEV_URL;#build-directory'>Build Directory</ulink>.
+        <link linkend='build-directory'>Build Directory</link>.
         When defining the variable, you can specify one or more package types.
         Since images are generated from packages, a packaging class is
         needed to enable image generation.
@@ -2365,12 +2355,12 @@
 
     <para>
         If you take the optional step to set up a repository (package feed)
-        on the development host that can be used by Smart, you can
+        on the development host that can be used by DNF, you can
         install packages from the feed while you are running the image
         on the target (i.e. runtime installation of packages).
         For more information, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#using-runtime-package-management'>Using Runtime Package Management</ulink>"
-         section in the Yocto Project Development Manual.
+         section in the Yocto Project Development Tasks Manual.
     </para>
 
     <para>
@@ -2382,7 +2372,7 @@
         all dependencies previously built.
         The reason for this discrepancy is because the RPM package manager
         creates and processes more
-        <ulink url='&YOCTO_DOCS_DEV_URL;#metadata'>Metadata</ulink> than the
+        <link linkend='metadata'>Metadata</link> than the
         IPK package manager.
         Consequently, you might consider setting
         <filename>PACKAGE_CLASSES</filename> to "package_ipk" if you are
@@ -2550,27 +2540,11 @@
     <para>
         For information on how to use this class, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#usingpoky-extend-customimage-customtasks'>Customizing Images Using Custom Package Groups</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
     </para>
 
     <para>
         Previously, this class was called the <filename>task</filename> class.
-    </para>
-</section>
-
-<section id='ref-classes-packageinfo'>
-    <title><filename>packageinfo.bbclass</filename></title>
-
-    <para>
-        The <filename>packageinfo</filename> class
-        gives a BitBake user interface the ability to retrieve information
-        about output packages from the <filename>pkgdata</filename> files.
-    </para>
-
-    <para>
-        This class is enabled automatically when using the
-        <ulink url='&YOCTO_HOME_URL;/tools-resources/projects/hob'>Hob</ulink>
-        user interface.
     </para>
 </section>
 
@@ -2654,8 +2628,9 @@
         toolchain using the
         <link linkend='ref-tasks-populate_sdk'><filename>do_populate_sdk</filename></link>
         task, see the
-        "<ulink url='&YOCTO_DOCS_ADT_URL;#optionally-building-a-toolchain-installer'>Optionally Building a Toolchain Installer</ulink>"
-        section in the Yocto Project Application Developer's Guide.
+        "<ulink url='&YOCTO_DOCS_SDK_URL;#sdk-building-an-sdk-installer'>Building an SDK Installer</ulink>"
+        section in the Yocto Project Application Development and the
+        Extensible Software Development Kit (eSDK) manual.
     </para>
 </section>
 
@@ -2728,14 +2703,15 @@
     <para>
         For more information on the cross-development toolchain
         generation, see the
-        "<link linkend='cross-development-toolchain-generation'>Cross-Development Toolchain Generation</link>"
-        section.
+        "<ulink url='&YOCTO_DOCS_OM_URL;#cross-development-toolchain-generation'>Cross-Development Toolchain Generation</ulink>"
+        section in the Yocto Project Overview and Concepts Manual.
         For information on advantages gained when building a
         cross-development toolchain using the
         <link linkend='ref-tasks-populate_sdk'><filename>do_populate_sdk</filename></link>
         task, see the
-        "<ulink url='&YOCTO_DOCS_ADT_URL;#optionally-building-a-toolchain-installer'>Optionally Building a Toolchain Installer</ulink>"
-        section in the Yocto Project Application Developer's Guide.
+        "<ulink url='&YOCTO_DOCS_SDK_URL;#sdk-building-an-sdk-installer'>Building an SDK Installer</ulink>"
+        section in the Yocto Project Application Development and the
+        Extensible Software Development Kit (eSDK) manual.
     </para>
 </section>
 
@@ -2808,8 +2784,8 @@
         <link linkend='var-DISTRO_FEATURES'><filename>DISTRO_FEATURES</filename></link>.
         See the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#testing-packages-with-ptest'>Testing Packages With ptest</ulink>"
-        section in the Yocto Project Development Manual for more information
-        on ptest.
+        section in the Yocto Project Development Tasks Manual for more
+        information on ptest.
     </para>
 </section>
 
@@ -2825,7 +2801,7 @@
     <para>
         For information on setting up and running ptests, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#testing-packages-with-ptest'>Testing Packages With ptest</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
     </para>
 </section>
 
@@ -2869,66 +2845,6 @@
     </para>
 </section>
 
-<section id='ref-classes-qmake*'>
-    <title><filename>qmake*.bbclass</filename></title>
-
-    <para>
-        The <filename>qmake*</filename> classes support recipes that
-        need to build software that uses Qt's <filename>qmake</filename>
-        build system and are comprised of the following:
-        <itemizedlist>
-            <listitem><para><emphasis><filename>qmake_base</filename>:</emphasis>
-                Provides base functionality for all versions of
-                <filename>qmake</filename>.</para></listitem>
-            <listitem><para><emphasis><filename>qmake2</filename>:</emphasis>
-                Extends base functionality for <filename>qmake</filename> 2.x as
-                used by Qt 4.x.</para></listitem>
-        </itemizedlist>
-    </para>
-
-    <para>
-        If you need to set any configuration variables or pass any options to
-        <filename>qmake</filename>, you can add these to the
-        <link linkend='var-EXTRA_QMAKEVARS_PRE'><filename>EXTRA_QMAKEVARS_PRE</filename></link>
-        or
-        <link linkend='var-EXTRA_QMAKEVARS_POST'><filename>EXTRA_QMAKEVARS_POST</filename></link>
-        variables, depending on whether the arguments need to be before or
-        after the <filename>.pro</filename> file list on the command line,
-        respectively.
-    </para>
-
-    <para>
-        By default, all <filename>.pro</filename> files are built.
-        If you want to specify your own subset of <filename>.pro</filename>
-        files to be built, specify them in the
-        <link linkend='var-QMAKE_PROFILES'><filename>QMAKE_PROFILES</filename></link>
-        variable.
-    </para>
-</section>
-
-<section id='ref-classes-qt4*'>
-    <title><filename>qt4*.bbclass</filename></title>
-
-    <para>
-        The <filename>qt4*</filename> classes support recipes that need to
-        build software that uses the Qt development framework version 4.x
-        and consist of the following:
-        <itemizedlist>
-            <listitem><para><emphasis><filename>qt4e</filename>:</emphasis>
-                Supports building against Qt/Embedded, which uses the
-                framebuffer for graphical output.</para></listitem>
-            <listitem><para><emphasis><filename>qt4x11</filename>:</emphasis>
-                Supports building against Qt/X11.</para></listitem>
-        </itemizedlist>
-    </para>
-
-    <para>
-        The classes inherit the
-        <link linkend='ref-classes-qmake*'><filename>qmake2</filename></link>
-        class.
-    </para>
-</section>
-
 <section id='ref-classes-recipe_sanity'>
     <title><filename>recipe_sanity.bbclass</filename></title>
 
@@ -2955,6 +2871,33 @@
         and
         <link linkend='ref-classes-native'><filename>native</filename></link>
         classes.
+    </para>
+</section>
+
+<section id='ref-classes-remove-libtool'>
+    <title><filename>remove-libtool.bbclass</filename></title>
+
+    <para>
+        The <filename>remove-libtool</filename> class adds a post function
+        to the
+        <link linkend='ref-tasks-install'><filename>do_install</filename></link>
+        task to remove all <filename>.la</filename> files installed by
+        <filename>libtool</filename>.
+        Removing these files results in them being absent from both the
+        sysroot and target packages.
+    </para>
+
+    <para>
+        If a recipe needs the <filename>.la</filename> files to be installed,
+        then the recipe can override the removal by setting
+        <filename>REMOVE_LIBTOOL_LA</filename> to "0" as follows:
+        <literallayout class='monospaced'>
+     REMOVE_LIBTOOL_LA = "0"
+        </literallayout>
+        <note>
+            The <filename>remove-libtool</filename> class is not enabled by
+            default.
+        </note>
     </para>
 </section>
 
@@ -2999,7 +2942,7 @@
         as the build progresses, you can enable <filename>rm_work</filename>
         by adding the following to your <filename>local.conf</filename> file,
         which is found in the
-        <ulink url='&YOCTO_DOCS_DEV_URL;#build-directory'>Build Directory</ulink>.
+        <link linkend='build-directory'>Build Directory</link>.
         <literallayout class='monospaced'>
     INHERIT += "rm_work"
         </literallayout>
@@ -3025,6 +2968,10 @@
         The <filename>rootfs*</filename> classes support creating
         the root filesystem for an image and consist of the following classes:
         <itemizedlist>
+            <listitem><para>
+                The <filename>rootfs-postcommands</filename> class, which
+                defines filesystem post-processing functions for image recipes.
+                </para></listitem>
             <listitem><para>
                 The <filename>rootfs_deb</filename> class, which supports
                 creation of root filesystems for images built using
@@ -3054,8 +3001,8 @@
 
     <para>
         For information on how root filesystem images are created, see the
-        "<link linkend='image-generation-dev-environment'>Image Generation</link>"
-        section.
+        "<ulink url='&YOCTO_DOCS_OM_URL;#image-generation-dev-environment'>Image Generation</ulink>"
+        section in the Yocto Project Overview and Concepts Manual.
     </para>
 </section>
 
@@ -3181,12 +3128,6 @@
         and <filename><link linkend='var-SITEINFO_BITS'>SITEINFO_BITS</link></filename>
         that can be used elsewhere in the metadata.
     </para>
-
-    <para>
-        Because the
-        <link linkend='ref-classes-base'><filename>base</filename></link> class
-        includes the <filename>siteinfo</filename> class, it is always active.
-    </para>
 </section>
 
 <section id='ref-classes-spdx'>
@@ -3216,8 +3157,8 @@
 
     <para>
         For more information on sstate, see the
-        "<link linkend='shared-state-cache'>Shared State Cache</link>"
-        section.
+        "<ulink url='&YOCTO_DOCS_OM_URL;#shared-state-cache'>Shared State Cache</ulink>"
+        section in the Yocto Project Overview and Concepts Manual.
     </para>
 </section>
 
@@ -3225,13 +3166,144 @@
     <title><filename>staging.bbclass</filename></title>
 
     <para>
-        The <filename>staging</filename> class provides the
-        <link linkend='ref-tasks-populate_sysroot'><filename>do_populate_sysroot</filename></link>
-        task, which stages files into the sysroot to make them available to
-        other recipes at build time.
-        The class is enabled by default because it is inherited by the
-        <link linkend='ref-classes-base'><filename>base</filename></link>
-        class.
+        The <filename>staging</filename> class installs files into individual
+        recipe work directories for sysroots.
+        The class contains the following key tasks:
+        <itemizedlist>
+            <listitem><para>
+                The
+                <link linkend='ref-tasks-populate_sysroot'><filename>do_populate_sysroot</filename></link>
+                task, which is responsible for handing the files that end up
+                in the recipe sysroots.
+                </para></listitem>
+            <listitem><para>
+                The
+                <link linkend='ref-tasks-prepare_recipe_sysroot'><filename>do_prepare_recipe_sysroot</filename></link>
+                task (a "partner" task to the
+                <filename>populate_sysroot</filename> task), which installs
+                the files into the individual recipe work directories (i.e.
+                <link linkend='var-WORKDIR'><filename>WORKDIR</filename></link>).
+                </para></listitem>
+        </itemizedlist>
+    </para>
+
+    <para>
+        The code in the <filename>staging</filename> class is complex and
+        basically works in two stages:
+        <itemizedlist>
+            <listitem><para>
+                <emphasis>Stage One:</emphasis>
+                The first stage addresses recipes that have files they want
+                to share with other recipes that have dependencies on the
+                originating recipe.
+                Normally these dependencies are installed through the
+                <link linkend='ref-tasks-install'><filename>do_install</filename></link>
+                task into
+                <filename>${</filename><link linkend='var-D'><filename>D</filename></link><filename>}</filename>.
+                The <filename>do_populate_sysroot</filename> task copies
+                a subset of these files into
+                <filename>${SYSROOT_DESTDIR}</filename>.
+                This subset of files is controlled by the
+                <link linkend='var-SYSROOT_DIRS'><filename>SYSROOT_DIRS</filename></link>,
+                <link linkend='var-SYSROOT_DIRS_NATIVE'><filename>SYSROOT_DIRS_NATIVE</filename></link>,
+                and
+                <link linkend='var-SYSROOT_DIRS_BLACKLIST'><filename>SYSROOT_DIRS_BLACKLIST</filename></link>
+                variables.
+                <note>
+                    Additionally, a recipe can customize the files further by
+                declaring a processing function in the
+                    <link linkend='var-SYSROOT_PREPROCESS_FUNCS'><filename>SYSROOT_PREPROCESS_FUNCS</filename></link>
+                    variable.
+                </note>
+                </para>
+
+                <para>
+                A shared state (sstate) object is built from these files
+                and the files are placed into a subdirectory of
+                <link linkend='structure-build-tmp-sysroots-components'><filename>tmp/sysroots-components/</filename></link>.
+                The files are scanned for hardcoded paths to the original
+                installation location.
+                If the location is found in text files, the hardcoded
+                locations are replaced by tokens and a list of the files
+                needing such replacements is created.
+                These adjustments are referred to as "FIXMEs".
+                The list of files that are scanned for paths is controlled by
+                the
+                <link linkend='var-SSTATE_SCAN_FILES'><filename>SSTATE_SCAN_FILES</filename></link>
+                variable.
+                </para></listitem>
+            <listitem><para>
+                <emphasis>Stage Two:</emphasis>
+                The second stage addresses recipes that want to use something
+                from another recipe and declare a dependency on that recipe
+                through the
+                <link linkend='var-DEPENDS'><filename>DEPENDS</filename></link>
+                variable.
+                The recipe will have a
+                <link linkend='ref-tasks-prepare_recipe_sysroot'><filename>do_prepare_recipe_sysroot</filename></link>
+                task and when
+                this task executes, it creates the
+                <filename>recipe-sysroot</filename> and
+                <filename>recipe-sysroot-native</filename> in the recipe
+                work directory (i.e.
+                <link linkend='var-WORKDIR'><filename>WORKDIR</filename></link>).
+                The OpenEmbedded build system creates hard links to copies of the
+                relevant files from <filename>sysroots-components</filename>
+                into the recipe work directory.
+                <note>
+                    If hard links are not possible, the build system uses
+                    actual copies.
+                </note>
+                The build system then addresses any "FIXMEs" to paths as
+                defined from the list created in the first stage.
+                </para>
+
+                <para>
+                Finally, any files in <filename>${bindir}</filename>
+                within the sysroot that have the prefix
+                "<filename>postinst-</filename>" are executed.
+                <note>
+                    Although such sysroot post installation scripts are not
+                    recommended for general use, the files do allow some issues
+                    such as user creation and module indexes to be addressed.
+                </note>
+                </para>
+
+                <para>
+                Because recipes can have other dependencies outside of
+                <filename>DEPENDS</filename> (e.g.
+                <filename>do_unpack[depends] += "tar-native:do_populate_sysroot"</filename>),
+                the sysroot creation function
+                <filename>extend_recipe_sysroot</filename> is also added as
+                a pre-function for those tasks whose dependencies are not
+                through <filename>DEPENDS</filename> but operate similarly.
+                </para>
+
+                <para>
+                When installing dependencies into the sysroot, the code
+                traverses the dependency graph and processes dependencies
+                in exactly the same way as the dependencies would or would not
+                be when installed from sstate.
+                This processing means, for example, a native tool would have
+                its native dependencies added but a target library would not
+                have its dependencies traversed or installed.
+                The same sstate dependency code is used so that
+                builds should be identical regardless of whether sstate
+                was used or not.
+                For a closer look, see the
+                <filename>setscene_depvalid()</filename> function in the
+                <link linkend='ref-classes-sstate'><filename>sstate</filename></link>
+                class.
+                </para>
+
+                <para>
+                The build system is careful to maintain manifests of the files
+                it installs so that any given dependency can be installed as
+                needed.
+                The sstate hash of the installed item is also stored so that
+                if it changes, the build system can reinstall it.
+                </para></listitem>
+        </itemizedlist>
     </para>
 </section>
 
@@ -3331,7 +3403,44 @@
     <para>
         For more information on <filename>systemd</filename>, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#selecting-an-initialization-manager'>Selecting an Initialization Manager</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
+    </para>
+</section>
+
+<section id='ref-classes-systemd-boot'>
+    <title><filename>systemd-boot.bbclass</filename></title>
+
+    <para>
+        The <filename>systemd-boot</filename> class provides functions specific
+        to the systemd-boot bootloader for building bootable images.
+        This is an internal class and is not intended to be used directly.
+        <note>
+            The <filename>systemd-boot</filename> class is a result from
+            merging the <filename>gummiboot</filename> class used in previous
+            Yocto Project releases with the <filename>systemd</filename>
+            project.
+        </note>
+        Set the
+        <link linkend='var-EFI_PROVIDER'><filename>EFI_PROVIDER</filename></link>
+        variable to "systemd-boot" to use this class.
+        Doing so creates a standalone EFI bootloader that is not dependent
+        on systemd.
+    </para>
+
+    <para>
+        For information on more variables used and supported in this class,
+        see the
+        <link linkend='var-SYSTEMD_BOOT_CFG'><filename>SYSTEMD_BOOT_CFG</filename></link>,
+        <link linkend='var-SYSTEMD_BOOT_ENTRIES'><filename>SYSTEMD_BOOT_ENTRIES</filename></link>,
+        and
+        <link linkend='var-SYSTEMD_BOOT_TIMEOUT'><filename>SYSTEMD_BOOT_TIMEOUT</filename></link>
+        variables.
+    </para>
+
+    <para>
+        You can also see the
+        <ulink url='http://www.freedesktop.org/wiki/Software/systemd/systemd-boot/'>Systemd-boot documentation</ulink>
+        for more information.
     </para>
 </section>
 
@@ -3370,6 +3479,14 @@
         The classes handle loading the tests and starting the image.
         To use the classes, you need to perform steps to set up the
         environment.
+        <note><title>Tip</title>
+            Best practices include using
+            <link linkend='var-IMAGE_CLASSES'><filename>IMAGE_CLASSES</filename></link>
+            rather than
+            <link linkend='var-INHERIT'><filename>INHERIT</filename></link> to
+            inherit the <filename>testimage</filename> class for automated
+            image testing.
+        </note>
     </para>
 
     <para>
@@ -3387,14 +3504,36 @@
         </literallayout>
         The <filename>testimage-auto</filename> class runs tests on an image
         after the image is constructed (i.e.
-        <link linkend='var-TEST_IMAGE'><filename>TEST_IMAGE</filename></link>
+        <link linkend='var-TESTIMAGE_AUTO'><filename>TESTIMAGE_AUTO</filename></link>
         must be set to "1").
     </para>
 
     <para>
         For information on how to enable, run, and create new tests, see the
         "<ulink url='&YOCTO_DOCS_DEV_URL;#performing-automated-runtime-testing'>Performing Automated Runtime Testing</ulink>"
-        section in the Yocto Project Development Manual.
+        section in the Yocto Project Development Tasks Manual.
+    </para>
+</section>
+
+<section id='ref-classes-testsdk'>
+    <title><filename>testsdk.bbclass</filename></title>
+
+    <para>
+        This class supports running automated tests against
+        software development kits (SDKs).
+        The <filename>testsdk</filename> class runs tests on an SDK when
+        called using the following:
+        <literallayout class='monospaced'>
+     $ bitbake -c testsdk image
+        </literallayout>
+        <note><title>Tip</title>
+            Best practices include using
+            <link linkend='var-IMAGE_CLASSES'><filename>IMAGE_CLASSES</filename></link>
+            rather than
+            <link linkend='var-INHERIT'><filename>INHERIT</filename></link> to
+            inherit the <filename>testsdk</filename> class for automated
+            SDK testing.
+        </note>
     </para>
 </section>
 
@@ -3498,14 +3637,31 @@
     <title><filename>uninative.bbclass</filename></title>
 
     <para>
-        Provides a means of reusing <filename>native/cross</filename> over
-        multiple distros.
-        <note>
-            Currently, the method used by the <filename>uninative</filename>
-            class is experimental.
-        </note>
-        For more information, see the commit message
-        <ulink url='http://cgit.openembedded.org/openembedded-core/commit/?id=e66c96ae9c7ba21ebd04a4807390f0031238a85a'>here</ulink>.
+        Attempts to isolate the build system from the host
+        distribution's C library in order to make re-use of native shared state
+        artifacts across different host distributions practical.
+        With this class enabled, a tarball containing a pre-built C library
+        is downloaded at the start of the build.
+        In the Poky reference distribution this is enabled by default
+        through
+        <filename>meta/conf/distro/include/yocto-uninative.inc</filename>.
+        Other distributions that do not derive from poky can also
+        "<filename>require conf/distro/include/yocto-uninative.inc</filename>"
+        to use this.
+        Alternatively if you prefer, you can build the uninative-tarball recipe
+        yourself, publish the resulting tarball (e.g. via HTTP) and set
+        <filename>UNINATIVE_URL</filename> and
+        <filename>UNINATIVE_CHECKSUM</filename> appropriately.
+        For an example, see the
+        <filename>meta/conf/distro/include/yocto-uninative.inc</filename>.
+    </para>
+
+    <para>
+        The <filename>uninative</filename> class is also used unconditionally
+        by the extensible SDK.
+        When building the extensible SDK,
+        <filename>uninative-tarball</filename> is built and the resulting
+        tarball is included within the SDK.
     </para>
 </section>
 
@@ -3545,7 +3701,8 @@
         provide pathnames for links, default links for targets, and
         so forth.
         For details on how to use this class, see the comments in the
-        <ulink url='&YOCTO_GIT_URL;/cgit/cgit.cgi/poky/tree/meta/classes/update-alternatives.bbclass'><filename>update-alternatives.bbclass</filename></ulink>.
+        <ulink url='&YOCTO_GIT_URL;/cgit/cgit.cgi/poky/tree/meta/classes/update-alternatives.bbclass'><filename>update-alternatives.bbclass</filename></ulink>
+        file.
     </para>
 
     <note>
@@ -3585,8 +3742,9 @@
         For example, if you have packages that contain system services that
         should be run under their own user or group, you can use these classes
         to enable creation of the user or group.
-        The <filename>meta-skeleton/recipes-skeleton/useradd/useradd-example.bb</filename>
-        recipe in the <ulink url='&YOCTO_DOCS_DEV_URL;#source-directory'>Source Directory</ulink>
+        The
+        <filename>meta-skeleton/recipes-skeleton/useradd/useradd-example.bb</filename>
+        recipe in the <link linkend='source-directory'>Source Directory</link>
         provides a simple example that shows how to add three
         users and groups to two packages.
         See the <filename>useradd-example.bb</filename> recipe for more
@@ -3716,7 +3874,9 @@
         software that uses the Waf build system.
         You can use the
         <link linkend='var-EXTRA_OECONF'><filename>EXTRA_OECONF</filename></link>
-        variable to specify additional configuration options to be passed on
+        or
+        <link linkend='var-PACKAGECONFIG_CONFARGS'><filename>PACKAGECONFIG_CONFARGS</filename></link>
+        variables to specify additional configuration options to be passed on
         the Waf command line.
     </para>
 </section>

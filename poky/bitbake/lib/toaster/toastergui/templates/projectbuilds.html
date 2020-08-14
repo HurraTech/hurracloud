@@ -39,10 +39,10 @@
 
  {% if objects.paginator.count == 0 %}
   {% if request.GET.filter or request.GET.search %}
-    <div class="row-fluid">
+    <div class="row">
       <div class="alert">
         <form class="no-results input-append" id="searchform">
-            <input id="search" name="search" class="input-xxlarge" type="text" value="{{request.GET.search}}"/>{% if request.GET.search %}<a href="javascript:$('#search').val('');searchform.submit()" class="add-on btn" tabindex="-1"><i class="icon-remove"></i></a>{% endif %}
+            <input id="search" name="search" class="input-xxlarge" type="text" value="{{request.GET.search}}"/>{% if request.GET.search %}<a href="javascript:$('#search').val('');searchform.submit()" class="input-append-addon btn" tabindex="-1"><i class="glyphicon glyphicon-remove"></i></a>{% endif %}
             <button class="btn" type="submit" value="Search">Search</button>
             <button class="btn btn-link" onclick="javascript:$('#search').val('');searchform.submit()">Show all builds</button>
         </form>
@@ -63,11 +63,12 @@
         {% for build in objects %} {# if we have a build, just display it #}
         <tr class="data">
             <td class="outcome"><a href="{% url "builddashboard" build.id %}">{%if build.outcome == build.SUCCEEDED%}<i class="icon-ok-sign success"></i>{%elif build.outcome == build.FAILED%}<i class="icon-minus-sign error"></i>{%else%}{%endif%}</a>
-                   {% if build.project %}
-                        &nbsp; <a href="{% url 'build_artifact' build.id "cookerlog" build.id %}">
-                            <i class="icon-download-alt" title="" data-original-title="Download build log"></i>
-                        </a>
-                    {% endif %}
+              {% if build.cooker_log_path %}
+                &nbsp;
+                <a href="{% url 'build_artifact' build.id "cookerlog" build.id %}">
+                  <i class="icon-download-alt" title="Download build log"></i>
+                </a>
+              {% endif %}
             </td>
 
             <td class="target">

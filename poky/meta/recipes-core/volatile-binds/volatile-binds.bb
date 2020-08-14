@@ -11,12 +11,15 @@ SRC_URI = "\
 
 S = "${WORKDIR}"
 
-inherit allarch systemd distro_features_check
+inherit allarch systemd features_check
 
 REQUIRED_DISTRO_FEATURES = "systemd"
 
 VOLATILE_BINDS ?= "\
     /var/volatile/lib /var/lib\n\
+    /var/volatile/cache /var/cache\n\
+    /var/volatile/spool /var/spool\n\
+    /var/volatile/srv /srv\n\
 "
 VOLATILE_BINDS[type] = "list"
 VOLATILE_BINDS[separator] = "\n"
@@ -46,7 +49,7 @@ do_compile () {
             -e "s#@whatparent@#${spec%/*}#g; s#@whereparent@#${mountpoint%/*}#g" \
             volatile-binds.service.in >$servicefile
     done <<END
-${@d.getVar('VOLATILE_BINDS', True).replace("\\n", "\n")}
+${@d.getVar('VOLATILE_BINDS').replace("\\n", "\n")}
 END
 
     if [ -e var-volatile-lib.service ]; then
@@ -64,8 +67,14 @@ do_install () {
     install -m 0755 mount-copybind ${D}${base_sbindir}/
 
     install -d ${D}${systemd_unitdir}/system
-    for service in ${SYSTEMD_SERVICE_volatile-binds}; do
+    for service in ${SYSTEMD_SERVICE_${PN}}; do
         install -m 0644 $service ${D}${systemd_unitdir}/system/
     done
+
+    # Suppress attempts to process some tmpfiles that are not temporary.
+    #
+    install -d ${D}${sysconfdir}/tmpfiles.d ${D}/var/cache
+    ln -s /dev/null ${D}${sysconfdir}/tmpfiles.d/etc.conf
+    ln -s /dev/null ${D}${sysconfdir}/tmpfiles.d/home.conf
 }
 do_install[dirs] = "${WORKDIR}"

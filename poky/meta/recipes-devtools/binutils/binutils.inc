@@ -17,7 +17,8 @@ inherit autotools gettext multilib_header texinfo
 
 FILES_${PN} = " \
 	${bindir}/${TARGET_PREFIX}* \
-	${libdir}/lib*-*.so \
+	${libdir}/lib*.so.* \
+	${libdir}/lib*-${PV}*.so \
 	${prefix}/${TARGET_SYS}/bin/* \
         ${bindir}/embedspu"
 
@@ -27,10 +28,17 @@ FILES_${PN}-dev = " \
 	${includedir} \
 	${libdir}/*.la \
 	${libdir}/libbfd.so \
+	${libdir}/libctf.so \
+	${libdir}/libctf-nobfd.so \
 	${libdir}/libopcodes.so"
 
 # Rather than duplicating multiple entries for these, make one
 # list and reuse it.
+
+LDGOLD_ALTS ?= "ld.gold dwp"
+LDGOLD_ALTS_riscv64 = ""
+LDGOLD_ALTS_riscv32 = ""
+LDGOLD_ALTS_libc-glibc_mipsarch = ""
 
 USE_ALTERNATIVES_FOR = " \
 	addr2line \
@@ -41,7 +49,7 @@ USE_ALTERNATIVES_FOR = " \
 	gprof \
 	ld \
 	ld.bfd \
-	ld.gold dwp \
+	${LDGOLD_ALTS} \
 	nm \
 	objcopy \
 	objdump \
@@ -53,27 +61,38 @@ USE_ALTERNATIVES_FOR = " \
 "
 
 python do_package_prepend() {
-    make_alts = d.getVar("USE_ALTERNATIVES_FOR", True) or ""
-    prefix = d.getVar("TARGET_PREFIX", True)
-    bindir = d.getVar("bindir", True)
+    make_alts = d.getVar("USE_ALTERNATIVES_FOR") or ""
+    prefix = d.getVar("TARGET_PREFIX")
+    bindir = d.getVar("bindir")
     for alt in make_alts.split():
         d.setVarFlag('ALTERNATIVE_TARGET', alt, bindir + "/" + prefix + alt)
         d.setVarFlag('ALTERNATIVE_LINK_NAME', alt, bindir + "/" + alt)
 }
 
-# FILES_${PN}-dbg = "${prefix}/${TARGET_SYS}/bin/.debug ${prefix}/${libdir}/.debug"
-
 B = "${S}/build.${HOST_SYS}.${TARGET_SYS}"
 
 EXTRA_OECONF = "--program-prefix=${TARGET_PREFIX} \
                 --disable-werror \
+                --enable-deterministic-archives \
                 --enable-plugins \
+                --disable-gdb \
+                --disable-gdbserver \
+                --disable-libdecnumber \
+                --disable-readline \
+                --disable-sim \
                 ${LDGOLD} \
+                ${EXTRA_TARGETS} \
                 ${@bb.utils.contains('DISTRO_FEATURES', 'multiarch', '--enable-64-bit-bfd', '', d)}"
+
+EXTRA_TARGETS = ""
+EXTRA_TARGETS_x86-64 = " --enable-targets=x86_64-pe,x86_64-pep "
+EXTRA_TARGETS_class-native = ""
 
 LDGOLD_class-native = ""
 LDGOLD_class-crosssdk = ""
-LDGOLD ?= "${@bb.utils.contains('DISTRO_FEATURES', 'ld-is-gold', '--enable-gold=default --enable-threads', '--enable-gold --enable-ld=default', d)}"
+LDGOLD_libc-glibc_mipsarch = ""
+LDGOLD ?= "${@bb.utils.contains('DISTRO_FEATURES', 'ld-is-gold', '--enable-gold=default --enable-threads', '--enable-gold --enable-ld=default --enable-threads', d)}"
+
 
 # This is necessary due to a bug in the binutils Makefiles
 # EXTRA_OEMAKE = "configure-build-libiberty all"
@@ -102,7 +121,8 @@ export CC_FOR_BUILD = "LD_LIBRARY_PATH= ${BUILD_CC}"
 MULTIARCH := "${@bb.utils.contains("DISTRO_FEATURES", "multiarch", "yes", "no", d)}"
 do_configure[vardeps] += "MULTIARCH"
 do_configure () {
-	(cd ${S}; gnu-configize) || die "Failed to run gnu-configize"
+	(cd ${S} && gnu-configize)
+
 	oe_runconf
 #
 # must prime config.cache to ensure the build of libiberty
@@ -119,18 +139,23 @@ do_install () {
 	# We don't really need these, so we'll remove them...
 	rm -rf ${D}${libdir}/ldscripts
 
+	bindir_rel=${@os.path.relpath('${bindir}', '${prefix}/${TARGET_SYS}/bin')}
+
 	# Fix the /usr/${TARGET_SYS}/bin/* links
 	for l in ${D}${prefix}/${TARGET_SYS}/bin/*; do
 		rm -f $l
-		ln -sf `echo ${prefix}/${TARGET_SYS}/bin \
-			| tr -s / \
-			| sed -e 's,^/,,' -e 's,[^/]*,..,g'`${bindir}/${TARGET_PREFIX}`basename $l` $l
+		ln -sf $bindir_rel/${TARGET_PREFIX}`basename $l` $l
 	done
 
 	# Install the libiberty header
 	install -d ${D}${includedir}
 	install -m 644 ${S}/include/ansidecl.h ${D}${includedir}
 	install -m 644 ${S}/include/libiberty.h ${D}${includedir}
+
+	# insall pic version of libiberty if available
+        if [ -e ${B}/libiberty/pic/libiberty.a ]; then
+		install -Dm 0644 ${B}/libiberty/pic/libiberty.a ${D}${libdir}/libiberty.a
+	fi
 
 	cd ${D}${bindir}
 
@@ -144,6 +169,8 @@ do_install () {
 	done
 
 	oe_multilib_header bfd.h
+        # bfd_stdint.h encodes the compiler name in the header
+        sed -i ${D}${includedir}/bfd_stdint.h -e "s,${TARGET_PREFIX},,"
 }
 
 inherit update-alternatives
@@ -151,3 +178,8 @@ inherit update-alternatives
 ALTERNATIVE_PRIORITY = "100"
 
 ALTERNATIVE_${PN}_class-target = "${USE_ALTERNATIVES_FOR}"
+
+python () {
+    if bb.utils.contains('DISTRO_FEATURES', 'ld-is-gold', True, False, d) and bb.utils.contains_any('TARGET_ARCH', 'riscv32 riscv64', True, False, d):
+        bb.fatal("Gold linker does not _yet_ support RISC-V architecture please remove ld-is-gold from DISTRO_FEATURES")
+}

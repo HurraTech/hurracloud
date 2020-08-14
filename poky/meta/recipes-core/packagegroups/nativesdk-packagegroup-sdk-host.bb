@@ -4,7 +4,6 @@
 
 SUMMARY = "Host packages for the standalone SDK or external toolchain"
 PR = "r12"
-LICENSE = "MIT"
 
 inherit packagegroup nativesdk
 
@@ -22,8 +21,12 @@ RDEPENDS_${PN} = "\
     nativesdk-automake \
     nativesdk-shadow \
     nativesdk-makedevs \
-    nativesdk-smartpm \
-    nativesdk-postinst-intercept \
+    nativesdk-cmake \
+    nativesdk-meson \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'nativesdk-wayland', '', d)} \
+    nativesdk-sdk-provides-dummy \
+    nativesdk-bison \
+    nativesdk-flex \
     "
 
 RDEPENDS_${PN}_darwin = "\

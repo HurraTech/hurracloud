@@ -8,20 +8,21 @@ PRSERV_DUMPFILE ??= "${PRSERV_DUMPDIR}/prserv.inc"
 
 python prexport_handler () {
     import bb.event
-    if not e.data:
+    if not e.data or bb.data.inherits_class('native', e.data) or \
+        bb.data.inherits_class('crosssdk', e.data):
         return
 
     if isinstance(e, bb.event.RecipeParsed):
         import oe.prservice
         #get all PR values for the current PRAUTOINX
-        ver = e.data.getVar('PRSERV_DUMPOPT_VERSION', True)
+        ver = e.data.getVar('PRSERV_DUMPOPT_VERSION')
         ver = ver.replace('%','-')
         retval = oe.prservice.prserv_dump_db(e.data)
         if not retval:
             bb.fatal("prexport_handler: export failed!")
         (metainfo, datainfo) = retval
         if not datainfo:
-            bb.warn("prexport_handler: No AUTOPR values found for %s" % ver)
+            bb.note("prexport_handler: No AUTOPR values found for %s" % ver)
             return
         oe.prservice.prserv_export_tofile(e.data, None, datainfo, False)
         if 'AUTOINC' in ver:
@@ -39,7 +40,7 @@ python prexport_handler () {
         import oe.prservice
         oe.prservice.prserv_check_avail(e.data)
         #remove dumpfile
-        bb.utils.remove(e.data.getVar('PRSERV_DUMPFILE', True))
+        bb.utils.remove(e.data.getVar('PRSERV_DUMPFILE'))
     elif isinstance(e, bb.event.ParseCompleted):
         import oe.prservice
         #dump meta info of tables

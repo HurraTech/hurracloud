@@ -1,4 +1,6 @@
-# vi:sts=4:sw=4:et
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
 """Code for parsing OpenEmbedded license strings"""
 
 import ast
@@ -13,8 +15,8 @@ def license_ok(license, dont_want_licenses):
         # will exclude a trailing '+' character from LICENSE in
         # case INCOMPATIBLE_LICENSE is not a 'X+' license.
         lic = license
-        if not re.search('\+$', dwl):
-            lic = re.sub('\+', '', license)
+        if not re.search(r'\+$', dwl):
+            lic = re.sub(r'\+', '', license)
         if fnmatch(lic, dwl):
             return False
     return True
@@ -40,14 +42,14 @@ class InvalidLicense(LicenseError):
         return "invalid characters in license '%s'" % self.license
 
 license_operator_chars = '&|() '
-license_operator = re.compile('([' + license_operator_chars + '])')
-license_pattern = re.compile('[a-zA-Z0-9.+_\-]+$')
+license_operator = re.compile(r'([' + license_operator_chars + '])')
+license_pattern = re.compile(r'[a-zA-Z0-9.+_\-]+$')
 
 class LicenseVisitor(ast.NodeVisitor):
     """Get elements based on OpenEmbedded license strings"""
     def get_elements(self, licensestr):
         new_elements = []
-        elements = filter(lambda x: x.strip(), license_operator.split(licensestr))
+        elements = list([x for x in license_operator.split(licensestr) if x.strip()])
         for pos, element in enumerate(elements):
             if license_pattern.match(element):
                 if pos > 0 and license_pattern.match(elements[pos-1]):
@@ -106,7 +108,8 @@ def is_included(licensestr, whitelist=None, blacklist=None):
     license string matches the whitelist and does not match the blacklist.
 
     Returns a tuple holding the boolean state and a list of the applicable
-    licenses which were excluded (or None, if the state is True)
+    licenses that were excluded if state is False, or the licenses that were
+    included if the state is True.
     """
 
     def include_license(license):
@@ -117,10 +120,17 @@ def is_included(licensestr, whitelist=None, blacklist=None):
 
     def choose_licenses(alpha, beta):
         """Select the option in an OR which is the 'best' (has the most
-        included licenses)."""
-        alpha_weight = len(filter(include_license, alpha))
-        beta_weight = len(filter(include_license, beta))
-        if alpha_weight > beta_weight:
+        included licenses and no excluded licenses)."""
+        # The factor 1000 below is arbitrary, just expected to be much larger
+        # that the number of licenses actually specified. That way the weight
+        # will be negative if the list of licenses contains an excluded license,
+        # but still gives a higher weight to the list with the most included
+        # licenses.
+        alpha_weight = (len(list(filter(include_license, alpha))) -
+                        1000 * (len(list(filter(exclude_license, alpha))) > 0))
+        beta_weight = (len(list(filter(include_license, beta))) -
+                       1000 * (len(list(filter(exclude_license, beta))) > 0))
+        if alpha_weight >= beta_weight:
             return alpha
         else:
             return beta
@@ -132,8 +142,8 @@ def is_included(licensestr, whitelist=None, blacklist=None):
         blacklist = []
 
     licenses = flattened_licenses(licensestr, choose_licenses)
-    excluded = filter(lambda lic: exclude_license(lic), licenses)
-    included = filter(lambda lic: include_license(lic), licenses)
+    excluded = [lic for lic in licenses if exclude_license(lic)]
+    included = [lic for lic in licenses if include_license(lic)]
     if excluded:
         return False, excluded
     else:
@@ -215,3 +225,21 @@ def manifest_licenses(licensestr, dont_want_licenses, canonical_license, d):
     manifest.licensestr = manifest.licensestr.replace('[', '(').replace(']', ')')
 
     return (manifest.licensestr, manifest.licenses)
+
+class ListVisitor(LicenseVisitor):
+    """Record all different licenses found in the license string"""
+    def __init__(self):
+        self.licenses = set()
+
+    def visit_Str(self, node):
+        self.licenses.add(node.s)
+
+def list_licenses(licensestr):
+    """Simply get a list of all licenses mentioned in a license string.
+       Binary operators are not applied or taken into account in any way"""
+    visitor = ListVisitor()
+    try:
+        visitor.visit_string(licensestr)
+    except SyntaxError as exc:
+        raise LicenseSyntaxError(licensestr, exc)
+    return visitor.licenses

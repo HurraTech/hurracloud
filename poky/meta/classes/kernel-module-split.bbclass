@@ -22,37 +22,54 @@ if [ x"$D" = "x" ]; then
 fi
 }
 
+PACKAGE_WRITE_DEPS += "kmod-native depmodwrapper-cross"
+
 do_install_append() {
 	install -d ${D}${sysconfdir}/modules-load.d/ ${D}${sysconfdir}/modprobe.d/
 }
 
 PACKAGESPLITFUNCS_prepend = "split_kernel_module_packages "
 
-KERNEL_MODULES_META_PACKAGE ?= "kernel-modules"
+KERNEL_MODULES_META_PACKAGE ?= "${@ d.getVar("KERNEL_PACKAGE_NAME") or "kernel" }-modules"
+
+KERNEL_MODULE_PACKAGE_PREFIX ?= ""
+KERNEL_MODULE_PACKAGE_SUFFIX ?= "-${KERNEL_VERSION}"
+KERNEL_MODULE_PROVIDE_VIRTUAL ?= "1"
 
 python split_kernel_module_packages () {
     import re
 
     modinfoexp = re.compile("([^=]+)=(.*)")
-    kerverrexp = re.compile('^(.*-hh.*)[\.\+].*$')
-    depmodpat0 = re.compile("^(.*\.k?o):..*$")
-    depmodpat1 = re.compile("^(.*\.k?o):\s*(.*\.k?o)\s*$")
-    depmodpat2 = re.compile("^(.*\.k?o):\s*(.*\.k?o)\s*\\\$")
-    depmodpat3 = re.compile("^\t(.*\.k?o)\s*\\\$")
-    depmodpat4 = re.compile("^\t(.*\.k?o)\s*$")
 
     def extract_modinfo(file):
         import tempfile, subprocess
-        tempfile.tempdir = d.getVar("WORKDIR", True)
+        tempfile.tempdir = d.getVar("WORKDIR")
+        compressed = re.match( r'.*\.([xg])z$', file)
         tf = tempfile.mkstemp()
         tmpfile = tf[1]
-        cmd = "%sobjcopy -j .modinfo -O binary %s %s" % (d.getVar("HOST_PREFIX", True) or "", file, tmpfile)
-        subprocess.call(cmd, shell=True)
-        f = open(tmpfile)
+        if compressed:
+            tmpkofile = tmpfile + ".ko"
+            if compressed.group(1) == 'g':
+                cmd = "gunzip -dc %s > %s" % (file, tmpkofile)
+                subprocess.check_call(cmd, shell=True)
+            elif compressed.group(1) == 'x':
+                cmd = "xz -dc %s > %s" % (file, tmpkofile)
+                subprocess.check_call(cmd, shell=True)
+            else:
+                msg = "Cannot decompress '%s'" % file
+                raise msg
+            cmd = "%sobjcopy -j .modinfo -O binary %s %s" % (d.getVar("HOST_PREFIX") or "", tmpkofile, tmpfile)
+        else:
+            cmd = "%sobjcopy -j .modinfo -O binary %s %s" % (d.getVar("HOST_PREFIX") or "", file, tmpfile)
+        subprocess.check_call(cmd, shell=True)
+        # errors='replace': Some old kernel versions contain invalid utf-8 characters in mod descriptions (like 0xf6, 'ö')
+        f = open(tmpfile, errors='replace')
         l = f.read().split("\000")
         f.close()
         os.close(tf[0])
         os.unlink(tmpfile)
+        if compressed:
+            os.unlink(tmpkofile)
         vals = {}
         for i in l:
             m = modinfoexp.match(i)
@@ -61,77 +78,15 @@ python split_kernel_module_packages () {
             vals[m.group(1)] = m.group(2)
         return vals
 
-    def parse_depmod():
-
-        dvar = d.getVar('PKGD', True)
-
-        kernelver = d.getVar('KERNEL_VERSION', True)
-        kernelver_stripped = kernelver
-        m = kerverrexp.match(kernelver)
-        if m:
-            kernelver_stripped = m.group(1)
-        staging_kernel_dir = d.getVar("STAGING_KERNEL_BUILDDIR", True)
-        system_map_file = "%s/boot/System.map-%s" % (dvar, kernelver)
-        if not os.path.exists(system_map_file):
-            system_map_file = "%s/System.map-%s" % (staging_kernel_dir, kernelver)
-            if not os.path.exists(system_map_file):
-                bb.fatal("System.map-%s does not exist in '%s/boot' nor STAGING_KERNEL_BUILDDIR '%s'" % (kernelver, dvar, staging_kernel_dir))
-
-        cmd = "depmod -n -a -b %s -F %s %s" % (dvar, system_map_file, kernelver_stripped)
-        f = os.popen(cmd, 'r')
-
-        deps = {}
-        line = f.readline()
-        while line:
-            if not depmodpat0.match(line):
-                line = f.readline()
-                continue
-            m1 = depmodpat1.match(line)
-            if m1:
-                deps[m1.group(1)] = m1.group(2).split()
-            else:
-                m2 = depmodpat2.match(line)
-                if m2:
-                    deps[m2.group(1)] = m2.group(2).split()
-                    line = f.readline()
-                    m3 = depmodpat3.match(line)
-                    while m3:
-                        deps[m2.group(1)].extend(m3.group(1).split())
-                        line = f.readline()
-                        m3 = depmodpat3.match(line)
-                    m4 = depmodpat4.match(line)
-                    deps[m2.group(1)].extend(m4.group(1).split())
-            line = f.readline()
-        f.close()
-        return deps
-
-    def get_dependencies(file, pattern, format):
-        # file no longer includes PKGD
-        file = file.replace(d.getVar('PKGD', True) or '', '', 1)
-        # instead is prefixed with /lib/modules/${KERNEL_VERSION}
-        file = file.replace("/lib/modules/%s/" % d.getVar('KERNEL_VERSION', True) or '', '', 1)
-
-        if file in module_deps:
-            dependencies = []
-            for i in module_deps[file]:
-                m = re.match(pattern, os.path.basename(i))
-                if not m:
-                    continue
-                on = legitimize_package_name(m.group(1))
-                dependency_pkg = format % on
-                dependencies.append(dependency_pkg)
-            return dependencies
-        return []
-
     def frob_metadata(file, pkg, pattern, format, basename):
         vals = extract_modinfo(file)
 
-        dvar = d.getVar('PKGD', True)
+        dvar = d.getVar('PKGD')
 
         # If autoloading is requested, output /etc/modules-load.d/<name>.conf and append
         # appropriate modprobe commands to the postinst
-        autoloadlist = (d.getVar("KERNEL_MODULE_AUTOLOAD", True) or "").split()
-        autoload = d.getVar('module_autoload_%s' % basename, True)
+        autoloadlist = (d.getVar("KERNEL_MODULE_AUTOLOAD") or "").split()
+        autoload = d.getVar('module_autoload_%s' % basename)
         if autoload and autoload == basename:
             bb.warn("module_autoload_%s was replaced by KERNEL_MODULE_AUTOLOAD for cases where basename == module name, please drop it" % basename)
         if autoload and basename not in autoloadlist:
@@ -145,15 +100,15 @@ python split_kernel_module_packages () {
             else:
                 f.write('%s\n' % basename)
             f.close()
-            postinst = d.getVar('pkg_postinst_%s' % pkg, True)
+            postinst = d.getVar('pkg_postinst_%s' % pkg)
             if not postinst:
                 bb.fatal("pkg_postinst_%s not defined" % pkg)
-            postinst += d.getVar('autoload_postinst_fragment', True) % (autoload or basename)
+            postinst += d.getVar('autoload_postinst_fragment') % (autoload or basename)
             d.setVar('pkg_postinst_%s' % pkg, postinst)
 
         # Write out any modconf fragment
-        modconflist = (d.getVar("KERNEL_MODULE_PROBECONF", True) or "").split()
-        modconf = d.getVar('module_conf_%s' % basename, True)
+        modconflist = (d.getVar("KERNEL_MODULE_PROBECONF") or "").split()
+        modconf = d.getVar('module_conf_%s' % basename)
         if modconf and basename in modconflist:
             name = '%s/etc/modprobe.d/%s.conf' % (dvar, basename)
             f = open(name, 'w')
@@ -162,16 +117,22 @@ python split_kernel_module_packages () {
         elif modconf:
             bb.error("Please ensure module %s is listed in KERNEL_MODULE_PROBECONF since module_conf_%s is set" % (basename, basename))
 
-        files = d.getVar('FILES_%s' % pkg, True)
+        files = d.getVar('FILES_%s' % pkg)
         files = "%s /etc/modules-load.d/%s.conf /etc/modprobe.d/%s.conf" % (files, basename, basename)
         d.setVar('FILES_%s' % pkg, files)
 
         if "description" in vals:
-            old_desc = d.getVar('DESCRIPTION_' + pkg, True) or ""
+            old_desc = d.getVar('DESCRIPTION_' + pkg) or ""
             d.setVar('DESCRIPTION_' + pkg, old_desc + "; " + vals["description"])
 
-        rdepends = bb.utils.explode_dep_versions2(d.getVar('RDEPENDS_' + pkg, True) or "")
-        for dep in get_dependencies(file, pattern, format):
+        rdepends = bb.utils.explode_dep_versions2(d.getVar('RDEPENDS_' + pkg) or "")
+        modinfo_deps = []
+        if "depends" in vals and vals["depends"] != "":
+            for dep in vals["depends"].split(","):
+                on = legitimize_package_name(dep)
+                dependency_pkg = format % on
+                modinfo_deps.append(dependency_pkg)
+        for dep in modinfo_deps:
             if not dep in rdepends:
                 rdepends[dep] = []
         d.setVar('RDEPENDS_' + pkg, bb.utils.join_deps(rdepends, commasep=False))
@@ -179,25 +140,36 @@ python split_kernel_module_packages () {
         # Avoid automatic -dev recommendations for modules ending with -dev.
         d.setVarFlag('RRECOMMENDS_' + pkg, 'nodeprrecs', 1)
 
-    module_deps = parse_depmod()
-    module_regex = '^(.*)\.k?o$'
-    module_pattern = 'kernel-module-%s'
+        # Provide virtual package without postfix
+        providevirt = d.getVar('KERNEL_MODULE_PROVIDE_VIRTUAL')
+        if providevirt == "1":
+           postfix = format.split('%s')[1]
+           d.setVar('RPROVIDES_' + pkg, pkg.replace(postfix, ''))
 
-    postinst = d.getVar('pkg_postinst_modules', True)
-    postrm = d.getVar('pkg_postrm_modules', True)
+    kernel_package_name = d.getVar("KERNEL_PACKAGE_NAME") or "kernel"
+    kernel_version = d.getVar("KERNEL_VERSION")
 
-    modules = do_split_packages(d, root='/lib/modules', file_regex=module_regex, output_pattern=module_pattern, description='%s kernel module', postinst=postinst, postrm=postrm, recursive=True, hook=frob_metadata, extra_depends='kernel-%s' % (d.getVar("KERNEL_VERSION", True)))
+    module_regex = r'^(.*)\.k?o(?:\.[xg]z)?$'
+
+    module_pattern_prefix = d.getVar('KERNEL_MODULE_PACKAGE_PREFIX')
+    module_pattern_suffix = d.getVar('KERNEL_MODULE_PACKAGE_SUFFIX')
+    module_pattern = module_pattern_prefix + kernel_package_name + '-module-%s' + module_pattern_suffix
+
+    postinst = d.getVar('pkg_postinst_modules')
+    postrm = d.getVar('pkg_postrm_modules')
+
+    modules = do_split_packages(d, root='${nonarch_base_libdir}/modules', file_regex=module_regex, output_pattern=module_pattern, description='%s kernel module', postinst=postinst, postrm=postrm, recursive=True, hook=frob_metadata, extra_depends='%s-%s' % (kernel_package_name, kernel_version))
     if modules:
-        metapkg = d.getVar('KERNEL_MODULES_META_PACKAGE', True)
+        metapkg = d.getVar('KERNEL_MODULES_META_PACKAGE')
         d.appendVar('RDEPENDS_' + metapkg, ' '+' '.join(modules))
 
     # If modules-load.d and modprobe.d are empty at this point, remove them to
     # avoid warnings. removedirs only raises an OSError if an empty
     # directory cannot be removed.
-    dvar = d.getVar('PKGD', True)
+    dvar = d.getVar('PKGD')
     for dir in ["%s/etc/modprobe.d" % (dvar), "%s/etc/modules-load.d" % (dvar), "%s/etc" % (dvar)]:
         if len(os.listdir(dir)) == 0:
             os.rmdir(dir)
 }
 
-do_package[vardeps] += '${@" ".join(map(lambda s: "module_conf_" + s, (d.getVar("KERNEL_MODULE_PROBECONF", True) or "").split()))}'
+do_package[vardeps] += '${@" ".join(map(lambda s: "module_conf_" + s, (d.getVar("KERNEL_MODULE_PROBECONF") or "").split()))}'

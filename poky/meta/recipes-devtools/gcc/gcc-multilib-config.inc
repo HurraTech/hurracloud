@@ -21,14 +21,17 @@ python gcc_multilib_setup() {
     import shutil
     import glob
 
-    srcdir = d.getVar('S', True)
-    builddir = d.getVar('B', True)
+    srcdir = d.getVar('S')
+    builddir = d.getVar('B')
     src_conf_dir = '%s/gcc/config' % srcdir
     build_conf_dir = '%s/gcc/config' % builddir
 
     bb.utils.remove(build_conf_dir, True)
     ml_globs = ('%s/*/t-linux64' % src_conf_dir,
                 '%s/*/linux64.h' % src_conf_dir,
+                '%s/aarch64/t-aarch64' % src_conf_dir,
+                '%s/aarch64/aarch64.h' % src_conf_dir,
+                '%s/aarch64/aarch64-cores.def' % src_conf_dir,
                 '%s/*/linux.h' % src_conf_dir,
                 '%s/linux.h' % src_conf_dir)
 
@@ -40,12 +43,12 @@ python gcc_multilib_setup() {
             bb.utils.mkdirhier('%s/%s' % (build_conf_dir, parent_dir))
             bb.utils.copyfile(fn, '%s/%s' % (build_conf_dir, rel_path))
 
-    pn = d.getVar('PN', True)
-    multilibs = (d.getVar('MULTILIB_VARIANTS', True) or '').split()
+    pn = d.getVar('PN')
+    multilibs = (d.getVar('MULTILIB_VARIANTS') or '').split()
     if not multilibs and pn != "nativesdk-gcc":
         return
 
-    mlprefix = d.getVar('MLPREFIX', True)
+    mlprefix = d.getVar('MLPREFIX')
 
     if ('%sgcc' % mlprefix) != pn and (not pn.startswith('gcc-cross-canadian')) and pn != "nativesdk-gcc":
         return
@@ -130,6 +133,8 @@ python gcc_multilib_setup() {
         'mips64'    : ['gcc/config/mips/t-linux64'],
         'powerpc'   : ['gcc/config/rs6000/t-linux64'],
         'powerpc64' : ['gcc/config/rs6000/t-linux64'],
+        'aarch64'   : ['gcc/config/aarch64/t-aarch64'],
+        'arm'       : ['gcc/config/aarch64/t-aarch64'],
     }
 
     gcc_header_config_files = {
@@ -140,6 +145,8 @@ python gcc_multilib_setup() {
         'mips64'    : ['gcc/config/mips/linux.h', 'gcc/config/mips/linux64.h'],
         'powerpc'   : ['gcc/config/rs6000/linux64.h'],
         'powerpc64' : ['gcc/config/rs6000/linux64.h'],
+        'aarch64'   : ['gcc/config/aarch64/aarch64.h'],
+        'arm'       : ['gcc/config/aarch64/aarch64.h'],
     }
 
     libdir32 = 'SYSTEMLIBS_DIR'
@@ -148,10 +155,10 @@ python gcc_multilib_setup() {
     libdirn32 = 'SYSTEMLIBS_DIR'
 
 
-    target_arch = (d.getVar('TARGET_ARCH_MULTILIB_ORIGINAL', True) if mlprefix
-                    else d.getVar('TARGET_ARCH', True))
+    target_arch = (d.getVar('TARGET_ARCH_MULTILIB_ORIGINAL') if mlprefix
+                    else d.getVar('TARGET_ARCH'))
     if pn == "nativesdk-gcc":
-        header_config_files = gcc_header_config_files[d.getVar("SDK_ARCH", True)]
+        header_config_files = gcc_header_config_files[d.getVar("SDK_ARCH")]
         write_headers(builddir, header_config_files, libdir32, libdir64, libdirx32, libdirn32)
         return
 
@@ -181,7 +188,7 @@ python gcc_multilib_setup() {
     optsets = []
 
     for ml in ml_list:
-        tune = d.getVar(ml, True)
+        tune = d.getVar(ml)
         if not tune:
             bb.warn("%s doesn't have a corresponding tune. Skipping..." % ml)
             continue
@@ -205,7 +212,7 @@ python gcc_multilib_setup() {
 
         # take out '-' mcpu='s and march='s from parameters
         opts = []
-        whitelist = (d.getVar("MULTILIB_OPTION_WHITELIST", True) or "").split()
+        whitelist = (d.getVar("MULTILIB_OPTION_WHITELIST") or "").split()
         for i in d.expand(tune_parameters['ccargs']).split():
             if i in whitelist:
                 # Need to strip '-' from option

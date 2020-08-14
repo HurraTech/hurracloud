@@ -1,18 +1,17 @@
-DESCRIPTION = "SDK type target for building a standalone tarball containing python, chrpath, make, git and tar. The \
+DESCRIPTION = "SDK type target for building a standalone tarball containing python3, chrpath, make, git and tar. The \
                tarball can be used to run bitbake builds on systems which don't meet the usual version requirements."
 SUMMARY = "Standalone tarball for running builds on systems with inadequate software"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d690 \
-                    file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 
 TOOLCHAIN_TARGET_TASK ?= ""
 
 TOOLCHAIN_HOST_TASK ?= "\
-    nativesdk-python-core \
-    nativesdk-python-modules \
-    nativesdk-python-misc \
-    nativesdk-python-git \
-    nativesdk-python-pexpect \
+    nativesdk-python3-core \
+    nativesdk-python3-modules \
+    nativesdk-python3-misc \
+    nativesdk-python3-git \
+    nativesdk-python3-testtools \
+    nativesdk-python3-subunit \
     nativesdk-ncurses-terminfo-base \
     nativesdk-chrpath \
     nativesdk-tar \
@@ -23,11 +22,22 @@ TOOLCHAIN_HOST_TASK ?= "\
     nativesdk-make \
     nativesdk-wget \
     nativesdk-ca-certificates \
+    nativesdk-texinfo \
+    nativesdk-libnss-nis \
+    nativesdk-rpcsvc-proto \
+    nativesdk-patch \
+    nativesdk-mtools \
     "
 
-SDK_PACKAGE_ARCHS =+ "buildtools-dummy-${SDKPKGSUFFIX}"
+MULTIMACH_TARGET_SYS = "${SDK_ARCH}-nativesdk${SDK_VENDOR}-${SDK_OS}"
+PACKAGE_ARCH = "${SDK_ARCH}_${SDK_OS}"
+PACKAGE_ARCHS = ""
+TARGET_ARCH = "none"
+TARGET_OS = "none"
 
-TOOLCHAIN_OUTPUTNAME ?= "${SDK_NAME}-buildtools-nativesdk-standalone-${DISTRO_VERSION}"
+SDK_PACKAGE_ARCHS += "buildtools-dummy-${SDKPKGSUFFIX}"
+
+TOOLCHAIN_OUTPUTNAME ?= "${SDK_ARCH}-buildtools-nativesdk-standalone-${DISTRO_VERSION}"
 
 SDK_TITLE = "Build tools"
 
@@ -37,7 +47,15 @@ EXCLUDE_FROM_WORLD = "1"
 
 inherit meta
 inherit populate_sdk
-inherit toolchain-scripts
+inherit toolchain-scripts-base
+inherit nopackages
+
+deltask install
+deltask populate_sysroot
+
+do_populate_sdk[stamp-extra-info] = "${PACKAGE_ARCH}"
+
+REAL_MULTIMACH_TARGET_SYS = "none"
 
 create_sdk_files_append () {
 	rm -f ${SDK_OUTPUT}/${SDKPATH}/site-config-*
@@ -56,4 +74,22 @@ create_sdk_files_append () {
 	toolchain_create_sdk_version ${SDK_OUTPUT}/${SDKPATH}/version-${SDK_SYS}
 
 	echo 'export GIT_SSL_CAINFO="${SDKPATHNATIVE}${sysconfdir}/ssl/certs/ca-certificates.crt"' >>$script
+	echo 'export SSL_CERT_FILE="${SDKPATHNATIVE}${sysconfdir}/ssl/certs/ca-certificates.crt"' >>$script
+	echo 'export OPENSSL_CONF="${SDKPATHNATIVE}${sysconfdir}/ssl/openssl.cnf"' >>$script
+
+	mkdir -p ${SDK_OUTPUT}/${SDKPATHNATIVE}${sysconfdir}/
+	echo '${SDKPATHNATIVE}${libdir}
+${SDKPATHNATIVE}${base_libdir}
+include /etc/ld.so.conf' > ${SDK_OUTPUT}/${SDKPATHNATIVE}${sysconfdir}/ld.so.conf
+	if [ "${SDKMACHINE}" = "i686" ]; then
+		echo 'export NO32LIBS="0"' >>$script
+		echo 'echo "$BB_ENV_EXTRAWHITE" | grep -q "NO32LIBS"' >>$script
+		echo '[ $? != 0 ] && export BB_ENV_EXTRAWHITE="NO32LIBS $BB_ENV_EXTRAWHITE"' >>$script
+	fi
 }
+
+# buildtools-tarball doesn't need config site
+TOOLCHAIN_NEED_CONFIGSITE_CACHE = ""
+
+# The recipe doesn't need any default deps
+INHIBIT_DEFAULT_DEPS = "1"

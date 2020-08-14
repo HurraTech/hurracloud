@@ -1,5 +1,3 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 """
 BitBake 'Fetch' clearcase implementation
 
@@ -47,30 +45,18 @@ User credentials:
 """
 # Copyright (C) 2014 Siemens AG
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 
 import os
-import sys
 import shutil
 import bb
-from   bb import data
 from   bb.fetch2 import FetchMethod
 from   bb.fetch2 import FetchError
+from   bb.fetch2 import MissingParameterError
+from   bb.fetch2 import ParameterError
 from   bb.fetch2 import runfetchcmd
 from   bb.fetch2 import logger
-from   distutils import spawn
 
 class ClearCase(FetchMethod):
     """Class to fetch urls via 'clearcase'"""
@@ -94,7 +80,7 @@ class ClearCase(FetchMethod):
         if 'protocol' in ud.parm:
             ud.proto = ud.parm['protocol']
         if not ud.proto in ('http', 'https'):
-            raise fetch2.ParameterError("Invalid protocol type", ud.url)
+            raise ParameterError("Invalid protocol type", ud.url)
 
         ud.vob = ''
         if 'vob' in ud.parm:
@@ -108,13 +94,13 @@ class ClearCase(FetchMethod):
         else:
             ud.module = ""
 
-        ud.basecmd = d.getVar("FETCHCMD_ccrc", True) or spawn.find_executable("cleartool") or spawn.find_executable("rcleartool")
+        ud.basecmd = d.getVar("FETCHCMD_ccrc") or "/usr/bin/env cleartool || rcleartool"
 
-        if data.getVar("SRCREV", d, True) == "INVALID":
+        if d.getVar("SRCREV") == "INVALID":
           raise FetchError("Set a valid SRCREV for the clearcase fetcher in your recipe, e.g. SRCREV = \"/main/LATEST\" or any other label of your choice.")
 
         ud.label = d.getVar("SRCREV", False)
-        ud.customspec = d.getVar("CCASE_CUSTOM_CONFIG_SPEC", True)
+        ud.customspec = d.getVar("CCASE_CUSTOM_CONFIG_SPEC")
 
         ud.server     = "%s://%s%s" % (ud.proto, ud.host, ud.path)
 
@@ -124,7 +110,7 @@ class ClearCase(FetchMethod):
 
         ud.viewname         = "%s-view%s" % (ud.identifier, d.getVar("DATETIME", d, True))
         ud.csname           = "%s-config-spec" % (ud.identifier)
-        ud.ccasedir         = os.path.join(data.getVar("DL_DIR", d, True), ud.type)
+        ud.ccasedir         = os.path.join(d.getVar("DL_DIR"), ud.type)
         ud.viewdir          = os.path.join(ud.ccasedir, ud.viewname)
         ud.configspecfile   = os.path.join(ud.ccasedir, ud.csname)
         ud.localfile        = "%s.tar.gz" % (ud.identifier)
@@ -144,7 +130,7 @@ class ClearCase(FetchMethod):
         self.debug("configspecfile  = %s" % ud.configspecfile)
         self.debug("localfile       = %s" % ud.localfile)
 
-        ud.localfile = os.path.join(data.getVar("DL_DIR", d, True), ud.localfile)
+        ud.localfile = os.path.join(d.getVar("DL_DIR"), ud.localfile)
 
     def _build_ccase_command(self, ud, command):
         """
@@ -158,18 +144,18 @@ class ClearCase(FetchMethod):
 
         basecmd = "%s %s" % (ud.basecmd, command)
 
-        if command is 'mkview':
+        if command == 'mkview':
             if not "rcleartool" in ud.basecmd:
                 # Cleartool needs a -snapshot view
                 options.append("-snapshot")
             options.append("-tag %s" % ud.viewname)
             options.append(ud.viewdir)
 
-        elif command is 'rmview':
+        elif command == 'rmview':
             options.append("-force")
             options.append("%s" % ud.viewdir)
 
-        elif command is 'setcs':
+        elif command == 'setcs':
             options.append("-overwrite")
             options.append(ud.configspecfile)
 
@@ -202,11 +188,10 @@ class ClearCase(FetchMethod):
 
     def _remove_view(self, ud, d):
         if os.path.exists(ud.viewdir):
-            os.chdir(ud.ccasedir)
             cmd = self._build_ccase_command(ud, 'rmview');
             logger.info("cleaning up [VOB=%s label=%s view=%s]", ud.vob, ud.label, ud.viewname)
             bb.fetch2.check_network_access(d, cmd, ud.url)
-            output = runfetchcmd(cmd, d)
+            output = runfetchcmd(cmd, d, workdir=ud.ccasedir)
             logger.info("rmview output: %s", output)
 
     def need_update(self, ud, d):
@@ -241,11 +226,10 @@ class ClearCase(FetchMethod):
                 raise e
 
         # Set configspec: Setting the configspec effectively fetches the files as defined in the configspec
-        os.chdir(ud.viewdir)
         cmd = self._build_ccase_command(ud, 'setcs');
         logger.info("fetching data [VOB=%s label=%s view=%s]", ud.vob, ud.label, ud.viewname)
         bb.fetch2.check_network_access(d, cmd, ud.url)
-        output = runfetchcmd(cmd, d)
+        output = runfetchcmd(cmd, d, workdir=ud.viewdir)
         logger.info("%s", output)
 
         # Copy the configspec to the viewdir so we have it in our source tarball later
@@ -253,7 +237,7 @@ class ClearCase(FetchMethod):
 
         # Clean clearcase meta-data before tar
 
-        runfetchcmd('tar -czf "%s" .' % (ud.localpath), d, cleanup = [ud.localpath])
+        runfetchcmd('tar -czf "%s" .' % (ud.localpath), d, cleanup = [ud.localpath], workdir = ud.viewdir)
 
         # Clean up so we can create a new view next time
         self.clean(ud, d);

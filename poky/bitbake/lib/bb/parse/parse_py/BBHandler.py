@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 """
    class for handling .bb files
 
@@ -12,24 +9,11 @@
 #  Copyright (C) 2003, 2004  Chris Larson
 #  Copyright (C) 2003, 2004  Phil Blundell
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from __future__ import absolute_import
 import re, bb, os
-import logging
 import bb.build, bb.utils
-from bb import data
 
 from . import ConfHandler
 from .. import resolve_file, ast, logger, ParseError
@@ -38,15 +22,15 @@ from .ConfHandler import include, init
 # For compatibility
 bb.deprecate_import(__name__, "bb.parse", ["vars_from_file"])
 
-__func_start_regexp__    = re.compile( r"(((?P<py>python)|(?P<fr>fakeroot))\s*)*(?P<func>[\w\.\-\+\{\}\$]+)?\s*\(\s*\)\s*{$" )
-__inherit_regexp__       = re.compile( r"inherit\s+(.+)" )
-__export_func_regexp__   = re.compile( r"EXPORT_FUNCTIONS\s+(.+)" )
-__addtask_regexp__       = re.compile("addtask\s+(?P<func>\w+)\s*((before\s*(?P<before>((.*(?=after))|(.*))))|(after\s*(?P<after>((.*(?=before))|(.*)))))*")
-__deltask_regexp__       = re.compile("deltask\s+(?P<func>\w+)")
-__addhandler_regexp__    = re.compile( r"addhandler\s+(.+)" )
-__def_regexp__           = re.compile( r"def\s+(\w+).*:" )
-__python_func_regexp__   = re.compile( r"(\s+.*)|(^$)" )
-
+__func_start_regexp__    = re.compile(r"(((?P<py>python)|(?P<fr>fakeroot))\s*)*(?P<func>[\w\.\-\+\{\}\$]+)?\s*\(\s*\)\s*{$" )
+__inherit_regexp__       = re.compile(r"inherit\s+(.+)" )
+__export_func_regexp__   = re.compile(r"EXPORT_FUNCTIONS\s+(.+)" )
+__addtask_regexp__       = re.compile(r"addtask\s+(?P<func>\w+)\s*((before\s*(?P<before>((.*(?=after))|(.*))))|(after\s*(?P<after>((.*(?=before))|(.*)))))*")
+__deltask_regexp__       = re.compile(r"deltask\s+(?P<func>\w+)(?P<ignores>.*)")
+__addhandler_regexp__    = re.compile(r"addhandler\s+(.+)" )
+__def_regexp__           = re.compile(r"def\s+(\w+).*:" )
+__python_func_regexp__   = re.compile(r"(\s+.*)|(^$)|(^#)" )
+__python_tab_regexp__    = re.compile(r" *\t")
 
 __infunc__ = []
 __inpython__ = False
@@ -54,15 +38,6 @@ __body__   = []
 __classname__ = ""
 
 cached_statements = {}
-
-# We need to indicate EOF to the feeder. This code is so messy that
-# factoring it out to a close_parse_file method is out of question.
-# We will use the IN_PYTHON_EOF as an indicator to just close the method
-#
-# The two parts using it are tightly integrated anyway
-IN_PYTHON_EOF = -9999999999999
-
-
 
 def supports(fn, d):
     """Return True if fn has a supported extension"""
@@ -76,7 +51,7 @@ def inherit(files, fn, lineno, d):
             file = os.path.join('classes', '%s.bbclass' % file)
 
         if not os.path.isabs(file):
-            bbpath = d.getVar("BBPATH", True)
+            bbpath = d.getVar("BBPATH")
             abs_fn, attempts = bb.utils.which(bbpath, file, history=True)
             for af in attempts:
                 if af != abs_fn:
@@ -97,20 +72,20 @@ def get_statements(filename, absolute_filename, base_name):
     try:
         return cached_statements[absolute_filename]
     except KeyError:
-        file = open(absolute_filename, 'r')
-        statements = ast.StatementGroup()
+        with open(absolute_filename, 'r') as f:
+            statements = ast.StatementGroup()
 
-        lineno = 0
-        while True:
-            lineno = lineno + 1
-            s = file.readline()
-            if not s: break
-            s = s.rstrip()
-            feeder(lineno, s, filename, base_name, statements)
-        file.close()
+            lineno = 0
+            while True:
+                lineno = lineno + 1
+                s = f.readline()
+                if not s: break
+                s = s.rstrip()
+                feeder(lineno, s, filename, base_name, statements)
+
         if __inpython__:
             # add a blank line to close out any python definition
-            feeder(IN_PYTHON_EOF, "", filename, base_name, statements)
+            feeder(lineno, "", filename, base_name, statements, eof=True)
 
         if filename.endswith(".bbclass") or filename.endswith(".inc"):
             cached_statements[absolute_filename] = statements
@@ -141,9 +116,6 @@ def handle(fn, d, include):
 
     abs_fn = resolve_file(fn, d)
 
-    if include:
-        bb.parse.mark_dependency(d, abs_fn)
-
     # actual loading
     statements = get_statements(fn, abs_fn, base_name)
 
@@ -154,7 +126,7 @@ def handle(fn, d, include):
     try:
         statements.eval(d)
     except bb.parse.SkipRecipe:
-        bb.data.setVar("__SKIPPED", True, d)
+        d.setVar("__SKIPPED", True)
         if include == 0:
             return { "" : d }
 
@@ -171,12 +143,22 @@ def handle(fn, d, include):
 
     return d
 
-def feeder(lineno, s, fn, root, statements):
+def feeder(lineno, s, fn, root, statements, eof=False):
     global __func_start_regexp__, __inherit_regexp__, __export_func_regexp__, __addtask_regexp__, __addhandler_regexp__, __def_regexp__, __python_func_regexp__, __inpython__, __infunc__, __body__, bb, __residue__, __classname__
+
+    # Check tabs in python functions:
+    # - def py_funcname(): covered by __inpython__
+    # - python(): covered by '__anonymous' == __infunc__[0]
+    # - python funcname(): covered by __infunc__[3]
+    if __inpython__ or (__infunc__ and ('__anonymous' == __infunc__[0] or __infunc__[3])):
+        tab = __python_tab_regexp__.match(s)
+        if tab:
+            bb.warn('python should use 4 spaces indentation, but found tabs in %s, line %s' % (root, lineno))
+
     if __infunc__:
         if s == '}':
             __body__.append('')
-            ast.handleMethod(statements, fn, lineno, __infunc__[0], __body__)
+            ast.handleMethod(statements, fn, lineno, __infunc__[0], __body__, __infunc__[3], __infunc__[4])
             __infunc__ = []
             __body__ = []
         else:
@@ -185,7 +167,7 @@ def feeder(lineno, s, fn, root, statements):
 
     if __inpython__:
         m = __python_func_regexp__.match(s)
-        if m and lineno != IN_PYTHON_EOF:
+        if m and not eof:
             __body__.append(s)
             return
         else:
@@ -194,7 +176,7 @@ def feeder(lineno, s, fn, root, statements):
             __body__ = []
             __inpython__ = False
 
-            if lineno == IN_PYTHON_EOF:
+            if eof:
                 return
 
     if s and s[0] == '#':
@@ -221,8 +203,7 @@ def feeder(lineno, s, fn, root, statements):
 
     m = __func_start_regexp__.match(s)
     if m:
-        __infunc__ = [m.group("func") or "__anonymous", fn, lineno]
-        ast.handleMethodFlags(statements, fn, lineno, __infunc__[0], m)
+        __infunc__ = [m.group("func") or "__anonymous", fn, lineno, m.group("py") is not None, m.group("fr") is not None]
         return
 
     m = __def_regexp__.match(s)
@@ -239,11 +220,27 @@ def feeder(lineno, s, fn, root, statements):
 
     m = __addtask_regexp__.match(s)
     if m:
+        if len(m.group().split()) == 2:
+            # Check and warn for "addtask task1 task2"
+            m2 = re.match(r"addtask\s+(?P<func>\w+)(?P<ignores>.*)", s)
+            if m2 and m2.group('ignores'):
+                logger.warning('addtask ignored: "%s"' % m2.group('ignores'))
+
+        # Check and warn for "addtask task1 before task2 before task3", the
+        # similar to "after"
+        taskexpression = s.split()
+        for word in ('before', 'after'):
+            if taskexpression.count(word) > 1:
+                logger.warning("addtask contained multiple '%s' keywords, only one is supported" % word)
+
         ast.handleAddTask(statements, fn, lineno, m)
         return
 
     m = __deltask_regexp__.match(s)
     if m:
+        # Check and warn "for deltask task1 task2"
+        if m.group('ignores'):
+            logger.warning('deltask ignored: "%s"' % m.group('ignores'))
         ast.handleDelTask(statements, fn, lineno, m)
         return
 

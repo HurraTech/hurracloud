@@ -1,12 +1,14 @@
 # This configuration file lists filesystem objects that should get verified
 # during startup and be created if missing.
 #
-# Every line must either be a comment starting with #
-# or a definition of format:
+# Entries have the following format:
 # <type> <owner> <group> <mode> <path> <linksource>
 # where the items are separated by whitespace !
 #
-# <type> : d|f|l : (d)irectory|(f)ile|(l)ink
+# The # character introduces a comment lasting until end of line.
+# Blank lines are ignored.
+#
+# <type> : d|f|l|b : (d)irectory|(f)ile|(l)ink|(b)ind
 #
 # A linking example:
 # l root root 0777 /var/test /tmp/testfile
@@ -25,7 +27,6 @@ d root root 1777 /run/lock none
 d root root 0755 /var/volatile/log none
 d root root 1777 /var/volatile/tmp none
 l root root 1777 /var/lock /run/lock
-l root root 0755 /var/log /var/volatile/log
 l root root 0755 /var/run /run
 l root root 1777 /var/tmp /var/volatile/tmp
 l root root 1777 /tmp /var/tmp

@@ -1,8 +1,8 @@
 include conf/machine/include/x86-base.inc
+require conf/machine/include/qemuboot-x86.inc
 MACHINE_FEATURES += "wifi efi pcbios"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-yocto"
-PREFERRED_VERSION_linux-yocto ?= "4.1%"
 PREFERRED_PROVIDER_virtual/xserver ?= "xserver-xorg"
 XSERVER ?= "${XSERVER_X86_BASE} \
             ${XSERVER_X86_EXT} \
@@ -13,8 +13,14 @@ XSERVER ?= "${XSERVER_X86_BASE} \
             ${XSERVER_X86_MODESETTING} \
            "
 
-MACHINE_EXTRA_RRECOMMENDS += "linux-firmware eee-acpi-scripts"
+MACHINE_EXTRA_RRECOMMENDS += "kernel-modules linux-firmware"
 
 GLIBC_ADDONS = "nptl"
 
 EXTRA_OECONF_append_pn-matchbox-panel-2 = " --with-battery=acpi"
+
+IMAGE_FSTYPES += "wic wic.bmap"
+WKS_FILE ?= "genericx86.wks.in"
+EFI_PROVIDER ??= "grub-efi"
+do_image_wic[depends] += "gptfdisk-native:do_populate_sysroot"
+do_image_wic[recrdeptask] += "do_bootimg"

@@ -1,7 +1,17 @@
 inherit linux-kernel-base kernel-module-split
 
-PROVIDES += "virtual/kernel"
-DEPENDS += "virtual/${TARGET_PREFIX}binutils virtual/${TARGET_PREFIX}gcc kmod-native depmodwrapper-cross bc-native"
+KERNEL_PACKAGE_NAME ??= "kernel"
+KERNEL_DEPLOYSUBDIR ??= "${@ "" if (d.getVar("KERNEL_PACKAGE_NAME") == "kernel") else d.getVar("KERNEL_PACKAGE_NAME") }"
+
+PROVIDES += "${@ "virtual/kernel" if (d.getVar("KERNEL_PACKAGE_NAME") == "kernel") else "" }"
+DEPENDS += "virtual/${TARGET_PREFIX}binutils virtual/${TARGET_PREFIX}gcc kmod-native bc-native lzop-native bison-native"
+DEPENDS += "${@bb.utils.contains("INITRAMFS_FSTYPES", "cpio.lz4", "lz4-native", "", d)}"
+PACKAGE_WRITE_DEPS += "depmodwrapper-cross"
+
+do_deploy[depends] += "depmodwrapper-cross:do_populate_sysroot"
+do_clean[depends] += "make-mod-scripts:do_clean"
+
+CVE_PRODUCT ?= "linux_kernel"
 
 S = "${STAGING_KERNEL_DIR}"
 B = "${WORKDIR}/build"
@@ -13,25 +23,91 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 KERNEL_IMAGETYPE ?= "zImage"
 INITRAMFS_IMAGE ?= ""
+INITRAMFS_IMAGE_NAME ?= "${@['${INITRAMFS_IMAGE}-${MACHINE}', ''][d.getVar('INITRAMFS_IMAGE') == '']}"
 INITRAMFS_TASK ?= ""
 INITRAMFS_IMAGE_BUNDLE ?= ""
 
+# KERNEL_VERSION is extracted from source code. It is evaluated as
+# None for the first parsing, since the code has not been fetched.
+# After the code is fetched, it will be evaluated as real version
+# number and cause kernel to be rebuilt. To avoid this, make
+# KERNEL_VERSION_NAME and KERNEL_VERSION_PKG_NAME depend on
+# LINUX_VERSION which is a constant.
+KERNEL_VERSION_NAME = "${@d.getVar('KERNEL_VERSION') or ""}"
+KERNEL_VERSION_NAME[vardepvalue] = "${LINUX_VERSION}"
+KERNEL_VERSION_PKG_NAME = "${@legitimize_package_name(d.getVar('KERNEL_VERSION'))}"
+KERNEL_VERSION_PKG_NAME[vardepvalue] = "${LINUX_VERSION}"
+
 python __anonymous () {
-    import re
+    pn = d.getVar("PN")
+    kpn = d.getVar("KERNEL_PACKAGE_NAME")
 
-    kerneltype = d.getVar('KERNEL_IMAGETYPE', True)
+    # XXX Remove this after bug 11905 is resolved
+    #  FILES_${KERNEL_PACKAGE_NAME}-dev doesn't expand correctly
+    if kpn == pn:
+        bb.warn("Some packages (E.g. *-dev) might be missing due to "
+                "bug 11905 (variable KERNEL_PACKAGE_NAME == PN)")
 
-    d.setVar("KERNEL_IMAGETYPE_FOR_MAKE", re.sub(r'\.gz$', '', kerneltype))
+    # The default kernel recipe builds in a shared location defined by
+    # bitbake/distro confs: STAGING_KERNEL_DIR and STAGING_KERNEL_BUILDDIR.
+    # Set these variables to directories under ${WORKDIR} in alternate
+    # kernel recipes (I.e. where KERNEL_PACKAGE_NAME != kernel) so that they
+    # may build in parallel with the default kernel without clobbering.
+    if kpn != "kernel":
+        workdir = d.getVar("WORKDIR")
+        sourceDir = os.path.join(workdir, 'kernel-source')
+        artifactsDir = os.path.join(workdir, 'kernel-build-artifacts')
+        d.setVar("STAGING_KERNEL_DIR", sourceDir)
+        d.setVar("STAGING_KERNEL_BUILDDIR", artifactsDir)
 
-    image = d.getVar('INITRAMFS_IMAGE', True)
+    # Merge KERNEL_IMAGETYPE and KERNEL_ALT_IMAGETYPE into KERNEL_IMAGETYPES
+    type = d.getVar('KERNEL_IMAGETYPE') or ""
+    alttype = d.getVar('KERNEL_ALT_IMAGETYPE') or ""
+    types = d.getVar('KERNEL_IMAGETYPES') or ""
+    if type not in types.split():
+        types = (type + ' ' + types).strip()
+    if alttype not in types.split():
+        types = (alttype + ' ' + types).strip()
+    d.setVar('KERNEL_IMAGETYPES', types)
+
+    # KERNEL_IMAGETYPES may contain a mixture of image types supported directly
+    # by the kernel build system and types which are created by post-processing
+    # the output of the kernel build system (e.g. compressing vmlinux ->
+    # vmlinux.gz in kernel_do_compile()).
+    # KERNEL_IMAGETYPE_FOR_MAKE should contain only image types supported
+    # directly by the kernel build system.
+    if not d.getVar('KERNEL_IMAGETYPE_FOR_MAKE'):
+        typeformake = set()
+        for type in types.split():
+            if type == 'vmlinux.gz':
+                type = 'vmlinux'
+            typeformake.add(type)
+
+        d.setVar('KERNEL_IMAGETYPE_FOR_MAKE', ' '.join(sorted(typeformake)))
+
+    kname = d.getVar('KERNEL_PACKAGE_NAME') or "kernel"
+    imagedest = d.getVar('KERNEL_IMAGEDEST')
+
+    for type in types.split():
+        typelower = type.lower()
+        d.appendVar('PACKAGES', ' %s-image-%s' % (kname, typelower))
+        d.setVar('FILES_' + kname + '-image-' + typelower, '/' + imagedest + '/' + type + '-${KERNEL_VERSION_NAME}' + ' /' + imagedest + '/' + type)
+        d.appendVar('RDEPENDS_%s-image' % kname, ' %s-image-%s' % (kname, typelower))
+        d.setVar('PKG_%s-image-%s' % (kname,typelower), '%s-image-%s-${KERNEL_VERSION_PKG_NAME}' % (kname, typelower))
+        d.setVar('ALLOW_EMPTY_%s-image-%s' % (kname, typelower), '1')
+
+    image = d.getVar('INITRAMFS_IMAGE')
+    # If the INTIRAMFS_IMAGE is set but the INITRAMFS_IMAGE_BUNDLE is set to 0,
+    # the do_bundle_initramfs does nothing, but the INITRAMFS_IMAGE is built
+    # standalone for use by wic and other tools.
     if image:
-        d.appendVarFlag('do_bundle_initramfs', 'depends', ' ${INITRAMFS_IMAGE}:do_rootfs')
+        d.appendVarFlag('do_bundle_initramfs', 'depends', ' ${INITRAMFS_IMAGE}:do_image_complete')
 
     # NOTE: setting INITRAMFS_TASK is for backward compatibility
     #       The preferred method is to set INITRAMFS_IMAGE, because
     #       this INITRAMFS_TASK has circular dependency problems
     #       if the initramfs requires kernel modules
-    image_task = d.getVar('INITRAMFS_TASK', True)
+    image_task = d.getVar('INITRAMFS_TASK')
     if image_task:
         d.appendVarFlag('do_configure', 'depends', ' ${INITRAMFS_TASK}')
 }
@@ -59,16 +135,16 @@ inherit ${KERNEL_CLASSES}
 # the symlink.
 do_unpack[cleandirs] += " ${S} ${STAGING_KERNEL_DIR} ${B} ${STAGING_KERNEL_BUILDDIR}"
 do_clean[cleandirs] += " ${S} ${STAGING_KERNEL_DIR} ${B} ${STAGING_KERNEL_BUILDDIR}"
-base_do_unpack_append () {
-    s = d.getVar("S", True)
+python do_symlink_kernsrc () {
+    s = d.getVar("S")
     if s[-1] == '/':
         # drop trailing slash, so that os.symlink(kernsrc, s) doesn't use s as directory name and fail
         s=s[:-1]
-    kernsrc = d.getVar("STAGING_KERNEL_DIR", True)
+    kernsrc = d.getVar("STAGING_KERNEL_DIR")
     if s != kernsrc:
         bb.utils.mkdirhier(kernsrc)
         bb.utils.remove(kernsrc, recurse=True)
-        if d.getVar("EXTERNALSRC", True):
+        if d.getVar("EXTERNALSRC"):
             # With EXTERNALSRC S will not be wiped so we can symlink to it
             os.symlink(s, kernsrc)
         else:
@@ -76,30 +152,30 @@ base_do_unpack_append () {
             shutil.move(s, kernsrc)
             os.symlink(kernsrc, s)
 }
+addtask symlink_kernsrc before do_configure after do_unpack
 
 inherit kernel-arch deploy
 
-PACKAGES_DYNAMIC += "^kernel-module-.*"
-PACKAGES_DYNAMIC += "^kernel-image-.*"
-PACKAGES_DYNAMIC += "^kernel-firmware-.*"
+PACKAGES_DYNAMIC += "^${KERNEL_PACKAGE_NAME}-module-.*"
+PACKAGES_DYNAMIC += "^${KERNEL_PACKAGE_NAME}-image-.*"
+PACKAGES_DYNAMIC += "^${KERNEL_PACKAGE_NAME}-firmware-.*"
 
 export OS = "${TARGET_OS}"
 export CROSS_COMPILE = "${TARGET_PREFIX}"
-
-KERNEL_PRIORITY ?= "${@int(d.getVar('PV',1).split('-')[0].split('+')[0].split('.')[0]) * 10000 + \
-                       int(d.getVar('PV',1).split('-')[0].split('+')[0].split('.')[1]) * 100 + \
-                       int(d.getVar('PV',1).split('-')[0].split('+')[0].split('.')[-1])}"
+export KBUILD_BUILD_VERSION = "1"
+export KBUILD_BUILD_USER ?= "oe-user"
+export KBUILD_BUILD_HOST ?= "oe-host"
 
 KERNEL_RELEASE ?= "${KERNEL_VERSION}"
 
-# Where built kernel lies in the kernel tree
-KERNEL_OUTPUT ?= "arch/${ARCH}/boot/${KERNEL_IMAGETYPE}"
-KERNEL_IMAGEDEST = "boot"
+# The directory where built kernel lies in the kernel tree
+KERNEL_OUTPUT_DIR ?= "arch/${ARCH}/boot"
+KERNEL_IMAGEDEST ?= "boot"
 
 #
 # configuration
 #
-export CMDLINE_CONSOLE = "console=${@d.getVar("KERNEL_CONSOLE",1) or "ttyS0"}"
+export CMDLINE_CONSOLE = "console=${@d.getVar("KERNEL_CONSOLE") or "ttyS0"}"
 
 KERNEL_VERSION = "${@get_kernelversion_headers('${B}')}"
 
@@ -115,76 +191,88 @@ UBOOT_LOADADDRESS ?= "${UBOOT_ENTRYPOINT}"
 # Some Linux kernel configurations need additional parameters on the command line
 KERNEL_EXTRA_ARGS ?= ""
 
-# For the kernel, we don't want the '-e MAKEFLAGS=' in EXTRA_OEMAKE.
-# We don't want to override kernel Makefile variables from the environment
-EXTRA_OEMAKE = ""
-
+EXTRA_OEMAKE = " HOSTCC="${BUILD_CC} ${BUILD_CFLAGS} ${BUILD_LDFLAGS}" HOSTCPP="${BUILD_CPP}""
 KERNEL_ALT_IMAGETYPE ??= ""
-
-# Define where the kernel headers are installed on the target as well as where
-# they are staged.
-KERNEL_SRC_PATH = "/usr/src/kernel"
 
 copy_initramfs() {
 	echo "Copying initramfs into ./usr ..."
 	# In case the directory is not created yet from the first pass compile:
 	mkdir -p ${B}/usr
 	# Find and use the first initramfs image archive type we find
-	rm -f ${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.cpio
-	for img in cpio.gz cpio.lz4 cpio.lzo cpio.lzma cpio.xz; do
-		if [ -e "${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.$img" ]; then
-			cp ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.$img ${B}/usr/.
+	rm -f ${B}/usr/${INITRAMFS_IMAGE_NAME}.cpio
+	for img in cpio cpio.gz cpio.lz4 cpio.lzo cpio.lzma cpio.xz; do
+		if [ -e "${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE_NAME}.$img" ]; then
+			cp ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE_NAME}.$img ${B}/usr/.
 			case $img in
 			*gz)
 				echo "gzip decompressing image"
-				gunzip -f ${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.$img
+				gunzip -f ${B}/usr/${INITRAMFS_IMAGE_NAME}.$img
 				break
 				;;
 			*lz4)
 				echo "lz4 decompressing image"
-				lz4 -df ${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.$img
+				lz4 -df ${B}/usr/${INITRAMFS_IMAGE_NAME}.$img ${B}/usr/${INITRAMFS_IMAGE_NAME}.cpio
 				break
 				;;
 			*lzo)
 				echo "lzo decompressing image"
-				lzop -df ${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.$img
+				lzop -df ${B}/usr/${INITRAMFS_IMAGE_NAME}.$img
 				break
 				;;
 			*lzma)
 				echo "lzma decompressing image"
-				lzma -df ${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.$img
+				lzma -df ${B}/usr/${INITRAMFS_IMAGE_NAME}.$img
 				break
 				;;
 			*xz)
 				echo "xz decompressing image"
-				xz -df ${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.$img
+				xz -df ${B}/usr/${INITRAMFS_IMAGE_NAME}.$img
 				break
 				;;
 			esac
+			break
 		fi
 	done
-	echo "Finished copy of initramfs into ./usr"
+	# Verify that the above loop found a initramfs, fail otherwise
+	[ -f ${B}/usr/${INITRAMFS_IMAGE_NAME}.cpio ] && echo "Finished copy of initramfs into ./usr" || die "Could not find any ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE_NAME}.cpio{.gz|.lz4|.lzo|.lzma|.xz) for bundling; INITRAMFS_IMAGE_NAME might be wrong."
 }
 
-INITRAMFS_BASE_NAME = "${KERNEL_IMAGETYPE}-initramfs-${PV}-${PR}-${MACHINE}-${DATETIME}"
-INITRAMFS_BASE_NAME[vardepsexclude] = "DATETIME"
 do_bundle_initramfs () {
 	if [ ! -z "${INITRAMFS_IMAGE}" -a x"${INITRAMFS_IMAGE_BUNDLE}" = x1 ]; then
 		echo "Creating a kernel image with a bundled initramfs..."
 		copy_initramfs
-		if [ -e ${KERNEL_OUTPUT} ] ; then
-			mv -f ${KERNEL_OUTPUT} ${KERNEL_OUTPUT}.bak
-		fi
-		use_alternate_initrd=CONFIG_INITRAMFS_SOURCE=${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.cpio
+		# Backing up kernel image relies on its type(regular file or symbolic link)
+		tmp_path=""
+		for imageType in ${KERNEL_IMAGETYPE_FOR_MAKE} ; do
+			if [ -h ${KERNEL_OUTPUT_DIR}/$imageType ] ; then
+				linkpath=`readlink -n ${KERNEL_OUTPUT_DIR}/$imageType`
+				realpath=`readlink -fn ${KERNEL_OUTPUT_DIR}/$imageType`
+				mv -f $realpath $realpath.bak
+				tmp_path=$tmp_path" "$imageType"#"$linkpath"#"$realpath
+			elif [ -f ${KERNEL_OUTPUT_DIR}/$imageType ]; then
+				mv -f ${KERNEL_OUTPUT_DIR}/$imageType ${KERNEL_OUTPUT_DIR}/$imageType.bak
+				tmp_path=$tmp_path" "$imageType"##"
+			fi
+		done
+		use_alternate_initrd=CONFIG_INITRAMFS_SOURCE=${B}/usr/${INITRAMFS_IMAGE_NAME}.cpio
 		kernel_do_compile
-		mv -f ${KERNEL_OUTPUT} ${KERNEL_OUTPUT}.initramfs
-		mv -f ${KERNEL_OUTPUT}.bak ${KERNEL_OUTPUT}
-		# Update install area
-		echo "There is kernel image bundled with initramfs: ${B}/${KERNEL_OUTPUT}.initramfs"
-		install -m 0644 ${B}/${KERNEL_OUTPUT}.initramfs ${D}/boot/${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.bin
-		echo "${B}/${KERNEL_OUTPUT}.initramfs"
+		# Restoring kernel image
+		for tp in $tmp_path ; do
+			imageType=`echo $tp|cut -d "#" -f 1`
+			linkpath=`echo $tp|cut -d "#" -f 2`
+			realpath=`echo $tp|cut -d "#" -f 3`
+			if [ -n "$realpath" ]; then
+				mv -f $realpath $realpath.initramfs
+				mv -f $realpath.bak $realpath
+				ln -sf $linkpath.initramfs ${B}/${KERNEL_OUTPUT_DIR}/$imageType.initramfs
+			else
+				mv -f ${KERNEL_OUTPUT_DIR}/$imageType ${KERNEL_OUTPUT_DIR}/$imageType.initramfs
+				mv -f ${KERNEL_OUTPUT_DIR}/$imageType.bak ${KERNEL_OUTPUT_DIR}/$imageType
+			fi
+		done
 	fi
 }
+do_bundle_initramfs[dirs] = "${B}"
 
 python do_devshell_prepend () {
     os.environ["LDFLAGS"] = ''
@@ -192,8 +280,32 @@ python do_devshell_prepend () {
 
 addtask bundle_initramfs after do_install before do_deploy
 
+get_cc_option () {
+		# Check if KERNEL_CC supports the option "file-prefix-map".
+		# This option allows us to build images with __FILE__ values that do not
+		# contain the host build path.
+		if ${KERNEL_CC} -Q --help=joined | grep -q "\-ffile-prefix-map=<old=new>"; then
+			echo "-ffile-prefix-map=${S}=/kernel-source/"
+		fi
+}
+
 kernel_do_compile() {
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS MACHINE
+	if [ "${BUILD_REPRODUCIBLE_BINARIES}" = "1" ]; then
+		# kernel sources do not use do_unpack, so SOURCE_DATE_EPOCH may not
+		# be set....
+		if [ "${SOURCE_DATE_EPOCH}" = "" -o "${SOURCE_DATE_EPOCH}" = "0" ]; then
+			# The source directory is not necessarily a git repository, so we
+			# specify the git-dir to ensure that git does not query a
+			# repository in any parent directory.
+			SOURCE_DATE_EPOCH=`git --git-dir="${S}/.git" log -1 --pretty=%ct 2>/dev/null || echo "${REPRODUCIBLE_TIMESTAMP_ROOTFS}"`
+		fi
+
+		ts=`LC_ALL=C date -d @$SOURCE_DATE_EPOCH`
+		export KBUILD_BUILD_TIMESTAMP="$ts"
+		export KCONFIG_NOTIMESTAMP=1
+		bbnote "KBUILD_BUILD_TIMESTAMP: $ts"
+	fi
 	# The $use_alternate_initrd is only set from
 	# do_bundle_initramfs() This variable is specifically for the
 	# case where we are making a second pass at the kernel
@@ -205,18 +317,47 @@ kernel_do_compile() {
 		# The old style way of copying an prebuilt image and building it
 		# is turned on via INTIRAMFS_TASK != ""
 		copy_initramfs
-		use_alternate_initrd=CONFIG_INITRAMFS_SOURCE=${B}/usr/${INITRAMFS_IMAGE}-${MACHINE}.cpio
+		use_alternate_initrd=CONFIG_INITRAMFS_SOURCE=${B}/usr/${INITRAMFS_IMAGE_NAME}.cpio
 	fi
-	oe_runmake ${KERNEL_IMAGETYPE_FOR_MAKE} ${KERNEL_ALT_IMAGETYPE} CC="${KERNEL_CC}" LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS} $use_alternate_initrd
-	if test "${KERNEL_IMAGETYPE_FOR_MAKE}.gz" = "${KERNEL_IMAGETYPE}"; then
-		gzip -9c < "${KERNEL_IMAGETYPE_FOR_MAKE}" > "${KERNEL_OUTPUT}"
+	cc_extra=$(get_cc_option)
+	for typeformake in ${KERNEL_IMAGETYPE_FOR_MAKE} ; do
+		oe_runmake ${typeformake} CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS} $use_alternate_initrd
+	done
+	# vmlinux.gz is not built by kernel
+	if (echo "${KERNEL_IMAGETYPES}" | grep -wq "vmlinux\.gz"); then
+		mkdir -p "${KERNEL_OUTPUT_DIR}"
+		gzip -9cn < ${B}/vmlinux > "${KERNEL_OUTPUT_DIR}/vmlinux.gz"
 	fi
 }
 
 do_compile_kernelmodules() {
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS MACHINE
+	if [ "${BUILD_REPRODUCIBLE_BINARIES}" = "1" ]; then
+		# kernel sources do not use do_unpack, so SOURCE_DATE_EPOCH may not
+		# be set....
+		if [ "${SOURCE_DATE_EPOCH}" = "" -o "${SOURCE_DATE_EPOCH}" = "0" ]; then
+			# The source directory is not necessarily a git repository, so we
+			# specify the git-dir to ensure that git does not query a
+			# repository in any parent directory.
+			SOURCE_DATE_EPOCH=`git --git-dir="${S}/.git" log -1 --pretty=%ct 2>/dev/null || echo "${REPRODUCIBLE_TIMESTAMP_ROOTFS}"`
+		fi
+
+		ts=`LC_ALL=C date -d @$SOURCE_DATE_EPOCH`
+		export KBUILD_BUILD_TIMESTAMP="$ts"
+		export KCONFIG_NOTIMESTAMP=1
+		bbnote "KBUILD_BUILD_TIMESTAMP: $ts"
+	fi
 	if (grep -q -i -e '^CONFIG_MODULES=y$' ${B}/.config); then
-		oe_runmake -C ${B} ${PARALLEL_MAKE} modules CC="${KERNEL_CC}" LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}
+		cc_extra=$(get_cc_option)
+		oe_runmake -C ${B} ${PARALLEL_MAKE} modules CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}
+
+		# Module.symvers gets updated during the 
+		# building of the kernel modules. We need to
+		# update this in the shared workdir since some
+		# external kernel modules has a dependency on
+		# other kernel modules and will look at this
+		# file to do symbol lookups
+		cp ${B}/Module.symvers ${STAGING_KERNEL_BUILDDIR}/
 	else
 		bbnote "no modules to compile"
 	fi
@@ -229,11 +370,11 @@ kernel_do_install() {
 	#
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS MACHINE
 	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
-		oe_runmake DEPMOD=echo INSTALL_MOD_PATH="${D}" modules_install
-		rm "${D}/lib/modules/${KERNEL_VERSION}/build"
-		rm "${D}/lib/modules/${KERNEL_VERSION}/source"
+		oe_runmake DEPMOD=echo MODLIB=${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION} INSTALL_FW_PATH=${D}${nonarch_base_libdir}/firmware modules_install
+		rm "${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}/build"
+		rm "${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}/source"
 		# If the kernel/ directory is empty remove it to prevent QA issues
-		rmdir --ignore-fail-on-non-empty "${D}/lib/modules/${KERNEL_VERSION}/kernel"
+		rmdir --ignore-fail-on-non-empty "${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}/kernel"
 	else
 		bbnote "no modules to install"
 	fi
@@ -243,7 +384,12 @@ kernel_do_install() {
 	#
 	install -d ${D}/${KERNEL_IMAGEDEST}
 	install -d ${D}/boot
-	install -m 0644 ${KERNEL_OUTPUT} ${D}/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
+	for imageType in ${KERNEL_IMAGETYPES} ; do
+		install -m 0644 ${KERNEL_OUTPUT_DIR}/${imageType} ${D}/${KERNEL_IMAGEDEST}/${imageType}-${KERNEL_VERSION}
+		if [ "${KERNEL_PACKAGE_NAME}" = "kernel" ]; then
+			ln -sf ${imageType}-${KERNEL_VERSION} ${D}/${KERNEL_IMAGEDEST}/${imageType}
+		fi
+	done
 	install -m 0644 System.map ${D}/boot/System.map-${KERNEL_VERSION}
 	install -m 0644 .config ${D}/boot/config-${KERNEL_VERSION}
 	install -m 0644 vmlinux ${D}/boot/vmlinux-${KERNEL_VERSION}
@@ -252,6 +398,40 @@ kernel_do_install() {
 	install -d ${D}${sysconfdir}/modprobe.d
 }
 do_install[prefuncs] += "package_get_auto_pr"
+
+# Must be ran no earlier than after do_kernel_checkout or else Makefile won't be in ${S}/Makefile
+do_kernel_version_sanity_check() {
+	if [ "x${KERNEL_VERSION_SANITY_SKIP}" = "x1" ]; then
+		exit 0
+	fi
+
+	# The Makefile determines the kernel version shown at runtime
+	# Don't use KERNEL_VERSION because the headers it grabs the version from aren't generated until do_compile
+	VERSION=$(grep "^VERSION =" ${S}/Makefile | sed s/.*=\ *//)
+	PATCHLEVEL=$(grep "^PATCHLEVEL =" ${S}/Makefile | sed s/.*=\ *//)
+	SUBLEVEL=$(grep "^SUBLEVEL =" ${S}/Makefile | sed s/.*=\ *//)
+	EXTRAVERSION=$(grep "^EXTRAVERSION =" ${S}/Makefile | sed s/.*=\ *//)
+
+	# Build a string for regex and a plain version string
+	reg="^${VERSION}\.${PATCHLEVEL}"
+	vers="${VERSION}.${PATCHLEVEL}"
+	if [ -n "${SUBLEVEL}" ]; then
+		# Ignoring a SUBLEVEL of zero is fine
+		if [ "${SUBLEVEL}" = "0" ]; then
+			reg="${reg}(\.${SUBLEVEL})?"
+		else
+			reg="${reg}\.${SUBLEVEL}"
+			vers="${vers}.${SUBLEVEL}"
+		fi
+	fi
+	vers="${vers}${EXTRAVERSION}"
+	reg="${reg}${EXTRAVERSION}"
+
+	if [ -z `echo ${PV} | grep -E "${reg}"` ]; then
+		bbfatal "Package Version (${PV}) does not match of kernel being built (${vers}). Please update the PV variable to match the kernel source or set KERNEL_VERSION_SANITY_SKIP=\"1\" in your recipe."
+	fi
+	exit 0
+}
 
 addtask shared_workdir after do_compile before do_compile_kernelmodules
 addtask shared_workdir_setscene
@@ -262,13 +442,14 @@ do_shared_workdir_setscene () {
 
 emit_depmod_pkgdata() {
 	# Stash data for depmod
-	install -d ${PKGDESTWORK}/kernel-depmod/
-	echo "${KERNEL_VERSION}" > ${PKGDESTWORK}/kernel-depmod/kernel-abiversion
-	cp ${B}/System.map ${PKGDESTWORK}/kernel-depmod/System.map-${KERNEL_VERSION}
+	install -d ${PKGDESTWORK}/${KERNEL_PACKAGE_NAME}-depmod/
+	echo "${KERNEL_VERSION}" > ${PKGDESTWORK}/${KERNEL_PACKAGE_NAME}-depmod/${KERNEL_PACKAGE_NAME}-abiversion
+	cp ${B}/System.map ${PKGDESTWORK}/${KERNEL_PACKAGE_NAME}-depmod/System.map-${KERNEL_VERSION}
 }
 
 PACKAGEFUNCS += "emit_depmod_pkgdata"
 
+do_shared_workdir[cleandirs] += " ${STAGING_KERNEL_BUILDDIR}"
 do_shared_workdir () {
 	cd ${B}
 
@@ -279,14 +460,22 @@ do_shared_workdir () {
 	# Store the kernel version in sysroots for module-base.bbclass
 	#
 
-	echo "${KERNEL_VERSION}" > $kerneldir/kernel-abiversion
+	echo "${KERNEL_VERSION}" > $kerneldir/${KERNEL_PACKAGE_NAME}-abiversion
 
 	# Copy files required for module builds
 	cp System.map $kerneldir/System.map-${KERNEL_VERSION}
-	cp Module.symvers $kerneldir/
+	[ -e Module.symvers ] && cp Module.symvers $kerneldir/
 	cp .config $kerneldir/
 	mkdir -p $kerneldir/include/config
 	cp include/config/kernel.release $kerneldir/include/config/kernel.release
+	if [ -e certs/signing_key.x509 ]; then
+		# The signing_key.* files are stored in the certs/ dir in
+		# newer Linux kernels
+		mkdir -p $kerneldir/certs
+		cp certs/signing_key.* $kerneldir/certs/
+	elif [ -e signing_key.priv ]; then
+		cp signing_key.* $kerneldir/
+	fi
 
 	# We can also copy over all the generated files and avoid special cases
 	# like version.h, but we've opted to keep this small until file creep starts
@@ -300,8 +489,10 @@ do_shared_workdir () {
 	# arch/powerpc/lib/crtsavres.o which is present in
 	# KBUILD_LDFLAGS_MODULE, making it required to build external modules.
 	if [ ${ARCH} = "powerpc" ]; then
-		mkdir -p $kerneldir/arch/powerpc/lib/
-		cp arch/powerpc/lib/crtsavres.o $kerneldir/arch/powerpc/lib/crtsavres.o
+		if [ -e arch/powerpc/lib/crtsavres.o ]; then
+			mkdir -p $kerneldir/arch/powerpc/lib/
+			cp arch/powerpc/lib/crtsavres.o $kerneldir/arch/powerpc/lib/crtsavres.o
+		fi
 	fi
 
 	if [ -d include/generated ]; then
@@ -313,6 +504,15 @@ do_shared_workdir () {
 		mkdir -p $kerneldir/arch/${ARCH}/include/generated/
 		cp -fR arch/${ARCH}/include/generated/* $kerneldir/arch/${ARCH}/include/generated/
 	fi
+
+	if (grep -q -i -e '^CONFIG_UNWINDER_ORC=y$' $kerneldir/.config); then
+		# With CONFIG_UNWINDER_ORC (the default in 4.14), objtool is required for
+		# out-of-tree modules to be able to generate object files.
+		if [ -x tools/objtool/objtool ]; then
+			mkdir -p ${kerneldir}/tools/objtool
+			cp tools/objtool/objtool ${kerneldir}/tools/objtool/
+		fi
+	fi
 }
 
 # We don't need to stage anything, not the modules/firmware since those would clash with linux-firmware
@@ -320,7 +520,21 @@ sysroot_stage_all () {
 	:
 }
 
-KERNEL_CONFIG_COMMAND ?= "oe_runmake_call -C ${S} O=${B} oldnoconfig || yes '' | oe_runmake -C ${S} O=${B} oldconfig"
+KERNEL_CONFIG_COMMAND ?= "oe_runmake_call -C ${S} CC="${KERNEL_CC}" LD="${KERNEL_LD}" O=${B} olddefconfig || oe_runmake -C ${S} O=${B} CC="${KERNEL_CC}" LD="${KERNEL_LD}" oldnoconfig"
+
+python check_oldest_kernel() {
+    oldest_kernel = d.getVar('OLDEST_KERNEL')
+    kernel_version = d.getVar('KERNEL_VERSION')
+    tclibc = d.getVar('TCLIBC')
+    if tclibc == 'glibc':
+        kernel_version = kernel_version.split('-', 1)[0]
+        if oldest_kernel and kernel_version:
+            if bb.utils.vercmp_string(kernel_version, oldest_kernel) < 0:
+                bb.warn('%s: OLDEST_KERNEL is "%s" but the version of the kernel you are building is "%s" - therefore %s as built may not be compatible with this kernel. Either set OLDEST_KERNEL to an older version, or build a newer kernel.' % (d.getVar('PN'), oldest_kernel, kernel_version, tclibc))
+}
+
+check_oldest_kernel[vardepsexclude] += "OLDEST_KERNEL KERNEL_VERSION"
+do_configure[prefuncs] += "check_oldest_kernel"
 
 kernel_do_configure() {
 	# fixes extra + in /lib/modules/2.6.37+
@@ -338,10 +552,12 @@ kernel_do_configure() {
 	if [ -f "${WORKDIR}/defconfig" ] && [ ! -f "${B}/.config" ]; then
 		cp "${WORKDIR}/defconfig" "${B}/.config"
 	fi
-	eval ${KERNEL_CONFIG_COMMAND}
+
+	${KERNEL_CONFIG_COMMAND}
 }
 
 do_savedefconfig() {
+	bbplain "Saving defconfig to:\n${B}/defconfig"
 	oe_runmake -C ${B} savedefconfig
 }
 do_savedefconfig[nostamp] = "1"
@@ -349,32 +565,34 @@ addtask savedefconfig after do_configure
 
 inherit cml1
 
+KCONFIG_CONFIG_COMMAND_append = " HOSTLDFLAGS='${BUILD_LDFLAGS}'"
+
 EXPORT_FUNCTIONS do_compile do_install do_configure
 
 # kernel-base becomes kernel-${KERNEL_VERSION}
-# kernel-image becomes kernel-image-${KERNEL_VERISON}
-PACKAGES = "kernel kernel-base kernel-vmlinux kernel-image kernel-dev kernel-modules"
+# kernel-image becomes kernel-image-${KERNEL_VERSION}
+PACKAGES = "${KERNEL_PACKAGE_NAME} ${KERNEL_PACKAGE_NAME}-base ${KERNEL_PACKAGE_NAME}-vmlinux ${KERNEL_PACKAGE_NAME}-image ${KERNEL_PACKAGE_NAME}-dev ${KERNEL_PACKAGE_NAME}-modules"
 FILES_${PN} = ""
-FILES_kernel-base = "/lib/modules/${KERNEL_VERSION}/modules.order /lib/modules/${KERNEL_VERSION}/modules.builtin"
-FILES_kernel-image = "/boot/${KERNEL_IMAGETYPE}*"
-FILES_kernel-dev = "/boot/System.map* /boot/Module.symvers* /boot/config* ${KERNEL_SRC_PATH} /lib/modules/${KERNEL_VERSION}/build"
-FILES_kernel-vmlinux = "/boot/vmlinux*"
-FILES_kernel-modules = ""
-RDEPENDS_kernel = "kernel-base"
-# Allow machines to override this dependency if kernel image files are 
+FILES_${KERNEL_PACKAGE_NAME}-base = "${nonarch_base_libdir}/modules/${KERNEL_VERSION}/modules.order ${nonarch_base_libdir}/modules/${KERNEL_VERSION}/modules.builtin ${nonarch_base_libdir}/modules/${KERNEL_VERSION}/modules.builtin.modinfo"
+FILES_${KERNEL_PACKAGE_NAME}-image = ""
+FILES_${KERNEL_PACKAGE_NAME}-dev = "/boot/System.map* /boot/Module.symvers* /boot/config* ${KERNEL_SRC_PATH} ${nonarch_base_libdir}/modules/${KERNEL_VERSION}/build"
+FILES_${KERNEL_PACKAGE_NAME}-vmlinux = "/boot/vmlinux-${KERNEL_VERSION_NAME}"
+FILES_${KERNEL_PACKAGE_NAME}-modules = ""
+RDEPENDS_${KERNEL_PACKAGE_NAME} = "${KERNEL_PACKAGE_NAME}-base"
+# Allow machines to override this dependency if kernel image files are
 # not wanted in images as standard
-RDEPENDS_kernel-base ?= "kernel-image"
-PKG_kernel-image = "kernel-image-${@legitimize_package_name('${KERNEL_VERSION}')}"
-RDEPENDS_kernel-image += "${@base_conditional('KERNEL_IMAGETYPE', 'vmlinux', 'kernel-vmlinux', '', d)}"
-PKG_kernel-base = "kernel-${@legitimize_package_name('${KERNEL_VERSION}')}"
-RPROVIDES_kernel-base += "kernel-${KERNEL_VERSION}"
-ALLOW_EMPTY_kernel = "1"
-ALLOW_EMPTY_kernel-base = "1"
-ALLOW_EMPTY_kernel-image = "1"
-ALLOW_EMPTY_kernel-modules = "1"
-DESCRIPTION_kernel-modules = "Kernel modules meta package"
+RDEPENDS_${KERNEL_PACKAGE_NAME}-base ?= "${KERNEL_PACKAGE_NAME}-image"
+PKG_${KERNEL_PACKAGE_NAME}-image = "${KERNEL_PACKAGE_NAME}-image-${@legitimize_package_name(d.getVar('KERNEL_VERSION'))}"
+RDEPENDS_${KERNEL_PACKAGE_NAME}-image += "${@oe.utils.conditional('KERNEL_IMAGETYPE', 'vmlinux', '${KERNEL_PACKAGE_NAME}-vmlinux', '', d)}"
+PKG_${KERNEL_PACKAGE_NAME}-base = "${KERNEL_PACKAGE_NAME}-${@legitimize_package_name(d.getVar('KERNEL_VERSION'))}"
+RPROVIDES_${KERNEL_PACKAGE_NAME}-base += "${KERNEL_PACKAGE_NAME}-${KERNEL_VERSION}"
+ALLOW_EMPTY_${KERNEL_PACKAGE_NAME} = "1"
+ALLOW_EMPTY_${KERNEL_PACKAGE_NAME}-base = "1"
+ALLOW_EMPTY_${KERNEL_PACKAGE_NAME}-image = "1"
+ALLOW_EMPTY_${KERNEL_PACKAGE_NAME}-modules = "1"
+DESCRIPTION_${KERNEL_PACKAGE_NAME}-modules = "Kernel modules meta package"
 
-pkg_postinst_kernel-base () {
+pkg_postinst_${KERNEL_PACKAGE_NAME}-base () {
 	if [ ! -e "$D/lib/modules/${KERNEL_VERSION}" ]; then
 		mkdir -p $D/lib/modules/${KERNEL_VERSION}
 	fi
@@ -385,29 +603,43 @@ pkg_postinst_kernel-base () {
 	fi
 }
 
-pkg_postinst_kernel-image () {
-	update-alternatives --install /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} ${KERNEL_IMAGETYPE} /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION} ${KERNEL_PRIORITY} || true
-}
-
-pkg_postrm_kernel-image () {
-	update-alternatives --remove ${KERNEL_IMAGETYPE} ${KERNEL_IMAGETYPE}-${KERNEL_VERSION} || true
-}
-
 PACKAGESPLITFUNCS_prepend = "split_kernel_packages "
 
 python split_kernel_packages () {
-    do_split_packages(d, root='/lib/firmware', file_regex='^(.*)\.(bin|fw|cis|dsp)$', output_pattern='kernel-firmware-%s', description='Firmware for %s', recursive=True, extra_depends='')
+    do_split_packages(d, root='${nonarch_base_libdir}/firmware', file_regex=r'^(.*)\.(bin|fw|cis|csp|dsp)$', output_pattern='${KERNEL_PACKAGE_NAME}-firmware-%s', description='Firmware for %s', recursive=True, extra_depends='')
 }
+
+# Many scripts want to look in arch/$arch/boot for the bootable
+# image. This poses a problem for vmlinux and vmlinuz based
+# booting. This task arranges to have vmlinux and vmlinuz appear
+# in the normalized directory location.
+do_kernel_link_images() {
+	if [ ! -d "${B}/arch/${ARCH}/boot" ]; then
+		mkdir ${B}/arch/${ARCH}/boot
+	fi
+	cd ${B}/arch/${ARCH}/boot
+	ln -sf ../../../vmlinux
+	if [ -f ../../../vmlinuz ]; then
+		ln -sf ../../../vmlinuz
+	fi
+	if [ -f ../../../vmlinuz.bin ]; then
+		ln -sf ../../../vmlinuz.bin
+	fi
+	if [ -f ../../../vmlinux.64 ]; then
+		ln -sf ../../../vmlinux.64
+	fi
+}
+addtask kernel_link_images after do_compile before do_strip
 
 do_strip() {
 	if [ -n "${KERNEL_IMAGE_STRIP_EXTRA_SECTIONS}" ]; then
-		if [ "${KERNEL_IMAGETYPE}" != "vmlinux" ]; then
-			bbwarn "image type will not be stripped (not supported): ${KERNEL_IMAGETYPE}"
+		if ! (echo "${KERNEL_IMAGETYPES}" | grep -wq "vmlinux"); then
+			bbwarn "image type(s) will not be stripped (not supported): ${KERNEL_IMAGETYPES}"
 			return
 		fi
 
 		cd ${B}
-		headers=`"$CROSS_COMPILE"readelf -S ${KERNEL_OUTPUT} | \
+		headers=`"$CROSS_COMPILE"readelf -S ${KERNEL_OUTPUT_DIR}/vmlinux | \
 			  grep "^ \{1,\}\[[0-9 ]\{1,\}\] [^ ]" | \
 			  sed "s/^ \{1,\}\[[0-9 ]\{1,\}\] //" | \
 			  gawk '{print $1}'`
@@ -417,7 +649,7 @@ do_strip() {
 				bbwarn "Section not found: $str";
 			fi
 
-			"$CROSS_COMPILE"strip -s -R $str ${KERNEL_OUTPUT}
+			"$CROSS_COMPILE"strip -s -R $str ${KERNEL_OUTPUT_DIR}/vmlinux
 		}; done
 
 		bbnote "KERNEL_IMAGE_STRIP_EXTRA_SECTIONS is set, stripping sections:" \
@@ -426,19 +658,29 @@ do_strip() {
 }
 do_strip[dirs] = "${B}"
 
-addtask do_strip before do_sizecheck after do_kernel_link_vmlinux
+addtask strip before do_sizecheck after do_kernel_link_images
 
 # Support checking the kernel size since some kernels need to reside in partitions
-# with a fixed length or there is a limit in transferring the kernel to memory
+# with a fixed length or there is a limit in transferring the kernel to memory.
+# If more than one image type is enabled, warn on any that don't fit but only fail
+# if none fit.
 do_sizecheck() {
 	if [ ! -z "${KERNEL_IMAGE_MAXSIZE}" ]; then
 		invalid=`echo ${KERNEL_IMAGE_MAXSIZE} | sed 's/[0-9]//g'`
 		if [ -n "$invalid" ]; then
-			die "Invalid KERNEL_IMAGE_MAXSIZE: ${KERNEL_IMAGE_MAXSIZE}, should be an integerx (The unit is Kbytes)"
+			die "Invalid KERNEL_IMAGE_MAXSIZE: ${KERNEL_IMAGE_MAXSIZE}, should be an integer (The unit is Kbytes)"
 		fi
-		size=`du -ks ${B}/${KERNEL_OUTPUT} | awk '{ print $1}'`
-		if [ $size -ge ${KERNEL_IMAGE_MAXSIZE} ]; then
-			die "This kernel (size=$size(K) > ${KERNEL_IMAGE_MAXSIZE}(K)) is too big for your device. Please reduce the size of the kernel by making more of it modular."
+		at_least_one_fits=
+		for imageType in ${KERNEL_IMAGETYPES} ; do
+			size=`du -ks ${B}/${KERNEL_OUTPUT_DIR}/$imageType | awk '{print $1}'`
+			if [ $size -ge ${KERNEL_IMAGE_MAXSIZE} ]; then
+				bbwarn "This kernel $imageType (size=$size(K) > ${KERNEL_IMAGE_MAXSIZE}(K)) is too big for your device."
+			else
+				at_least_one_fits=y
+			fi
+		done
+		if [ -z "$at_least_one_fits" ]; then
+			die "All kernel images are too big for your device. Please reduce the size of the kernel by making more of it modular."
 		fi
 	fi
 }
@@ -446,45 +688,48 @@ do_sizecheck[dirs] = "${B}"
 
 addtask sizecheck before do_install after do_strip
 
-KERNEL_IMAGE_BASE_NAME ?= "${KERNEL_IMAGETYPE}-${PKGE}-${PKGV}-${PKGR}-${MACHINE}-${DATETIME}"
-# Don't include the DATETIME variable in the sstate package signatures
-KERNEL_IMAGE_BASE_NAME[vardepsexclude] = "DATETIME"
-KERNEL_IMAGE_SYMLINK_NAME ?= "${KERNEL_IMAGETYPE}-${MACHINE}"
-MODULE_IMAGE_BASE_NAME ?= "modules-${PKGE}-${PKGV}-${PKGR}-${MACHINE}-${DATETIME}"
-MODULE_IMAGE_BASE_NAME[vardepsexclude] = "DATETIME"
-MODULE_TARBALL_BASE_NAME ?= "${MODULE_IMAGE_BASE_NAME}.tgz"
-# Don't include the DATETIME variable in the sstate package signatures
-MODULE_TARBALL_SYMLINK_NAME ?= "modules-${MACHINE}.tgz"
-MODULE_TARBALL_DEPLOY ?= "1"
+inherit kernel-artifact-names
 
 kernel_do_deploy() {
-	install -m 0644 ${KERNEL_OUTPUT} ${DEPLOYDIR}/${KERNEL_IMAGE_BASE_NAME}.bin
-	if [ ${MODULE_TARBALL_DEPLOY} = "1" ] && (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
-		mkdir -p ${D}/lib
-		tar -cvzf ${DEPLOYDIR}/${MODULE_TARBALL_BASE_NAME} -C ${D} lib
-		ln -sf ${MODULE_TARBALL_BASE_NAME} ${DEPLOYDIR}/${MODULE_TARBALL_SYMLINK_NAME}
+	deployDir="${DEPLOYDIR}"
+	if [ -n "${KERNEL_DEPLOYSUBDIR}" ]; then
+		deployDir="${DEPLOYDIR}/${KERNEL_DEPLOYSUBDIR}"
+		mkdir "$deployDir"
 	fi
 
-	ln -sf ${KERNEL_IMAGE_BASE_NAME}.bin ${DEPLOYDIR}/${KERNEL_IMAGE_SYMLINK_NAME}.bin
-	ln -sf ${KERNEL_IMAGE_BASE_NAME}.bin ${DEPLOYDIR}/${KERNEL_IMAGETYPE}
+	for imageType in ${KERNEL_IMAGETYPES} ; do
+		base_name=${imageType}-${KERNEL_IMAGE_NAME}
+		install -m 0644 ${KERNEL_OUTPUT_DIR}/${imageType} $deployDir/${base_name}.bin
+		symlink_name=${imageType}-${KERNEL_IMAGE_LINK_NAME}
+		ln -sf ${base_name}.bin $deployDir/${symlink_name}.bin
+		ln -sf ${base_name}.bin $deployDir/${imageType}
+	done
 
-	cp ${COREBASE}/meta/files/deploydir_readme.txt ${DEPLOYDIR}/README_-_DO_NOT_DELETE_FILES_IN_THIS_DIRECTORY.txt
+	if [ ${MODULE_TARBALL_DEPLOY} = "1" ] && (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
+		mkdir -p ${D}${root_prefix}/lib
+		tar -cvzf $deployDir/modules-${MODULE_TARBALL_NAME}.tgz -C ${D}${root_prefix} lib
+		ln -sf modules-${MODULE_TARBALL_NAME}.tgz $deployDir/modules-${MODULE_TARBALL_LINK_NAME}.tgz
+	fi
 
-	cd ${B}
-	# Update deploy directory
-	if [ -e "${KERNEL_OUTPUT}.initramfs" ]; then
-		echo "Copying deploy kernel-initramfs image and setting up links..."
-		initramfs_base_name=${INITRAMFS_BASE_NAME}
-		initramfs_symlink_name=${KERNEL_IMAGETYPE}-initramfs-${MACHINE}
-		install -m 0644 ${KERNEL_OUTPUT}.initramfs ${DEPLOYDIR}/${initramfs_base_name}.bin
-		cd ${DEPLOYDIR}
-		ln -sf ${initramfs_base_name}.bin ${initramfs_symlink_name}.bin
+	if [ ! -z "${INITRAMFS_IMAGE}" -a x"${INITRAMFS_IMAGE_BUNDLE}" = x1 ]; then
+		for imageType in ${KERNEL_IMAGETYPES} ; do
+			if [ "$imageType" = "fitImage" ] ; then
+				continue
+			fi
+			initramfs_base_name=${imageType}-${INITRAMFS_NAME}
+			initramfs_symlink_name=${imageType}-${INITRAMFS_LINK_NAME}
+			install -m 0644 ${KERNEL_OUTPUT_DIR}/${imageType}.initramfs $deployDir/${initramfs_base_name}.bin
+			ln -sf ${initramfs_base_name}.bin $deployDir/${initramfs_symlink_name}.bin
+		done
 	fi
 }
+do_deploy[cleandirs] = "${DEPLOYDIR}"
 do_deploy[dirs] = "${DEPLOYDIR} ${B}"
 do_deploy[prefuncs] += "package_get_auto_pr"
 
-addtask deploy after do_populate_sysroot
+addtask deploy after do_populate_sysroot do_packagedata
 
 EXPORT_FUNCTIONS do_deploy
 
+# Add using Device Tree support
+inherit kernel-devicetree

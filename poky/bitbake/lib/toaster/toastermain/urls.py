@@ -1,27 +1,15 @@
 #
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
-#
 # BitBake Toaster Implementation
 #
 # Copyright (C) 2013        Intel Corporation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from django.conf.urls import patterns, include, url
-from django.views.generic import RedirectView
+from django.conf.urls import include, url
+from django.views.generic import RedirectView, TemplateView
 from django.views.decorators.cache import never_cache
+import bldcollector.views
 
 import logging
 
@@ -31,7 +19,7 @@ logger = logging.getLogger("toaster")
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = [
 
     # Examples:
     # url(r'^toaster/', include('toaster.foo.urls')),
@@ -42,11 +30,13 @@ urlpatterns = patterns('',
 
     # This is here to maintain backward compatibility and will be deprecated
     # in the future.
-    url(r'^orm/eventfile$', 'bldcollector.views.eventfile'),
+    url(r'^orm/eventfile$', bldcollector.views.eventfile),
+
+    url(r'^health$', TemplateView.as_view(template_name="health.html"), name='Toaster Health'),
 
     # if no application is selected, we have the magic toastergui app here
-    url(r'^$', never_cache(RedirectView.as_view(url='/toastergui/'))),
-)
+    url(r'^$', never_cache(RedirectView.as_view(url='/toastergui/', permanent=True))),
+]
 
 import toastermain.settings
 
@@ -59,12 +49,11 @@ if toastermain.settings.DEBUG_PANEL_ENABLED:
     urlpatterns.insert(1, url(r'', include(debug_toolbar.urls)))
     #logger.info("Enabled django_toolbar extension")
 
+urlpatterns = [
+    # Uncomment the next line to enable the admin:
+    url(r'^admin/', admin.site.urls),
+] + urlpatterns
 
-if toastermain.settings.BUILD_MODE:
-    urlpatterns = [
-        # Uncomment the next line to enable the admin:
-        url(r'^admin/', include(admin.site.urls)),
-    ] + urlpatterns
 # Automatically discover urls.py in various apps, beside our own
 # and map module directories to the patterns
 
@@ -72,7 +61,7 @@ import os
 currentdir = os.path.dirname(__file__)
 for t in os.walk(os.path.dirname(currentdir)):
     #if we have a virtualenv skip it to avoid incorrect imports
-    if os.environ.has_key('VIRTUAL_ENV') and os.environ['VIRTUAL_ENV'] in t[0]:
+    if 'VIRTUAL_ENV' in os.environ and os.environ['VIRTUAL_ENV'] in t[0]:
         continue
 
     if "urls.py" in t[2] and t[0] != currentdir:
@@ -80,12 +69,12 @@ for t in os.walk(os.path.dirname(currentdir)):
         # make sure we don't have this module name in
         conflict = False
         for p in urlpatterns:
-            if p.regex.pattern == '^' + modulename + '/':
+            if p.pattern.regex.pattern == '^' + modulename + '/':
                 conflict = True
         if not conflict:
             urlpatterns.insert(0, url(r'^' + modulename + '/', include ( modulename + '.urls')))
         else:
-            logger.warn("Module \'%s\' has a regexp conflict, was not added to the urlpatterns" % modulename)
+            logger.warning("Module \'%s\' has a regexp conflict, was not added to the urlpatterns" % modulename)
 
 from pprint import pformat
 #logger.debug("urlpatterns list %s", pformat(urlpatterns))

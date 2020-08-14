@@ -31,25 +31,25 @@ DOC_DECOMPRESS_CMD[xz] ?= "unxz -v"
 
 PACKAGE_PREPROCESS_FUNCS += "package_do_compress_doc compress_doc_updatealternatives"
 python package_do_compress_doc() {
-    compress_mode = d.getVar('DOC_COMPRESS', True)
-    compress_list = (d.getVar('DOC_COMPRESS_LIST', True) or '').split()
+    compress_mode = d.getVar('DOC_COMPRESS')
+    compress_list = (d.getVar('DOC_COMPRESS_LIST') or '').split()
     if compress_mode not in compress_list:
         bb.fatal('Compression policy %s not supported (not listed in %s)\n' % (compress_mode, compress_list))
 
-    dvar = d.getVar('PKGD', True)
+    dvar = d.getVar('PKGD')
     compress_cmds = {}
     decompress_cmds = {}
     for mode in compress_list:
         compress_cmds[mode] = d.getVarFlag('DOC_COMPRESS_CMD', mode)
         decompress_cmds[mode] = d.getVarFlag('DOC_DECOMPRESS_CMD', mode)
 
-    mandir = os.path.abspath(dvar + os.sep + d.getVar("mandir", True))
+    mandir = os.path.abspath(dvar + os.sep + d.getVar("mandir"))
     if os.path.exists(mandir):
         # Decompress doc files which format is not compress_mode
         decompress_doc(mandir, compress_mode, decompress_cmds)
         compress_doc(mandir, compress_mode, compress_cmds)
 
-    infodir = os.path.abspath(dvar + os.sep + d.getVar("infodir", True))
+    infodir = os.path.abspath(dvar + os.sep + d.getVar("infodir"))
     if os.path.exists(infodir):
         # Decompress doc files which format is not compress_mode
         decompress_doc(infodir, compress_mode, decompress_cmds)
@@ -79,6 +79,7 @@ def _collect_hardlink(hardlink_dict, file):
     return hardlink_dict
 
 def _process_hardlink(hardlink_dict, compress_mode, shell_cmds, decompress=False):
+    import subprocess
     for target in hardlink_dict:
         if decompress:
             compress_format = _get_compress_format(target, shell_cmds.keys())
@@ -87,7 +88,7 @@ def _process_hardlink(hardlink_dict, compress_mode, shell_cmds, decompress=False
         else:
             cmd = "%s -f %s" % (shell_cmds[compress_mode], target)
             bb.note('compress hardlink %s' % target)
-        (retval, output) = oe.utils.getstatusoutput(cmd)
+        (retval, output) = subprocess.getstatusoutput(cmd)
         if retval:
             bb.warn("de/compress file failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
             return
@@ -159,6 +160,7 @@ def _is_compress_doc(file, compress_format_list):
     return False, ''
 
 def compress_doc(topdir, compress_mode, compress_cmds):
+    import subprocess
     hardlink_dict = {}
     for root, dirs, files in os.walk(topdir):
         for f in files:
@@ -176,7 +178,7 @@ def compress_doc(topdir, compress_mode, compress_cmds):
                 # Normal file
                 elif os.path.isfile(file):
                     cmd = "%s %s" % (compress_cmds[compress_mode], file)
-                    (retval, output) = oe.utils.getstatusoutput(cmd)
+                    (retval, output) = subprocess.getstatusoutput(cmd)
                     if retval:
                         bb.warn("compress failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
                         continue
@@ -186,6 +188,7 @@ def compress_doc(topdir, compress_mode, compress_cmds):
 
 # Decompress doc files which format is not compress_mode
 def decompress_doc(topdir, compress_mode, decompress_cmds):
+    import subprocess
     hardlink_dict = {}
     decompress = True
     for root, dirs, files in os.walk(topdir):
@@ -206,7 +209,7 @@ def decompress_doc(topdir, compress_mode, decompress_cmds):
                 # Normal file
                 elif os.path.isfile(file):
                     cmd = "%s %s" % (decompress_cmds[compress_format], file)
-                    (retval, output) = oe.utils.getstatusoutput(cmd)
+                    (retval, output) = subprocess.getstatusoutput(cmd)
                     if retval:
                         bb.warn("decompress failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
                         continue
@@ -218,18 +221,18 @@ python compress_doc_updatealternatives () {
     if not bb.data.inherits_class('update-alternatives', d):
         return
 
-    mandir = d.getVar("mandir", True)
-    infodir = d.getVar("infodir", True)
-    compress_mode = d.getVar('DOC_COMPRESS', True)
-    for pkg in (d.getVar('PACKAGES', True) or "").split():
-        old_names = (d.getVar('ALTERNATIVE_%s' % pkg, True) or "").split()
+    mandir = d.getVar("mandir")
+    infodir = d.getVar("infodir")
+    compress_mode = d.getVar('DOC_COMPRESS')
+    for pkg in (d.getVar('PACKAGES') or "").split():
+        old_names = (d.getVar('ALTERNATIVE_%s' % pkg) or "").split()
         new_names = []
         for old_name in old_names:
-            old_link     = d.getVarFlag('ALTERNATIVE_LINK_NAME', old_name, True)
-            old_target   = d.getVarFlag('ALTERNATIVE_TARGET_%s' % pkg, old_name, True) or \
-                d.getVarFlag('ALTERNATIVE_TARGET', old_name, True) or \
-                d.getVar('ALTERNATIVE_TARGET_%s' % pkg, True) or \
-                d.getVar('ALTERNATIVE_TARGET', True) or \
+            old_link     = d.getVarFlag('ALTERNATIVE_LINK_NAME', old_name)
+            old_target   = d.getVarFlag('ALTERNATIVE_TARGET_%s' % pkg, old_name) or \
+                d.getVarFlag('ALTERNATIVE_TARGET', old_name) or \
+                d.getVar('ALTERNATIVE_TARGET_%s' % pkg) or \
+                d.getVar('ALTERNATIVE_TARGET') or \
                 old_link
             # Sometimes old_target is specified as relative to the link name.
             old_target   = os.path.join(os.path.dirname(old_link), old_target)
@@ -241,15 +244,15 @@ python compress_doc_updatealternatives () {
                 new_target = old_target + '.' + compress_mode
                 d.delVarFlag('ALTERNATIVE_LINK_NAME', old_name)
                 d.setVarFlag('ALTERNATIVE_LINK_NAME', new_name, new_link)
-                if d.getVarFlag('ALTERNATIVE_TARGET_%s' % pkg, old_name, True):
+                if d.getVarFlag('ALTERNATIVE_TARGET_%s' % pkg, old_name):
                     d.delVarFlag('ALTERNATIVE_TARGET_%s' % pkg, old_name)
                     d.setVarFlag('ALTERNATIVE_TARGET_%s' % pkg, new_name, new_target)
-                elif d.getVarFlag('ALTERNATIVE_TARGET', old_name, True):
+                elif d.getVarFlag('ALTERNATIVE_TARGET', old_name):
                     d.delVarFlag('ALTERNATIVE_TARGET', old_name)
                     d.setVarFlag('ALTERNATIVE_TARGET', new_name, new_target)
-                elif d.getVar('ALTERNATIVE_TARGET_%s' % pkg, True):
+                elif d.getVar('ALTERNATIVE_TARGET_%s' % pkg):
                     d.setVar('ALTERNATIVE_TARGET_%s' % pkg, new_target)
-                elif d.getVar('ALTERNATIVE_TARGET', old_name, True):
+                elif d.getVar('ALTERNATIVE_TARGET'):
                     d.setVar('ALTERNATIVE_TARGET', new_target)
 
                 new_names.append(new_name)

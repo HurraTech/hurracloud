@@ -3,7 +3,8 @@
 #
 
 SUMMARY = "Debugging tools"
-LICENSE = "MIT"
+
+PACKAGE_ARCH = "${TUNE_PKGARCH}"
 
 inherit packagegroup
 

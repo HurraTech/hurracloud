@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
 # Used to compare sstate checksums between MACHINES.
 # Execute script and compare generated list.M files.
 # Using bash to have PIPESTATUS variable.
@@ -118,7 +120,7 @@ for M in ${machines}; do
     cp -ra ${tmpdir}/stamps/* ${OUTPUT}/${M}
     find ${OUTPUT}/${M} -name \*sigdata\* | sed "s#${OUTPUT}/${M}/##g" | sort > ${OUTPUT}/${M}/list
     M_UNDERSCORE=`echo ${M} | sed 's/-/_/g'`
-    sed "s/${M_UNDERSCORE}/MACHINE/g; s/${M}/MACHINE/g" ${OUTPUT}/${M}/list | sort > ${OUTPUT}/${M}/list.M
+    sed "s/^${M_UNDERSCORE}-/MACHINE/g" ${OUTPUT}/${M}/list | sort > ${OUTPUT}/${M}/list.M
     find ${tmpdir}/stamps/ -name \*sigdata\* | xargs rm -f
   else
     printf "ERROR: no sigdata files were generated for MACHINE $M in ${tmpdir}/stamps\n";

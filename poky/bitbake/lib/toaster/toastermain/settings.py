@@ -1,35 +1,16 @@
 #
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
-#
 # BitBake Toaster Implementation
 #
 # Copyright (C) 2013        Intel Corporation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 # Django settings for Toaster project.
 
-import os, re
-
-# Temporary toggle for Image customisation
-CUSTOM_IMAGE = False
-if os.environ.get("CUSTOM_IMAGE", None) is not None:
-    CUSTOM_IMAGE = True
+import os
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 # Set to True to see the SQL queries in console
 SQL_DEBUG = False
@@ -43,14 +24,18 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+TOASTER_SQLITE_DEFAULT_DIR = os.environ.get('TOASTER_DIR')
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'toaster.sqlite',                      # Or path to database file if using sqlite3.
+        # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.sqlite3',
+        # DB name or full path to database file if using sqlite3.
+        'NAME': "%s/toaster.sqlite" % TOASTER_SQLITE_DEFAULT_DIR,
         'USER': '',
         'PASSWORD': '',
-        'HOST': '127.0.0.1',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '3306',                      # Set to empty string for default.
+        #'HOST': '127.0.0.1', # e.g. mysql server
+        #'PORT': '3306', # e.g. mysql port
     }
 }
 
@@ -60,63 +45,19 @@ DATABASES = {
 if 'sqlite' in DATABASES['default']['ENGINE']:
     DATABASES['default']['OPTIONS'] = { 'timeout': 20 }
 
-# Reinterpret database settings if we have DATABASE_URL environment variable defined
-
-if 'DATABASE_URL' in os.environ:
-    dburl = os.environ['DATABASE_URL']
-    if dburl.startswith('sqlite3://'):
-        result = re.match('sqlite3://(.*)', dburl)
-        if result is None:
-            raise Exception("ERROR: Could not read sqlite database url: %s" % dburl)
-        DATABASES['default'] = {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': result.group(1),
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '',
-        }
-    elif dburl.startswith('mysql://'):
-        # URL must be in this form: mysql://user:pass@host:port/name
-        result = re.match(r"mysql://([^:]*):([^@]*)@([^:]*):(\d+)/([^/]*)", dburl)
-        if result is None:
-            raise Exception("ERROR: Could not read mysql database url: %s" % dburl)
-        DATABASES['default'] = {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': result.group(5),
-            'USER': result.group(1),
-            'PASSWORD': result.group(2),
-            'HOST': result.group(3),
-            'PORT': result.group(4),
-        }
-    else:
-        raise Exception("FIXME: Please implement missing database url schema for url: %s" % dburl)
-
-BUILD_MODE = False
-if 'TOASTER_MANAGED' in os.environ and os.environ['TOASTER_MANAGED'] == "1":
-    BUILD_MODE = True
-
-# Allows current database settings to be exported as a DATABASE_URL environment variable value
-
-def getDATABASE_URL():
-    d = DATABASES['default']
-    if d['ENGINE'] == 'django.db.backends.sqlite3':
-        if d['NAME'] == ':memory:':
-            return 'sqlite3://:memory:'
-        elif d['NAME'].startswith("/"):
-            return 'sqlite3://' + d['NAME']
-        return "sqlite3://" + os.path.join(os.getcwd(), d['NAME'])
-
-    elif d['ENGINE'] == 'django.db.backends.mysql':
-        return "mysql://" + d['USER'] + ":" + d['PASSWORD'] + "@" + d['HOST'] + ":" + d['PORT'] + "/" + d['NAME']
-
-    raise Exception("FIXME: Please implement missing database url schema for engine: %s" % d['ENGINE'])
-
-
-
-# Hosts/domain names that are valid for this site; required if DEBUG is False
-# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
+# Update as of django 1.8.16 release, the '*' is needed to allow us to connect while running
+# on hosts without explicitly setting the fqdn for the toaster server.
+# See https://docs.djangoproject.com/en/dev/ref/settings/ for info on ALLOWED_HOSTS
+# Previously this setting was not enforced if DEBUG was set but it is now.
+# The previous behavior was such that ALLOWED_HOSTS defaulted to ['localhost','127.0.0.1','::1']
+# and if you bound to 0.0.0.0:<port #> then accessing toaster as localhost or fqdn would both work.
+# To have that same behavior, with a fqdn explicitly enabled you would set
+# ALLOWED_HOSTS= ['localhost','127.0.0.1','::1','myserver.mycompany.com'] for
+# Django >= 1.8.16. By default, we are not enforcing this restriction in
+# DEBUG mode.
+if DEBUG is True:
+    # this will allow connection via localhost,hostname, or fqdn
+    ALLOWED_HOSTS = ['*']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -141,17 +82,16 @@ else:
             try:
                 import pytz
                 from pytz.exceptions import UnknownTimeZoneError
-                pass
                 try:
                     if pytz.timezone(zonename) is not None:
-                        zonefilelist[hashlib.md5(open(filepath).read()).hexdigest()] = zonename
-                except UnknownTimeZoneError, ValueError:
+                        zonefilelist[hashlib.md5(open(filepath, 'rb').read()).hexdigest()] = zonename
+                except UnknownTimeZoneError as ValueError:
                     # we expect timezone failures here, just move over
                     pass
             except ImportError:
-                zonefilelist[hashlib.md5(open(filepath).read()).hexdigest()] = zonename
+                zonefilelist[hashlib.md5(open(filepath, 'rb').read()).hexdigest()] = zonename
 
-    TIME_ZONE = zonefilelist[hashlib.md5(open('/etc/localtime').read()).hexdigest()]
+    TIME_ZONE = zonefilelist[hashlib.md5(open('/etc/localtime', 'rb').read()).hexdigest()]
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -207,22 +147,58 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'NOT_SUITABLE_FOR_HOSTED_DEPLOYMENT'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+class InvalidString(str):
+    def __mod__(self, other):
+        from django.template.base import TemplateSyntaxError
+        raise TemplateSyntaxError(
+            "Undefined variable or unknown value for: \"%s\"" % other)
 
-MIDDLEWARE_CLASSES = (
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+            # Always use forward slashes, even on Windows.
+            # Don't forget to use absolute paths, not relative paths.
+        ],
+        'OPTIONS': {
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                # Custom
+                'django.template.context_processors.request',
+                'toastergui.views.managedcontextprocessor',
+
+            ],
+            'loaders': [
+                # List of callables that know how to import templates from various sources.
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+                #'django.template.loaders.eggs.Loader',
+            ],
+            'string_if_invalid': InvalidString("%s"),
+            'debug': DEBUG,
+        },
+    },
+]
+
+MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+]
 
 CACHES = {
     #        'default': {
@@ -231,7 +207,7 @@ CACHES = {
     #        },
            'default': {
                'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-               'LOCATION': '/tmp/django-default-cache',
+               'LOCATION': '/tmp/toaster_cache_%d' % os.getuid(),
                'TIMEOUT': 1,
             }
           }
@@ -249,22 +225,6 @@ ROOT_URLCONF = 'toastermain.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'toastermain.wsgi.application'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-TEMPLATE_CONTEXT_PROCESSORS = ('django.contrib.auth.context_processors.auth',
- 'django.core.context_processors.debug',
- 'django.core.context_processors.i18n',
- 'django.core.context_processors.media',
- 'django.core.context_processors.static',
- 'django.core.context_processors.tz',
- 'django.contrib.messages.context_processors.messages',
- "django.core.context_processors.request",
- 'toastergui.views.managedcontextprocessor',
- )
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -279,7 +239,6 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'bldcollector',
     'toastermain',
-    'south',
 )
 
 
@@ -290,7 +249,7 @@ FRESH_ENABLED = False
 if os.environ.get('TOASTER_DEVEL', None) is not None:
     try:
         import fresh
-        MIDDLEWARE_CLASSES = ("fresh.middleware.FreshMiddleware",) + MIDDLEWARE_CLASSES
+        MIDDLEWARE = ["fresh.middleware.FreshMiddleware",] + MIDDLEWARE
         INSTALLED_APPS = INSTALLED_APPS + ('fresh',)
         FRESH_ENABLED = True
     except:
@@ -300,8 +259,8 @@ DEBUG_PANEL_ENABLED = False
 if os.environ.get('TOASTER_DEVEL', None) is not None:
     try:
         import debug_toolbar, debug_panel
-        MIDDLEWARE_CLASSES = ('debug_panel.middleware.DebugPanelMiddleware',) + MIDDLEWARE_CLASSES
-        #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+        MIDDLEWARE = ['debug_panel.middleware.DebugPanelMiddleware',] + MIDDLEWARE
+        #MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware',]
         INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar','debug_panel',)
         DEBUG_PANEL_ENABLED = True
 
@@ -329,7 +288,7 @@ currentdir = os.path.dirname(__file__)
 for t in os.walk(os.path.dirname(currentdir)):
     modulename = os.path.basename(t[0])
     #if we have a virtualenv skip it to avoid incorrect imports
-    if os.environ.has_key('VIRTUAL_ENV') and os.environ['VIRTUAL_ENV'] in t[0]:
+    if 'VIRTUAL_ENV' in os.environ and os.environ['VIRTUAL_ENV'] in t[0]:
         continue
 
     if ("views.py" in t[2] or "models.py" in t[2]) and not modulename in INSTALLED_APPS:
@@ -394,20 +353,3 @@ def activate_synchronous_off(sender, connection, **kwargs):
 connection_created.connect(activate_synchronous_off)
 #
 
-
-class InvalidString(str):
-    def __mod__(self, other):
-        from django.template.base import TemplateSyntaxError
-        raise TemplateSyntaxError(
-            "Undefined variable or unknown value for: \"%s\"" % other)
-
-TEMPLATE_STRING_IF_INVALID = InvalidString("%s")
-
-import sys
-sys.path.append(
-    os.path.join(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "contrib"),
-            "django-aggregate-if-master")
-    )

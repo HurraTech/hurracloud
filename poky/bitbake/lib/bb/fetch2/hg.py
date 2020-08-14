@@ -1,5 +1,3 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 """
 BitBake 'Fetch' implementation for mercurial DRCS (hg).
 
@@ -9,27 +7,14 @@ BitBake 'Fetch' implementation for mercurial DRCS (hg).
 # Copyright (C) 2004        Marcin Juszkiewicz
 # Copyright (C) 2007        Robert Schuster
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # Based on functions from the base bb module, Copyright 2003 Holger Schurig
+#
 
 import os
-import sys
-import logging
 import bb
 import errno
-from bb import data
 from bb.fetch2 import FetchMethod
 from bb.fetch2 import FetchError
 from bb.fetch2 import MissingParameterError
@@ -67,26 +52,27 @@ class Hg(FetchMethod):
         else:
             ud.proto = "hg"
 
-        ud.setup_revisons(d)
+        # Create paths to mercurial checkouts
+        hgsrcname = '%s_%s_%s' % (ud.module.replace('/', '.'), \
+                            ud.host, ud.path.replace('/', '.'))
+        mirrortarball = 'hg_%s.tar.gz' % hgsrcname
+        ud.fullmirror = os.path.join(d.getVar("DL_DIR"), mirrortarball)
+        ud.mirrortarballs = [mirrortarball]
+
+        hgdir = d.getVar("HGDIR") or (d.getVar("DL_DIR") + "/hg")
+        ud.pkgdir = os.path.join(hgdir, hgsrcname)
+        ud.moddir = os.path.join(ud.pkgdir, ud.module)
+        ud.localfile = ud.moddir
+        ud.basecmd = d.getVar("FETCHCMD_hg") or "/usr/bin/env hg"
+
+        ud.setup_revisions(d)
 
         if 'rev' in ud.parm:
             ud.revision = ud.parm['rev']
         elif not ud.revision:
             ud.revision = self.latest_revision(ud, d)
 
-        # Create paths to mercurial checkouts
-        hgsrcname = '%s_%s_%s' % (ud.module.replace('/', '.'), \
-                            ud.host, ud.path.replace('/', '.'))
-        ud.mirrortarball = 'hg_%s.tar.gz' % hgsrcname
-        ud.fullmirror = os.path.join(d.getVar("DL_DIR", True), ud.mirrortarball)
-
-        hgdir = d.getVar("HGDIR", True) or (d.getVar("DL_DIR", True) + "/hg/")
-        ud.pkgdir = os.path.join(hgdir, hgsrcname)
-        ud.moddir = os.path.join(ud.pkgdir, ud.module)
-        ud.localfile = ud.moddir
-        ud.basecmd = data.getVar("FETCHCMD_hg", d, True) or "/usr/bin/env hg"
-
-        ud.write_tarballs = d.getVar("BB_GENERATE_MIRROR_TARBALLS", True)
+        ud.write_tarballs = d.getVar("BB_GENERATE_MIRROR_TARBALLS")
 
     def need_update(self, ud, d):
         revTag = ud.parm.get('rev', 'tip')
@@ -99,7 +85,7 @@ class Hg(FetchMethod):
     def try_premirror(self, ud, d):
         # If we don't do this, updating an existing checkout with only premirrors
         # is not possible
-        if d.getVar("BB_FETCH_PREMIRRORONLY", True) is not None:
+        if bb.utils.to_boolean(d.getVar("BB_FETCH_PREMIRRORONLY")):
             return True
         if os.path.exists(ud.moddir):
             return False
@@ -151,7 +137,7 @@ class Hg(FetchMethod):
                 cmd = "%s --config auth.default.prefix=* --config auth.default.username=%s --config auth.default.password=%s --config \"auth.default.schemes=%s\" pull" % (ud.basecmd, ud.user, ud.pswd, proto)
             else:
                 cmd = "%s pull" % (ud.basecmd)
-        elif command == "update":
+        elif command == "update" or command == "up":
             if ud.user and ud.pswd:
                 cmd = "%s --config auth.default.prefix=* --config auth.default.username=%s --config auth.default.password=%s --config \"auth.default.schemes=%s\" update -C %s" % (ud.basecmd, ud.user, ud.pswd, proto, " ".join(options))
             else:
@@ -169,25 +155,22 @@ class Hg(FetchMethod):
         # If the checkout doesn't exist and the mirror tarball does, extract it
         if not os.path.exists(ud.pkgdir) and os.path.exists(ud.fullmirror):
             bb.utils.mkdirhier(ud.pkgdir)
-            os.chdir(ud.pkgdir)
-            runfetchcmd("tar -xzf %s" % (ud.fullmirror), d)
+            runfetchcmd("tar -xzf %s" % (ud.fullmirror), d, workdir=ud.pkgdir)
 
         if os.access(os.path.join(ud.moddir, '.hg'), os.R_OK):
             # Found the source, check whether need pull
             updatecmd = self._buildhgcommand(ud, d, "update")
-            os.chdir(ud.moddir)
             logger.debug(1, "Running %s", updatecmd)
             try:
-                runfetchcmd(updatecmd, d)
+                runfetchcmd(updatecmd, d, workdir=ud.moddir)
             except bb.fetch2.FetchError:
                 # Runnning pull in the repo
                 pullcmd = self._buildhgcommand(ud, d, "pull")
                 logger.info("Pulling " + ud.url)
                 # update sources there
-                os.chdir(ud.moddir)
                 logger.debug(1, "Running %s", pullcmd)
                 bb.fetch2.check_network_access(d, pullcmd, ud.url)
-                runfetchcmd(pullcmd, d)
+                runfetchcmd(pullcmd, d, workdir=ud.moddir)
                 try:
                     os.unlink(ud.fullmirror)
                 except OSError as exc:
@@ -200,17 +183,15 @@ class Hg(FetchMethod):
             logger.info("Fetch " + ud.url)
             # check out sources there
             bb.utils.mkdirhier(ud.pkgdir)
-            os.chdir(ud.pkgdir)
             logger.debug(1, "Running %s", fetchcmd)
             bb.fetch2.check_network_access(d, fetchcmd, ud.url)
-            runfetchcmd(fetchcmd, d)
+            runfetchcmd(fetchcmd, d, workdir=ud.pkgdir)
 
         # Even when we clone (fetch), we still need to update as hg's clone
         # won't checkout the specified revision if its on a branch
         updatecmd = self._buildhgcommand(ud, d, "update")
-        os.chdir(ud.moddir)
         logger.debug(1, "Running %s", updatecmd)
-        runfetchcmd(updatecmd, d)
+        runfetchcmd(updatecmd, d, workdir=ud.moddir)
 
     def clean(self, ud, d):
         """ Clean the hg dir """
@@ -226,7 +207,7 @@ class Hg(FetchMethod):
         """
         Compute tip revision for the url
         """
-        bb.fetch2.check_network_access(d, self._buildhgcommand(ud, d, "info"))
+        bb.fetch2.check_network_access(d, self._buildhgcommand(ud, d, "info"), ud.url)
         output = runfetchcmd(self._buildhgcommand(ud, d, "info"), d)
         return output.strip()
 
@@ -246,10 +227,9 @@ class Hg(FetchMethod):
             if os.path.islink(ud.fullmirror):
                 os.unlink(ud.fullmirror)
 
-            os.chdir(ud.pkgdir)
             logger.info("Creating tarball of hg repository")
-            runfetchcmd("tar -czf %s %s" % (ud.fullmirror, ud.module), d)
-            runfetchcmd("touch %s.done" % (ud.fullmirror), d)
+            runfetchcmd("tar -czf %s %s" % (ud.fullmirror, ud.module), d, workdir=ud.pkgdir)
+            runfetchcmd("touch %s.done" % (ud.fullmirror), d, workdir=ud.pkgdir)
 
     def localpath(self, ud, d):
         return ud.pkgdir
@@ -265,14 +245,19 @@ class Hg(FetchMethod):
 
         scmdata = ud.parm.get("scmdata", "")
         if scmdata != "nokeep":
+            proto = ud.parm.get('protocol', 'http')
             if not os.access(os.path.join(codir, '.hg'), os.R_OK):
                 logger.debug(2, "Unpack: creating new hg repository in '" + codir + "'")
                 runfetchcmd("%s init %s" % (ud.basecmd, codir), d)
             logger.debug(2, "Unpack: updating source in '" + codir + "'")
-            os.chdir(codir)
-            runfetchcmd("%s pull %s" % (ud.basecmd, ud.moddir), d)
-            runfetchcmd("%s up -C %s" % (ud.basecmd, revflag), d)
+            if ud.user and ud.pswd:
+                runfetchcmd("%s --config auth.default.prefix=* --config auth.default.username=%s --config auth.default.password=%s --config \"auth.default.schemes=%s\" pull %s" % (ud.basecmd, ud.user, ud.pswd, proto, ud.moddir), d, workdir=codir)
+            else:
+                runfetchcmd("%s pull %s" % (ud.basecmd, ud.moddir), d, workdir=codir)
+            if ud.user and ud.pswd:
+                runfetchcmd("%s --config auth.default.prefix=* --config auth.default.username=%s --config auth.default.password=%s --config \"auth.default.schemes=%s\" up -C %s" % (ud.basecmd, ud.user, ud.pswd, proto, revflag), d, workdir=codir)
+            else:
+                runfetchcmd("%s up -C %s" % (ud.basecmd, revflag), d, workdir=codir)
         else:
             logger.debug(2, "Unpack: extracting source to '" + codir + "'")
-            os.chdir(ud.moddir)
-            runfetchcmd("%s archive -t files %s %s" % (ud.basecmd, revflag, codir), d)
+            runfetchcmd("%s archive -t files %s %s" % (ud.basecmd, revflag, codir), d, workdir=ud.moddir)

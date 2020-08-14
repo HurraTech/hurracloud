@@ -16,15 +16,17 @@ SRC_URI = "http://www.ngolde.de/download/libacpi-${PV}.tar.gz \
 SRC_URI[md5sum] = "05b53dd7bead66dda35fec502b91066c"
 SRC_URI[sha256sum] = "13086e31d428b9c125954d48ac497b754bbbce2ef34ea29ecd903e82e25bad29"
 
+UPSTREAM_CHECK_URI = "http://www.ngolde.de/libacpi.html"
+
 inherit lib_package
 
 COMPATIBLE_HOST = '(x86_64|i.86).*-(linux|freebsd.*)'
 
 CFLAGS += "-fPIC"
-EXTRA_OEMAKE += 'STRIP="echo"'
+EXTRA_OEMAKE = '-e MAKEFLAGS= STRIP="echo"'
 
 TARGET_CC_ARCH += "${LDFLAGS}"
 
 do_install() {
-	oe_runmake install DESTDIR=${D} PREFIX=${exec_prefix}
+	oe_runmake install DESTDIR=${D} PREFIX=${exec_prefix} LIBDIR=${libdir}
 }

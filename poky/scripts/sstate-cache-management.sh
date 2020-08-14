@@ -2,18 +2,7 @@
 
 #  Copyright (c) 2012 Wind River Systems, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+# SPDX-License-Identifier: GPL-2.0-only
 #
 
 # Global vars
@@ -101,7 +90,7 @@ do_nothing () {
 
 # Read the input "y"
 read_confirm () {
-  echo "$total_deleted from $total_files files will be removed! "
+  echo "$total_deleted out of $total_files files will be removed! "
   if [ "$confirm" != "y" ]; then
       echo "Do you want to continue (y/n)? "
       while read confirm; do
@@ -282,7 +271,7 @@ remove_duplicated () {
       deleted_tgz=`cat $rm_list.* 2>/dev/null | grep ".tgz$" | wc -l`
       deleted_files=`cat $rm_list.* 2>/dev/null | wc -l`
       [ "$deleted_files" -gt 0 -a $debug -gt 0 ] && cat $rm_list.*
-      echo "($deleted_tgz from $total_tgz_suffix .tgz files for $suffix suffix will be removed or $deleted_files from $total_files_suffix when counting also .siginfo and .done files)"
+      echo "($deleted_tgz out of $total_tgz_suffix .tgz files for $suffix suffix will be removed or $deleted_files out of $total_files_suffix when counting also .siginfo and .done files)"
       let total_deleted=$total_deleted+$deleted_files
   done
   deleted_tgz=0

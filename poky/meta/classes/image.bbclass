@@ -1,34 +1,49 @@
-inherit rootfs_${IMAGE_PKGTYPE}
 
-inherit populate_sdk_ext
+IMAGE_CLASSES ??= ""
+
+# rootfs bootstrap install
+# warning -  image-container resets this
+ROOTFS_BOOTSTRAP_INSTALL = "run-postinsts"
+
+# Handle inherits of any of the image classes we need
+IMGCLASSES = "rootfs_${IMAGE_PKGTYPE} image_types ${IMAGE_CLASSES}"
+# Only Linux SDKs support populate_sdk_ext, fall back to populate_sdk_base
+# in the non-Linux SDK_OS case, such as mingw32
+IMGCLASSES += "${@['populate_sdk_base', 'populate_sdk_ext']['linux' in d.getVar("SDK_OS")]}"
+IMGCLASSES += "${@bb.utils.contains_any('IMAGE_FSTYPES', 'live iso hddimg', 'image-live', '', d)}"
+IMGCLASSES += "${@bb.utils.contains('IMAGE_FSTYPES', 'container', 'image-container', '', d)}"
+IMGCLASSES += "image_types_wic"
+IMGCLASSES += "rootfs-postcommands"
+IMGCLASSES += "image-postinst-intercepts"
+inherit ${IMGCLASSES}
 
 TOOLCHAIN_TARGET_TASK += "${PACKAGE_INSTALL}"
 TOOLCHAIN_TARGET_TASK_ATTEMPTONLY += "${PACKAGE_INSTALL_ATTEMPTONLY}"
 POPULATE_SDK_POST_TARGET_COMMAND += "rootfs_sysroot_relativelinks; "
 
-inherit gzipnative
-
-LICENSE = "MIT"
+LICENSE ?= "MIT"
 PACKAGES = ""
-DEPENDS += "${MLPREFIX}qemuwrapper-cross ${MLPREFIX}depmodwrapper-cross"
-RDEPENDS += "${PACKAGE_INSTALL} ${LINGUAS_INSTALL}"
+DEPENDS += "${@' '.join(["%s-qemuwrapper-cross" % m for m in d.getVar("MULTILIB_VARIANTS").split()])} qemuwrapper-cross depmodwrapper-cross cross-localedef-native"
+RDEPENDS += "${PACKAGE_INSTALL} ${LINGUAS_INSTALL} ${IMAGE_INSTALL_DEBUGFS}"
 RRECOMMENDS += "${PACKAGE_INSTALL_ATTEMPTONLY}"
+PATH_prepend = "${@":".join(all_multilib_tune_values(d, 'STAGING_BINDIR_CROSS').split())}:"
 
 INHIBIT_DEFAULT_DEPS = "1"
-
-TESTIMAGECLASS = "${@base_conditional('TEST_IMAGE', '1', 'testimage-auto', '', d)}"
-inherit ${TESTIMAGECLASS}
 
 # IMAGE_FEATURES may contain any available package group
 IMAGE_FEATURES ?= ""
 IMAGE_FEATURES[type] = "list"
-IMAGE_FEATURES[validitems] += "debug-tweaks read-only-rootfs empty-root-password allow-empty-password post-install-logging"
+IMAGE_FEATURES[validitems] += "debug-tweaks read-only-rootfs stateless-rootfs empty-root-password allow-empty-password allow-root-login post-install-logging"
 
 # Generate companion debugfs?
 IMAGE_GEN_DEBUGFS ?= "0"
 
-# rootfs bootstrap install
-ROOTFS_BOOTSTRAP_INSTALL = "${@bb.utils.contains("IMAGE_FEATURES", "package-management", "", "${ROOTFS_PKGMANAGE_BOOTSTRAP}",d)}"
+# These pacackages will be installed as additional into debug rootfs
+IMAGE_INSTALL_DEBUGFS ?= ""
+
+# These packages will be removed from a read-only rootfs after all other
+# packages have been installed
+ROOTFS_RO_UNNEEDED ??= "update-rc.d base-passwd shadow ${VIRTUAL-RUNTIME_update-alternatives} ${ROOTFS_BOOTSTRAP_INSTALL}"
 
 # packages to install from features
 FEATURE_INSTALL = "${@' '.join(oe.packagegroup.required_packages(oe.data.typed_value('IMAGE_FEATURES', d), d))}"
@@ -44,7 +59,7 @@ FEATURE_PACKAGES_splash = "${SPLASH}"
 IMAGE_INSTALL_COMPLEMENTARY = '${@complementary_globs("IMAGE_FEATURES", d)}'
 
 def check_image_features(d):
-    valid_features = (d.getVarFlag('IMAGE_FEATURES', 'validitems', True) or "").split()
+    valid_features = (d.getVarFlag('IMAGE_FEATURES', 'validitems') or "").split()
     valid_features += d.getVarFlags('COMPLEMENTARY_GLOB').keys()
     for var in d:
        if var.startswith("PACKAGE_GROUP_"):
@@ -67,6 +82,8 @@ IMAGE_INSTALL[type] = "list"
 export PACKAGE_INSTALL ?= "${IMAGE_INSTALL} ${ROOTFS_BOOTSTRAP_INSTALL} ${FEATURE_INSTALL}"
 PACKAGE_INSTALL_ATTEMPTONLY ?= "${FEATURE_INSTALL_OPTIONAL}"
 
+IMGDEPLOYDIR = "${WORKDIR}/deploy-${PN}-image-complete"
+
 # Images are generally built explicitly, do not need to be part of world.
 EXCLUDE_FROM_WORLD = "1"
 
@@ -78,7 +95,6 @@ PID = "${@os.getpid()}"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 LDCONFIGDEPEND ?= "ldconfig-native:do_populate_sysroot"
-LDCONFIGDEPEND_libc-uclibc = ""
 LDCONFIGDEPEND_libc-musl = ""
 
 # This is needed to have depmod data in PKGDATA_DIR,
@@ -94,43 +110,25 @@ do_rootfs[depends] += " \
 "
 do_rootfs[recrdeptask] += "do_packagedata"
 
-def command_variables(d):
-    return ['ROOTFS_POSTPROCESS_COMMAND','ROOTFS_PREPROCESS_COMMAND','ROOTFS_POSTINSTALL_COMMAND','OPKG_PREPROCESS_COMMANDS','OPKG_POSTPROCESS_COMMANDS','IMAGE_POSTPROCESS_COMMAND',
-            'IMAGE_PREPROCESS_COMMAND','ROOTFS_POSTPROCESS_COMMAND','POPULATE_SDK_POST_HOST_COMMAND','POPULATE_SDK_POST_TARGET_COMMAND','SDK_POSTPROCESS_COMMAND','RPM_PREPROCESS_COMMANDS',         
-            'RPM_POSTPROCESS_COMMANDS']
+def rootfs_command_variables(d):
+    return ['ROOTFS_POSTPROCESS_COMMAND','ROOTFS_PREPROCESS_COMMAND','ROOTFS_POSTINSTALL_COMMAND','ROOTFS_POSTUNINSTALL_COMMAND','OPKG_PREPROCESS_COMMANDS','OPKG_POSTPROCESS_COMMANDS','IMAGE_POSTPROCESS_COMMAND',
+            'IMAGE_PREPROCESS_COMMAND','RPM_PREPROCESS_COMMANDS','RPM_POSTPROCESS_COMMANDS','DEB_PREPROCESS_COMMANDS','DEB_POSTPROCESS_COMMANDS']
 
 python () {
-    variables = command_variables(d)
+    variables = rootfs_command_variables(d) + sdk_command_variables(d)
     for var in variables:
         if d.getVar(var, False):
             d.setVarFlag(var, 'func', '1')
 }
 
-def fstype_variables(d):
-    import oe.image
-
-    image = oe.image.Image(d)
-    alltypes, fstype_groups, cimages = image._get_image_types()
-    fstype_vars = set()
-    for fstype_group in fstype_groups:
-        for fstype in fstype_group:
-            fstype_vars.add('IMAGE_CMD_' + fstype)
-            if fstype in cimages:
-                for ctype in cimages[fstype]:
-                    fstype_vars.add('COMPRESS_CMD_' + ctype)
-
-    return sorted(fstype_vars)
-
 def rootfs_variables(d):
     from oe.rootfs import variable_depends
-    variables = ['IMAGE_DEVICE_TABLES','BUILD_IMAGES_FROM_FEEDS','IMAGE_TYPES_MASKED','IMAGE_ROOTFS_ALIGNMENT','IMAGE_OVERHEAD_FACTOR','IMAGE_ROOTFS_SIZE','IMAGE_ROOTFS_EXTRA_SPACE',
-                 'IMAGE_ROOTFS_MAXSIZE','IMAGE_NAME','IMAGE_LINK_NAME','IMAGE_MANIFEST','DEPLOY_DIR_IMAGE','RM_OLD_IMAGE','IMAGE_FSTYPES','IMAGE_INSTALL_COMPLEMENTARY','IMAGE_LINGUAS','SDK_OS',
-                 'SDK_OUTPUT','SDKPATHNATIVE','SDKTARGETSYSROOT','SDK_DIR','SDK_VENDOR','SDKIMAGE_INSTALL_COMPLEMENTARY','SDK_PACKAGE_ARCHS','SDK_OUTPUT','SDKTARGETSYSROOT','MULTILIBRE_ALLOW_REP',
-                 'MULTILIB_TEMP_ROOTFS','MULTILIB_VARIANTS','MULTILIBS','ALL_MULTILIB_PACKAGE_ARCHS','MULTILIB_GLOBAL_VARIANTS','BAD_RECOMMENDATIONS','NO_RECOMMENDATIONS','PACKAGE_ARCHS',
-                 'PACKAGE_CLASSES','TARGET_VENDOR','TARGET_VENDOR','TARGET_ARCH','TARGET_OS','OVERRIDES','BBEXTENDVARIANT','FEED_DEPLOYDIR_BASE_URI','INTERCEPT_DIR','USE_DEVFS',
-                 'COMPRESSIONTYPES', 'IMAGE_GEN_DEBUGFS']
-    variables.extend(fstype_variables(d))
-    variables.extend(command_variables(d))
+    variables = ['IMAGE_DEVICE_TABLE','IMAGE_DEVICE_TABLES','BUILD_IMAGES_FROM_FEEDS','IMAGE_TYPES_MASKED','IMAGE_ROOTFS_ALIGNMENT','IMAGE_OVERHEAD_FACTOR','IMAGE_ROOTFS_SIZE','IMAGE_ROOTFS_EXTRA_SPACE',
+                 'IMAGE_ROOTFS_MAXSIZE','IMAGE_NAME','IMAGE_LINK_NAME','IMAGE_MANIFEST','DEPLOY_DIR_IMAGE','IMAGE_FSTYPES','IMAGE_INSTALL_COMPLEMENTARY','IMAGE_LINGUAS', 'IMAGE_LINGUAS_COMPLEMENTARY',
+                 'MULTILIBRE_ALLOW_REP','MULTILIB_TEMP_ROOTFS','MULTILIB_VARIANTS','MULTILIBS','ALL_MULTILIB_PACKAGE_ARCHS','MULTILIB_GLOBAL_VARIANTS','BAD_RECOMMENDATIONS','NO_RECOMMENDATIONS',
+                 'PACKAGE_ARCHS','PACKAGE_CLASSES','TARGET_VENDOR','TARGET_ARCH','TARGET_OS','OVERRIDES','BBEXTENDVARIANT','FEED_DEPLOYDIR_BASE_URI','INTERCEPT_DIR','USE_DEVFS',
+                 'CONVERSIONTYPES', 'IMAGE_GEN_DEBUGFS', 'ROOTFS_RO_UNNEEDED', 'IMGDEPLOYDIR', 'PACKAGE_EXCLUDE_COMPLEMENTARY', 'REPRODUCIBLE_TIMESTAMP_ROOTFS', 'IMAGE_INSTALL_DEBUGFS']
+    variables.extend(rootfs_command_variables(d))
     variables.extend(variable_depends(d))
     return " ".join(variables)
 
@@ -138,373 +136,472 @@ do_rootfs[vardeps] += "${@rootfs_variables(d)}"
 
 do_build[depends] += "virtual/kernel:do_deploy"
 
-def build_live(d):
-    if bb.utils.contains("IMAGE_FSTYPES", "live", "live", "0", d) == "0": # live is not set but hob might set iso or hddimg
-        d.setVar('NOISO', bb.utils.contains('IMAGE_FSTYPES', "iso", "0", "1", d))
-        d.setVar('NOHDD', bb.utils.contains('IMAGE_FSTYPES', "hddimg", "0", "1", d))
-        if d.getVar('NOISO', True) == "0" or d.getVar('NOHDD', True) == "0":
-            return "image-live"
-        return ""
-    return "image-live"
-
-IMAGE_TYPE_live = "${@build_live(d)}"
-inherit ${IMAGE_TYPE_live}
-
-IMAGE_TYPE_vm = '${@bb.utils.contains_any("IMAGE_FSTYPES", ["vmdk", "vdi", "qcow2", "hdddirect"], "image-vm", "", d)}'
-inherit ${IMAGE_TYPE_vm}
 
 python () {
+    def extraimage_getdepends(task):
+        deps = ""
+        for dep in (d.getVar('EXTRA_IMAGEDEPENDS') or "").split():
+            deps += " %s:%s" % (dep, task)
+        return deps
+
+    d.appendVarFlag('do_image_complete', 'depends', extraimage_getdepends('do_populate_sysroot'))
+
     deps = " " + imagetypes_getdepends(d)
     d.appendVarFlag('do_rootfs', 'depends', deps)
-
-    deps = ""
-    for dep in (d.getVar('EXTRA_IMAGEDEPENDS', True) or "").split():
-        deps += " %s:do_populate_sysroot" % dep
-    d.appendVarFlag('do_build', 'depends', deps)
 
     #process IMAGE_FEATURES, we must do this before runtime_mapping_rename
     #Check for replaces image features
     features = set(oe.data.typed_value('IMAGE_FEATURES', d))
     remain_features = features.copy()
     for feature in features:
-        replaces = set((d.getVar("IMAGE_FEATURES_REPLACES_%s" % feature, True) or "").split())
+        replaces = set((d.getVar("IMAGE_FEATURES_REPLACES_%s" % feature) or "").split())
         remain_features -= replaces
 
     #Check for conflict image features
     for feature in remain_features:
-        conflicts = set((d.getVar("IMAGE_FEATURES_CONFLICTS_%s" % feature, True) or "").split())
+        conflicts = set((d.getVar("IMAGE_FEATURES_CONFLICTS_%s" % feature) or "").split())
         temp = conflicts & remain_features
         if temp:
-            bb.fatal("%s contains conflicting IMAGE_FEATURES %s %s" % (d.getVar('PN', True), feature, ' '.join(list(temp))))
+            bb.fatal("%s contains conflicting IMAGE_FEATURES %s %s" % (d.getVar('PN'), feature, ' '.join(list(temp))))
 
-    d.setVar('IMAGE_FEATURES', ' '.join(list(remain_features)))
+    d.setVar('IMAGE_FEATURES', ' '.join(sorted(list(remain_features))))
 
     check_image_features(d)
-    initramfs_image = d.getVar('INITRAMFS_IMAGE', True) or ""
-    if initramfs_image != "":
-        d.appendVarFlag('do_build', 'depends', " %s:do_bundle_initramfs" %  d.getVar('PN', True))
-        d.appendVarFlag('do_bundle_initramfs', 'depends', " %s:do_rootfs" % initramfs_image)
 }
 
-IMAGE_CLASSES += "image_types"
-inherit ${IMAGE_CLASSES}
-
 IMAGE_POSTPROCESS_COMMAND ?= ""
-
-# Zap the root password if debug-tweaks feature is not enabled
-ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains_any("IMAGE_FEATURES", [ 'debug-tweaks', 'empty-root-password' ], "", "zap_empty_root_password ; ",d)}'
-
-# Allow dropbear/openssh to accept logins from accounts with an empty password string if debug-tweaks is enabled
-ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains_any("IMAGE_FEATURES", [ 'debug-tweaks', 'allow-empty-password' ], "ssh_allow_empty_password; ", "",d)}'
-
-# Enable postinst logging if debug-tweaks is enabled
-ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains_any("IMAGE_FEATURES", [ 'debug-tweaks', 'post-install-logging' ], "postinst_enable_logging; ", "",d)}'
-
-# Create /etc/timestamp during image construction to give a reasonably sane default time setting
-ROOTFS_POSTPROCESS_COMMAND += "rootfs_update_timestamp ; "
-
-# Tweak the mount options for rootfs in /etc/fstab if read-only-rootfs is enabled
-ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains("IMAGE_FEATURES", "read-only-rootfs", "read_only_rootfs_hook; ", "",d)}'
-
-# Write manifest
-IMAGE_MANIFEST = "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.manifest"
-ROOTFS_POSTUNINSTALL_COMMAND =+ "write_image_manifest ; "
-# Set default postinst log file
-POSTINST_LOGFILE ?= "${localstatedir}/log/postinstall.log"
-# Set default target for systemd images
-SYSTEMD_DEFAULT_TARGET ?= '${@bb.utils.contains("IMAGE_FEATURES", "x11-base", "graphical.target", "multi-user.target", d)}'
-ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains("DISTRO_FEATURES", "systemd", "set_systemd_default_target; ", "", d)}'
-
-ROOTFS_POSTPROCESS_COMMAND += 'empty_var_volatile;'
 
 # some default locales
 IMAGE_LINGUAS ?= "de-de fr-fr en-gb"
 
-LINGUAS_INSTALL ?= "${@" ".join(map(lambda s: "locale-base-%s" % s, d.getVar('IMAGE_LINGUAS', True).split()))}"
+LINGUAS_INSTALL ?= "${@" ".join(map(lambda s: "locale-base-%s" % s, d.getVar('IMAGE_LINGUAS').split()))}"
 
 # Prefer image, but use the fallback files for lookups if the image ones
 # aren't yet available.
 PSEUDO_PASSWD = "${IMAGE_ROOTFS}:${STAGING_DIR_NATIVE}"
 
-do_rootfs[dirs] = "${TOPDIR}"
-do_rootfs[lockfiles] += "${IMAGE_ROOTFS}.lock"
-do_rootfs[cleandirs] += "${S}"
-
-# Must call real_do_rootfs() from inside here, rather than as a separate
-# task, so that we have a single fakeroot context for the whole process.
-do_rootfs[umask] = "022"
-
-# A hook function to support read-only-rootfs IMAGE_FEATURES
-read_only_rootfs_hook () {
-	# Tweak the mount option and fs_passno for rootfs in fstab
-	sed -i -e '/^[#[:space:]]*\/dev\/root/{s/defaults/ro/;s/\([[:space:]]*[[:digit:]]\)\([[:space:]]*\)[[:digit:]]$/\1\20/}' ${IMAGE_ROOTFS}/etc/fstab
-
-	# If we're using openssh and the /etc/ssh directory has no pre-generated keys,
-	# we should configure openssh to use the configuration file /etc/ssh/sshd_config_readonly
-	# and the keys under /var/run/ssh.
-	if [ -d ${IMAGE_ROOTFS}/etc/ssh ]; then
-		if [ -e ${IMAGE_ROOTFS}/etc/ssh/ssh_host_rsa_key ]; then
-			echo "SYSCONFDIR=/etc/ssh" >> ${IMAGE_ROOTFS}/etc/default/ssh
-			echo "SSHD_OPTS=" >> ${IMAGE_ROOTFS}/etc/default/ssh
-		else
-			echo "SYSCONFDIR=/var/run/ssh" >> ${IMAGE_ROOTFS}/etc/default/ssh
-			echo "SSHD_OPTS='-f /etc/ssh/sshd_config_readonly'" >> ${IMAGE_ROOTFS}/etc/default/ssh
-		fi
-	fi
-
-	# Also tweak the key location for dropbear in the same way.
-	if [ -d ${IMAGE_ROOTFS}/etc/dropbear ]; then
-		if [ -e ${IMAGE_ROOTFS}/etc/dropbear/dropbear_rsa_host_key ]; then
-			echo "DROPBEAR_RSAKEY_DIR=/etc/dropbear" >> ${IMAGE_ROOTFS}/etc/default/dropbear
-		else
-			echo "DROPBEAR_RSAKEY_DIR=/var/lib/dropbear" >> ${IMAGE_ROOTFS}/etc/default/dropbear
-		fi
-	fi
-
-
-	if ${@bb.utils.contains("DISTRO_FEATURES", "sysvinit", "true", "false", d)}; then
-		# Change the value of ROOTFS_READ_ONLY in /etc/default/rcS to yes
-		if [ -e ${IMAGE_ROOTFS}/etc/default/rcS ]; then
-			sed -i 's/ROOTFS_READ_ONLY=no/ROOTFS_READ_ONLY=yes/' ${IMAGE_ROOTFS}/etc/default/rcS
-		fi
-		# Run populate-volatile.sh at rootfs time to set up basic files
-		# and directories to support read-only rootfs.
-		if [ -x ${IMAGE_ROOTFS}/etc/init.d/populate-volatile.sh ]; then
-			${IMAGE_ROOTFS}/etc/init.d/populate-volatile.sh
-		fi
-	fi
-
-	if ${@bb.utils.contains("DISTRO_FEATURES", "systemd", "true", "false", d)}; then
-	    # Update user database files so that services don't fail for a read-only systemd system
-	    for conffile in ${IMAGE_ROOTFS}/usr/lib/sysusers.d/systemd.conf ${IMAGE_ROOTFS}/usr/lib/sysusers.d/systemd-remote.conf; do
-		[ -e $conffile ] || continue
-		grep -v "^#" $conffile | sed -e '/^$/d' | while read type name id comment; do
-		    if [ "$type" = "u" ]; then
-			useradd_params=""
-			[ "$id" != "-" ] && useradd_params="$useradd_params --uid $id"
-			[ "$comment" != "-" ] && useradd_params="$useradd_params --comment $comment"
-			useradd_params="$useradd_params --system $name"
-			eval useradd --root ${IMAGE_ROOTFS} $useradd_params || true
-		    elif [ "$type" = "g" ]; then
-			groupadd_params=""
-			[ "$id" != "-" ] && groupadd_params="$groupadd_params --gid $id"
-			groupadd_params="$groupadd_params --system $name"
-			eval groupadd --root ${IMAGE_ROOTFS} $groupadd_params || true
-		    fi
-		done
-	    done
-	fi
-}
-
 PACKAGE_EXCLUDE ??= ""
 PACKAGE_EXCLUDE[type] = "list"
 
-python rootfs_process_ignore() {
-    excl_pkgs = d.getVar("PACKAGE_EXCLUDE", True).split()
-    inst_pkgs = d.getVar("PACKAGE_INSTALL", True).split()
-    inst_attempt_pkgs = d.getVar("PACKAGE_INSTALL_ATTEMPTONLY", True).split()
+fakeroot python do_rootfs () {
+    from oe.rootfs import create_rootfs
+    from oe.manifest import create_manifest
+    import logging
+
+    logger = d.getVar('BB_TASK_LOGGER', False)
+    if logger:
+        logcatcher = bb.utils.LogCatcher()
+        logger.addHandler(logcatcher)
+    else:
+        logcatcher = None
+
+    # NOTE: if you add, remove or significantly refactor the stages of this
+    # process then you should recalculate the weightings here. This is quite
+    # easy to do - just change the MultiStageProgressReporter line temporarily
+    # to pass debug=True as the last parameter and you'll get a printout of
+    # the weightings as well as a map to the lines where next_stage() was
+    # called. Of course this isn't critical, but it helps to keep the progress
+    # reporting accurate.
+    stage_weights = [1, 203, 354, 186, 65, 4228, 1, 353, 49, 330, 382, 23, 1]
+    progress_reporter = bb.progress.MultiStageProgressReporter(d, stage_weights)
+    progress_reporter.next_stage()
+
+    # Handle package exclusions
+    excl_pkgs = d.getVar("PACKAGE_EXCLUDE").split()
+    inst_pkgs = d.getVar("PACKAGE_INSTALL").split()
+    inst_attempt_pkgs = d.getVar("PACKAGE_INSTALL_ATTEMPTONLY").split()
 
     d.setVar('PACKAGE_INSTALL_ORIG', ' '.join(inst_pkgs))
     d.setVar('PACKAGE_INSTALL_ATTEMPTONLY', ' '.join(inst_attempt_pkgs))
 
     for pkg in excl_pkgs:
         if pkg in inst_pkgs:
-            bb.warn("Package %s, set to be excluded, is in %s PACKAGE_INSTALL (%s).  It will be removed from the list." % (pkg, d.getVar('PN', True), inst_pkgs))
+            bb.warn("Package %s, set to be excluded, is in %s PACKAGE_INSTALL (%s).  It will be removed from the list." % (pkg, d.getVar('PN'), inst_pkgs))
             inst_pkgs.remove(pkg)
 
         if pkg in inst_attempt_pkgs:
-            bb.warn("Package %s, set to be excluded, is in %s PACKAGE_INSTALL_ATTEMPTONLY (%s).  It will be removed from the list." % (pkg, d.getVar('PN', True), inst_pkgs))
+            bb.warn("Package %s, set to be excluded, is in %s PACKAGE_INSTALL_ATTEMPTONLY (%s).  It will be removed from the list." % (pkg, d.getVar('PN'), inst_pkgs))
             inst_attempt_pkgs.remove(pkg)
 
     d.setVar("PACKAGE_INSTALL", ' '.join(inst_pkgs))
     d.setVar("PACKAGE_INSTALL_ATTEMPTONLY", ' '.join(inst_attempt_pkgs))
-}
-do_rootfs[prefuncs] += "rootfs_process_ignore"
 
-# We have to delay the runtime_mapping_rename until just before rootfs runs
-# otherwise, the multilib renaming could step in and squash any fixups that
-# may have occurred.
-python rootfs_runtime_mapping() {
-    pn = d.getVar('PN', True)
+    # Ensure we handle package name remapping
+    # We have to delay the runtime_mapping_rename until just before rootfs runs
+    # otherwise, the multilib renaming could step in and squash any fixups that
+    # may have occurred.
+    pn = d.getVar('PN')
     runtime_mapping_rename("PACKAGE_INSTALL", pn, d)
     runtime_mapping_rename("PACKAGE_INSTALL_ATTEMPTONLY", pn, d)
     runtime_mapping_rename("BAD_RECOMMENDATIONS", pn, d)
-}
-do_rootfs[prefuncs] += "rootfs_runtime_mapping"
 
-fakeroot python do_rootfs () {
-    from oe.rootfs import create_rootfs
-    from oe.image import create_image
-    from oe.manifest import create_manifest
-
-    # generate the initial manifest
+    # Generate the initial manifest
     create_manifest(d)
 
-    # generate rootfs
-    create_rootfs(d)
+    progress_reporter.next_stage()
 
-    # generate final images
-    create_image(d)
+    # generate rootfs
+    d.setVarFlag('REPRODUCIBLE_TIMESTAMP_ROOTFS', 'export', '1')
+    create_rootfs(d, progress_reporter=progress_reporter, logcatcher=logcatcher)
+
+    progress_reporter.finish()
+}
+do_rootfs[dirs] = "${TOPDIR}"
+do_rootfs[cleandirs] += "${S} ${IMGDEPLOYDIR}"
+do_rootfs[umask] = "022"
+do_rootfs[file-checksums] += "${POSTINST_INTERCEPT_CHECKSUMS}"
+addtask rootfs after do_prepare_recipe_sysroot
+
+fakeroot python do_image () {
+    from oe.utils import execute_pre_post_process
+
+    d.setVarFlag('REPRODUCIBLE_TIMESTAMP_ROOTFS', 'export', '1')
+    pre_process_cmds = d.getVar("IMAGE_PREPROCESS_COMMAND")
+
+    execute_pre_post_process(d, pre_process_cmds)
+}
+do_image[dirs] = "${TOPDIR}"
+do_image[umask] = "022"
+addtask do_image after do_rootfs
+
+fakeroot python do_image_complete () {
+    from oe.utils import execute_pre_post_process
+
+    post_process_cmds = d.getVar("IMAGE_POSTPROCESS_COMMAND")
+
+    execute_pre_post_process(d, post_process_cmds)
+}
+do_image_complete[dirs] = "${TOPDIR}"
+do_image_complete[umask] = "022"
+SSTATETASKS += "do_image_complete"
+SSTATE_SKIP_CREATION_task-image-complete = '1'
+do_image_complete[sstate-inputdirs] = "${IMGDEPLOYDIR}"
+do_image_complete[sstate-outputdirs] = "${DEPLOY_DIR_IMAGE}"
+do_image_complete[stamp-extra-info] = "${MACHINE_ARCH}"
+addtask do_image_complete after do_image before do_build
+python do_image_complete_setscene () {
+    sstate_setscene(d)
+}
+addtask do_image_complete_setscene
+
+# Add image-level QA/sanity checks to IMAGE_QA_COMMANDS
+#
+# IMAGE_QA_COMMANDS += " \
+#     image_check_everything_ok \
+# "
+# This task runs all functions in IMAGE_QA_COMMANDS after the rootfs
+# construction has completed in order to validate the resulting image.
+#
+# The functions should use ${IMAGE_ROOTFS} to find the unpacked rootfs
+# directory, which if QA passes will be the basis for the images.
+fakeroot python do_image_qa () {
+    from oe.utils import ImageQAFailed
+
+    qa_cmds = (d.getVar('IMAGE_QA_COMMANDS') or '').split()
+    qamsg = ""
+
+    for cmd in qa_cmds:
+        try:
+            bb.build.exec_func(cmd, d)
+        except oe.utils.ImageQAFailed as e:
+            qamsg = qamsg + '\tImage QA function %s failed: %s\n' % (e.name, e.description)
+        except Exception as e:
+            qamsg = qamsg + '\tImage QA function %s failed\n' % cmd
+
+    if qamsg:
+        imgname = d.getVar('IMAGE_NAME')
+        bb.fatal("QA errors found whilst validating image: %s\n%s" % (imgname, qamsg))
+}
+addtask do_image_qa after do_rootfs before do_image
+
+SSTATETASKS += "do_image_qa"
+SSTATE_SKIP_CREATION_task-image-qa = '1'
+do_image_qa[sstate-inputdirs] = ""
+do_image_qa[sstate-outputdirs] = ""
+python do_image_qa_setscene () {
+    sstate_setscene(d)
+}
+addtask do_image_qa_setscene
+
+def setup_debugfs_variables(d):
+    d.appendVar('IMAGE_ROOTFS', '-dbg')
+    if d.getVar('IMAGE_LINK_NAME'):
+        d.appendVar('IMAGE_LINK_NAME', '-dbg')
+    d.appendVar('IMAGE_NAME','-dbg')
+    d.setVar('IMAGE_BUILDING_DEBUGFS', 'true')
+    debugfs_image_fstypes = d.getVar('IMAGE_FSTYPES_DEBUGFS')
+    if debugfs_image_fstypes:
+        d.setVar('IMAGE_FSTYPES', debugfs_image_fstypes)
+
+python setup_debugfs () {
+    setup_debugfs_variables(d)
 }
 
-insert_feed_uris () {
-	
-	echo "Building feeds for [${DISTRO}].."
+python () {
+    vardeps = set()
+    # We allow CONVERSIONTYPES to have duplicates. That avoids breaking
+    # derived distros when OE-core or some other layer independently adds
+    # the same type. There is still only one command for each type, but
+    # presumably the commands will do the same when the type is the same,
+    # even when added in different places.
+    #
+    # Without de-duplication, gen_conversion_cmds() below
+    # would create the same compression command multiple times.
+    ctypes = set(d.getVar('CONVERSIONTYPES').split())
+    old_overrides = d.getVar('OVERRIDES', False)
 
-	for line in ${FEED_URIS}
-	do
-		# strip leading and trailing spaces/tabs, then split into name and uri
-		line_clean="`echo "$line"|sed 's/^[ \t]*//;s/[ \t]*$//'`"
-		feed_name="`echo "$line_clean" | sed -n 's/\(.*\)##\(.*\)/\1/p'`"
-		feed_uri="`echo "$line_clean" | sed -n 's/\(.*\)##\(.*\)/\2/p'`"
-		
-		echo "Added $feed_name feed with URL $feed_uri"
-		
-		# insert new feed-sources
-		echo "src/gz $feed_name $feed_uri" >> ${IMAGE_ROOTFS}/etc/opkg/${feed_name}-feed.conf
-	done
+    def _image_base_type(type):
+        basetype = type
+        for ctype in ctypes:
+            if type.endswith("." + ctype):
+                basetype = type[:-len("." + ctype)]
+                break
+
+        if basetype != type:
+            # New base type itself might be generated by a conversion command.
+            basetype = _image_base_type(basetype)
+
+        return basetype
+
+    basetypes = {}
+    alltypes = d.getVar('IMAGE_FSTYPES').split()
+    typedeps = {}
+
+    if d.getVar('IMAGE_GEN_DEBUGFS') == "1":
+        debugfs_fstypes = d.getVar('IMAGE_FSTYPES_DEBUGFS').split()
+        for t in debugfs_fstypes:
+            alltypes.append("debugfs_" + t)
+
+    def _add_type(t):
+        baset = _image_base_type(t)
+        input_t = t
+        if baset not in basetypes:
+            basetypes[baset]= []
+        if t not in basetypes[baset]:
+            basetypes[baset].append(t)
+        debug = ""
+        if t.startswith("debugfs_"):
+            t = t[8:]
+            debug = "debugfs_"
+        deps = (d.getVar('IMAGE_TYPEDEP_' + t) or "").split()
+        vardeps.add('IMAGE_TYPEDEP_' + t)
+        if baset not in typedeps:
+            typedeps[baset] = set()
+        deps = [debug + dep for dep in deps]
+        for dep in deps:
+            if dep not in alltypes:
+                alltypes.append(dep)
+            _add_type(dep)
+            basedep = _image_base_type(dep)
+            typedeps[baset].add(basedep)
+
+        if baset != input_t:
+            _add_type(baset)
+
+    for t in alltypes[:]:
+        _add_type(t)
+
+    d.appendVarFlag('do_image', 'vardeps', ' '.join(vardeps))
+
+    maskedtypes = (d.getVar('IMAGE_TYPES_MASKED') or "").split()
+    maskedtypes = [dbg + t for t in maskedtypes for dbg in ("", "debugfs_")]
+
+    for t in basetypes:
+        vardeps = set()
+        cmds = []
+        subimages = []
+        realt = t
+
+        if t in maskedtypes:
+            continue
+
+        localdata = bb.data.createCopy(d)
+        debug = ""
+        if t.startswith("debugfs_"):
+            setup_debugfs_variables(localdata)
+            debug = "setup_debugfs "
+            realt = t[8:]
+        localdata.setVar('OVERRIDES', '%s:%s' % (realt, old_overrides))
+        localdata.setVar('type', realt)
+        # Delete DATETIME so we don't expand any references to it now
+        # This means the task's hash can be stable rather than having hardcoded
+        # date/time values. It will get expanded at execution time.
+        # Similarly TMPDIR since otherwise we see QA stamp comparision problems
+        # Expand PV else it can trigger get_srcrev which can fail due to these variables being unset
+        localdata.setVar('PV', d.getVar('PV'))
+        localdata.delVar('DATETIME')
+        localdata.delVar('DATE')
+        localdata.delVar('TMPDIR')
+        vardepsexclude = (d.getVarFlag('IMAGE_CMD_' + realt, 'vardepsexclude', True) or '').split()
+        for dep in vardepsexclude:
+            localdata.delVar(dep)
+
+        image_cmd = localdata.getVar("IMAGE_CMD")
+        vardeps.add('IMAGE_CMD_' + realt)
+        if image_cmd:
+            cmds.append("\t" + image_cmd)
+        else:
+            bb.fatal("No IMAGE_CMD defined for IMAGE_FSTYPES entry '%s' - possibly invalid type name or missing support class" % t)
+        cmds.append(localdata.expand("\tcd ${IMGDEPLOYDIR}"))
+
+        # Since a copy of IMAGE_CMD_xxx will be inlined within do_image_xxx,
+        # prevent a redundant copy of IMAGE_CMD_xxx being emitted as a function.
+        d.delVarFlag('IMAGE_CMD_' + realt, 'func')
+
+        rm_tmp_images = set()
+        def gen_conversion_cmds(bt):
+            for ctype in sorted(ctypes):
+                if bt.endswith("." + ctype):
+                    type = bt[0:-len(ctype) - 1]
+                    if type.startswith("debugfs_"):
+                        type = type[8:]
+                    # Create input image first.
+                    gen_conversion_cmds(type)
+                    localdata.setVar('type', type)
+                    cmd = "\t" + (localdata.getVar("CONVERSION_CMD_" + ctype) or localdata.getVar("COMPRESS_CMD_" + ctype))
+                    if cmd not in cmds:
+                        cmds.append(cmd)
+                    vardeps.add('CONVERSION_CMD_' + ctype)
+                    vardeps.add('COMPRESS_CMD_' + ctype)
+                    subimage = type + "." + ctype
+                    if subimage not in subimages:
+                        subimages.append(subimage)
+                    if type not in alltypes:
+                        rm_tmp_images.add(localdata.expand("${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.${type}"))
+
+        for bt in basetypes[t]:
+            gen_conversion_cmds(bt)
+
+        localdata.setVar('type', realt)
+        if t not in alltypes:
+            rm_tmp_images.add(localdata.expand("${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.${type}"))
+        else:
+            subimages.append(realt)
+
+        # Clean up after applying all conversion commands. Some of them might
+        # use the same input, therefore we cannot delete sooner without applying
+        # some complex dependency analysis.
+        for image in sorted(rm_tmp_images):
+            cmds.append("\trm " + image)
+
+        after = 'do_image'
+        for dep in typedeps[t]:
+            after += ' do_image_%s' % dep.replace("-", "_").replace(".", "_")
+
+        task = "do_image_%s" % t.replace("-", "_").replace(".", "_")
+
+        d.setVar(task, '\n'.join(cmds))
+        d.setVarFlag(task, 'func', '1')
+        d.setVarFlag(task, 'fakeroot', '1')
+
+        d.appendVarFlag(task, 'prefuncs', ' ' + debug + ' set_image_size')
+        d.prependVarFlag(task, 'postfuncs', 'create_symlinks ')
+        d.appendVarFlag(task, 'subimages', ' ' + ' '.join(subimages))
+        d.appendVarFlag(task, 'vardeps', ' ' + ' '.join(vardeps))
+        d.appendVarFlag(task, 'vardepsexclude', ' DATETIME DATE ' + ' '.join(vardepsexclude))
+
+        bb.debug(2, "Adding task %s before %s, after %s" % (task, 'do_image_complete', after))
+        bb.build.addtask(task, 'do_image_complete', after, d)
+}
+
+#
+# Compute the rootfs size
+#
+def get_rootfs_size(d):
+    import subprocess
+
+    rootfs_alignment = int(d.getVar('IMAGE_ROOTFS_ALIGNMENT'))
+    overhead_factor = float(d.getVar('IMAGE_OVERHEAD_FACTOR'))
+    rootfs_req_size = int(d.getVar('IMAGE_ROOTFS_SIZE'))
+    rootfs_extra_space = eval(d.getVar('IMAGE_ROOTFS_EXTRA_SPACE'))
+    rootfs_maxsize = d.getVar('IMAGE_ROOTFS_MAXSIZE')
+    image_fstypes = d.getVar('IMAGE_FSTYPES') or ''
+    initramfs_fstypes = d.getVar('INITRAMFS_FSTYPES') or ''
+    initramfs_maxsize = d.getVar('INITRAMFS_MAXSIZE')
+
+    output = subprocess.check_output(['du', '-ks',
+                                      d.getVar('IMAGE_ROOTFS')])
+    size_kb = int(output.split()[0])
+
+    base_size = size_kb * overhead_factor
+    bb.debug(1, '%f = %d * %f' % (base_size, size_kb, overhead_factor))
+    base_size2 = max(base_size, rootfs_req_size) + rootfs_extra_space
+    bb.debug(1, '%f = max(%f, %d)[%f] + %d' % (base_size2, base_size, rootfs_req_size, max(base_size, rootfs_req_size), rootfs_extra_space))
+
+    base_size = base_size2
+    if base_size != int(base_size):
+        base_size = int(base_size + 1)
+    else:
+        base_size = int(base_size)
+    bb.debug(1, '%f = int(%f)' % (base_size, base_size2))
+
+    base_size_saved = base_size
+    base_size += rootfs_alignment - 1
+    base_size -= base_size % rootfs_alignment
+    bb.debug(1, '%d = aligned(%d)' % (base_size, base_size_saved))
+
+    # Do not check image size of the debugfs image. This is not supposed
+    # to be deployed, etc. so it doesn't make sense to limit the size
+    # of the debug.
+    if (d.getVar('IMAGE_BUILDING_DEBUGFS') or "") == "true":
+        bb.debug(1, 'returning debugfs size %d' % (base_size))
+        return base_size
+
+    # Check the rootfs size against IMAGE_ROOTFS_MAXSIZE (if set)
+    if rootfs_maxsize:
+        rootfs_maxsize_int = int(rootfs_maxsize)
+        if base_size > rootfs_maxsize_int:
+            bb.fatal("The rootfs size %d(K) exceeds IMAGE_ROOTFS_MAXSIZE: %d(K)" % \
+                (base_size, rootfs_maxsize_int))
+
+    # Check the initramfs size against INITRAMFS_MAXSIZE (if set)
+    if image_fstypes == initramfs_fstypes != ''  and initramfs_maxsize:
+        initramfs_maxsize_int = int(initramfs_maxsize)
+        if base_size > initramfs_maxsize_int:
+            bb.error("The initramfs size %d(K) exceeds INITRAMFS_MAXSIZE: %d(K)" % \
+                (base_size, initramfs_maxsize_int))
+            bb.error("You can set INITRAMFS_MAXSIZE a larger value. Usually, it should")
+            bb.fatal("be less than 1/2 of ram size, or you may fail to boot it.\n")
+
+    bb.debug(1, 'returning %d' % (base_size))
+    return base_size
+
+python set_image_size () {
+        rootfs_size = get_rootfs_size(d)
+        d.setVar('ROOTFS_SIZE', str(rootfs_size))
+        d.setVarFlag('ROOTFS_SIZE', 'export', '1')
+}
+
+#
+# Create symlinks to the newly created image
+#
+python create_symlinks() {
+
+    deploy_dir = d.getVar('IMGDEPLOYDIR')
+    img_name = d.getVar('IMAGE_NAME')
+    link_name = d.getVar('IMAGE_LINK_NAME')
+    manifest_name = d.getVar('IMAGE_MANIFEST')
+    taskname = d.getVar("BB_CURRENTTASK")
+    subimages = (d.getVarFlag("do_" + taskname, 'subimages', False) or "").split()
+    imgsuffix = d.getVarFlag("do_" + taskname, 'imgsuffix') or d.expand("${IMAGE_NAME_SUFFIX}.")
+
+    if not link_name:
+        return
+    for type in subimages:
+        dst = os.path.join(deploy_dir, link_name + "." + type)
+        src = img_name + imgsuffix + type
+        if os.path.exists(os.path.join(deploy_dir, src)):
+            bb.note("Creating symlink: %s -> %s" % (dst, src))
+            if os.path.islink(dst):
+                os.remove(dst)
+            os.symlink(src, dst)
+        else:
+            bb.note("Skipping symlink, source does not exist: %s -> %s" % (dst, src))
 }
 
 MULTILIBRE_ALLOW_REP =. "${base_bindir}|${base_sbindir}|${bindir}|${sbindir}|${libexecdir}|${sysconfdir}|${nonarch_base_libdir}/udev|/lib/modules/[^/]*/modules.*|"
 MULTILIB_CHECK_FILE = "${WORKDIR}/multilib_check.py"
 MULTILIB_TEMP_ROOTFS = "${WORKDIR}/multilib"
-
-# This function is intended to disallow empty root password if 'debug-tweaks' is not in IMAGE_FEATURES.
-zap_empty_root_password () {
-	if [ -e ${IMAGE_ROOTFS}/etc/shadow ]; then
-		sed -i 's%^root::%root:*:%' ${IMAGE_ROOTFS}/etc/shadow
-        fi
-	if [ -e ${IMAGE_ROOTFS}/etc/passwd ]; then
-		sed -i 's%^root::%root:*:%' ${IMAGE_ROOTFS}/etc/passwd
-	fi
-} 
-
-# allow dropbear/openssh to accept root logins and logins from accounts with an empty password string
-ssh_allow_empty_password () {
-	if [ -e ${IMAGE_ROOTFS}${sysconfdir}/ssh/sshd_config ]; then
-		sed -i 's/^[#[:space:]]*PermitRootLogin.*/PermitRootLogin yes/' ${IMAGE_ROOTFS}${sysconfdir}/ssh/sshd_config
-		sed -i 's/^[#[:space:]]*PermitEmptyPasswords.*/PermitEmptyPasswords yes/' ${IMAGE_ROOTFS}${sysconfdir}/ssh/sshd_config
-	fi
-
-	if [ -e ${IMAGE_ROOTFS}${sbindir}/dropbear ] ; then
-		if grep -q DROPBEAR_EXTRA_ARGS ${IMAGE_ROOTFS}${sysconfdir}/default/dropbear 2>/dev/null ; then
-			if ! grep -q "DROPBEAR_EXTRA_ARGS=.*-B" ${IMAGE_ROOTFS}${sysconfdir}/default/dropbear ; then
-				sed -i 's/^DROPBEAR_EXTRA_ARGS="*\([^"]*\)"*/DROPBEAR_EXTRA_ARGS="\1 -B"/' ${IMAGE_ROOTFS}${sysconfdir}/default/dropbear
-			fi
-		else
-			printf '\nDROPBEAR_EXTRA_ARGS="-B"\n' >> ${IMAGE_ROOTFS}${sysconfdir}/default/dropbear
-		fi
-	fi
-
-	if [ -d ${IMAGE_ROOTFS}${sysconfdir}/pam.d ] ; then
-		sed -i 's/nullok_secure/nullok/' ${IMAGE_ROOTFS}${sysconfdir}/pam.d/*
-	fi
-}
-
-# Disable DNS lookups, the SSH_DISABLE_DNS_LOOKUP can be overridden to allow
-# distros to choose not to take this change
-SSH_DISABLE_DNS_LOOKUP ?= " ssh_disable_dns_lookup ; "
-ROOTFS_POSTPROCESS_COMMAND_append_qemuall = "${SSH_DISABLE_DNS_LOOKUP}"
-ssh_disable_dns_lookup () {
-	if [ -e ${IMAGE_ROOTFS}${sysconfdir}/ssh/sshd_config ]; then
-		sed -i -e 's:#UseDNS yes:UseDNS no:' ${IMAGE_ROOTFS}${sysconfdir}/ssh/sshd_config
-	fi
-}
-
-# Enable postinst logging if debug-tweaks is enabled
-postinst_enable_logging () {
-	mkdir -p ${IMAGE_ROOTFS}${sysconfdir}/default
-	echo "POSTINST_LOGGING=1" >> ${IMAGE_ROOTFS}${sysconfdir}/default/postinst
-	echo "LOGFILE=${POSTINST_LOGFILE}" >> ${IMAGE_ROOTFS}${sysconfdir}/default/postinst
-}
-
-# Modify systemd default target
-set_systemd_default_target () {
-	if [ -d ${IMAGE_ROOTFS}${sysconfdir}/systemd/system -a -e ${IMAGE_ROOTFS}${systemd_unitdir}/system/${SYSTEMD_DEFAULT_TARGET} ]; then
-		ln -sf ${systemd_unitdir}/system/${SYSTEMD_DEFAULT_TARGET} ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/default.target
-	fi
-}
-
-# If /var/volatile is not empty, we have seen problems where programs such as the
-# journal make assumptions based on the contents of /var/volatile. The journal
-# would then write to /var/volatile before it was mounted, thus hiding the
-# items previously written.
-#
-# This change is to attempt to fix those types of issues in a way that doesn't
-# affect users that may not be using /var/volatile.
-empty_var_volatile () {
-	if [ -e ${IMAGE_ROOTFS}/etc/fstab ]; then
-		match=`awk '$1 !~ "#" && $2 ~ /\/var\/volatile/{print $2}' ${IMAGE_ROOTFS}/etc/fstab 2> /dev/null`
-		if [ -n "$match" ]; then
-			find ${IMAGE_ROOTFS}/var/volatile -mindepth 1 -delete
-		fi
-	fi
-}
-
-# Turn any symbolic /sbin/init link into a file
-remove_init_link () {
-	if [ -h ${IMAGE_ROOTFS}/sbin/init ]; then
-		LINKFILE=${IMAGE_ROOTFS}`readlink ${IMAGE_ROOTFS}/sbin/init`
-		rm ${IMAGE_ROOTFS}/sbin/init
-		cp $LINKFILE ${IMAGE_ROOTFS}/sbin/init
-	fi
-}
-
-make_zimage_symlink_relative () {
-	if [ -L ${IMAGE_ROOTFS}/boot/zImage ]; then
-		(cd ${IMAGE_ROOTFS}/boot/ && for i in `ls zImage-* | sort`; do ln -sf $i zImage; done)
-	fi
-}
-
-python write_image_manifest () {
-    from oe.rootfs import image_list_installed_packages
-    with open(d.getVar('IMAGE_MANIFEST', True), 'w+') as image_manifest:
-        image_manifest.write(image_list_installed_packages(d, 'ver'))
-        image_manifest.write("\n")
-}
-
-# Can be use to create /etc/timestamp during image construction to give a reasonably 
-# sane default time setting
-rootfs_update_timestamp () {
-	date -u +%4Y%2m%2d%2H%2M%2S >${IMAGE_ROOTFS}/etc/timestamp
-}
-
-# Prevent X from being started
-rootfs_no_x_startup () {
-	if [ -f ${IMAGE_ROOTFS}/etc/init.d/xserver-nodm ]; then
-		chmod a-x ${IMAGE_ROOTFS}/etc/init.d/xserver-nodm
-	fi
-}
-
-rootfs_trim_schemas () {
-	for schema in ${IMAGE_ROOTFS}/etc/gconf/schemas/*.schemas
-	do
-		# Need this in case no files exist
-		if [ -e $schema ]; then
-			oe-trim-schemas $schema > $schema.new
-			mv $schema.new $schema
-		fi
-	done
-}
-
-rootfs_check_host_user_contaminated () {
-	contaminated="${WORKDIR}/host-user-contaminated.txt"
-	HOST_USER_UID="$(PSEUDO_UNLOAD=1 id -u)"
-	HOST_USER_GID="$(PSEUDO_UNLOAD=1 id -g)"
-
-	find "${IMAGE_ROOTFS}" -wholename "${IMAGE_ROOTFS}/home" -prune \
-	    -user "$HOST_USER_UID" -o -group "$HOST_USER_GID" >"$contaminated"
-
-	if [ -s "$contaminated" ]; then
-		echo "WARNING: Paths in the rootfs are owned by the same user or group as the user running bitbake. See the logfile for the specific paths."
-		cat "$contaminated" | sed "s,^,  ,"
-	fi
-}
-
-# Make any absolute links in a sysroot relative
-rootfs_sysroot_relativelinks () {
-	sysroot-relativelinks.py ${SDK_OUTPUT}/${SDKTARGETSYSROOT}
-}
 
 do_fetch[noexec] = "1"
 do_unpack[noexec] = "1"
@@ -512,20 +609,67 @@ do_patch[noexec] = "1"
 do_configure[noexec] = "1"
 do_compile[noexec] = "1"
 do_install[noexec] = "1"
-do_populate_sysroot[noexec] = "1"
+deltask do_populate_lic
+deltask do_populate_sysroot
 do_package[noexec] = "1"
-do_package_qa[noexec] = "1"
+deltask do_package_qa
 do_packagedata[noexec] = "1"
-do_package_write_ipk[noexec] = "1"
-do_package_write_deb[noexec] = "1"
-do_package_write_rpm[noexec] = "1"
+deltask do_package_write_ipk
+deltask do_package_write_deb
+deltask do_package_write_rpm
 
-addtask rootfs before do_build
-# Allow the kernel to be repacked with the initramfs and boot image file as a single file
-do_bundle_initramfs[depends] += "virtual/kernel:do_bundle_initramfs"
-do_bundle_initramfs[nostamp] = "1"
-do_bundle_initramfs[noexec] = "1"
-do_bundle_initramfs () {
-	:
+# Prepare the root links to point to the /usr counterparts.
+create_merged_usr_symlinks() {
+    root="$1"
+    install -d $root${base_bindir} $root${base_sbindir} $root${base_libdir}
+    lnr $root${base_bindir} $root/bin
+    lnr $root${base_sbindir} $root/sbin
+    lnr $root${base_libdir} $root/${baselib}
+
+    if [ "${nonarch_base_libdir}" != "${base_libdir}" ]; then
+       install -d $root${nonarch_base_libdir}
+       lnr $root${nonarch_base_libdir} $root/lib
+    fi
+
+    # create base links for multilibs
+    multi_libdirs="${@d.getVar('MULTILIB_VARIANTS')}"
+    for d in $multi_libdirs; do
+        install -d $root${exec_prefix}/$d
+        lnr $root${exec_prefix}/$d $root/$d
+    done
 }
-addtask bundle_initramfs after do_rootfs
+
+create_merged_usr_symlinks_rootfs() {
+    create_merged_usr_symlinks ${IMAGE_ROOTFS}
+}
+
+create_merged_usr_symlinks_sdk() {
+    create_merged_usr_symlinks ${SDK_OUTPUT}${SDKTARGETSYSROOT}
+}
+
+ROOTFS_PREPROCESS_COMMAND += "${@bb.utils.contains('DISTRO_FEATURES', 'usrmerge', 'create_merged_usr_symlinks_rootfs; ', '',d)}"
+POPULATE_SDK_PRE_TARGET_COMMAND += "${@bb.utils.contains('DISTRO_FEATURES', 'usrmerge', 'create_merged_usr_symlinks_sdk; ', '',d)}"
+
+reproducible_final_image_task () {
+    if [ "${BUILD_REPRODUCIBLE_BINARIES}" = "1" ]; then
+        if [ "$REPRODUCIBLE_TIMESTAMP_ROOTFS" = "" ]; then
+            REPRODUCIBLE_TIMESTAMP_ROOTFS=`git -C "${COREBASE}" log -1 --pretty=%ct 2>/dev/null` || true
+            if [ "${REPRODUCIBLE_TIMESTAMP_ROOTFS}" = "" ]; then
+                REPRODUCIBLE_TIMESTAMP_ROOTFS=`stat -c%Y ${@bb.utils.which(d.getVar("BBPATH"), "conf/bitbake.conf")}`
+            fi
+        fi
+        # Set mtime of all files to a reproducible value
+        bbnote "reproducible_final_image_task: mtime set to $REPRODUCIBLE_TIMESTAMP_ROOTFS"
+        find  ${IMAGE_ROOTFS} -exec touch -h  --date=@$REPRODUCIBLE_TIMESTAMP_ROOTFS {} \;
+    fi
+}
+
+systemd_preset_all () {
+    if [ -e ${IMAGE_ROOTFS}${root_prefix}/lib/systemd/systemd ]; then
+	systemctl --root="${IMAGE_ROOTFS}" --preset-mode=enable-only preset-all
+    fi
+}
+
+IMAGE_PREPROCESS_COMMAND_append = " ${@ 'systemd_preset_all;' if bb.utils.contains('DISTRO_FEATURES', 'systemd', True, False, d) and not bb.utils.contains('IMAGE_FEATURES', 'stateless-rootfs', True, False, d) else ''} reproducible_final_image_task; "
+
+CVE_PRODUCT = ""

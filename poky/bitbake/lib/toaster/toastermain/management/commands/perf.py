@@ -1,3 +1,7 @@
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
 from django.core.management.base import BaseCommand
 from django.test.client import Client
 import os, sys, re
@@ -25,7 +29,7 @@ class Command(BaseCommand):
 			info = self.url_info(full_url)
 			status_code = info[0]
 			load_time = info[1]
-			print 'Trying \'' + full_url + '\', ' + str(status_code) + ', ' + str(load_time)
+			print('Trying \'' + full_url + '\', ' + str(status_code) + ', ' + str(load_time))
 
     def get_full_url(self, url_patt, url_root_res):
 	full_url = str(url_patt).split('^')[1].replace('$>', '').replace('(?P<file_path>(?:/[', '/bin/busybox').replace('.*', '')
@@ -54,5 +58,5 @@ class Command(BaseCommand):
 
     def error(self, *args):
 	for arg in args:
-	    print >>sys.stderr, arg,
-	print >>sys.stderr
+	    print(arg, end=' ', file=sys.stderr)
+	print(file=sys.stderr)

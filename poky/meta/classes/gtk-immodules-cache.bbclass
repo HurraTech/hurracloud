@@ -2,7 +2,7 @@
 #
 # Usage: Set GTKIMMODULES_PACKAGES to the packages that needs to update the inputmethod modules
 
-DEPENDS =+ "qemu-native"
+PACKAGE_WRITE_DEPS += "qemu-native"
 
 inherit qemu
 
@@ -10,66 +10,59 @@ GTKIMMODULES_PACKAGES ?= "${PN}"
 
 gtk_immodule_cache_postinst() {
 if [ "x$D" != "x" ]; then
-    for maj_ver in 2 3; do
-        if [ -x $D${bindir}/gtk-query-immodules-$maj_ver.0 ]; then
-            IMFILES=$(ls $D${libdir}/gtk-$maj_ver.0/*/immodules/*.so)
-            ${@qemu_run_binary(d, '$D', '${bindir}/gtk-query-immodules-$maj_ver.0')} \
-                $IMFILES > $D/etc/gtk-$maj_ver.0/gtk.immodules 2>/dev/null &&
-                sed -i -e "s:$D::" $D/etc/gtk-$maj_ver.0/gtk.immodules
-
-            [ $? -ne 0 ] && exit 1
-        fi
-    done
-
-    exit 0
-fi
-if [ ! -z `which gtk-query-immodules-2.0` ]; then
-    gtk-query-immodules-2.0 > /etc/gtk-2.0/gtk.immodules
-fi
-if [ ! -z `which gtk-query-immodules-3.0` ]; then
-    gtk-query-immodules-3.0 > /etc/gtk-3.0/gtk.immodules
+    $INTERCEPT_DIR/postinst_intercept update_gtk_immodules_cache ${PKG} \
+            mlprefix=${MLPREFIX} \
+            binprefix=${MLPREFIX} \
+            libdir=${libdir} \
+            libexecdir=${libexecdir} \
+            base_libdir=${base_libdir} \
+            bindir=${bindir}
+else
+    if [ ! -z `which gtk-query-immodules-2.0` ]; then
+        gtk-query-immodules-2.0 > ${libdir}/gtk-2.0/2.10.0/immodules.cache
+    fi
+    if [ ! -z `which gtk-query-immodules-3.0` ]; then
+        mkdir -p ${libdir}/gtk-3.0/3.0.0
+        gtk-query-immodules-3.0 > ${libdir}/gtk-3.0/3.0.0/immodules.cache
+    fi
 fi
 }
 
 gtk_immodule_cache_postrm() {
 if [ "x$D" != "x" ]; then
-    for maj_ver in 2 3; do
-        if [ -x $D${bindir}/gtk-query-immodules-$maj_ver.0 ]; then
-            IMFILES=$(ls $D${libdir}/gtk-$maj_ver.0/*/immodules/*.so)
-            ${@qemu_run_binary(d, '$D', '${bindir}/gtk-query-immodules-$maj_ver.0')} \
-                $IMFILES > $D/etc/gtk-$maj_ver.0/gtk.immodules 2>/dev/null &&
-                sed -i -e "s:$D::" $D/etc/gtk-$maj_ver.0/gtk.immodules
-
-            [ $? -ne 0 ] && exit 1
-        fi
-    done
-
-    exit 0
-fi
-if [ ! -z `which gtk-query-immodules-2.0` ]; then
-    gtk-query-immodules-2.0 > /etc/gtk-2.0/gtk.immodules
-fi
-if [ ! -z `which gtk-query-immodules-3.0` ]; then
-    gtk-query-immodules-3.0 > /etc/gtk-3.0/gtk.immodules
+    $INTERCEPT_DIR/postinst_intercept update_gtk_immodules_cache ${PKG} \
+            mlprefix=${MLPREFIX} \
+            binprefix=${MLPREFIX} \
+            libdir=${libdir} \
+            libexecdir=${libexecdir} \
+            base_libdir=${base_libdir} \
+            bindir=${bindir}
+else
+    if [ ! -z `which gtk-query-immodules-2.0` ]; then
+        gtk-query-immodules-2.0 > ${libdir}/gtk-2.0/2.10.0/immodules.cache
+    fi
+    if [ ! -z `which gtk-query-immodules-3.0` ]; then
+        gtk-query-immodules-3.0 > ${libdir}/gtk-3.0/3.0.0/immodules.cache
+    fi
 fi
 }
 
 python populate_packages_append () {
-    gtkimmodules_pkgs = d.getVar('GTKIMMODULES_PACKAGES', True).split()
+    gtkimmodules_pkgs = d.getVar('GTKIMMODULES_PACKAGES').split()
 
     for pkg in gtkimmodules_pkgs:
             bb.note("adding gtk-immodule-cache postinst and postrm scripts to %s" % pkg)
 
-            postinst = d.getVar('pkg_postinst_%s' % pkg, True)
+            postinst = d.getVar('pkg_postinst_%s' % pkg)
             if not postinst:
                 postinst = '#!/bin/sh\n'
-            postinst += d.getVar('gtk_immodule_cache_postinst', True)
+            postinst += d.getVar('gtk_immodule_cache_postinst')
             d.setVar('pkg_postinst_%s' % pkg, postinst)
 
-            postrm = d.getVar('pkg_postrm_%s' % pkg, True)
+            postrm = d.getVar('pkg_postrm_%s' % pkg)
             if not postrm:
                 postrm = '#!/bin/sh\n'
-            postrm += d.getVar('gtk_immodule_cache_postrm', True)
+            postrm += d.getVar('gtk_immodule_cache_postrm')
             d.setVar('pkg_postrm_%s' % pkg, postrm)
 }
 
@@ -78,6 +71,6 @@ python __anonymous() {
         gtkimmodules_check = d.getVar('GTKIMMODULES_PACKAGES', False)
         if not gtkimmodules_check:
             bb_filename = d.getVar('FILE', False)
-            raise bb.build.FuncFailed("ERROR: %s inherits gtk-immodules-cache but doesn't set GTKIMMODULES_PACKAGES" % bb_filename)
+            bb.fatal("ERROR: %s inherits gtk-immodules-cache but doesn't set GTKIMMODULES_PACKAGES" % bb_filename)
 }
 

@@ -2,21 +2,23 @@ SUMMARY = "The New Curses library"
 DESCRIPTION = "SVr4 and XSI-Curses compatible curses library and terminfo tools including tic, infocmp, captoinfo. Supports color, multiple highlights, forms-drawing characters, and automatic recognition of keypad and function-key sequences. Extensions include resizable windows and mouse support on both xterm and Linux console using the gpm library."
 HOMEPAGE = "http://www.gnu.org/software/ncurses/ncurses.html"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://ncurses/base/version.c;beginline=1;endline=27;md5=cbc180a8c44ca642e97c35452fab5f66"
+LIC_FILES_CHKSUM = "file://ncurses/base/version.c;beginline=1;endline=27;md5=5526f2f3a29edc95538b368a4771edda"
 SECTION = "libs"
 DEPENDS = "ncurses-native"
 DEPENDS_class-native = ""
-INC_PR = "r15"
 
-BINCONFIG = "${bindir}/ncurses-config"
+BINCONFIG = "${bindir}/ncurses5-config ${bindir}/ncursesw5-config \
+	${bindir}/ncurses6-config ${bindir}/ncursesw6-config"
 
 inherit autotools binconfig-disabled multilib_header pkgconfig
 
 # Upstream has useful patches at times at ftp://invisible-island.net/ncurses/
-SRC_URI = "ftp://invisible-island.net/${BPN}/current/${BP}-${REVISION}.tgz"
+SRC_URI = "git://salsa.debian.org/debian/ncurses.git;protocol=https"
 
 EXTRA_AUTORECONF = "-I m4"
 CONFIG_SITE =+ "${WORKDIR}/config.cache"
+
+EXTRASITECONFIG = "CFLAGS='${CFLAGS} -I${SYSROOT_DESTDIR}${includedir}'"
 
 # Whether to enable separate widec libraries; must be 'true' or 'false'
 #
@@ -57,6 +59,7 @@ EX_TERMCAP_class-nativesdk = ":/etc/termcap:/usr/share/misc/termcap"
 EX_TERMINFO = ""
 EX_TERMINFO_class-native = ":/etc/terminfo:/usr/share/terminfo:/usr/share/misc/terminfo:/lib/terminfo"
 EX_TERMINFO_class-nativesdk = ":/etc/terminfo:/usr/share/terminfo:/usr/share/misc/terminfo:/lib/terminfo"
+EX_TERMLIB ?= "tinfo"
 
 # Helper function for do_configure to allow multiple configurations
 # $1 the directory to run configure in
@@ -66,7 +69,6 @@ ncurses_configure() {
 	cd $1
 	shift
 	oe_runconf \
-	        --disable-static \
 	        --without-debug \
 	        --without-ada \
 	        --without-gpm \
@@ -79,12 +81,14 @@ ncurses_configure() {
 	        --disable-big-core \
 	        --program-prefix= \
 	        --with-ticlib \
-	        --with-termlib=tinfo \
+	        --with-termlib=${EX_TERMLIB} \
 	        --enable-sigwinch \
 	        --enable-pc-files \
 	        --disable-rpath-hack \
 		${EXCONFIG_ARGS} \
 	        --with-manpage-format=normal \
+	        --without-manpage-renames \
+	        --disable-stripping \
 	        "$@" || return 1
 	cd ..
 }
@@ -146,9 +150,14 @@ do_test() {
 # Split original _install_opts to two parts.
 # One is the options to install contents, the other is the parameters \
 # when running command "make install"
-_install_opts = "\
-  install.libs install.includes install.man \
-"
+# Note that install.libs will also implicitly install header files,
+# so we do not need to explicitly specify install.includes.
+# Doing so could in fact result in a race condition, as both targets
+# (install.libs and install.includes) would install the same headers
+# at the same time
+
+_install_opts = " install.libs install.man "
+
 _install_cfgs = "\
   DESTDIR='${D}' \
   PKG_CONFIG_LIBDIR='${libdir}/pkgconfig' \
@@ -195,7 +204,10 @@ do_install() {
                 ln -sf xterm-color ${D}${sysconfdir}/terminfo/x/xterm
         fi
 
-        rm -f ${D}${libdir}/terminfo
+        # When changing ${libdir} to e.g. /usr/lib/myawesomelib/ ncurses 
+        # still installs '/usr/lib/terminfo', so try to rm both 
+        # the proper path and a slightly hardcoded one
+        rm -f ${D}${libdir}/terminfo ${D}${prefix}/lib/terminfo
 
         # create linker scripts for libcurses.so and libncurses to
         # link against -ltinfo when needed. Some builds might break
@@ -221,7 +233,7 @@ do_install() {
         if [ ! -d "${D}${base_libdir}" ]; then
             # Setting base_libdir to libdir as is done in the -native
             # case will skip this code
-            mkdir ${D}${base_libdir}
+            mkdir -p ${D}${base_libdir}
             mv ${D}${libdir}/libncurses.so.* ${D}${base_libdir}
             ! ${ENABLE_WIDEC} || \
                 mv ${D}${libdir}/libncursesw.so.* ${D}${base_libdir}
@@ -249,9 +261,9 @@ python populate_packages_prepend () {
     libdir = d.expand("${libdir}")
     base_libdir = d.expand("${base_libdir}")
     pnbase = d.expand("${PN}-lib%s")
-    do_split_packages(d, libdir, '^lib(.*)\.so\..*', pnbase, 'ncurses %s library', prepend=True, extra_depends = '', allow_links=True)
+    do_split_packages(d, libdir, r'^lib(.*)\.so\..*', pnbase, 'ncurses %s library', prepend=True, extra_depends = '', allow_links=True)
     if libdir is not base_libdir:
-        do_split_packages(d, base_libdir, '^lib(.*)\.so\..*', pnbase, 'ncurses %s library', prepend=True, extra_depends = '', allow_links=True)
+        do_split_packages(d, base_libdir, r'^lib(.*)\.so\..*', pnbase, 'ncurses %s library', prepend=True, extra_depends = '', allow_links=True)
 }
 
 
@@ -265,8 +277,8 @@ BBCLASSEXTEND = "native nativesdk"
 
 PACKAGES += " \
   ${PN}-tools \
-  ${PN}-terminfo \
   ${PN}-terminfo-base \
+  ${PN}-terminfo \
 "
 
 FILES_${PN} = "\
@@ -274,6 +286,8 @@ FILES_${PN} = "\
   ${bindir}/tset \
   ${bindir}/ncurses5-config \
   ${bindir}/ncursesw5-config \
+  ${bindir}/ncurses6-config \
+  ${bindir}/ncursesw6-config \
   ${datadir}/tabset \
 "
 
@@ -285,8 +299,8 @@ FILES_${PN}-tools = "\
   ${bindir}/infotocap \
   ${bindir}/captoinfo \
   ${bindir}/infocmp \
-  ${bindir}/clear${@['', '.${BPN\x7d']['${CLASSOVERRIDE}' == 'class-target']} \
-  ${bindir}/reset${@['', '.${BPN\x7d']['${CLASSOVERRIDE}' == 'class-target']} \
+  ${bindir}/clear${@['', '.${BPN}']['${CLASSOVERRIDE}' == 'class-target']} \
+  ${bindir}/reset${@['', '.${BPN}']['${CLASSOVERRIDE}' == 'class-target']} \
   ${bindir}/tack \
   ${bindir}/tabs \
 "

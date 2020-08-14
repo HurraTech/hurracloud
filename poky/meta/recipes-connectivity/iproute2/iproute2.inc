@@ -9,16 +9,30 @@ LICENSE = "GPLv2+"
 LIC_FILES_CHKSUM = "file://COPYING;md5=eb723b61539feef013de476e68b5c50a \
                     file://ip/ip.c;beginline=3;endline=8;md5=689d691d0410a4b64d3899f8d6e31817"
 
-DEPENDS = "flex-native bison-native iptables elfutils"
+DEPENDS = "flex-native bison-native iptables libcap"
 
-inherit update-alternatives
+inherit update-alternatives bash-completion pkgconfig
 
-EXTRA_OEMAKE = "CC='${CC}' KERNEL_INCLUDE=${STAGING_INCDIR} DOCDIR=${docdir}/iproute2 SUBDIRS='lib tc ip' SBINDIR='${base_sbindir}' LIBDIR='${libdir}'"
+CLEANBROKEN = "1"
+
+PACKAGECONFIG ??= "tipc elf devlink"
+PACKAGECONFIG[tipc] = ",,libmnl,"
+PACKAGECONFIG[elf] = ",,elfutils,"
+PACKAGECONFIG[devlink] = ",,libmnl,"
+
+EXTRA_OEMAKE = "\
+    CC='${CC}' \
+    KERNEL_INCLUDE=${STAGING_INCDIR} \
+    DOCDIR=${docdir}/iproute2 \
+    SUBDIRS='lib tc ip bridge misc genl ${@bb.utils.filter('PACKAGECONFIG', 'devlink tipc', d)}' \
+    SBINDIR='${base_sbindir}' \
+    LIBDIR='${libdir}' \
+"
 
 do_configure_append () {
     sh configure ${STAGING_INCDIR}
     # Explicitly disable ATM support
-    sed -i -e '/TC_CONFIG_ATM/d' Config
+    sed -i -e '/TC_CONFIG_ATM/d' config.mk
 }
 
 do_install () {
@@ -32,13 +46,36 @@ do_install () {
 # The .so files in iproute2-tc are modules, not traditional libraries
 INSANE_SKIP_${PN}-tc = "dev-so"
 
-PACKAGES =+ "${PN}-tc"
+PACKAGES =+ "\
+    ${PN}-devlink \
+    ${PN}-genl \
+    ${PN}-ifstat \
+    ${PN}-lnstat \
+    ${PN}-nstat \
+    ${PN}-rtacct \
+    ${PN}-ss \
+    ${PN}-tc \
+    ${PN}-tipc \
+"
+
 FILES_${PN}-tc = "${base_sbindir}/tc* \
                   ${libdir}/tc/*.so"
-
-FILES_${PN}-dbg += "${libdir}/tc/.debug"
+FILES_${PN}-lnstat = "${base_sbindir}/lnstat \
+                      ${base_sbindir}/ctstat \
+                      ${base_sbindir}/rtstat"
+FILES_${PN}-ifstat = "${base_sbindir}/ifstat"
+FILES_${PN}-genl = "${base_sbindir}/genl"
+FILES_${PN}-rtacct = "${base_sbindir}/rtacct"
+FILES_${PN}-nstat = "${base_sbindir}/nstat"
+FILES_${PN}-ss = "${base_sbindir}/ss"
+FILES_${PN}-tipc = "${base_sbindir}/tipc"
+FILES_${PN}-devlink = "${base_sbindir}/devlink"
 
 ALTERNATIVE_${PN} = "ip"
 ALTERNATIVE_TARGET[ip] = "${base_sbindir}/ip.${BPN}"
 ALTERNATIVE_LINK_NAME[ip] = "${base_sbindir}/ip"
 ALTERNATIVE_PRIORITY = "100"
+
+ALTERNATIVE_${PN}-tc = "tc"
+ALTERNATIVE_LINK_NAME[tc] = "${base_sbindir}/tc"
+ALTERNATIVE_PRIORITY_${PN}-tc = "100"

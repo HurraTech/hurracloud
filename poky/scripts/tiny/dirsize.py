@@ -1,22 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2011, Intel Corporation.
-# All rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-#
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Display details of the root filesystem size, broken up by directory.
 # Allows for limiting by size to focus on the larger files.
@@ -52,26 +38,22 @@ class Record:
         self.size = 0
         self.records = []
 
-    def __cmp__(this, that):
+    def __lt__(this, that):
         if that is None:
-            return 1
+            return False
         if not isinstance(that, Record):
             raise TypeError
         if len(this.records) > 0 and len(that.records) == 0:
-            return -1
-        if len(this.records) == 0 and len(that.records) > 0:
-            return 1
-        if this.size < that.size:
-            return -1
+            return False
         if this.size > that.size:
-            return 1
-        return 0
+            return False
+        return True
 
     def show(self, minsize):
         total = 0
         if self.size <= minsize:
             return 0
-        print "%10d %s" % (self.size, self.path)
+        print("%10d %s" % (self.size, self.path))
         for r in self.records:
             total += r.show(minsize)
         if len(self.records) == 0:
@@ -85,8 +67,8 @@ def main():
         minsize = int(sys.argv[1])
     rootfs = Record.create(".")
     total = rootfs.show(minsize)
-    print "Displayed %d/%d bytes (%.2f%%)" % \
-          (total, rootfs.size, 100 * float(total) / rootfs.size)
+    print("Displayed %d/%d bytes (%.2f%%)" % \
+          (total, rootfs.size, 100 * float(total) / rootfs.size))
 
 
 if __name__ == "__main__":

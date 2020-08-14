@@ -1,28 +1,16 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #
 # BitBake Tests for utils.py
 #
 # Copyright (C) 2012 Richard Purdie
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 
 import unittest
 import bb
 import os
 import tempfile
+import re
 
 class VerCmpString(unittest.TestCase):
 
@@ -40,6 +28,14 @@ class VerCmpString(unittest.TestCase):
         result = bb.utils.vercmp_string('1.0', '1.0+1.1-beta1')
         self.assertTrue(result < 0)
         result = bb.utils.vercmp_string('1.1', '1.0+1.1-beta1')
+        self.assertTrue(result > 0)
+        result = bb.utils.vercmp_string('1a', '1a1')
+        self.assertTrue(result < 0)
+        result = bb.utils.vercmp_string('1a1', '1a')
+        self.assertTrue(result > 0)
+        result = bb.utils.vercmp_string('1.', '1.1')
+        self.assertTrue(result < 0)
+        result = bb.utils.vercmp_string('1.1', '1.')
         self.assertTrue(result > 0)
 
     def test_explode_dep_versions(self):
@@ -107,6 +103,32 @@ class Path(unittest.TestCase):
             result = bb.utils._check_unsafe_delete_path(arg1)
             self.assertEqual(result, correctresult, '_check_unsafe_delete_path("%s") != %s' % (arg1, correctresult))
 
+class Checksum(unittest.TestCase):
+    filler = b"Shiver me timbers square-rigged spike Gold Road galleon bilge water boatswain wherry jack pirate. Mizzenmast rum lad Privateer jack salmagundi hang the jib piracy Pieces of Eight Corsair. Parrel marooned black spot yawl provost quarterdeck cable no prey, no pay spirits lateen sail."
+
+    def test_md5(self):
+        import hashlib
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(self.filler)
+            f.flush()
+            checksum = bb.utils.md5_file(f.name)
+            self.assertEqual(checksum, "bd572cd5de30a785f4efcb6eaf5089e3")
+
+    def test_sha1(self):
+        import hashlib
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(self.filler)
+            f.flush()
+            checksum = bb.utils.sha1_file(f.name)
+            self.assertEqual(checksum, "249eb8fd654732ea836d5e702d7aa567898eca71")
+
+    def test_sha256(self):
+        import hashlib
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(self.filler)
+            f.flush()
+            checksum = bb.utils.sha256_file(f.name)
+            self.assertEqual(checksum, "fcfbae8bf6b721dbb9d2dc6a9334a58f2031a9a9b302999243f99da4d7f12d0f")
 
 class EditMetadataFile(unittest.TestCase):
     _origfile = """
@@ -176,7 +198,7 @@ do_functionname() {
         # Test file doesn't get modified with some the same values
         self._testeditfile({'THIS': ('that', None, 0, True),
                         'OTHER': ('anothervalue', None, 0, True),
-                        'MULTILINE3': ('               c1               c2               c3', None, 4, False)}, self._origfile)
+                        'MULTILINE3': ('               c1               c2               c3 ', None, 4, False)}, self._origfile)
 
     def test_edit_metadata_file_1(self):
 
@@ -377,6 +399,27 @@ do_functionname() {
         self.assertTrue(updated, 'List should be updated but isn\'t')
         self.assertEqual(newlines, newfile5.splitlines(True))
 
+    # Make sure the orig value matches what we expect it to be
+    def test_edit_metadata_origvalue(self):
+        origfile = """
+MULTILINE = "  stuff \\
+    morestuff"
+"""
+        expected_value = "stuff morestuff"
+        global value_in_callback
+        value_in_callback = ""
+
+        def handle_var(varname, origvalue, op, newlines):
+            global value_in_callback
+            value_in_callback = origvalue
+            return (origvalue, op, -1, False)
+
+        bb.utils.edit_metadata(origfile.splitlines(True),
+                               ['MULTILINE'],
+                               handle_var)
+
+        testvalue = re.sub('\s+', ' ', value_in_callback.strip())
+        self.assertEqual(expected_value, testvalue)
 
 class EditBbLayersConf(unittest.TestCase):
 
@@ -579,3 +622,47 @@ BBLAYERS += "/home/user/otherpath/layer6"
                                  ['/home/user/otherpath/layer6', '/home/user/path/layer3'], ['/home/user/path/layer1', '/home/user/path/layer4', '/home/user/path/layer7'],
                                  ['/home/user/path/layer3'],
                                  ['/home/user/path/layer7'])
+
+
+class GetReferencedVars(unittest.TestCase):
+    def setUp(self):
+        self.d = bb.data.init()
+
+    def check_referenced(self, expression, expected_layers):
+        vars = bb.utils.get_referenced_vars(expression, self.d)
+
+        # Do the easy check first - is every variable accounted for?
+        expected_vars = set.union(set(), *expected_layers)
+        got_vars = set(vars)
+        self.assertSetEqual(got_vars, expected_vars)
+
+        # Now test the order of the layers
+        start = 0
+        for i, expected_layer in enumerate(expected_layers):
+            got_layer = set(vars[start:len(expected_layer)+start])
+            start += len(expected_layer)
+            self.assertSetEqual(got_layer, expected_layer)
+
+    def test_no_vars(self):
+        self.check_referenced("", [])
+        self.check_referenced(" ", [])
+        self.check_referenced(" no vars here! ", [])
+
+    def test_single_layer(self):
+        self.check_referenced("${VAR}", [{"VAR"}])
+        self.check_referenced("${VAR} ${VAR}", [{"VAR"}])
+
+    def test_two_layer(self):
+        self.d.setVar("VAR", "${B}")
+        self.check_referenced("${VAR}", [{"VAR"}, {"B"}])
+        self.check_referenced("${@d.getVar('VAR')}", [{"VAR"}, {"B"}])
+
+    def test_more_complicated(self):
+        self.d["SRC_URI"] = "${QT_GIT}/${QT_MODULE}.git;name=${QT_MODULE};${QT_MODULE_BRANCH_PARAM};protocol=${QT_GIT_PROTOCOL}"
+        self.d["QT_GIT"] = "git://code.qt.io/${QT_GIT_PROJECT}"
+        self.d["QT_MODULE_BRANCH_PARAM"] = "branch=${QT_MODULE_BRANCH}"
+        self.d["QT_MODULE"] = "${BPN}"
+        self.d["BPN"] = "something to do with ${PN} and ${SPECIAL_PKGSUFFIX}"
+
+        layers = [{"SRC_URI"}, {"QT_GIT", "QT_MODULE", "QT_MODULE_BRANCH_PARAM", "QT_GIT_PROTOCOL"}, {"QT_GIT_PROJECT", "QT_MODULE_BRANCH", "BPN"}, {"PN", "SPECIAL_PKGSUFFIX"}]
+        self.check_referenced("${SRC_URI}", layers)

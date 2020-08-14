@@ -1,26 +1,55 @@
 #!/bin/bash
 
 # oe-git-proxy is a simple tool to be via GIT_PROXY_COMMAND. It uses socat
-# to make SOCKS5 or HTTPS proxy connections. It uses ALL_PROXY to determine the
-# proxy server, protocol, and port. It uses NO_PROXY to skip using the proxy for
-# a comma delimited list of hosts, host globs (*.example.com), IPs, or CIDR
-# masks (192.168.1.0/24). It is known to work with both bash and dash shells.
+# to make SOCKS5 or HTTPS proxy connections.
+# It uses ALL_PROXY or all_proxy or http_proxy to determine the proxy server,
+# protocol, and port.
+# It uses NO_PROXY to skip using the proxy for a comma delimited list of
+# hosts, host globs (*.example.com), IPs, or CIDR masks (192.168.1.0/24). It
+# is known to work with both bash and dash shells.
 #
 # Example ALL_PROXY values:
 # ALL_PROXY=socks://socks.example.com:1080
 # ALL_PROXY=https://proxy.example.com:8080
 #
 # Copyright (c) 2013, Intel Corporation.
-# All rights reserved.
+#
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # AUTHORS
 # Darren Hart <dvhart@linux.intel.com>
 
+# disable pathname expansion, NO_PROXY fields could start with "*" or be it
+set -f
+
+if [ $# -lt 2 -o "$1" = '--help' -o "$1" = '-h' ] ; then
+    echo 'oe-git-proxy: error: the following arguments are required: host port'
+    echo 'Usage: oe-git-proxy host port'
+    echo ''
+    echo 'OpenEmbedded git-proxy - a simple tool to be used via GIT_PROXY_COMMAND.'
+    echo 'It uses socat to make SOCKS or HTTPS proxy connections.'
+    echo 'It uses ALL_PROXY to determine the proxy server, protocol, and port.'
+    echo 'It uses NO_PROXY to skip using the proxy for a comma delimited list'
+    echo 'of hosts, host globs (*.example.com), IPs, or CIDR masks (192.168.1.0/24).'
+    echo 'It is known to work with both bash and dash shells.runs native tools'
+    echo ''
+    echo 'arguments:'
+    echo '  host                proxy host to use'
+    echo '  port                proxy port to use'
+    echo ''
+    echo 'options:'
+    echo '  -h, --help          show this help message and exit'
+    echo ''
+    exit 2
+fi
+
 # Locate the netcat binary
-SOCAT=$(which socat 2>/dev/null)
-if [ $? -ne 0 ]; then
-	echo "ERROR: socat binary not in PATH" 1>&2
-	exit 1
+if [ -z "$SOCAT" ]; then
+	SOCAT=$(which socat 2>/dev/null)
+	if [ $? -ne 0 ]; then
+		echo "ERROR: socat binary not in PATH" 1>&2
+		exit 1
+	fi
 fi
 METHOD=""
 
@@ -35,7 +64,7 @@ ipv4_val() {
 	IP="$1"
 	SHIFT=24
 	VAL=0
-	for B in ${IP//./ }; do
+	for B in $( echo "$IP" | tr '.' ' ' ); do
 		VAL=$(($VAL+$(($B<<$SHIFT))))
 		SHIFT=$(($SHIFT-8))
 	done
@@ -78,19 +107,20 @@ match_host() {
 	HOST=$1
 	GLOB=$2
 
-	if [ -z "${HOST%%$GLOB}" ]; then
+	if [ -z "${HOST%%*$GLOB}" ]; then
 		return 0
 	fi
 
 	# Match by netmask
 	if valid_ipv4 $GLOB; then
-		HOST_IP=$(gethostip -d $HOST)
-		if valid_ipv4 $HOST_IP; then
-			match_ipv4 $GLOB $HOST_IP
-			if [ $? -eq 0 ]; then
-				return 0
+		for HOST_IP in $(getent ahostsv4 $HOST | grep ' STREAM ' | cut -d ' ' -f 1) ; do
+			if valid_ipv4 $HOST_IP; then
+				match_ipv4 $GLOB $HOST_IP
+				if [ $? -eq 0 ]; then
+					return 0
+				fi
 			fi
-		fi
+		done
 	fi
 
 	return 1
@@ -99,26 +129,42 @@ match_host() {
 # If no proxy is set or needed, just connect directly
 METHOD="TCP:$1:$2"
 
+[ -z "${ALL_PROXY}" ] && ALL_PROXY=$all_proxy
+[ -z "${ALL_PROXY}" ] && ALL_PROXY=$http_proxy
+
 if [ -z "$ALL_PROXY" ]; then
 	exec $SOCAT STDIO $METHOD
 fi
 
 # Connect directly to hosts in NO_PROXY
-for H in ${NO_PROXY//,/ }; do
+for H in $( echo "$NO_PROXY" | tr ',' ' ' ); do
 	if match_host $1 $H; then
 		exec $SOCAT STDIO $METHOD
 	fi
 done
 
 # Proxy is necessary, determine protocol, server, and port
-PROTO=$(echo $ALL_PROXY | sed -e 's/\([^:]*\):\/\/.*/\1/')
-PROXY=$(echo $ALL_PROXY | sed -e 's/.*:\/\/\([^:]*\).*/\1/')
-# For backwards compatibility, this allows the port number to be followed by /?
-# in addition to the customary optional /
-PORT=$(echo $ALL_PROXY | sed -e 's/.*:\([0-9]*\)\(\/?\?\)\?$/\1/')
-if [ "$PORT" = "$ALL_PROXY" ]; then
+# extract protocol
+PROTO=${ALL_PROXY%://*}
+# strip protocol:// from string
+ALL_PROXY=${ALL_PROXY#*://}
+# extract host & port parts:
+#   1) drop username/password
+PROXY=${ALL_PROXY##*@}
+#   2) remove optional trailing /?
+PROXY=${PROXY%%/*}
+#   3) extract optional port
+PORT=${PROXY##*:}
+if [ "$PORT" = "$PROXY" ]; then
 	PORT=""
 fi
+#   4) remove port
+PROXY=${PROXY%%:*}
+
+# extract username & password
+PROXYAUTH="${ALL_PROXY%@*}"
+[ "$PROXYAUTH" = "$ALL_PROXY" ] && PROXYAUTH=
+[ -n "${PROXYAUTH}" ] && PROXYAUTH=",proxyauth=${PROXYAUTH}"
 
 if [ "$PROTO" = "socks" ] || [ "$PROTO" = "socks4a" ]; then
 	if [ -z "$PORT" ]; then
@@ -135,7 +181,7 @@ else
 	if [ -z "$PORT" ]; then
 		PORT="8080"
 	fi
-	METHOD="PROXY:$PROXY:$1:$2,proxyport=$PORT"
+	METHOD="PROXY:$PROXY:$1:$2,proxyport=${PORT}${PROXYAUTH}"
 fi
 
-exec $SOCAT STDIO $METHOD
+exec $SOCAT STDIO "$METHOD"

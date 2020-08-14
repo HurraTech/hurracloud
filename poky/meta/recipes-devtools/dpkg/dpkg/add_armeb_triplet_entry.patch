@@ -24,15 +24,25 @@ empty in configure script.
 Upstream-Status: Pending
 
 Signed-off-by: Krishnanjanappa, Jagadeesh <jagadeesh.krishnanjanappa@caviumnetworks.com>
+Signed-off-by: Aníbal Limón <anibal.limon@linux.intel.com>
 
-diff -Naurp dpkg-1.17.21_org/triplettable dpkg-1.17.21/triplettable
---- dpkg-1.17.21_org/triplettable	2015-04-08 17:08:52.370759171 +0530
-+++ dpkg-1.17.21/triplettable	2015-04-08 17:09:12.406752081 +0530
-@@ -9,6 +9,7 @@ musleabihf-linux-arm	musl-linux-armhf
- musl-linux-<cpu>	musl-linux-<cpu>
- gnueabihf-linux-arm	armhf
- gnueabi-linux-arm	armel
-+gnueabi-linux-armeb	armeb
- gnuabin32-linux-mips64el	mipsn32el
- gnuabin32-linux-mips64	mipsn32
- gnuabi64-linux-mips64el	mips64el
+---
+ data/tupletable | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/data/tupletable b/data/tupletable
+index b7802bec3..5f500f6ca 100644
+--- a/data/tupletable
++++ b/data/tupletable
+@@ -12,6 +12,7 @@ base-musl-linux-<cpu>		musl-linux-<cpu>
+ ilp32-gnu-linux-arm64		arm64ilp32
+ eabihf-gnu-linux-arm		armhf
+ eabi-gnu-linux-arm		armel
++eabi-gnu-linux-armeb		armeb
+ abin32-gnu-linux-mips64r6el	mipsn32r6el
+ abin32-gnu-linux-mips64r6	mipsn32r6
+ abin32-gnu-linux-mips64el	mipsn32el
+-- 
+2.11.0
+
+

@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
 
 import os
 import sys
@@ -22,16 +25,20 @@ def cbreaknoecho(fd):
     old[3] = old[3] &~ termios.ECHO &~ termios.ICANON
     termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
-if len(sys.argv) != 3:
-    print("Incorrect parameters")
-    sys.exit(1)
+if len(sys.argv) != 3 or sys.argv[1] in ('-h', '--help'):
+    print('oepydevshell-internal.py: error: the following arguments are required: pty, pid\n'
+          'Usage: oepydevshell-internal.py pty pid\n\n'
+          'OpenEmbedded oepydevshell-internal.py - internal script called from meta/classes/devshell.bbclass\n\n'
+          'arguments:\n'
+          '  pty                   pty device name\n'
+          '  pid                   parent process id\n\n'
+          'options:\n'
+          '  -h, --help            show this help message and exit\n')
+    sys.exit(2)
 
 pty = open(sys.argv[1], "w+b", 0)
 parent = int(sys.argv[2])
 
-# Don't buffer output by line endings
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-sys.stdin = os.fdopen(sys.stdin.fileno(), 'r', 0)
 nonblockingfd(pty)
 nonblockingfd(sys.stdin)
 
@@ -41,7 +48,7 @@ readline.parse_and_bind("tab: complete")
 try:
     readline.read_history_file(histfile)
 except IOError:
-    pass 
+    pass
 
 try:
 
@@ -50,7 +57,7 @@ try:
     # Need cbreak/noecho whilst in select so we trigger on any keypress
     cbreaknoecho(sys.stdin.fileno())
     # Send our PID to the other end so they can kill us.
-    pty.write(str(os.getpid()) + "\n")
+    pty.write(str(os.getpid()).encode('utf-8') + b"\n")
     while True:
         try:
             writers = []
@@ -59,17 +66,20 @@ try:
             (ready, _, _) = select.select([pty, sys.stdin], writers , [], 0)
             try:
                 if pty in ready:
-                    i = i + pty.read()
+                    readdata = pty.read()
+                    if readdata:
+                        i = i + readdata.decode('utf-8')
                 if i:
                     # Write a page at a time to avoid overflowing output 
                     # d.keys() is a good way to do that
                     sys.stdout.write(i[:4096])
+                    sys.stdout.flush()
                     i = i[4096:]
                 if sys.stdin in ready:
                     echonocbreak(sys.stdin.fileno())
-                    o = raw_input()
+                    o = input().encode('utf-8')
                     cbreaknoecho(sys.stdin.fileno())
-                    pty.write(o + "\n")
+                    pty.write(o + b"\n")
             except (IOError, OSError) as e:
                 if e.errno == 11:
                     continue

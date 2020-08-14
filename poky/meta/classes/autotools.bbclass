@@ -1,8 +1,8 @@
 def autotools_dep_prepend(d):
-    if d.getVar('INHIBIT_AUTOTOOLS_DEPS', True):
+    if d.getVar('INHIBIT_AUTOTOOLS_DEPS'):
         return ''
 
-    pn = d.getVar('PN', True)
+    pn = d.getVar('PN')
     deps = ''
 
     if pn in ['autoconf-native', 'automake-native', 'help2man-native']:
@@ -14,12 +14,10 @@ def autotools_dep_prepend(d):
         if not bb.data.inherits_class('native', d) \
                         and not bb.data.inherits_class('nativesdk', d) \
                         and not bb.data.inherits_class('cross', d) \
-                        and not d.getVar('INHIBIT_DEFAULT_DEPS', True):
+                        and not d.getVar('INHIBIT_DEFAULT_DEPS'):
             deps += 'libtool-cross '
 
     return deps + 'gnu-config-native '
-
-EXTRA_OEMAKE = ""
 
 DEPENDS_prepend = "${@autotools_dep_prepend(d)} "
 
@@ -27,9 +25,11 @@ inherit siteinfo
 
 # Space separated list of shell scripts with variables defined to supply test
 # results for autoconf tests we cannot run at build time.
-export CONFIG_SITE = "${@siteinfo_get_files(d, False)}"
+# The value of this variable is filled in in a prefunc because it depends on
+# the contents of the sysroot.
+export CONFIG_SITE
 
-acpaths = "default"
+acpaths ?= "default"
 EXTRA_AUTORECONF = "--exclude=autopoint"
 
 export lt_cv_sys_lib_dlsearch_path_spec = "${libdir} ${base_libdir}"
@@ -77,23 +77,24 @@ CONFIGUREOPTS = " --build=${BUILD_SYS} \
 		  ${@append_libtool_sysroot(d)}"
 CONFIGUREOPT_DEPTRACK ?= "--disable-dependency-tracking"
 
+CACHED_CONFIGUREVARS ?= ""
+
 AUTOTOOLS_SCRIPT_PATH ?= "${S}"
 CONFIGURE_SCRIPT ?= "${AUTOTOOLS_SCRIPT_PATH}/configure"
 
 AUTOTOOLS_AUXDIR ?= "${AUTOTOOLS_SCRIPT_PATH}"
 
 oe_runconf () {
-	cfgscript="${CONFIGURE_SCRIPT}"
+	# Use relative path to avoid buildpaths in files
+	cfgscript_name="`basename ${CONFIGURE_SCRIPT}`"
+	cfgscript=`python3 -c "import os; print(os.path.relpath(os.path.dirname('${CONFIGURE_SCRIPT}'), '.'))"`/$cfgscript_name
 	if [ -x "$cfgscript" ] ; then
 		bbnote "Running $cfgscript ${CONFIGUREOPTS} ${EXTRA_OECONF} $@"
-		set +e
-		${CACHED_CONFIGUREVARS} $cfgscript ${CONFIGUREOPTS} ${EXTRA_OECONF} "$@"
-		if [ "$?" != "0" ]; then
-			echo "Configure failed. The contents of all config.log files follows to aid debugging"
-			find ${B} -ignore_readdir_race -name config.log -print -exec cat {} \;
-			die "oe_runconf failed"
+		if ! ${CACHED_CONFIGUREVARS} CONFIG_SHELL=/bin/bash $cfgscript ${CONFIGUREOPTS} ${EXTRA_OECONF} "$@"; then
+			bbnote "The following config.log files may provide further information."
+			bbnote `find ${B} -ignore_readdir_race -type f -name config.log`
+			bbfatal_log "configure failed"
 		fi
-		set -e
 	else
 		bbfatal "no configure script found at $cfgscript"
 	fi
@@ -113,8 +114,7 @@ autotools_preconfigure() {
 				# regenerate them even if CFLAGS/LDFLAGS are different
 				cd ${S}
 				if [ "${CLEANBROKEN}" != "1" -a \( -e Makefile -o -e makefile -o -e GNUmakefile \) ]; then
-					echo "Running \"${MAKE} clean\" in ${S}"
-					${MAKE} clean
+					oe_runmake clean
 				fi
 				find ${S} -ignore_readdir_race -name \*.la -delete
 			fi
@@ -124,99 +124,30 @@ autotools_preconfigure() {
 
 autotools_postconfigure(){
 	if [ -n "${CONFIGURESTAMPFILE}" ]; then
+		mkdir -p `dirname ${CONFIGURESTAMPFILE}`
 		echo ${BB_TASKHASH} > ${CONFIGURESTAMPFILE}
 	fi
 }
 
 EXTRACONFFUNCS ??= ""
 
-do_configure[prefuncs] += "autotools_preconfigure autotools_copy_aclocals ${EXTRACONFFUNCS}"
+EXTRA_OECONF_append = " ${PACKAGECONFIG_CONFARGS}"
+
+do_configure[prefuncs] += "autotools_preconfigure autotools_aclocals ${EXTRACONFFUNCS}"
+do_compile[prefuncs] += "autotools_aclocals"
+do_install[prefuncs] += "autotools_aclocals"
 do_configure[postfuncs] += "autotools_postconfigure"
 
-ACLOCALDIR = "${B}/aclocal-copy"
+ACLOCALDIR = "${STAGING_DATADIR}/aclocal"
+ACLOCALEXTRAPATH = ""
+ACLOCALEXTRAPATH_class-target = " -I ${STAGING_DATADIR_NATIVE}/aclocal/"
+ACLOCALEXTRAPATH_class-nativesdk = " -I ${STAGING_DATADIR_NATIVE}/aclocal/"
 
-python autotools_copy_aclocals () {
-    s = d.getVar("AUTOTOOLS_SCRIPT_PATH", True)
-    if not os.path.exists(s + "/configure.in") and not os.path.exists(s + "/configure.ac"):
-        if not d.getVar("AUTOTOOLS_COPYACLOCAL", False):
-            return
-
-    taskdepdata = d.getVar("BB_TASKDEPDATA", False)
-    #bb.warn(str(taskdepdata))
-    pn = d.getVar("PN", True)
-    aclocaldir = d.getVar("ACLOCALDIR", True)
-    oe.path.remove(aclocaldir)
-    bb.utils.mkdirhier(aclocaldir)
-    start = None
-    configuredeps = []
-
-    for dep in taskdepdata:
-        data = taskdepdata[dep]
-        if data[1] == "do_configure" and data[0] == pn:
-            start = dep
-            break
-    if start is None:
-        bb.fatal("Couldn't find ourself in BB_TASKDEPDATA?")
-
-    # We need to find configure tasks which are either from <target> -> <target>
-    # or <native> -> <native> but not <target> -> <native> unless they're direct
-    # dependencies. This mirrors what would get restored from sstate.
-    done = [dep]
-    next = [dep]
-    while next:
-        new = []
-        for dep in next:
-            data = taskdepdata[dep]
-            for datadep in data[3]:
-                if datadep in done:
-                    continue
-                if (not data[0].endswith("-native")) and taskdepdata[datadep][0].endswith("-native") and dep != start:
-                    continue
-                done.append(datadep)
-                new.append(datadep)
-                if taskdepdata[datadep][1] == "do_configure":
-                    configuredeps.append(taskdepdata[datadep][0])
-        next = new
-
-    #configuredeps2 = []
-    #for dep in taskdepdata:
-    #    data = taskdepdata[dep]
-    #    if data[1] == "do_configure" and data[0] != pn:
-    #        configuredeps2.append(data[0])
-    #configuredeps.sort()
-    #configuredeps2.sort()
-    #bb.warn(str(configuredeps))
-    #bb.warn(str(configuredeps2))
-
-    cp = []
-    siteconf = []    
-    for c in configuredeps:
-        if c.endswith("-native"):
-            manifest = d.expand("${SSTATE_MANIFESTS}/manifest-${BUILD_ARCH}-%s.populate_sysroot" % c)
-        elif c.startswith("nativesdk-"):
-            manifest = d.expand("${SSTATE_MANIFESTS}/manifest-${SDK_ARCH}_${SDK_OS}-%s.populate_sysroot" % c)
-        elif "-cross-" in c or "-crosssdk" in c:
-            continue
-        else:
-            manifest = d.expand("${SSTATE_MANIFESTS}/manifest-${MACHINE}-%s.populate_sysroot" % c)
-        try:
-            f = open(manifest, "r")
-            for l in f:
-                if "/aclocal/" in l and l.strip().endswith(".m4"):
-                    cp.append(l.strip())
-                elif "config_site.d/" in l:
-                    cp.append(l.strip())
-        except:
-            bb.warn("%s not found" % manifest)
-
-    for c in cp:
-        t = os.path.join(aclocaldir, os.path.basename(c))
-        if not os.path.exists(t):
-            os.symlink(c, t)
-            
-    d.setVar("CONFIG_SITE", siteinfo_get_files(d, False))
+python autotools_aclocals () {
+    d.setVar("CONFIG_SITE", siteinfo_get_files(d, sysrootcache=True))
 }
-autotools_copy_aclocals[vardepsexclude] += "MACHINE SDK_ARCH BUILD_ARCH SDK_OS BB_TASKDEPDATA"
+
+CONFIGURE_FILES = "${S}/configure.in ${S}/configure.ac ${S}/config.h.in ${S}/acinclude.m4 Makefile.am"
 
 autotools_do_configure() {
 	# WARNING: gross hack follows:
@@ -227,22 +158,27 @@ autotools_do_configure() {
 	# for a package whose autotools are old, on an x86_64 machine, which the old
 	# config.sub does not support.  Work around this by installing them manually
 	# regardless.
-	( for ac in `find ${S} -ignore_readdir_race -name configure.in -o -name configure.ac`; do
+
+	PRUNE_M4=""
+
+	for ac in `find ${S} -ignore_readdir_race -name configure.in -o -name configure.ac`; do
 		rm -f `dirname $ac`/configure
-		done )
+	done
 	if [ -e ${AUTOTOOLS_SCRIPT_PATH}/configure.in -o -e ${AUTOTOOLS_SCRIPT_PATH}/configure.ac ]; then
 		olddir=`pwd`
 		cd ${AUTOTOOLS_SCRIPT_PATH}
+		mkdir -p ${ACLOCALDIR}
 		ACLOCAL="aclocal --system-acdir=${ACLOCALDIR}/"
 		if [ x"${acpaths}" = xdefault ]; then
 			acpaths=
 			for i in `find ${AUTOTOOLS_SCRIPT_PATH} -ignore_readdir_race -maxdepth 2 -name \*.m4|grep -v 'aclocal.m4'| \
-				grep -v 'acinclude.m4' | grep -v 'aclocal-copy' | sed -e 's,\(.*/\).*$,\1,'|sort -u`; do
+				grep -v 'acinclude.m4' | sed -e 's,\(.*/\).*$,\1,'|sort -u`; do
 				acpaths="$acpaths -I $i"
 			done
 		else
 			acpaths="${acpaths}"
 		fi
+		acpaths="$acpaths ${ACLOCALEXTRAPATH}"
 		AUTOV=`automake --version | sed -e '1{s/.* //;s/\.[0-9]\+$//};q'`
 		automake --version
 		echo "AUTOV is $AUTOV"
@@ -260,14 +196,14 @@ autotools_do_configure() {
 		else
 			CONFIGURE_AC=configure.ac
 		fi
-		if grep "^[[:space:]]*AM_GLIB_GNU_GETTEXT" $CONFIGURE_AC >/dev/null; then
-			if grep "sed.*POTFILES" $CONFIGURE_AC >/dev/null; then
+		if grep -q "^[[:space:]]*AM_GLIB_GNU_GETTEXT" $CONFIGURE_AC; then
+			if grep -q "sed.*POTFILES" $CONFIGURE_AC; then
 				: do nothing -- we still have an old unmodified configure.ac
 	    		else
 				bbnote Executing glib-gettextize --force --copy
 				echo "no" | glib-gettextize --force --copy
 			fi
-		elif grep "^[[:space:]]*AM_GNU_GETTEXT" $CONFIGURE_AC >/dev/null; then
+		elif [ "${BPN}" != "gettext" ] && grep -q "^[[:space:]]*AM_GNU_GETTEXT" $CONFIGURE_AC; then
 			# We'd call gettextize here if it wasn't so broken...
 			cp ${STAGING_DATADIR_NATIVE}/gettext/config.rpath ${AUTOTOOLS_AUXDIR}/
 			if [ -d ${S}/po/ ]; then
@@ -276,18 +212,23 @@ autotools_do_configure() {
 					cp ${STAGING_DATADIR_NATIVE}/gettext/po/remove-potcdate.sin ${S}/po/
 				fi
 			fi
-			for i in gettext.m4 iconv.m4 lib-ld.m4 lib-link.m4 lib-prefix.m4 nls.m4 po.m4 progtest.m4; do
-				for j in `find ${S} -ignore_readdir_race -name $i | grep -v aclocal-copy`; do
-					rm $j
-				done
-			done
+			PRUNE_M4="$PRUNE_M4 gettext.m4 iconv.m4 lib-ld.m4 lib-link.m4 lib-prefix.m4 nls.m4 po.m4 progtest.m4"
 		fi
 		mkdir -p m4
-		if grep "^[[:space:]]*[AI][CT]_PROG_INTLTOOL" $CONFIGURE_AC >/dev/null; then
+		if grep -q "^[[:space:]]*[AI][CT]_PROG_INTLTOOL" $CONFIGURE_AC; then
+			if ! echo "${DEPENDS}" | grep -q intltool-native; then
+				bbwarn "Missing DEPENDS on intltool-native"
+			fi
+			PRUNE_M4="$PRUNE_M4 intltool.m4"
 			bbnote Executing intltoolize --copy --force --automake
 			intltoolize --copy --force --automake
 		fi
-		bbnote Executing ACLOCAL=\"$ACLOCAL\" autoreconf --verbose --install --force ${EXTRA_AUTORECONF} $acpaths
+
+		for i in $PRUNE_M4; do
+			find ${S} -ignore_readdir_race -name $i -delete
+		done
+
+		bbnote Executing ACLOCAL=\"$ACLOCAL\" autoreconf -Wcross --verbose --install --force ${EXTRA_AUTORECONF} $acpaths
 		ACLOCAL="$ACLOCAL" autoreconf -Wcross --verbose --install --force ${EXTRA_AUTORECONF} $acpaths || die "autoreconf execution failed."
 		cd $olddir
 	fi
@@ -296,6 +237,10 @@ autotools_do_configure() {
 	else
 		bbnote "nothing to configure"
 	fi
+}
+
+autotools_do_compile() {
+	oe_runmake
 }
 
 autotools_do_install() {
@@ -308,6 +253,6 @@ autotools_do_install() {
 
 inherit siteconfig
 
-EXPORT_FUNCTIONS do_configure do_install
+EXPORT_FUNCTIONS do_configure do_compile do_install
 
 B = "${WORKDIR}/build"

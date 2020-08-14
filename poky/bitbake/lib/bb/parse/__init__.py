@@ -9,20 +9,10 @@ File parsers for the BitBake build tools.
 # Copyright (C) 2003, 2004  Chris Larson
 # Copyright (C) 2003, 2004  Phil Blundell
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # Based on functions from the base bb module, Copyright 2003 Holger Schurig
+#
 
 handlers = []
 
@@ -84,6 +74,10 @@ def update_cache(f):
         logger.debug(1, "Updating mtime cache for %s" % f)
         update_mtime(f)
 
+def clear_cache():
+    global __mtime_cache
+    __mtime_cache = {}
+
 def mark_dependency(d, f):
     if f.startswith('./'):
         f = "%s/%s" % (os.getcwd(), f[2:])
@@ -123,15 +117,16 @@ def init_parser(d):
 
 def resolve_file(fn, d):
     if not os.path.isabs(fn):
-        bbpath = d.getVar("BBPATH", True)
+        bbpath = d.getVar("BBPATH")
         newfn, attempts = bb.utils.which(bbpath, fn, history=True)
         for af in attempts:
             mark_dependency(d, af)
         if not newfn:
             raise IOError(errno.ENOENT, "file %s not found in %s" % (fn, bbpath))
         fn = newfn
+    else:
+        mark_dependency(d, fn)
 
-    mark_dependency(d, fn)
     if not os.path.isfile(fn):
         raise IOError(errno.ENOENT, "file %s not found" % fn)
 
@@ -161,8 +156,8 @@ def vars_from_file(mypkg, d):
 def get_file_depends(d):
     '''Return the dependent files'''
     dep_files = []
-    depends = d.getVar('__base_depends', True) or []
-    depends = depends + (d.getVar('__depends', True) or [])
+    depends = d.getVar('__base_depends', False) or []
+    depends = depends + (d.getVar('__depends', False) or [])
     for (fn, _) in depends:
         dep_files.append(os.path.abspath(fn))
     return " ".join(dep_files)

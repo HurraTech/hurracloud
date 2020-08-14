@@ -47,7 +47,6 @@
      -rw-rw-r--. 1 wmat wmat   849 Nov 26 04:55 HEADER
      drwxrwxr-x. 5 wmat wmat  4096 Jan 31 13:44 lib
      -rw-rw-r--. 1 wmat wmat   195 Nov 26 04:55 MANIFEST.in
-     -rwxrwxr-x. 1 wmat wmat  3195 Jan 31 11:57 setup.py
      -rw-rw-r--. 1 wmat wmat  2887 Nov 26 04:55 TODO
             </literallayout>
         </para>
@@ -129,15 +128,8 @@
         </para>
 
         <note>
-            This example was inspired by and drew heavily from these sources:
-            <itemizedlist>
-                <listitem><para>
-                    <ulink url="http://www.mail-archive.com/yocto@yoctoproject.org/msg09379.html">Mailing List post - The BitBake equivalent of "Hello, World!"</ulink>
-                    </para></listitem>
-                <listitem><para>
-                    <ulink url="https://web.archive.org/web/20150325165911/http://hambedded.org/blog/2012/11/24/from-bitbake-hello-world-to-an-image/">Hambedded Linux blog post - From Bitbake Hello World to an Image</ulink>
-                    </para></listitem>
-            </itemizedlist>
+            This example was inspired by and drew heavily from
+            <ulink url="http://www.mail-archive.com/yocto@yoctoproject.org/msg09379.html">Mailing List post - The BitBake equivalent of "Hello, World!"</ulink>.
         </note>
 
         <para>
@@ -174,7 +166,7 @@
                 Having a project directory is a good way to isolate your
                 project.
                 </para></listitem>
-            <listitem><para><emphasis>Run Bitbake:</emphasis>
+            <listitem><para><emphasis>Run BitBake:</emphasis>
                 At this point, you have nothing but a project directory.
                 Run the <filename>bitbake</filename> command and see what
                 it does:
@@ -202,10 +194,10 @@
                 <para>
                 When you run BitBake, it begins looking for metadata files.
                 The
-                <link linkend='var-BBPATH'><filename>BBPATH</filename></link>
+                <link linkend='var-bb-BBPATH'><filename>BBPATH</filename></link>
                 variable is what tells BitBake where to look for those files.
                 <filename>BBPATH</filename> is not set and you need to set it.
-                Without <filename>BBPATH</filename>, Bitbake cannot
+                Without <filename>BBPATH</filename>, BitBake cannot
                 find any configuration files (<filename>.conf</filename>)
                 or recipe files (<filename>.bb</filename>) at all.
                 BitBake also cannot find the <filename>bitbake.conf</filename>
@@ -233,7 +225,7 @@
                     as the shell would.
                 </note>
                 </para></listitem>
-            <listitem><para><emphasis>Run Bitbake:</emphasis>
+            <listitem><para><emphasis>Run BitBake:</emphasis>
                 Now that you have <filename>BBPATH</filename> defined, run
                 the <filename>bitbake</filename> command again:
                 <literallayout class='monospaced'>
@@ -268,9 +260,9 @@
                 files.
                 For this example, you need to create the file in your project directory
                 and define some key BitBake variables.
-                For more information on the <filename>bitbake.conf</filename>,
+                For more information on the <filename>bitbake.conf</filename> file,
                 see
-                <ulink url='https://web.archive.org/web/20150325165911/http://hambedded.org/blog/2012/11/24/from-bitbake-hello-world-to-an-image/#an-overview-of-bitbakeconf'></ulink>
+                <ulink url='http://git.openembedded.org/bitbake/tree/conf/bitbake.conf'></ulink>.
                 </para>
                 <para>Use the following commands to create the <filename>conf</filename>
                 directory in the project directory:
@@ -281,14 +273,32 @@
                 some editor to create the <filename>bitbake.conf</filename>
                 so that it contains the following:
                 <literallayout class='monospaced'>
-     TMPDIR  = "${<link linkend='var-TOPDIR'>TOPDIR</link>}/tmp"
-     <link linkend='var-CACHE'>CACHE</link>   = "${TMPDIR}/cache"
-     <link linkend='var-STAMP'>STAMP</link>   = "${TMPDIR}/stamps"
-     <link linkend='var-T'>T</link>       = "${TMPDIR}/work"
-     <link linkend='var-B'>B</link>       = "${TMPDIR}"
+     <link linkend='var-bb-PN'>PN</link>  = "${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[0] or 'defaultpkgname'}"
                 </literallayout>
+                <literallayout class='monospaced'>
+     TMPDIR  = "${<link linkend='var-bb-TOPDIR'>TOPDIR</link>}/tmp"
+     <link linkend='var-bb-CACHE'>CACHE</link>   = "${TMPDIR}/cache"
+     <link linkend='var-bb-STAMP'>STAMP</link>   = "${TMPDIR}/${PN}/stamps"
+     <link linkend='var-bb-T'>T</link>       = "${TMPDIR}/${PN}/work"
+     <link linkend='var-bb-B'>B</link>       = "${TMPDIR}/${PN}"
+                </literallayout>
+                <note>
+                    Without a value for <filename>PN</filename>, the
+                    variables <filename>STAMP</filename>,
+                    <filename>T</filename>, and <filename>B</filename>,
+                    prevent more than one recipe from working. You can fix
+                    this by either setting <filename>PN</filename> to have
+                    a value similar to what OpenEmbedded and BitBake use
+                    in the default <filename>bitbake.conf</filename> file
+                    (see previous example). Or, by manually updating each
+                    recipe to set <filename>PN</filename>. You will also
+                    need to include <filename>PN</filename> as part of the
+                    <filename>STAMP</filename>, <filename>T</filename>, and
+                    <filename>B</filename> variable definitions in the
+                    <filename>local.conf</filename> file.
+                </note>
                 The <filename>TMPDIR</filename> variable establishes a directory
-                that BitBake uses for build output and intermediate files (other
+                that BitBake uses for build output and intermediate files other
                 than the cached information used by the
                 <link linkend='setscene'>Setscene</link> process.
                 Here, the <filename>TMPDIR</filename> directory is set to
@@ -303,24 +313,24 @@
                 example, click on the links to take you to the definitions in
                 the glossary.
                 </para></listitem>
-            <listitem><para><emphasis>Run Bitbake:</emphasis>
+            <listitem><para><emphasis>Run BitBake:</emphasis>
                 After making sure that the <filename>conf/bitbake.conf</filename>
                 file exists, you can run the <filename>bitbake</filename>
                 command again:
                 <literallayout class='monospaced'>
-$ bitbake
-ERROR: Traceback (most recent call last):
-  File "/home/scott-lenovo/bitbake/lib/bb/cookerdata.py", line 163, in wrapped
-    return func(fn, *args)
-  File "/home/scott-lenovo/bitbake/lib/bb/cookerdata.py", line 177, in _inherit
-    bb.parse.BBHandler.inherit(bbclass, "configuration INHERITs", 0, data)
-  File "/home/scott-lenovo/bitbake/lib/bb/parse/parse_py/BBHandler.py", line 92, in inherit
-    include(fn, file, lineno, d, "inherit")
-  File "/home/scott-lenovo/bitbake/lib/bb/parse/parse_py/ConfHandler.py", line 100, in include
-    raise ParseError("Could not %(error_out)s file %(fn)s" % vars(), oldfn, lineno)
-ParseError: ParseError in configuration INHERITs: Could not inherit file classes/base.bbclass
+     $ bitbake
+     ERROR: Traceback (most recent call last):
+       File "/home/scott-lenovo/bitbake/lib/bb/cookerdata.py", line 163, in wrapped
+         return func(fn, *args)
+       File "/home/scott-lenovo/bitbake/lib/bb/cookerdata.py", line 177, in _inherit
+         bb.parse.BBHandler.inherit(bbclass, "configuration INHERITs", 0, data)
+       File "/home/scott-lenovo/bitbake/lib/bb/parse/parse_py/BBHandler.py", line 92, in inherit
+         include(fn, file, lineno, d, "inherit")
+       File "/home/scott-lenovo/bitbake/lib/bb/parse/parse_py/ConfHandler.py", line 100, in include
+         raise ParseError("Could not %(error_out)s file %(fn)s" % vars(), oldfn, lineno)
+     ParseError: ParseError in configuration INHERITs: Could not inherit file classes/base.bbclass
 
-ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inherit file classes/base.bbclass
+     ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inherit file classes/base.bbclass
                 </literallayout>
                 In the sample output, BitBake could not find the
                 <filename>classes/base.bbclass</filename> file.
@@ -353,11 +363,8 @@ ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inh
                 Of course, the <filename>base.bbclass</filename> can have much
                 more depending on which build environments BitBake is
                 supporting.
-                For more information on the <filename>base.bbclass</filename> file,
-                you can look at
-                <ulink url='https://web.archive.org/web/20150325165911/http://hambedded.org/blog/2012/11/24/from-bitbake-hello-world-to-an-image/#tasks'></ulink>.
                 </para></listitem>
-            <listitem><para><emphasis>Run Bitbake:</emphasis>
+            <listitem><para><emphasis>Run BitBake:</emphasis>
                 After making sure that the <filename>classes/base.bbclass</filename>
                 file exists, you can run the <filename>bitbake</filename>
                 command again:
@@ -376,10 +383,10 @@ ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inh
                 code separate from the general metadata used by BitBake.
                 Thus, this example creates and uses a layer called "mylayer".
                 <note>
-                    You can find additional information on adding a layer at
-                    <ulink url='https://web.archive.org/web/20150325165911/http://hambedded.org/blog/2012/11/24/from-bitbake-hello-world-to-an-image/#adding-an-example-layer'></ulink>.
-                </note>
-                </para>
+                    You can find additional information on layers in the
+                    "<link linkend='layers'>Layers</link>" section.
+                </note></para>
+
                 <para>Minimally, you need a recipe file and a layer configuration
                 file in your layer.
                 The configuration file needs to be in the <filename>conf</filename>
@@ -395,12 +402,12 @@ ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inh
                 Move to the <filename>conf</filename> directory and create a
                 <filename>layer.conf</filename> file that has the following:
                 <literallayout class='monospaced'>
-     BBPATH .= ":${<link linkend='var-LAYERDIR'>LAYERDIR</link>}"
+     BBPATH .= ":${<link linkend='var-bb-LAYERDIR'>LAYERDIR</link>}"
 
-     <link linkend='var-BBFILES'>BBFILES</link> += "${LAYERDIR}/*.bb"
+     <link linkend='var-bb-BBFILES'>BBFILES</link> += "${LAYERDIR}/*.bb"
 
-     <link linkend='var-BBFILE_COLLECTIONS'>BBFILE_COLLECTIONS</link> += "mylayer"
-     <link linkend='var-BBFILE_PATTERN'>BBFILE_PATTERN_mylayer</link> := "^${LAYERDIR}/"
+     <link linkend='var-bb-BBFILE_COLLECTIONS'>BBFILE_COLLECTIONS</link> += "mylayer"
+     <link linkend='var-bb-BBFILE_PATTERN'>BBFILE_PATTERN_mylayer</link> := "^${LAYERDIR_RE}/"
                 </literallayout>
                 For information on these variables, click the links
                 to go to the definitions in the glossary.</para>
@@ -409,9 +416,9 @@ ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inh
                 a recipe file named <filename>printhello.bb</filename> that
                 has the following:
                 <literallayout class='monospaced'>
-     <link linkend='var-DESCRIPTION'>DESCRIPTION</link> = "Prints Hello World"
-     <link linkend='var-PN'>PN</link> = 'printhello'
-     <link linkend='var-PV'>PV</link> = '1'
+     <link linkend='var-bb-DESCRIPTION'>DESCRIPTION</link> = "Prints Hello World"
+     <link linkend='var-bb-PN'>PN</link> = 'printhello'
+     <link linkend='var-bb-PV'>PV</link> = '1'
 
      python do_build() {
         bb.plain("********************");
@@ -427,7 +434,7 @@ ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inh
                 For more information on these variables, follow the links
                 to the glossary.
                 </para></listitem>
-            <listitem><para><emphasis>Run Bitbake With a Target:</emphasis>
+            <listitem><para><emphasis>Run BitBake With a Target:</emphasis>
                 Now that a BitBake target exists, run the command and provide
                 that target:
                 <literallayout class='monospaced'>
@@ -461,7 +468,7 @@ ERROR: Unable to parse base: ParseError in configuration INHERITs: Could not inh
                 You need to provide your own information for
                 <filename>you</filename> in the file.
                 </para></listitem>
-            <listitem><para><emphasis>Run Bitbake With a Target:</emphasis>
+            <listitem><para><emphasis>Run BitBake With a Target:</emphasis>
                 Now that you have supplied the <filename>bblayers.conf</filename>
                 file, run the <filename>bitbake</filename> command and provide
                 the target:

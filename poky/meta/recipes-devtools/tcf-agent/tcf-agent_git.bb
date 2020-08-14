@@ -5,11 +5,13 @@ BUGTRACKER = "https://bugs.eclipse.org/bugs/"
 LICENSE = "EPL-1.0 | EDL-1.0"
 LIC_FILES_CHKSUM = "file://edl-v10.html;md5=522a390a83dc186513f0500543ad3679"
 
-SRCREV = "b9a735e9c7cf82f80d412b7ab15d08b89d5a4ccc"
-PV = "1.3.0+git${SRCPV}"
+SRCREV = "a022ef2f1acfd9209a1bf792dda14ae4b0d1b60f"
+PV = "1.7.0+git${SRCPV}"
 
-SRC_URI = "git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.agent.git;branch=1.3_mars_bugfix \
+UPSTREAM_CHECK_GITTAGREGEX = "(?P<pver>(\d+(\.\d+)+))"
+SRC_URI = "git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.agent \
            file://fix_ranlib.patch \
+           file://ldflags.patch \
            file://tcf-agent.init \
            file://tcf-agent.service \
           "
@@ -27,16 +29,25 @@ INITSCRIPT_NAME = "tcf-agent"
 INITSCRIPT_PARAMS = "start 99 3 5 . stop 20 0 1 2 6 ."
 
 # mangling needed for make
-MAKE_ARCH = "`echo ${TARGET_ARCH} | sed s,i.86,i686,`"
+MAKE_ARCH = "`echo ${TARGET_ARCH} | sed s,i.86,i686, | sed s,aarch64.*,a64, | sed s,armeb,arm,`"
 MAKE_OS = "`echo ${TARGET_OS} | sed s,^linux.*,GNU/Linux,`"
 
 EXTRA_OEMAKE = "MACHINE=${MAKE_ARCH} OPSYS=${MAKE_OS} 'CC=${CC}' 'AR=${AR}'"
 
-# They don't build on ARM and we don't need them actually.
-CFLAGS += "-DSERVICE_RunControl=0 -DSERVICE_Breakpoints=0 \
+LCL_STOP_SERVICES = "-DSERVICE_RunControl=0 -DSERVICE_Breakpoints=0 \
     -DSERVICE_Memory=0 -DSERVICE_Registers=0 -DSERVICE_MemoryMap=0 \
-    -DSERVICE_StackTrace=0 -DSERVICE_Symbols=0 -DSERVICE_LineNumbers=0 \
-    -DSERVICE_Expressions=0"
+    -DSERVICE_StackTrace=0 -DSERVICE_Expressions=0"
+
+
+# These features don't compile for several cases.
+#
+CFLAGS_append_arc = " ${LCL_STOP_SERVICES}"
+CFLAGS_append_mips = " ${LCL_STOP_SERVICES}"
+CFLAGS_append_mips64 = " ${LCL_STOP_SERVICES}"
+CFLAGS_append_libc-musl = " ${LCL_STOP_SERVICES}"
+CFLAGS_append_powerpc64 = " ${LCL_STOP_SERVICES}"
+CFLAGS_append_powerpc64le = " ${LCL_STOP_SERVICES}"
+CFLAGS_append_riscv64 = " ${LCL_STOP_SERVICES}"
 
 do_install() {
 	oe_runmake install INSTALLROOT=${D}

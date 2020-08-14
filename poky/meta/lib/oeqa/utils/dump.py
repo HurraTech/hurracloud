@@ -1,15 +1,13 @@
+#
+# SPDX-License-Identifier: MIT
+#
+
 import os
 import sys
 import errno
 import datetime
 import itertools
-from commands import runCmd
-
-def get_host_dumper(d):
-    cmds = d.getVar("testimage_dump_host", True)
-    parent_dir = d.getVar("TESTIMAGE_DUMP_DIR", True)
-    return HostDumper(cmds, parent_dir)
-
+from .commands import runCmd
 
 class BaseDumper(object):
     """ Base class to dump commands from host/target """
@@ -18,7 +16,7 @@ class BaseDumper(object):
         self.cmds = []
         # Some testing doesn't inherit testimage, so it is needed
         # to set some defaults.
-        self.parent_dir = parent_dir or "/tmp/oe-saved-tests"
+        self.parent_dir = parent_dir
         dft_cmds = """  top -bn1
                         iostat -x -z -N -d -p ALL 20 2
                         ps -ef
@@ -73,17 +71,19 @@ class HostDumper(BaseDumper):
     def dump_host(self, dump_dir=""):
         if dump_dir:
             self.dump_dir = dump_dir
+        env = os.environ.copy()
+        env['PATH'] = '/usr/sbin:/sbin:/usr/bin:/bin'
+        env['COLUMNS'] = '9999'
         for cmd in self.cmds:
-            result = runCmd(cmd, ignore_status=True)
+            result = runCmd(cmd, ignore_status=True, env=env)
             self._write_dump(cmd.split()[0], result.output)
-
 
 class TargetDumper(BaseDumper):
     """ Class to get dumps from target, it only works with QemuRunner """
 
-    def __init__(self, cmds, parent_dir, qemurunner):
+    def __init__(self, cmds, parent_dir, runner):
         super(TargetDumper, self).__init__(cmds, parent_dir)
-        self.runner = qemurunner
+        self.runner = runner
 
     def dump_target(self, dump_dir=""):
         if dump_dir:

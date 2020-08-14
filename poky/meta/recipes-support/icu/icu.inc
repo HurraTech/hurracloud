@@ -9,15 +9,19 @@ LICENSE = "ICU"
 DEPENDS = "icu-native"
 DEPENDS_class-native = ""
 
+CVE_PRODUCT = "international_components_for_unicode"
+
 S = "${WORKDIR}/icu/source"
 SPDX_S = "${WORKDIR}/icu"
 STAGING_ICU_DIR_NATIVE = "${STAGING_DATADIR_NATIVE}/${BPN}/${PV}"
 
-CPPFLAGS_append_libc-uclibc = " -DU_TIMEZONE=0"
-
 BINCONFIG = "${bindir}/icu-config"
 
-inherit autotools pkgconfig binconfig
+ICU_MAJOR_VER = "${@d.getVar('PV').split('.')[0]}"
+
+inherit autotools pkgconfig binconfig multilib_script
+
+MULTILIB_SCRIPTS = "${PN}-dev:${bindir}/icu-config"
 
 # ICU needs the native build directory as an argument to its --with-cross-build option when
 # cross-compiling. Taken the situation that different builds may share a common sstate-cache
@@ -25,6 +29,20 @@ inherit autotools pkgconfig binconfig
 EXTRA_OECONF = "--with-cross-build=${STAGING_ICU_DIR_NATIVE}"
 EXTRA_OECONF_class-native = ""
 EXTRA_OECONF_class-nativesdk = "--with-cross-build=${STAGING_ICU_DIR_NATIVE}"
+
+EXTRA_OECONF_append_class-target = "${@oe.utils.conditional('SITEINFO_ENDIANNESS', 'be', ' --with-data-packaging=archive', '', d)}"
+TARGET_CXXFLAGS_append = "${@oe.utils.conditional('SITEINFO_ENDIANNESS', 'be', ' -DICU_DATA_DIR=\\""${datadir}/${BPN}/${PV}\\""', '', d)}"
+
+ASNEEDED = ""
+
+do_compile_prepend_class-target () {
+	# Make sure certain build host references do not end up being compiled
+	# in the image. This only affects libicutu and icu-dbg
+	sed  \
+	    -e 's,DU_BUILD=,DU_BUILD_unused=,g' \
+	    -e '/^CPPFLAGS.*/ s,--sysroot=${STAGING_DIR_TARGET},,g' \
+	    -i ${B}/tools/toolutil/Makefile
+}
 
 PREPROCESS_RELOCATE_DIRS = "${datadir}/${BPN}/${PV}"
 do_install_append_class-native() {
@@ -36,15 +54,32 @@ do_install_append_class-native() {
 	cp -r ${B}/tools ${D}/${STAGING_ICU_DIR_NATIVE}
 }
 
-PACKAGES =+ "libicudata libicuuc libicui18n libicule libiculx libicutu libicuio"
+do_install_append_class-target() {
+    # The native pkgdata can not generate the correct data file.
+    # Use icupkg to re-generate it.
+    if [ "${SITEINFO_ENDIANNESS}" = "be" ] ; then
+        rm -f ${D}/${datadir}/${BPN}/${PV}/icudt${ICU_MAJOR_VER}b.dat
+	if [ -f ${S}/data/in/icudt${ICU_MAJOR_VER}l.dat ]; then
+		icupkg -tb ${S}/data/in/icudt${ICU_MAJOR_VER}l.dat ${D}/${datadir}/${BPN}/${PV}/icudt${ICU_MAJOR_VER}b.dat
+	fi
+    fi
+	
+	# Remove build host references...
+	sed -i  \
+	    -e 's,--sysroot=${STAGING_DIR_TARGET},,g' \
+	    -e 's|${DEBUG_PREFIX_MAP}||g' \
+	    -e 's:${HOSTTOOLS_DIR}/::g' \
+	    ${D}/${bindir}/icu-config ${D}/${libdir}/${BPN}/${PV}/Makefile.inc \
+	    ${D}/${libdir}/${BPN}/${PV}/pkgdata.inc
+}
+
+PACKAGES =+ "libicudata libicuuc libicui18n libicutu libicuio"
 
 FILES_${PN}-dev += "${libdir}/${BPN}/"
 
 FILES_libicudata = "${libdir}/libicudata.so.*"
 FILES_libicuuc = "${libdir}/libicuuc.so.*"
 FILES_libicui18n = "${libdir}/libicui18n.so.*"
-FILES_libicule = "${libdir}/libicule.so.*"
-FILES_libiculx = "${libdir}/libiculx.so.*"
 FILES_libicutu = "${libdir}/libicutu.so.*"
 FILES_libicuio = "${libdir}/libicuio.so.*"
 

@@ -1,25 +1,16 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 
+import logging
 import os
 
-from wic import msger
+from wic import WicError
 from wic.pluginbase import SourcePlugin
-from wic.utils.oe.misc import exec_cmd, get_bitbake_var
+from wic.misc import exec_cmd, get_bitbake_var
+from wic.filemap import sparse_copy
+
+logger = logging.getLogger('wic')
 
 class RawCopyPlugin(SourcePlugin):
     """
@@ -28,24 +19,24 @@ class RawCopyPlugin(SourcePlugin):
 
     name = 'rawcopy'
 
-    @classmethod
-    def do_install_disk(cls, disk, disk_name, cr, workdir, oe_builddir,
-                        bootimg_dir, kernel_dir, native_sysroot):
-        """
-        Called after all partitions have been prepared and assembled into a
-        disk image. Do nothing.
-        """
-        pass
+    @staticmethod
+    def do_image_label(fstype, dst, label):
+        if fstype.startswith('ext'):
+            cmd = 'tune2fs -L %s %s' % (label, dst)
+        elif fstype in ('msdos', 'vfat'):
+            cmd = 'dosfslabel %s %s' % (dst, label)
+        elif fstype == 'btrfs':
+            cmd = 'btrfs filesystem label %s %s' % (dst, label)
+        elif fstype == 'swap':
+            cmd = 'mkswap -L %s %s' % (label, dst)
+        elif fstype == 'squashfs':
+            raise WicError("It's not possible to update a squashfs "
+                           "filesystem label '%s'" % (label))
+        else:
+            raise WicError("Cannot update filesystem label: "
+                           "Unknown fstype: '%s'" % (fstype))
 
-    @classmethod
-    def do_configure_partition(cls, part, source_params, cr, cr_workdir,
-                               oe_builddir, bootimg_dir, kernel_dir,
-                               native_sysroot):
-        """
-        Called before do_prepare_partition(). Possibly prepare
-        configuration files of some sort.
-        """
-        pass
+        exec_cmd(cmd)
 
     @classmethod
     def do_prepare_partition(cls, part, source_params, cr, cr_workdir,
@@ -55,34 +46,36 @@ class RawCopyPlugin(SourcePlugin):
         Called to do the actual content population for a partition i.e. it
         'prepares' the partition to be incorporated into the image.
         """
-        if not bootimg_dir:
-            bootimg_dir = get_bitbake_var("DEPLOY_DIR_IMAGE")
-            if not bootimg_dir:
-                msger.error("Couldn't find DEPLOY_DIR_IMAGE, exiting\n")
+        if not kernel_dir:
+            kernel_dir = get_bitbake_var("DEPLOY_DIR_IMAGE")
+            if not kernel_dir:
+                raise WicError("Couldn't find DEPLOY_DIR_IMAGE, exiting")
 
-        msger.debug('Bootimg dir: %s' % bootimg_dir)
+        logger.debug('Kernel dir: %s', kernel_dir)
 
         if 'file' not in source_params:
-            msger.error("No file specified\n")
-            return
+            raise WicError("No file specified")
 
-        src = os.path.join(bootimg_dir, source_params['file'])
-        dst = os.path.join(cr_workdir, source_params['file'])
+        src = os.path.join(kernel_dir, source_params['file'])
+        dst = os.path.join(cr_workdir, "%s.%s" % (os.path.basename(source_params['file']), part.lineno))
+
+        if not os.path.exists(os.path.dirname(dst)):
+            os.makedirs(os.path.dirname(dst))
 
         if 'skip' in source_params:
-            dd_cmd = "dd if=%s of=%s ibs=%s skip=1 conv=notrunc" % \
-                    (src, dst, source_params['skip'])
+            sparse_copy(src, dst, skip=int(source_params['skip']))
         else:
-            dd_cmd = "cp %s %s" % (src, dst)
-        exec_cmd(dd_cmd)
+            sparse_copy(src, dst)
 
         # get the size in the right units for kickstart (kB)
         du_cmd = "du -Lbks %s" % dst
         out = exec_cmd(du_cmd)
-        filesize = out.split()[0]
+        filesize = int(out.split()[0])
 
-        if int(filesize) > int(part.size):
+        if filesize > part.size:
             part.size = filesize
 
-        part.source_file = dst
+        if part.label:
+            RawCopyPlugin.do_image_label(part.fstype, dst, part.label)
 
+        part.source_file = dst

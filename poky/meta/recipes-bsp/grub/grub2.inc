@@ -11,42 +11,62 @@ SECTION = "bootloaders"
 LICENSE = "GPLv3"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
-SRC_URI = "ftp://ftp.gnu.org/gnu/grub/grub-${PV}.tar.gz \
-           file://grub-2.00-fpmath-sse-387-fix.patch \
-           file://check-if-liblzma-is-disabled.patch \
-           file://fix-issue-with-flex-2.5.37.patch \
-           file://grub-2.00-add-oe-kernel.patch \
-           file://grub-install.in.patch \
-           file://remove-gets.patch \
-           file://fix-endianness-problem.patch \
-           file://grub2-remove-sparc64-setup-from-x86-builds.patch \
-           file://grub-2.00-fix-enable_execute_stack-check.patch \
-           file://grub-no-unused-result.patch \
-           file://grub-efi-allow-a-compilation-without-mcmodel-large.patch \
-           file://grub-efi-fix-with-glibc-2.20.patch \
-           file://0001-Unset-need_charset_alias-when-building-for-musl.patch \
-           file://0001-parse_dhcp_vendor-Add-missing-const-qualifiers.patch \
-           file://grub2-fix-initrd-size-bug.patch \
-           file://CVE-2015-8370.patch \
-            "
+CVE_PRODUCT = "grub2"
 
-DEPENDS = "flex-native bison-native xz"
+SRC_URI = "${GNU_MIRROR}/grub/grub-${PV}.tar.gz \
+           file://0001-Disable-mfpmath-sse-as-well-when-SSE-is-disabled.patch \
+           file://autogen.sh-exclude-pc.patch \
+           file://grub-module-explicitly-keeps-symbole-.module_license.patch \
+           file://0001-grub.d-10_linux.in-add-oe-s-kernel-name.patch \
+"
+SRC_URI[md5sum] = "5ce674ca6b2612d8939b9e6abed32934"
+SRC_URI[sha256sum] = "f10c85ae3e204dbaec39ae22fa3c5e99f0665417e91c2cb49b7e5031658ba6ea"
 
-SRC_URI[md5sum] = "e927540b6eda8b024fb0391eeaa4091c"
-SRC_URI[sha256sum] = "65b39a0558f8c802209c574f4d02ca263a804e8a564bc6caf1cd0fd3b3cc11e3"
+DEPENDS = "flex-native bison-native gettext-native"
 
-COMPATIBLE_HOST = '(x86_64.*|i.86.*)-(linux|freebsd.*)'
+COMPATIBLE_HOST = '(x86_64.*|i.86.*|arm.*|aarch64.*)-(linux.*|freebsd.*)'
+COMPATIBLE_HOST_armv7a = 'null'
+COMPATIBLE_HOST_armv7ve = 'null'
 
-inherit autotools gettext texinfo
+# configure.ac has code to set this automagically from the target tuple
+# but the OE freeform one (core2-foo-bar-linux) don't work with that.
+
+GRUBPLATFORM_arm = "efi"
+GRUBPLATFORM_aarch64 = "efi"
+GRUBPLATFORM ??= "pc"
+
+inherit autotools gettext texinfo pkgconfig
+
+EXTRA_OECONF = "--with-platform=${GRUBPLATFORM} \
+                --disable-grub-mkfont \
+                --program-prefix="" \
+                --enable-liblzma=no \
+                --enable-libzfs=no \
+                --enable-largefile \
+                --disable-werror \
+"
 
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[grub-mount] = "--enable-grub-mount,--disable-grub-mount,fuse"
-PACKAGECONFIG[device-mapper] = "--enable-device-mapper,--disable-device-mapper,lvm2"
+PACKAGECONFIG[device-mapper] = "--enable-device-mapper,--disable-device-mapper,libdevmapper"
 
-# grub and grub-efi's sysroot/${datadir}/grub/grub-mkconfig_lib are
-# conflicted, remove it since no one uses it.
-SYSROOT_PREPROCESS_FUNCS_class-target += "remove_sysroot_mkconfig_lib"
-remove_sysroot_mkconfig_lib() {
-    rm -r "${SYSROOT_DESTDIR}${datadir}/grub/grub-mkconfig_lib"
+# grub2 creates its own set of -nostdinc / -isystem / -ffreestanding CFLAGS and
+# OE's default BUILD_CFLAGS (assigned to CFLAGS for native builds) etc, conflict
+# with that. Note that since BUILD_CFLAGS etc are not used by grub2 target
+# builds, it's safe to clear them unconditionally for both target and native.
+BUILD_CPPFLAGS = ""
+BUILD_CFLAGS = ""
+BUILD_CXXFLAGS = ""
+BUILD_LDFLAGS = ""
+
+export PYTHON = "python3"
+
+do_configure_prepend() {
+	cd ${S}
+	FROM_BOOTSTRAP=1 ${S}/autogen.sh
+	cd ${B}
 }
 
+RDEPENDS_${PN}_class-native = ""
+
+BBCLASSEXTEND = "native"

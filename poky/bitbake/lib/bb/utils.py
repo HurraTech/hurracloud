@@ -1,23 +1,11 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 """
 BitBake Utility Functions
 """
 
 # Copyright (C) 2004 Michael Lauer
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import re, fcntl, os, string, stat, shutil, time
 import sys
@@ -27,18 +15,24 @@ import bb
 import bb.msg
 import multiprocessing
 import fcntl
+import importlib
+from importlib import machinery
+import itertools
 import subprocess
 import glob
 import fnmatch
 import traceback
 import errno
 import signal
-from commands import getstatusoutput
+import collections
+import copy
+from subprocess import getstatusoutput
 from contextlib import contextmanager
 from ctypes import cdll
 
-
 logger = logging.getLogger("BitBake.Util")
+python_extensions = importlib.machinery.all_suffixes()
+
 
 def clean_context():
     return {
@@ -62,15 +56,15 @@ class VersionStringException(Exception):
 
 def explode_version(s):
     r = []
-    alpha_regexp = re.compile('^([a-zA-Z]+)(.*)$')
-    numeric_regexp = re.compile('^(\d+)(.*)$')
+    alpha_regexp = re.compile(r'^([a-zA-Z]+)(.*)$')
+    numeric_regexp = re.compile(r'^(\d+)(.*)$')
     while (s != ''):
         if s[0] in string.digits:
             m = numeric_regexp.match(s)
             r.append((0, int(m.group(1))))
             s = m.group(2)
             continue
-        if s[0] in string.letters:
+        if s[0] in string.ascii_letters:
             m = alpha_regexp.match(s)
             r.append((1, m.group(1)))
             s = m.group(2)
@@ -113,6 +107,10 @@ def vercmp_part(a, b):
         if oa < ob:
             return -1
         elif oa > ob:
+            return 1
+        elif ca is None:
+            return -1
+        elif cb is None:
             return 1
         elif ca < cb:
             return -1
@@ -181,13 +179,13 @@ def explode_deps(s):
             #r[-1] += ' ' + ' '.join(j)
     return r
 
-def explode_dep_versions2(s):
+def explode_dep_versions2(s, *, sort=True):
     """
     Take an RDEPENDS style string of format:
     "DEPEND1 (optional version) DEPEND2 (optional version) ..."
     and return a dictionary of dependencies and versions.
     """
-    r = {}
+    r = collections.OrderedDict()
     l = s.replace(",", "").split()
     lastdep = None
     lastcmp = ""
@@ -244,6 +242,8 @@ def explode_dep_versions2(s):
         if not (i in r and r[i]):
             r[lastdep] = []
 
+    if sort:
+        r = collections.OrderedDict(sorted(r.items(), key=lambda x: x[0]))
     return r
 
 def explode_dep_versions(s):
@@ -291,21 +291,31 @@ def _print_trace(body, line):
             error.append('     %.4d:%s' % (i, body[i-1].rstrip()))
     return error
 
-def better_compile(text, file, realfile, mode = "exec"):
+def better_compile(text, file, realfile, mode = "exec", lineno = 0):
     """
     A better compile method. This method
     will print the offending lines.
     """
     try:
-        return compile(text, file, mode)
+        cache = bb.methodpool.compile_cache(text)
+        if cache:
+            return cache
+        # We can't add to the linenumbers for compile, we can pad to the correct number of blank lines though
+        text2 = "\n" * int(lineno) + text
+        code = compile(text2, realfile, mode)
+        bb.methodpool.compile_cache_add(text, code)
+        return code
     except Exception as e:
         error = []
         # split the text into lines again
         body = text.split('\n')
-        error.append("Error in compiling python function in %s:\n" % realfile)
-        if e.lineno:
+        error.append("Error in compiling python function in %s, line %s:\n" % (realfile, e.lineno))
+        if hasattr(e, "lineno"):
             error.append("The code lines resulting in this error were:")
-            error.extend(_print_trace(body, e.lineno))
+            # e.lineno: line's position in reaflile
+            # lineno: function name's "position -1" in realfile
+            # e.lineno - lineno: line's relative position in function
+            error.extend(_print_trace(body, e.lineno - lineno))
         else:
             error.append("The function causing this error was:")
             for line in body:
@@ -323,8 +333,10 @@ def _print_exception(t, value, tb, realfile, text, context):
         exception = traceback.format_exception_only(t, value)
         error.append('Error executing a python function in %s:\n' % realfile)
 
-        # Strip 'us' from the stack (better_exec call)
-        tb = tb.tb_next
+        # Strip 'us' from the stack (better_exec call) unless that was where the 
+        # error came from
+        if tb.tb_next is not None:
+            tb = tb.tb_next
 
         textarray = text.split('\n')
 
@@ -353,25 +365,22 @@ def _print_exception(t, value, tb, realfile, text, context):
                         error.extend(_print_trace(text, tbextract[level+1][1]))
                 except:
                     error.append(tbformat[level+1])
-            elif "d" in context and tbextract[level+1][2]:
-                # Try and find the code in the datastore based on the functionname
-                d = context["d"]
-                functionname = tbextract[level+1][2]
-                text = d.getVar(functionname, True)
-                if text:
-                    error.extend(_print_trace(text.split('\n'), tbextract[level+1][1]))
-                else:
-                    error.append(tbformat[level+1])
             else:
                 error.append(tbformat[level+1])
             nexttb = tb.tb_next
             level = level + 1
 
         error.append("Exception: %s" % ''.join(exception))
+
+        # If the exception is from spwaning a task, let's be helpful and display
+        # the output (which hopefully includes stderr).
+        if isinstance(value, subprocess.CalledProcessError) and value.output:
+            error.append("Subprocess output:")
+            error.append(value.output.decode("utf-8", errors="ignore"))
     finally:
         logger.error("\n".join(error))
 
-def better_exec(code, context, text = None, realfile = "<code>"):
+def better_exec(code, context, text = None, realfile = "<code>", pythonexception=False):
     """
     Similiar to better_compile, better_exec will
     print the lines that are responsible for the
@@ -384,10 +393,12 @@ def better_exec(code, context, text = None, realfile = "<code>"):
         code = better_compile(code, realfile, realfile)
     try:
         exec(code, get_context(), context)
-    except (bb.BBHandledException, bb.parse.SkipRecipe, bb.build.FuncFailed, bb.data_smart.ExpansionError):
+    except (bb.BBHandledException, bb.parse.SkipRecipe, bb.data_smart.ExpansionError):
         # Error already shown so passthrough, no need for traceback
         raise
     except Exception as e:
+        if pythonexception:
+            raise
         (t, value, tb) = sys.exc_info()
         try:
             _print_exception(t, value, tb, realfile, text, context)
@@ -400,8 +411,13 @@ def better_exec(code, context, text = None, realfile = "<code>"):
 def simple_exec(code, context):
     exec(code, get_context(), context)
 
-def better_eval(source, locals):
-    return eval(source, get_context(), locals)
+def better_eval(source, locals, extraglobals = None):
+    ctx = get_context()
+    if extraglobals:
+        ctx = copy.copy(ctx)
+        for g in extraglobals:
+            ctx[g] = extraglobals[g]
+    return eval(source, ctx, locals)
 
 @contextmanager
 def fileslocked(files):
@@ -411,10 +427,11 @@ def fileslocked(files):
         for lockfile in files:
             locks.append(bb.utils.lockfile(lockfile))
 
-    yield
-
-    for lock in locks:
-        bb.utils.unlockfile(lock)
+    try:
+        yield
+    finally:
+        for lock in locks:
+            bb.utils.unlockfile(lock)
 
 @contextmanager
 def timeout(seconds):
@@ -476,7 +493,11 @@ def lockfile(name, shared=False, retry=True, block=False):
                 if statinfo.st_ino == statinfo2.st_ino:
                     return lf
             lf.close()
-        except Exception:
+        except OSError as e:
+            if e.errno == errno.EACCES:
+                logger.error("Unable to acquire lock '%s', %s",
+                             e.strerror, name)
+                sys.exit(1)
             try:
                 lf.close()
             except Exception:
@@ -499,39 +520,55 @@ def unlockfile(lf):
     fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
     lf.close()
 
+def _hasher(method, filename):
+    import mmap
+
+    with open(filename, "rb") as f:
+        try:
+            with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+                for chunk in iter(lambda: mm.read(8192), b''):
+                    method.update(chunk)
+        except ValueError:
+            # You can't mmap() an empty file so silence this exception
+            pass
+    return method.hexdigest()
+
+
 def md5_file(filename):
     """
     Return the hex string representation of the MD5 checksum of filename.
     """
-    try:
-        import hashlib
-        m = hashlib.md5()
-    except ImportError:
-        import md5
-        m = md5.new()
-
-    with open(filename, "rb") as f:
-        for line in f:
-            m.update(line)
-    return m.hexdigest()
+    import hashlib
+    return _hasher(hashlib.md5(), filename)
 
 def sha256_file(filename):
     """
     Return the hex string representation of the 256-bit SHA checksum of
-    filename.  On Python 2.4 this will return None, so callers will need to
-    handle that by either skipping SHA checks, or running a standalone sha256sum
-    binary.
+    filename.
     """
-    try:
-        import hashlib
-    except ImportError:
-        return None
+    import hashlib
+    return _hasher(hashlib.sha256(), filename)
 
-    s = hashlib.sha256()
-    with open(filename, "rb") as f:
-        for line in f:
-            s.update(line)
-    return s.hexdigest()
+def sha1_file(filename):
+    """
+    Return the hex string representation of the SHA1 checksum of the filename
+    """
+    import hashlib
+    return _hasher(hashlib.sha1(), filename)
+
+def sha384_file(filename):
+    """
+    Return the hex string representation of the SHA384 checksum of the filename
+    """
+    import hashlib
+    return _hasher(hashlib.sha384(), filename)
+
+def sha512_file(filename):
+    """
+    Return the hex string representation of the SHA512 checksum of the filename
+    """
+    import hashlib
+    return _hasher(hashlib.sha512(), filename)
 
 def preserved_envvars_exported():
     """Variables which are taken from the environment and placed in and exported
@@ -545,6 +582,8 @@ def preserved_envvars_exported():
         'SHELL',
         'TERM',
         'USER',
+        'LC_ALL',
+        'BBSERVER',
     ]
 
 def preserved_envvars():
@@ -564,13 +603,18 @@ def filter_environment(good_vars):
     """
 
     removed_vars = {}
-    for key in os.environ.keys():
+    for key in list(os.environ):
         if key in good_vars:
             continue
 
         removed_vars[key] = os.environ[key]
-        os.unsetenv(key)
         del os.environ[key]
+
+    # If we spawn a python process, we need to have a UTF-8 locale, else python's file
+    # access methods will use ascii. You can't change that mode once the interpreter is
+    # started so we have to ensure a locale is set. Ideally we'd use C.UTF-8 but not all
+    # distros support that and we need to set something.
+    os.environ["LC_ALL"] = "en_US.UTF-8"
 
     if removed_vars:
         logger.debug(1, "Removed the following variables from the environment: %s", ", ".join(removed_vars.keys()))
@@ -611,7 +655,7 @@ def empty_environment():
     """
     Remove all variables from the environment.
     """
-    for s in os.environ.keys():
+    for s in list(os.environ.keys()):
         os.unsetenv(s)
         del os.environ[s]
 
@@ -621,9 +665,9 @@ def build_environment(d):
     """
     import bb.data
     for var in bb.data.keys(d):
-        export = d.getVarFlag(var, "export")
+        export = d.getVarFlag(var, "export", False)
         if export:
-            os.environ[var] = d.getVar(var, True) or ""
+            os.environ[var] = d.getVar(var) or ""
 
 def _check_unsafe_delete_path(path):
     """
@@ -641,7 +685,7 @@ def _check_unsafe_delete_path(path):
         return True
     return False
 
-def remove(path, recurse=False):
+def remove(path, recurse=False, ionice=False):
     """Equivalent to rm -f or rm -rf"""
     if not path:
         return
@@ -650,7 +694,10 @@ def remove(path, recurse=False):
             if _check_unsafe_delete_path(path):
                 raise Exception('bb.utils.remove: called with dangerous path "%s" and recurse=True, refusing to delete!' % path)
         # shutil.rmtree(name) would be ideal but its too slow
-        subprocess.call(['rm', '-rf'] + glob.glob(path))
+        cmd = []
+        if ionice:
+            cmd = ['ionice', '-c', '3']
+        subprocess.check_call(cmd + ['rm', '-rf'] + glob.glob(path))
         return
     for name in glob.glob(path):
         try:
@@ -659,20 +706,12 @@ def remove(path, recurse=False):
             if exc.errno != errno.ENOENT:
                 raise
 
-def prunedir(topdir):
+def prunedir(topdir, ionice=False):
     # Delete everything reachable from the directory named in 'topdir'.
     # CAUTION:  This is dangerous!
     if _check_unsafe_delete_path(topdir):
         raise Exception('bb.utils.prunedir: called with dangerous path "%s", refusing to delete!' % topdir)
-    for root, dirs, files in os.walk(topdir, topdown = False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            if os.path.islink(os.path.join(root, name)):
-                os.remove(os.path.join(root, name))
-            else:
-                os.rmdir(os.path.join(root, name))
-    os.rmdir(topdir)
+    remove(topdir, recurse=True, ionice=ionice)
 
 #
 # Could also use return re.compile("(%s)" % "|".join(map(re.escape, suffixes))).sub(lambda mo: "", var)
@@ -682,8 +721,8 @@ def prune_suffix(var, suffixes, d):
     # See if var ends with any of the suffixes listed and
     # remove it if found
     for suffix in suffixes:
-        if var.endswith(suffix):
-            return var.replace(suffix, "")
+        if suffix and var.endswith(suffix):
+            return var[:-len(suffix)]
     return var
 
 def mkdirhier(directory):
@@ -694,7 +733,7 @@ def mkdirhier(directory):
     try:
         os.makedirs(directory)
     except OSError as e:
-        if e.errno != errno.EEXIST:
+        if e.errno != errno.EEXIST or not os.path.isdir(directory):
             raise e
 
 def movefile(src, dest, newmtime = None, sstat = None):
@@ -741,17 +780,18 @@ def movefile(src, dest, newmtime = None, sstat = None):
             return None
 
     renamefailed = 1
+    # os.rename needs to know the dest path ending with file name
+    # so append the file name to a path only if it's a dir specified
+    srcfname = os.path.basename(src)
+    destpath = os.path.join(dest, srcfname) if os.path.isdir(dest) \
+                else dest
+
     if sstat[stat.ST_DEV] == dstat[stat.ST_DEV]:
         try:
-            # os.rename needs to know the dest path ending with file name
-            # so append the file name to a path only if it's a dir specified
-            srcfname = os.path.basename(src)
-            destpath = os.path.join(dest, srcfname) if os.path.isdir(dest) \
-                        else dest
             os.rename(src, destpath)
             renamefailed = 0
         except Exception as e:
-            if e[0] != errno.EXDEV:
+            if e.errno != errno.EXDEV:
                 # Some random error.
                 print("movefile: Failed to move", src, "to", dest, e)
                 return None
@@ -761,8 +801,8 @@ def movefile(src, dest, newmtime = None, sstat = None):
         didcopy = 0
         if stat.S_ISREG(sstat[stat.ST_MODE]):
             try: # For safety copy then move it over.
-                shutil.copyfile(src, dest + "#new")
-                os.rename(dest + "#new", dest)
+                shutil.copyfile(src, destpath + "#new")
+                os.rename(destpath + "#new", destpath)
                 didcopy = 1
             except Exception as e:
                 print('movefile: copy', src, '->', dest, 'failed.', e)
@@ -775,17 +815,17 @@ def movefile(src, dest, newmtime = None, sstat = None):
                 return None # failure
         try:
             if didcopy:
-                os.lchown(dest, sstat[stat.ST_UID], sstat[stat.ST_GID])
-                os.chmod(dest, stat.S_IMODE(sstat[stat.ST_MODE])) # Sticky is reset on chown
+                os.lchown(destpath, sstat[stat.ST_UID], sstat[stat.ST_GID])
+                os.chmod(destpath, stat.S_IMODE(sstat[stat.ST_MODE])) # Sticky is reset on chown
                 os.unlink(src)
         except Exception as e:
             print("movefile: Failed to chown/chmod/unlink", dest, e)
             return None
 
     if newmtime:
-        os.utime(dest, (newmtime, newmtime))
+        os.utime(destpath, (newmtime, newmtime))
     else:
-        os.utime(dest, (sstat[stat.ST_ATIME], sstat[stat.ST_MTIME]))
+        os.utime(destpath, (sstat[stat.ST_ATIME], sstat[stat.ST_MTIME]))
         newmtime = sstat[stat.ST_MTIME]
     return newmtime
 
@@ -800,7 +840,7 @@ def copyfile(src, dest, newmtime = None, sstat = None):
         if not sstat:
             sstat = os.lstat(src)
     except Exception as e:
-        logger.warn("copyfile: stat of %s failed (%s)" % (src, e))
+        logger.warning("copyfile: stat of %s failed (%s)" % (src, e))
         return False
 
     destexists = 1
@@ -824,10 +864,10 @@ def copyfile(src, dest, newmtime = None, sstat = None):
             if destexists and not stat.S_ISDIR(dstat[stat.ST_MODE]):
                 os.unlink(dest)
             os.symlink(target, dest)
-            #os.lchown(dest,sstat[stat.ST_UID],sstat[stat.ST_GID])
+            os.lchown(dest,sstat[stat.ST_UID],sstat[stat.ST_GID])
             return os.lstat(dest)
         except Exception as e:
-            logger.warn("copyfile: failed to create symlink %s to %s (%s)" % (dest, target, e))
+            logger.warning("copyfile: failed to create symlink %s to %s (%s)" % (dest, target, e))
             return False
 
     if stat.S_ISREG(sstat[stat.ST_MODE]):
@@ -842,7 +882,7 @@ def copyfile(src, dest, newmtime = None, sstat = None):
             shutil.copyfile(src, dest + "#new")
             os.rename(dest + "#new", dest)
         except Exception as e:
-            logger.warn("copyfile: copy %s to %s failed (%s)" % (src, dest, e))
+            logger.warning("copyfile: copy %s to %s failed (%s)" % (src, dest, e))
             return False
         finally:
             if srcchown:
@@ -853,13 +893,13 @@ def copyfile(src, dest, newmtime = None, sstat = None):
         #we don't yet handle special, so we need to fall back to /bin/mv
         a = getstatusoutput("/bin/cp -f " + "'" + src + "' '" + dest + "'")
         if a[0] != 0:
-            logger.warn("copyfile: failed to copy special file %s to %s (%s)" % (src, dest, a))
+            logger.warning("copyfile: failed to copy special file %s to %s (%s)" % (src, dest, a))
             return False # failure
     try:
         os.lchown(dest, sstat[stat.ST_UID], sstat[stat.ST_GID])
         os.chmod(dest, stat.S_IMODE(sstat[stat.ST_MODE])) # Sticky is reset on chown
     except Exception as e:
-        logger.warn("copyfile: failed to chown/chmod %s (%s)" % (dest, e))
+        logger.warning("copyfile: failed to chown/chmod %s (%s)" % (dest, e))
         return False
 
     if newmtime:
@@ -869,10 +909,36 @@ def copyfile(src, dest, newmtime = None, sstat = None):
         newmtime = sstat[stat.ST_MTIME]
     return newmtime
 
-def which(path, item, direction = 0, history = False):
+def break_hardlinks(src, sstat = None):
     """
-    Locate a file in a PATH
+    Ensures src is the only hardlink to this file.  Other hardlinks,
+    if any, are not affected (other than in their st_nlink value, of
+    course).  Returns true on success and false on failure.
+
     """
+    try:
+        if not sstat:
+            sstat = os.lstat(src)
+    except Exception as e:
+        logger.warning("break_hardlinks: stat of %s failed (%s)" % (src, e))
+        return False
+    if sstat[stat.ST_NLINK] == 1:
+        return True
+    return copyfile(src, src, sstat=sstat)
+
+def which(path, item, direction = 0, history = False, executable=False):
+    """
+    Locate `item` in the list of paths `path` (colon separated string like $PATH).
+    If `direction` is non-zero then the list is reversed.
+    If `history` is True then the list of candidates also returned as result,history.
+    If `executable` is True then the candidate has to be an executable file,
+    otherwise the candidate simply has to exist.
+    """
+
+    if executable:
+        is_candidate = lambda p: os.path.isfile(p) and os.access(p, os.X_OK)
+    else:
+        is_candidate = lambda p: os.path.exists(p)
 
     hist = []
     paths = (path or "").split(':')
@@ -882,7 +948,7 @@ def which(path, item, direction = 0, history = False):
     for p in paths:
         next = os.path.join(p, item)
         hist.append(next)
-        if os.path.exists(next):
+        if is_candidate(next):
             if not os.path.isabs(next):
                 next = os.path.abspath(next)
             if history:
@@ -906,30 +972,109 @@ def to_boolean(string, default=None):
         raise ValueError("Invalid value for to_boolean: %s" % string)
 
 def contains(variable, checkvalues, truevalue, falsevalue, d):
-    val = d.getVar(variable, True)
+    """Check if a variable contains all the values specified.
+
+    Arguments:
+
+    variable -- the variable name. This will be fetched and expanded (using
+    d.getVar(variable)) and then split into a set().
+
+    checkvalues -- if this is a string it is split on whitespace into a set(),
+    otherwise coerced directly into a set().
+
+    truevalue -- the value to return if checkvalues is a subset of variable.
+
+    falsevalue -- the value to return if variable is empty or if checkvalues is
+    not a subset of variable.
+
+    d -- the data store.
+    """
+
+    val = d.getVar(variable)
     if not val:
         return falsevalue
     val = set(val.split())
-    if isinstance(checkvalues, basestring):
+    if isinstance(checkvalues, str):
         checkvalues = set(checkvalues.split())
     else:
         checkvalues = set(checkvalues)
-    if checkvalues.issubset(val): 
+    if checkvalues.issubset(val):
         return truevalue
     return falsevalue
 
 def contains_any(variable, checkvalues, truevalue, falsevalue, d):
-    val = d.getVar(variable, True)
+    val = d.getVar(variable)
     if not val:
         return falsevalue
     val = set(val.split())
-    if isinstance(checkvalues, basestring):
+    if isinstance(checkvalues, str):
         checkvalues = set(checkvalues.split())
     else:
         checkvalues = set(checkvalues)
     if checkvalues & val:
         return truevalue
     return falsevalue
+
+def filter(variable, checkvalues, d):
+    """Return all words in the variable that are present in the checkvalues.
+
+    Arguments:
+
+    variable -- the variable name. This will be fetched and expanded (using
+    d.getVar(variable)) and then split into a set().
+
+    checkvalues -- if this is a string it is split on whitespace into a set(),
+    otherwise coerced directly into a set().
+
+    d -- the data store.
+    """
+
+    val = d.getVar(variable)
+    if not val:
+        return ''
+    val = set(val.split())
+    if isinstance(checkvalues, str):
+        checkvalues = set(checkvalues.split())
+    else:
+        checkvalues = set(checkvalues)
+    return ' '.join(sorted(checkvalues & val))
+
+
+def get_referenced_vars(start_expr, d):
+    """
+    :return: names of vars referenced in start_expr (recursively), in quasi-BFS order (variables within the same level
+    are ordered arbitrarily)
+    """
+
+    seen = set()
+    ret = []
+
+    # The first entry in the queue is the unexpanded start expression
+    queue = collections.deque([start_expr])
+    # Subsequent entries will be variable names, so we need to track whether or not entry requires getVar
+    is_first = True
+
+    empty_data = bb.data.init()
+    while queue:
+        entry = queue.popleft()
+        if is_first:
+            # Entry is the start expression - no expansion needed
+            is_first = False
+            expression = entry
+        else:
+            # This is a variable name - need to get the value
+            expression = d.getVar(entry, False)
+            ret.append(entry)
+
+        # expandWithRefs is how we actually get the referenced variables in the expression. We call it using an empty
+        # data store because we only want the variables directly used in the expression. It returns a set, which is what
+        # dooms us to only ever be "quasi-BFS" rather than full BFS.
+        new_vars = empty_data.expandWithRefs(expression, None).references - set(seen)
+
+        queue.extend(new_vars)
+        seen.update(new_vars)
+    return ret
+
 
 def cpu_count():
     return multiprocessing.cpu_count()
@@ -992,7 +1137,7 @@ def exec_flat_python_func(func, *args, **kwargs):
         aidx += 1
     # Handle keyword arguments
     context.update(kwargs)
-    funcargs.extend(['%s=%s' % (arg, arg) for arg in kwargs.iterkeys()])
+    funcargs.extend(['%s=%s' % (arg, arg) for arg in kwargs.keys()])
     code = 'retval = %s(%s)' % (func, ', '.join(funcargs))
     comp = bb.utils.better_compile(code, '<string>', '<string>')
     bb.utils.better_exec(comp, context, code, '<string>')
@@ -1021,7 +1166,7 @@ def edit_metadata(meta_lines, variables, varfunc, match_overrides=False):
                 newlines: list of lines up to this point. You can use
                     this to prepend lines before this variable setting
                     if you wish.
-            and should return a three-element tuple:
+            and should return a four-element tuple:
                 newvalue: new value to substitute in, or None to drop
                     the variable setting entirely. (If the removal
                     results in two consecutive blank lines, one of the
@@ -1035,6 +1180,8 @@ def edit_metadata(meta_lines, variables, varfunc, match_overrides=False):
                     multi-line value to continue on the same line as
                     the assignment, False to indent before the first
                     element.
+            To clarify, if you wish not to change the value, then you
+            would return like this: return origvalue, None, 0, True
         match_overrides: True to match items with _overrides on the end,
             False otherwise
     Returns a tuple:
@@ -1046,14 +1193,14 @@ def edit_metadata(meta_lines, variables, varfunc, match_overrides=False):
 
     var_res = {}
     if match_overrides:
-        override_re = '(_[a-zA-Z0-9-_$(){}]+)?'
+        override_re = r'(_[a-zA-Z0-9-_$(){}]+)?'
     else:
         override_re = ''
     for var in variables:
         if var.endswith('()'):
-            var_res[var] = re.compile('^(%s%s)[ \\t]*\([ \\t]*\)[ \\t]*{' % (var[:-2].rstrip(), override_re))
+            var_res[var] = re.compile(r'^(%s%s)[ \\t]*\([ \\t]*\)[ \\t]*{' % (var[:-2].rstrip(), override_re))
         else:
-            var_res[var] = re.compile('^(%s%s)[ \\t]*[?+:.]*=[+.]*[ \\t]*(["\'])' % (var, override_re))
+            var_res[var] = re.compile(r'^(%s%s)[ \\t]*[?+:.]*=[+.]*[ \\t]*(["\'])' % (var, override_re))
 
     updated = False
     varset_start = ''
@@ -1079,7 +1226,7 @@ def edit_metadata(meta_lines, variables, varfunc, match_overrides=False):
             else:
                 varset_new = varset_start
 
-            if isinstance(indent, (int, long)):
+            if isinstance(indent, int):
                 if indent == -1:
                     indentspc = ' ' * (len(varset_new) + 2)
                 else:
@@ -1140,14 +1287,14 @@ def edit_metadata(meta_lines, variables, varfunc, match_overrides=False):
                 if in_var.endswith('()'):
                     if full_value.count('{') - full_value.count('}') >= 0:
                         continue
-                full_value = full_value[:-1]
+                    full_value = full_value[:-1]
                 if handle_var_end():
                     updated = True
                     checkspc = True
                 in_var = None
         else:
             skip = False
-            for (varname, var_re) in var_res.iteritems():
+            for (varname, var_re) in var_res.items():
                 res = var_re.match(line)
                 if res:
                     isfunc = varname.endswith('()')
@@ -1200,7 +1347,7 @@ def edit_metadata_file(meta_file, variables, varfunc):
     return updated
 
 
-def edit_bblayers_conf(bblayers_conf, add, remove):
+def edit_bblayers_conf(bblayers_conf, add, remove, edit_cb=None):
     """Edit bblayers.conf, adding and/or removing layers
     Parameters:
         bblayers_conf: path to bblayers.conf file to edit
@@ -1208,6 +1355,8 @@ def edit_bblayers_conf(bblayers_conf, add, remove):
             list to add nothing
         remove: layer path (or list of layer paths) to remove; None or
             empty list to remove nothing
+        edit_cb: optional callback function that will be called after
+            processing adds/removes once per existing entry.
     Returns a tuple:
         notadded: list of layers specified to be added but weren't
             (because they were already in the list)
@@ -1271,6 +1420,17 @@ def edit_bblayers_conf(bblayers_conf, add, remove):
                     bblayers.append(addlayer)
             del addlayers[:]
 
+        if edit_cb:
+            newlist = []
+            for layer in bblayers:
+                res = edit_cb(layer, canonicalise_path(layer))
+                if res != layer:
+                    newlist.append(res)
+                    updated = True
+                else:
+                    newlist.append(layer)
+            bblayers = newlist
+
         if updated:
             if op == '+=' and not bblayers:
                 bblayers = None
@@ -1316,23 +1476,23 @@ def edit_bblayers_conf(bblayers_conf, add, remove):
 
 def get_file_layer(filename, d):
     """Determine the collection (as defined by a layer's layer.conf file) containing the specified file"""
-    collections = (d.getVar('BBFILE_COLLECTIONS', True) or '').split()
+    collections = (d.getVar('BBFILE_COLLECTIONS') or '').split()
     collection_res = {}
     for collection in collections:
-        collection_res[collection] = d.getVar('BBFILE_PATTERN_%s' % collection, True) or ''
+        collection_res[collection] = d.getVar('BBFILE_PATTERN_%s' % collection) or ''
 
     def path_to_layer(path):
         # Use longest path so we handle nested layers
         matchlen = 0
         match = None
-        for collection, regex in collection_res.iteritems():
+        for collection, regex in collection_res.items():
             if len(regex) > matchlen and re.match(regex, path):
                 matchlen = len(regex)
                 match = collection
         return match
 
     result = None
-    bbfiles = (d.getVar('BBFILES', True) or '').split()
+    bbfiles = (d.getVar('BBFILES') or '').split()
     bbfilesmatch = False
     for bbfilesentry in bbfiles:
         if fnmatch.fnmatch(filename, bbfilesentry):
@@ -1377,6 +1537,8 @@ def ioprio_set(who, cls, value):
       NR_ioprio_set = 251
     elif _unamearch[0] == "i" and _unamearch[2:3] == "86":
       NR_ioprio_set = 289
+    elif _unamearch == "aarch64":
+      NR_ioprio_set = 30
 
     if NR_ioprio_set:
         ioprio = value | (cls << IOPRIO_CLASS_SHIFT)
@@ -1385,3 +1547,93 @@ def ioprio_set(who, cls, value):
             raise ValueError("Unable to set ioprio, syscall returned %s" % rc)
     else:
         bb.warn("Unable to set IO Prio for arch %s" % _unamearch)
+
+def set_process_name(name):
+    from ctypes import cdll, byref, create_string_buffer
+    # This is nice to have for debugging, not essential
+    try:
+        libc = cdll.LoadLibrary('libc.so.6')
+        buf = create_string_buffer(bytes(name, 'utf-8'))
+        libc.prctl(15, byref(buf), 0, 0, 0)
+    except:
+        pass
+
+# export common proxies variables from datastore to environment
+def export_proxies(d):
+    import os
+
+    variables = ['http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY',
+                    'ftp_proxy', 'FTP_PROXY', 'no_proxy', 'NO_PROXY',
+                    'GIT_PROXY_COMMAND']
+    exported = False
+
+    for v in variables:
+        if v in os.environ.keys():
+            exported = True
+        else:
+            v_proxy = d.getVar(v)
+            if v_proxy is not None:
+                os.environ[v] = v_proxy
+                exported = True
+
+    return exported
+
+
+def load_plugins(logger, plugins, pluginpath):
+    def load_plugin(name):
+        logger.debug(1, 'Loading plugin %s' % name)
+        spec = importlib.machinery.PathFinder.find_spec(name, path=[pluginpath] )
+        if spec:
+            return spec.loader.load_module()
+
+    logger.debug(1, 'Loading plugins from %s...' % pluginpath)
+
+    expanded = (glob.glob(os.path.join(pluginpath, '*' + ext))
+                for ext in python_extensions)
+    files = itertools.chain.from_iterable(expanded)
+    names = set(os.path.splitext(os.path.basename(fn))[0] for fn in files)
+    for name in names:
+        if name != '__init__':
+            plugin = load_plugin(name)
+            if hasattr(plugin, 'plugin_init'):
+                obj = plugin.plugin_init(plugins)
+                plugins.append(obj or plugin)
+            else:
+                plugins.append(plugin)
+
+
+class LogCatcher(logging.Handler):
+    """Logging handler for collecting logged messages so you can check them later"""
+    def __init__(self):
+        self.messages = []
+        logging.Handler.__init__(self, logging.WARNING)
+    def emit(self, record):
+        self.messages.append(bb.build.logformatter.format(record))
+    def contains(self, message):
+        return (message in self.messages)
+
+def is_semver(version):
+    """
+        Is the version string following the semver semantic?
+
+        https://semver.org/spec/v2.0.0.html
+    """
+    regex = re.compile(
+    r"""
+    ^
+    (0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)
+    (?:-(
+        (?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)
+        (?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*
+    ))?
+    (?:\+(
+        [0-9a-zA-Z-]+
+        (?:\.[0-9a-zA-Z-]+)*
+    ))?
+    $
+    """, re.VERBOSE)
+
+    if regex.match(version) is None:
+        return False
+
+    return True

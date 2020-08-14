@@ -17,13 +17,15 @@ SRC_URI = "${SOURCEFORGE_MIRROR}/linux-diag/sysfsutils-${PV}.tar.gz \
 
 SRC_URI[md5sum] = "14e7dcd0436d2f49aa403f67e1ef7ddc"
 SRC_URI[sha256sum] = "e865de2c1f559fff0d3fc936e660c0efaf7afe662064f2fb97ccad1ec28d208a"
+
+UPSTREAM_CHECK_URI = "http://sourceforge.net/projects/linux-diag/files/sysfsutils/"
+UPSTREAM_CHECK_REGEX = "/sysfsutils/(?P<pver>(\d+[\.\-_]*)+)/"
+
 S = "${WORKDIR}/sysfsutils-${PV}"
 
 inherit autotools
 
 PACKAGES =+ "libsysfs"
 FILES_libsysfs = "${libdir}/lib*${SOLIBS}"
-FILES_libsysfs-dev = "${libdir}/lib*${SOLIBSDEV} ${includedir}"
-FILES_libsysfs-staticdev = "${libdir}/lib*.a"
 
 export libdir = "${base_libdir}"

@@ -1,6 +1,28 @@
 require libgcc-common.inc
 
-DEPENDS = "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}g++"
+DEPENDS = "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}g++ virtual/${MLPREFIX}libc"
+
+do_install_append_class-target () {
+	if [ "${TCLIBC}" != "glibc" ]; then
+		case "${TARGET_OS}" in
+			"linux-musl" | "linux-*spe") extra_target_os="linux";;
+			"linux-musleabi") extra_target_os="linux-gnueabi";;
+			*) extra_target_os="linux";;
+		esac
+		if [ ! -e ${D}${libdir}/${TARGET_ARCH}${TARGET_VENDOR}-$extra_target_os ]; then
+			ln -s ${TARGET_SYS} ${D}${libdir}/${TARGET_ARCH}${TARGET_VENDOR}-$extra_target_os
+		fi
+	fi
+	if [ -n "${@ bb.utils.contains('TUNE_CCARGS_MFLOAT', 'hard', 'hf', '', d)}" ]; then
+		case "${TARGET_OS}" in
+			"linux-musleabi") extra_target_os="linux-musleabihf";;
+			"linux-gnueabi") extra_target_os="linux-gnueabihf";;
+		esac
+		if [ ! -e ${D}${libdir}/${TARGET_ARCH}${TARGET_VENDOR}-$extra_target_os ]; then
+			ln -s ${TARGET_SYS} ${D}${libdir}/${TARGET_ARCH}${TARGET_VENDOR}-$extra_target_os
+		fi
+	fi
+}
 
 PACKAGES = "\
     ${PN} \
@@ -17,13 +39,10 @@ LICENSE_${PN}-dbg = "GPL-3.0-with-GCC-exception"
 
 FILES_${PN}-dev = "\
     ${base_libdir}/libgcc*.so \
-    ${@base_conditional('BASETARGET_SYS', '${TARGET_SYS}', '', '${libdir}/${BASETARGET_SYS}', d)} \
+    ${@oe.utils.conditional('BASETARGET_SYS', '${TARGET_SYS}', '', '${libdir}/${BASETARGET_SYS}', d)} \
     ${libdir}/${TARGET_SYS}/${BINV}* \
+    ${libdir}/${TARGET_ARCH}${TARGET_VENDOR}* \
 "
-
-FILES_${PN}-dbg += "${base_libdir}/.debug/"
-
-LIBGCCBUILDTREENAME = "gcc-build-internal-"
 
 do_package[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 do_package_write_ipk[depends] += "virtual/${MLPREFIX}libc:do_packagedata"

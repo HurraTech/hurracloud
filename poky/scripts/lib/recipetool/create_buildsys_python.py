@@ -2,18 +2,8 @@
 #
 # Copyright (C) 2015 Mentor Graphics Corporation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import ast
 import codecs
@@ -41,11 +31,11 @@ def tinfoil_init(instance):
 
 
 class PythonRecipeHandler(RecipeHandler):
-    base_pkgdeps = ['python-core']
-    excluded_pkgdeps = ['python-dbg']
-    # os.path is provided by python-core
+    base_pkgdeps = ['python3-core']
+    excluded_pkgdeps = ['python3-dbg']
+    # os.path is provided by python3-core
     assume_provided = ['builtins', 'os.path']
-    # Assumes that the host python builtin_module_names is sane for target too
+    # Assumes that the host python3 builtin_module_names is sane for target too
     assume_provided = assume_provided + list(sys.builtin_module_names)
 
     bbvar_map = {
@@ -61,8 +51,6 @@ class PythonRecipeHandler(RecipeHandler):
     }
     # PN/PV are already set by recipetool core & desc can be extremely long
     excluded_fields = [
-        'Name',
-        'Version',
         'Description',
     ]
     setup_parse_map = {
@@ -88,8 +76,11 @@ class PythonRecipeHandler(RecipeHandler):
     ]
     setuparg_multi_line_values = ['Description']
     replacements = [
+        ('License', r' +$', ''),
+        ('License', r'^ +', ''),
         ('License', r' ', '-'),
-        ('License', r'-License$', ''),
+        ('License', r'^GNU-', ''),
+        ('License', r'-[Ll]icen[cs]e(,?-[Vv]ersion)?', ''),
         ('License', r'^UNKNOWN$', ''),
 
         # Remove currently unhandled version numbers from these variables
@@ -159,12 +150,17 @@ class PythonRecipeHandler(RecipeHandler):
     def __init__(self):
         pass
 
-    def process(self, srctree, classes, lines_before, lines_after, handled):
+    def process(self, srctree, classes, lines_before, lines_after, handled, extravalues):
         if 'buildsystem' in handled:
             return False
 
-        if not RecipeHandler.checkfiles(srctree, ['setup.py']):
-            return
+        # Check for non-zero size setup.py files
+        setupfiles = RecipeHandler.checkfiles(srctree, ['setup.py'])
+        for fn in setupfiles:
+            if os.path.getsize(fn):
+                break
+        else:
+            return False
 
         # setup.py is always parsed to get at certain required information, such as
         # distutils vs setuptools
@@ -218,67 +214,63 @@ class PythonRecipeHandler(RecipeHandler):
             else:
                 info = self.get_setup_args_info(setupscript)
 
+        # Grab the license value before applying replacements
+        license_str = info.get('License', '').strip()
+
         self.apply_info_replacements(info)
 
         if uses_setuptools:
-            classes.append('setuptools')
+            classes.append('setuptools3')
         else:
-            classes.append('distutils')
+            classes.append('distutils3')
+
+        if license_str:
+            for i, line in enumerate(lines_before):
+                if line.startswith('LICENSE = '):
+                    lines_before.insert(i, '# NOTE: License in setup.py/PKGINFO is: %s' % license_str)
+                    break
 
         if 'Classifier' in info:
+            existing_licenses = info.get('License', '')
             licenses = []
             for classifier in info['Classifier']:
                 if classifier in self.classifier_license_map:
                     license = self.classifier_license_map[classifier]
+                    if license == 'Apache' and 'Apache-2.0' in existing_licenses:
+                        license = 'Apache-2.0'
+                    elif license == 'GPL':
+                        if 'GPL-2.0' in existing_licenses or 'GPLv2' in existing_licenses:
+                            license = 'GPL-2.0'
+                        elif 'GPL-3.0' in existing_licenses or 'GPLv3' in existing_licenses:
+                            license = 'GPL-3.0'
+                    elif license == 'LGPL':
+                        if 'LGPL-2.1' in existing_licenses or 'LGPLv2.1' in existing_licenses:
+                            license = 'LGPL-2.1'
+                        elif 'LGPL-2.0' in existing_licenses or 'LGPLv2' in existing_licenses:
+                            license = 'LGPL-2.0'
+                        elif 'LGPL-3.0' in existing_licenses or 'LGPLv3' in existing_licenses:
+                            license = 'LGPL-3.0'
                     licenses.append(license)
 
             if licenses:
                 info['License'] = ' & '.join(licenses)
 
-
         # Map PKG-INFO & setup.py fields to bitbake variables
-        bbinfo = {}
-        for field, values in info.iteritems():
+        for field, values in info.items():
             if field in self.excluded_fields:
                 continue
 
             if field not in self.bbvar_map:
                 continue
 
-            if isinstance(values, basestring):
+            if isinstance(values, str):
                 value = values
             else:
                 value = ' '.join(str(v) for v in values if v)
 
             bbvar = self.bbvar_map[field]
-            if bbvar not in bbinfo and value:
-                bbinfo[bbvar] = value
-
-        comment_lic_line = None
-        for pos, line in enumerate(list(lines_before)):
-            if line.startswith('#') and 'LICENSE' in line:
-                comment_lic_line = pos
-            elif line.startswith('LICENSE =') and 'LICENSE' in bbinfo:
-                if line in ('LICENSE = "Unknown"', 'LICENSE = "CLOSED"'):
-                    lines_before[pos] = 'LICENSE = "{}"'.format(bbinfo['LICENSE'])
-                    if line == 'LICENSE = "CLOSED"' and comment_lic_line:
-                        lines_before[comment_lic_line:pos] = [
-                            '# WARNING: the following LICENSE value is a best guess - it is your',
-                            '# responsibility to verify that the value is complete and correct.'
-                        ]
-                del bbinfo['LICENSE']
-
-        src_uri_line = None
-        for pos, line in enumerate(lines_before):
-            if line.startswith('SRC_URI ='):
-                src_uri_line = pos
-
-        if bbinfo:
-            mdinfo = ['']
-            for k in sorted(bbinfo):
-                v = bbinfo[k]
-                mdinfo.append('{} = "{}"'.format(k, v))
-            lines_before[src_uri_line-1:src_uri_line-1] = mdinfo
+            if bbvar not in extravalues and value:
+                extravalues[bbvar] = value
 
         mapped_deps, unmapped_deps = self.scan_setup_python_deps(srctree, setup_info, setup_non_literals)
 
@@ -291,11 +283,11 @@ class PythonRecipeHandler(RecipeHandler):
                 lines_after.append('# The upstream names may not correspond exactly to bitbake package names.')
                 lines_after.append('#')
                 lines_after.append('# Uncomment this line to enable all the optional features.')
-                lines_after.append('#PACKAGECONFIG ?= "{}"'.format(' '.join(k.lower() for k in extras_req.iterkeys())))
-                for feature, feature_reqs in extras_req.iteritems():
+                lines_after.append('#PACKAGECONFIG ?= "{}"'.format(' '.join(k.lower() for k in extras_req)))
+                for feature, feature_reqs in extras_req.items():
                     unmapped_deps.difference_update(feature_reqs)
 
-                    feature_req_deps = ('python-' + r.replace('.', '-').lower() for r in sorted(feature_reqs))
+                    feature_req_deps = ('python3-' + r.replace('.', '-').lower() for r in sorted(feature_reqs))
                     lines_after.append('PACKAGECONFIG[{}] = ",,,{}"'.format(feature.lower(), ' '.join(feature_req_deps)))
 
         inst_reqs = set()
@@ -306,7 +298,7 @@ class PythonRecipeHandler(RecipeHandler):
             if inst_reqs:
                 unmapped_deps.difference_update(inst_reqs)
 
-                inst_req_deps = ('python-' + r.replace('.', '-').lower() for r in sorted(inst_reqs))
+                inst_req_deps = ('python3-' + r.replace('.', '-').lower() for r in sorted(inst_reqs))
                 lines_after.append('# WARNING: the following rdepends are from setuptools install_requires. These')
                 lines_after.append('# upstream names may not correspond exactly to bitbake package names.')
                 lines_after.append('RDEPENDS_${{PN}} += "{}"'.format(' '.join(inst_req_deps)))
@@ -358,7 +350,9 @@ class PythonRecipeHandler(RecipeHandler):
 
         # Naive mapping of setup() arguments to PKG-INFO field names
         for d in [info, non_literals]:
-            for key, value in d.items():
+            for key, value in list(d.items()):
+                if key is None:
+                    continue
                 new_key = _map(key)
                 if new_key != key:
                     del d[key]
@@ -367,7 +361,7 @@ class PythonRecipeHandler(RecipeHandler):
         return info, 'setuptools' in imported_modules, non_literals, extensions
 
     def get_setup_args_info(self, setupscript='./setup.py'):
-        cmd = ['python', setupscript]
+        cmd = ['python3', setupscript]
         info = {}
         keys = set(self.bbvar_map.keys())
         keys |= set(self.setuparg_list_fields)
@@ -401,7 +395,7 @@ class PythonRecipeHandler(RecipeHandler):
     def get_setup_byline(self, fields, setupscript='./setup.py'):
         info = {}
 
-        cmd = ['python', setupscript]
+        cmd = ['python3', setupscript]
         cmd.extend('--' + self.setuparg_map.get(f, f.lower()) for f in fields)
         try:
             info_lines = self.run_command(cmd, cwd=os.path.dirname(setupscript)).splitlines()
@@ -433,14 +427,14 @@ class PythonRecipeHandler(RecipeHandler):
                 return value
 
             value = info[variable]
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 new_value = replace_value(search, replace, value)
                 if new_value is None:
                     del info[variable]
                 elif new_value != value:
                     info[variable] = new_value
-            elif hasattr(value, 'iteritems'):
-                for dkey, dvalue in value.iteritems():
+            elif hasattr(value, 'items'):
+                for dkey, dvalue in list(value.items()):
                     new_list = []
                     for pos, a_value in enumerate(dvalue):
                         new_value = replace_value(search, replace, a_value)
@@ -501,8 +495,10 @@ class PythonRecipeHandler(RecipeHandler):
         for dep in scanned_deps:
             mapped = provided_packages.get(dep)
             if mapped:
+                logger.debug('Mapped %s to %s' % (dep, mapped))
                 mapped_deps.add(mapped)
             else:
+                logger.debug('Could not map %s' % dep)
                 unmapped_deps.add(dep)
         return mapped_deps, unmapped_deps
 
@@ -533,11 +529,11 @@ class PythonRecipeHandler(RecipeHandler):
 
     def parse_pkgdata_for_python_packages(self):
         suffixes = [t[0] for t in imp.get_suffixes()]
-        pkgdata_dir = tinfoil.config_data.getVar('PKGDATA_DIR', True)
+        pkgdata_dir = tinfoil.config_data.getVar('PKGDATA_DIR')
 
         ldata = tinfoil.config_data.createCopy()
-        bb.parse.handle('classes/python-dir.bbclass', ldata, True)
-        python_sitedir = ldata.getVar('PYTHON_SITEPACKAGES_DIR', True)
+        bb.parse.handle('classes/python3-dir.bbclass', ldata, True)
+        python_sitedir = ldata.getVar('PYTHON_SITEPACKAGES_DIR')
 
         dynload_dir = os.path.join(os.path.dirname(python_sitedir), 'lib-dynload')
         python_dirs = [python_sitedir + os.sep,
@@ -555,7 +551,7 @@ class PythonRecipeHandler(RecipeHandler):
                 else:
                     continue
 
-            for fn in files_info.iterkeys():
+            for fn in files_info:
                 for suffix in suffixes:
                     if fn.endswith(suffix):
                         break
@@ -563,6 +559,8 @@ class PythonRecipeHandler(RecipeHandler):
                     continue
 
                 if fn.startswith(dynload_dir + os.sep):
+                    if '/.debug/' in fn:
+                        continue
                     base = os.path.basename(fn)
                     provided = base.split('.', 1)[0]
                     packages[provided] = os.path.basename(pkgdatafile)
@@ -590,7 +588,7 @@ class PythonRecipeHandler(RecipeHandler):
         if 'stderr' not in popenargs:
             popenargs['stderr'] = subprocess.STDOUT
         try:
-            return subprocess.check_output(cmd, **popenargs)
+            return subprocess.check_output(cmd, **popenargs).decode('utf-8')
         except OSError as exc:
             logger.error('Unable to run `{}`: {}', ' '.join(cmd), exc)
             raise
@@ -605,7 +603,7 @@ def gather_setup_info(fileobj):
     visitor.visit(parsed)
 
     non_literals, extensions = {}, []
-    for key, value in visitor.keywords.items():
+    for key, value in list(visitor.keywords.items()):
         if key == 'ext_modules':
             if isinstance(value, list):
                 for ext in value:
@@ -637,7 +635,7 @@ class SetupScriptVisitor(ast.NodeVisitor):
     def visit_setup(self, node):
         call = LiteralAstTransform().visit(node)
         self.keywords = call.keywords
-        for k, v in self.keywords.iteritems():
+        for k, v in self.keywords.items():
             if has_non_literals(v):
                self.non_literals.append(k)
 
@@ -703,14 +701,14 @@ class LiteralAstTransform(ast.NodeTransformer):
 def has_non_literals(value):
     if isinstance(value, ast.AST):
         return True
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
         return False
-    elif hasattr(value, 'itervalues'):
-        return any(has_non_literals(v) for v in value.itervalues())
+    elif hasattr(value, 'values'):
+        return any(has_non_literals(v) for v in value.values())
     elif hasattr(value, '__iter__'):
         return any(has_non_literals(v) for v in value)
 
 
 def register_recipe_handlers(handlers):
     # We need to make sure this is ahead of the makefile fallback handler
-    handlers.insert(0, PythonRecipeHandler())
+    handlers.append((PythonRecipeHandler(), 70))

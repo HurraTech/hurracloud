@@ -7,8 +7,19 @@
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-# We need 20 Mb for the boot partition
-boot_size=20
+# figure out how big of a boot partition we need
+boot_size=$(du -ms /run/media/$1/ | awk '{print $1}')
+# remove rootfs.img ($2) from the size if it exists, as its not installed to /boot
+if [ -e /run/media/$1/$2 ]; then
+    boot_size=$(( boot_size - $( du -ms /run/media/$1/$2 | awk '{print $1}') ))
+fi
+# remove initrd from size since its not currently installed
+if [ -e /run/media/$1/initrd ]; then
+    boot_size=$(( boot_size - $( du -ms /run/media/$1/initrd | awk '{print $1}') ))
+fi
+# add 10M to provide some extra space for users and account
+# for rounding in the above subtractions
+boot_size=$(( boot_size + 10 ))
 
 # 5% for the swap
 swap_ratio=5
@@ -21,6 +32,8 @@ live_dev_name=${live_dev_name#\/dev/}
 case $live_dev_name in
     mmcblk*)
     ;;
+    nvme*)
+    ;;
     *)
         live_dev_name=${live_dev_name%%[0-9]*}
     ;;
@@ -28,7 +41,13 @@ esac
 
 echo "Searching for hard drives ..."
 
-for device in `ls /sys/block/`; do
+# Some eMMC devices have special sub devices such as mmcblk0boot0 etc
+# we're currently only interested in the root device so pick them wisely
+devices=`ls /sys/block/ | grep -v mmcblk` || true
+mmc_devices=`ls /sys/block/ | grep "mmcblk[0-9]\{1,\}$"` || true
+devices="$devices $mmc_devices"
+
+for device in $devices; do
     case $device in
         loop*)
             # skip loop device
@@ -72,17 +91,23 @@ for hdname in $hdnamelist; do
         cat /sys/block/$hdname/device/uevent
     fi
     echo
-    # Get user choice
-    while true; do
-        echo -n "Do you want to install this image there? [y/n] "
-        read answer
-        if [ "$answer" = "y" -o "$answer" = "n" ]; then
+done
+
+# Get user choice
+while true; do
+    echo "Please select an install target or press n to exit ($hdnamelist ): "
+    read answer
+    if [ "$answer" = "n" ]; then
+        echo "Installation manually aborted."
+        exit 1
+    fi
+    for hdname in $hdnamelist; do
+        if [ "$answer" = "$hdname" ]; then
+            TARGET_DEVICE_NAME=$answer
             break
         fi
-        echo "Please answer y or n"
     done
-    if [ "$answer" = "y" ]; then
-        TARGET_DEVICE_NAME=$hdname
+    if [ -n "$TARGET_DEVICE_NAME" ]; then
         break
     fi
 done
@@ -112,13 +137,13 @@ if [ ! -b /dev/loop0 ] ; then
 fi
 
 mkdir -p /tmp
-if [ ! -L /etc/mtab ]; then
-    cat /proc/mounts > /etc/mtab
+if [ ! -L /etc/mtab ] && [ -e /proc/mounts ]; then
+    ln -sf /proc/mounts /etc/mtab
 fi
 
 disk_size=$(parted ${device} unit mb print | grep '^Disk .*: .*MB' | cut -d" " -f 3 | sed -e "s/MB//")
 
-grub_version=$(grub-install -v|sed 's/.* \([0-9]\).*/\1/')
+grub_version=$(grub-install -V|sed 's/.* \([0-9]\).*/\1/')
 
 if [ $grub_version -eq 0 ] ; then
     bios_boot_size=0
@@ -141,8 +166,14 @@ swap_start=$((rootfs_end))
 # 2) they are detected asynchronously (need rootwait)
 rootwait=""
 part_prefix=""
-if [ ! "${device#mmcblk}" = "${device}" ]; then
+if [ ! "${device#/dev/mmcblk}" = "${device}" ] || \
+   [ ! "${device#/dev/nvme}" = "${device}" ]; then
     part_prefix="p"
+    rootwait="rootwait"
+fi
+
+# USB devices also require rootwait
+if [ -n `readlink /dev/disk/by-id/usb* | grep $TARGET_DEVICE_NAME` ]; then
     rootwait="rootwait"
 fi
 
@@ -183,7 +214,7 @@ fi
 
 echo "Creating rootfs partition on $rootfs"
 [ $grub_version -eq 0 ] && pname='primary' || pname='root'
-parted ${device} mkpart $pname ext3 $rootfs_start $rootfs_end
+parted ${device} mkpart $pname ext4 $rootfs_start $rootfs_end
 
 echo "Creating swap partition on $swap"
 [ $grub_version -eq 0 ] && pname='primary' || pname='swap'
@@ -191,11 +222,18 @@ parted ${device} mkpart $pname linux-swap $swap_start 100%
 
 parted ${device} print
 
+echo "Waiting for device nodes..."
+C=0
+while [ $C -ne 3 ] && [ ! -e $bootfs  -o ! -e $rootfs -o ! -e $swap ]; do
+    C=$(( C + 1 ))
+    sleep 1
+done
+
 echo "Formatting $bootfs to ext3..."
 mkfs.ext3 $bootfs
 
-echo "Formatting $rootfs to ext3..."
-mkfs.ext3 $rootfs
+echo "Formatting $rootfs to ext4..."
+mkfs.ext4 $rootfs
 
 echo "Formatting swap partition...($swap)"
 mkswap $swap
@@ -211,13 +249,13 @@ echo "Copying rootfs files..."
 cp -a /src_root/* /tgt_root
 if [ -d /tgt_root/etc/ ] ; then
     if [ $grub_version -ne 0 ] ; then
-        boot_uuid=$(blkid -o value -s UUID ${device}2)
-        swap_part_uuid=$(blkid -o value -s PARTUUID ${device}4)
+        boot_uuid=$(blkid -o value -s UUID ${bootfs})
+        swap_part_uuid=$(blkid -o value -s PARTUUID ${swap})
         bootdev="UUID=$boot_uuid"
         swapdev=/dev/disk/by-partuuid/$swap_part_uuid
     else
-        bootdev=${device}2
-        swapdev=${device}4
+        bootdev=${bootfs}
+        swapdev=${swap}
     fi
     echo "$swapdev                swap             swap       defaults              0  0" >> /tgt_root/etc/fstab
     echo "$bootdev              /boot            ext3       defaults              1  2" >> /tgt_root/etc/fstab
@@ -229,19 +267,46 @@ fi
 umount /tgt_root
 umount /src_root
 
+echo "Looking for kernels to use as boot target.."
+# Find kernel to boot to
+# Give user options if multiple are found
+kernels="$(find /run/media/$1/ -type f  \
+           -name bzImage* -o -name zImage* \
+           -o -name vmlinux* -o -name vmlinuz* \
+           -o -name fitImage* \
+           | sed s:.*/::)"
+if [ -n "$(echo $kernels)" ]; then
+    # only one kernel entry if no space
+    if [ -z "$(echo $kernels | grep " ")" ]; then
+        kernel=$kernels
+        echo "$kernel will be used as the boot target"
+    else
+        echo "Which kernel do we want to boot by default? The following kernels were found:"
+        echo $kernels
+        read answer
+        kernel=$answer
+    fi
+else
+    echo "No kernels found, exiting..."
+    exit 1
+fi
+
 # Handling of the target boot partition
 mount $bootfs /boot
 echo "Preparing boot partition..."
+
 if [ -f /etc/grub.d/00_header -a $grub_version -ne 0 ] ; then
     echo "Preparing custom grub2 menu..."
-    root_part_uuid=$(blkid -o value -s PARTUUID ${device}3)
-    boot_uuid=$(blkid -o value -s UUID ${device}2)
+    root_part_uuid=$(blkid -o value -s PARTUUID ${rootfs})
+    boot_uuid=$(blkid -o value -s UUID ${bootfs})
     GRUBCFG="/boot/grub/grub.cfg"
     mkdir -p $(dirname $GRUBCFG)
     cat >$GRUBCFG <<_EOF
+timeout=5
+default=0
 menuentry "Linux" {
     search --no-floppy --fs-uuid $boot_uuid --set root
-    linux /vmlinuz root=PARTUUID=$root_part_uuid $rootwait rw $5 $3 $4 quiet
+    linux /$kernel root=PARTUUID=$root_part_uuid $rootwait rw $5 $3 $4 quiet
 }
 _EOF
     chmod 0444 $GRUBCFG
@@ -255,10 +320,16 @@ if [ $grub_version -eq 0 ] ; then
     echo "timeout 30" >> /boot/grub/menu.lst
     echo "title Live Boot/Install-Image" >> /boot/grub/menu.lst
     echo "root  (hd0,0)" >> /boot/grub/menu.lst
-    echo "kernel /vmlinuz root=$rootfs rw $3 $4 quiet" >> /boot/grub/menu.lst
+    echo "kernel /$kernel root=$rootfs rw $3 $4 quiet" >> /boot/grub/menu.lst
 fi
 
-cp /run/media/$1/vmlinuz /boot/
+# Copy kernel artifacts. To add more artifacts just add to types
+# For now just support kernel types already being used by something in OE-core
+for types in bzImage zImage vmlinux vmlinuz fitImage; do
+    for kernel in `find /run/media/$1/ -name $types*`; do
+        cp $kernel /boot
+    done
+done
 
 umount /boot
 

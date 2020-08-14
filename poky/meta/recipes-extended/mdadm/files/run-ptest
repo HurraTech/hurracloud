@@ -1,10 +1,7 @@
 #!/bin/sh
 
-./test &>./test.log
-if [ $? -eq 0 ]
-then
-	echo "PASS: mdadm"
-	rm test.log
-else
-	echo "FAIL: mdadm"
-fi
+mkdir -p /mdadm-testing-dir
+# make the test continue to execute even one fail
+dir=. ./test --keep-going --disable-integrity
+
+rm -rf /mdadm-testing-dir/*

@@ -6,7 +6,8 @@
 #
 
 # The following script will run all the scriptlets found in #SYSCONFDIR#/deb-postinsts,
-# #SYSCONFDIR#/ipk-postinsts or #SYSCONFDIR#/rpm-posinsts.
+# #SYSCONFDIR#/ipk-postinsts or #SYSCONFDIR#/rpm-postinsts or the package manager in
+# case available.
 
 # the order of this list is important, do not change!
 backend_list="rpm deb ipk"
@@ -14,10 +15,7 @@ backend_list="rpm deb ipk"
 pm_installed=false
 
 for pm in $backend_list; do
-	pi_dir="#SYSCONFDIR#/$pm-postinsts"
-
-	[ -d $pi_dir ] && break
-
+	# found the package manager, it has postinsts
 	case $pm in
 		"deb")
 			if [ -s "#LOCALSTATEDIR#/lib/dpkg/status" ]; then
@@ -27,12 +25,19 @@ for pm in $backend_list; do
 			;;
 
 		"ipk")
-			if [ -s "/var/lib/opkg/status" ]; then
+			if [ -s "#LOCALSTATEDIR#/lib/opkg/status" ]; then
 				pm_installed=true
 				break
 			fi
 			;;
 	esac
+
+	pi_dir="#SYSCONFDIR#/$pm-postinsts"
+
+	# found postinsts directory
+	if [ -d $pi_dir ]; then
+		break
+	fi
 done
 
 remove_rcsd_link () {
@@ -41,10 +46,13 @@ remove_rcsd_link () {
 	fi
 }
 
-if [ -z "$pi_dir" ]; then
+if ! [ -d $pi_dir ] && ! $pm_installed; then
 	remove_rcsd_link
 	exit 0
 fi
+
+echo "Configuring packages on first boot...."
+echo " (This may take several minutes. Please do not power off the machine.)"
 
 [ -e #SYSCONFDIR#/default/postinst ] && . #SYSCONFDIR#/default/postinst
 
@@ -59,7 +67,7 @@ exec_postinst_scriptlets() {
 		echo "Running postinst $i..."
 		[ "$POSTINST_LOGGING" = "1" ] && eval echo "Running postinst $i..." $append_log
 		if [ -x $i ]; then
-			eval sh -c $i $append_log
+			(sh -c $i $append_log)
 			rm $i
 		else
 			echo "ERROR: postinst $i failed."

@@ -1,7 +1,7 @@
 SUMMARY = "Base system master password/group files"
 DESCRIPTION = "The master copies of the user database files (/etc/passwd and /etc/group).  The update-passwd tool is also provided to keep the system databases synchronized with these master files."
 SECTION = "base"
-LICENSE = "GPLv2+"
+LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=eb723b61539feef013de476e68b5c50a"
 
 RECIPE_NO_UPDATE_REASON = "Version 3.5.38 requires cdebconf for update-passwd utility"
@@ -12,14 +12,17 @@ SRC_URI = "https://launchpad.net/debian/+archive/primary/+files/${BPN}_${PV}.tar
            file://noshadow.patch \
            file://input.patch \
            file://disable-docs.patch \
-          "
+           file://kvm.patch \
+           "
 
 SRC_URI[md5sum] = "6beccac48083fe8ae5048acd062e5421"
 SRC_URI[sha256sum] = "f0b66388b2c8e49c15692439d2bee63bcdd4bbbf7a782c7f64accc55986b6a36"
 
-inherit autotools
+# the package is taken from launchpad; that source is static and goes stale
+# so we check the latest upstream from a directory that does get updated
+UPSTREAM_CHECK_URI = "${DEBIAN_MIRROR}/main/b/base-passwd/"
 
-SSTATEPOSTINSTFUNCS += "base_passwd_sstate_postinst"
+inherit autotools
 
 do_install () {
 	install -d -m 755 ${D}${sbindir}
@@ -41,23 +44,32 @@ do_install () {
 	install -p -m 644 ${S}/debian/copyright ${D}${docdir}/${BPN}/
 }
 
-base_passwd_sstate_postinst() {
-	if [ "${BB_CURRENTTASK}" = "populate_sysroot" -o "${BB_CURRENTTASK}" = "populate_sysroot_setscene" ]
-	then
-		# Staging does not copy ${sysconfdir} files into the
-		# target sysroot, so we need to do so manually. We
-		# put these files in the target sysroot so they can
-		# be used by recipes which use custom user/group
-		# permissions.
-		# Install passwd.master and group.master to sysconfdir and mv
-		# them to make sure they are atomically install.
-		install -d -m 755 ${STAGING_DIR_TARGET}${sysconfdir}
-		for i in passwd group; do
-			install -p -m 644 ${STAGING_DIR_TARGET}${datadir}/base-passwd/$i.master \
-				${STAGING_DIR_TARGET}${sysconfdir}/
-			mv ${STAGING_DIR_TARGET}${sysconfdir}/$i.master ${STAGING_DIR_TARGET}${sysconfdir}/$i
-		done
+basepasswd_sysroot_postinst() {
+#!/bin/sh
+
+# Install passwd.master and group.master to sysconfdir
+install -d -m 755 ${STAGING_DIR_TARGET}${sysconfdir}
+for i in passwd group; do
+	install -p -m 644 ${STAGING_DIR_TARGET}${datadir}/base-passwd/\$i.master \
+		${STAGING_DIR_TARGET}${sysconfdir}/\$i
+done
+
+# Run any useradd postinsts
+for script in ${STAGING_DIR_TARGET}${bindir}/postinst-useradd-*; do
+	if [ -f \$script ]; then
+		\$script
 	fi
+done
+}
+
+SYSROOT_DIRS += "${sysconfdir}"
+SYSROOT_PREPROCESS_FUNCS += "base_passwd_tweaksysroot"
+
+base_passwd_tweaksysroot () {
+	mkdir -p ${SYSROOT_DESTDIR}${bindir}
+	dest=${SYSROOT_DESTDIR}${bindir}/postinst-${PN}
+	echo "${basepasswd_sysroot_postinst}" > $dest
+	chmod 0755 $dest
 }
 
 python populate_packages_prepend() {
@@ -85,7 +97,7 @@ if [ ! -e $D${sysconfdir}/group ]; then
 """ + group + """EOF
 fi
 """
-    d.setVar('pkg_preinst_${PN}', preinst)
+    d.setVar(d.expand('pkg_preinst_${PN}'), preinst)
 }
 
 addtask do_package after do_populate_sysroot

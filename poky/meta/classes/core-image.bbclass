@@ -2,9 +2,6 @@
 #
 # Copyright (C) 2007-2011 Linux Foundation
 
-LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d690 \
-                    file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
-
 # IMAGE_FEATURES control content of the core reference images
 # 
 # By default we install packagegroup-core-boot and packagegroup-base-extended packages;
@@ -24,15 +21,21 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d
 # - nfs-client          - NFS client
 # - ssh-server-dropbear - SSH server (dropbear)
 # - ssh-server-openssh  - SSH server (openssh)
-# - qt4-pkgs            - Qt4/X11 and demo applications
 # - hwcodecs            - Install hardware acceleration codecs
 # - package-management  - installs package management tools and preserves the package manager database
 # - debug-tweaks        - makes an image suitable for development, e.g. allowing passwordless root logins
+#   - empty-root-password
+#   - allow-empty-password
+#   - allow-root-login
+#   - post-install-logging
 # - dev-pkgs            - development packages (headers, etc.) for all installed packages in the rootfs
 # - dbg-pkgs            - debug symbol packages for all installed packages in the rootfs
 # - doc-pkgs            - documentation packages for all installed packages in the rootfs
+# - bash-completion-pkgs - bash-completion packages for recipes using bash-completion bbclass
 # - ptest-pkgs          - ptest packages for all ptest-enabled recipes
 # - read-only-rootfs    - tweaks an image to support read-only rootfs
+# - stateless-rootfs    - systemctl-native not run, image populated by systemd at runtime
+# - splash              - bootup splash screen
 #
 FEATURE_PACKAGES_x11 = "packagegroup-core-x11"
 FEATURE_PACKAGES_x11-base = "packagegroup-core-x11-base"
@@ -46,7 +49,6 @@ FEATURE_PACKAGES_nfs-server = "packagegroup-core-nfs-server"
 FEATURE_PACKAGES_nfs-client = "packagegroup-core-nfs-client"
 FEATURE_PACKAGES_ssh-server-dropbear = "packagegroup-core-ssh-dropbear"
 FEATURE_PACKAGES_ssh-server-openssh = "packagegroup-core-ssh-openssh"
-FEATURE_PACKAGES_qt4-pkgs = "packagegroup-core-qt-demoapps"
 FEATURE_PACKAGES_hwcodecs = "${MACHINE_HWCODECS}"
 
 

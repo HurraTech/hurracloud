@@ -8,6 +8,8 @@
 # SDK packages are built either explicitly by the user,
 # or indirectly via dependency.  No need to be in 'world'.
 EXCLUDE_FROM_WORLD = "1"
+NATIVESDKLIBC ?= "libc-glibc"
+LIBCOVERRIDE = ":${NATIVESDKLIBC}"
 CLASSOVERRIDE = "class-cross-canadian"
 STAGING_BINDIR_TOOLCHAIN = "${STAGING_DIR_NATIVE}${bindir_native}/${SDK_ARCH}${SDK_VENDOR}-${SDK_OS}:${STAGING_DIR_NATIVE}${bindir_native}/${TARGET_ARCH}${TARGET_VENDOR}-${TARGET_OS}"
 
@@ -15,27 +17,31 @@ STAGING_BINDIR_TOOLCHAIN = "${STAGING_DIR_NATIVE}${bindir_native}/${SDK_ARCH}${S
 # Update BASE_PACKAGE_ARCH and PACKAGE_ARCHS
 #
 PACKAGE_ARCH = "${SDK_ARCH}-${SDKPKGSUFFIX}"
-CANADIANEXTRAOS = "linux-uclibc linux-musl"
+BASECANADIANEXTRAOS ?= "linux-musl"
+CANADIANEXTRAOS = "${BASECANADIANEXTRAOS}"
 CANADIANEXTRAVENDOR = ""
 MODIFYTOS ??= "1"
 python () {
-    archs = d.getVar('PACKAGE_ARCHS', True).split()
+    archs = d.getVar('PACKAGE_ARCHS').split()
     sdkarchs = []
     for arch in archs:
         sdkarchs.append(arch + '-${SDKPKGSUFFIX}')
     d.setVar('PACKAGE_ARCHS', " ".join(sdkarchs))
 
     # Allow the following code segment to be disabled, e.g. meta-environment
-    if d.getVar("MODIFYTOS", True) != "1":
+    if d.getVar("MODIFYTOS") != "1":
         return
 
-    if d.getVar("TCLIBC", True) == "baremetal":
+    if d.getVar("TCLIBC") in [ 'baremetal', 'newlib' ]:
         return
 
-    tos = d.getVar("TARGET_OS", True)
+    tos = d.getVar("TARGET_OS")
     whitelist = []
-    for variant in ["", "spe", "x32", "eabi", "n32"]:
-        for libc in ["", "uclibc", "musl"]:
+    extralibcs = [""]
+    if "musl" in d.getVar("BASECANADIANEXTRAOS"):
+        extralibcs.append("musl")
+    for variant in ["", "spe", "x32", "eabi", "n32", "_ilp32"]:
+        for libc in extralibcs:
             entry = "linux"
             if variant and libc:
                 entry = entry + "-" + libc + variant
@@ -45,38 +51,45 @@ python () {
                 entry = entry + "-" + libc
             whitelist.append(entry)
     if tos not in whitelist:
-        bb.fatal("Building cross-candian for an unknown TARGET_SYS (%s), please update cross-canadian.bbclass" % d.getVar("TARGET_SYS", True))
+        bb.fatal("Building cross-candian for an unknown TARGET_SYS (%s), please update cross-canadian.bbclass" % d.getVar("TARGET_SYS"))
 
     for n in ["PROVIDES", "DEPENDS"]:
-        d.setVar(n, d.getVar(n, True))
-    d.setVar("STAGING_BINDIR_TOOLCHAIN", d.getVar("STAGING_BINDIR_TOOLCHAIN", True))
+        d.setVar(n, d.getVar(n))
+    d.setVar("STAGING_BINDIR_TOOLCHAIN", d.getVar("STAGING_BINDIR_TOOLCHAIN"))
     for prefix in ["AR", "AS", "DLLTOOL", "CC", "CXX", "GCC", "LD", "LIPO", "NM", "OBJDUMP", "RANLIB", "STRIP", "WINDRES"]:
         n = prefix + "_FOR_TARGET"
-        d.setVar(n, d.getVar(n, True))
+        d.setVar(n, d.getVar(n))
     # This is a bit ugly. We need to zero LIBC/ABI extension which will change TARGET_OS
     # however we need the old value in some variables. We expand those here first.
-    tarch = d.getVar("TARGET_ARCH", True)
+    tarch = d.getVar("TARGET_ARCH")
     if tarch == "x86_64":
         d.setVar("LIBCEXTENSION", "")
         d.setVar("ABIEXTENSION", "")
-        d.appendVar("CANADIANEXTRAOS", " linux-gnux32 linux-uclibcx32 linux-muslx32")
+        d.appendVar("CANADIANEXTRAOS", " linux-gnux32")
+        for extraos in d.getVar("BASECANADIANEXTRAOS").split():
+            d.appendVar("CANADIANEXTRAOS", " " + extraos + "x32")
     elif tarch == "powerpc":
         # PowerPC can build "linux" and "linux-gnuspe"
         d.setVar("LIBCEXTENSION", "")
         d.setVar("ABIEXTENSION", "")
-        d.appendVar("CANADIANEXTRAOS", " linux-gnuspe linux-uclibcspe linux-muslspe")
+        d.appendVar("CANADIANEXTRAOS", " linux-gnuspe")
+        for extraos in d.getVar("BASECANADIANEXTRAOS").split():
+            d.appendVar("CANADIANEXTRAOS", " " + extraos + "spe")
     elif tarch == "mips64":
-        d.appendVar("CANADIANEXTRAOS", " linux-gnun32 linux-uclibcn32 linux-musln32")
+        d.appendVar("CANADIANEXTRAOS", " linux-gnun32")
+        for extraos in d.getVar("BASECANADIANEXTRAOS").split():
+            d.appendVar("CANADIANEXTRAOS", " " + extraos + "n32")
     if tarch == "arm" or tarch == "armeb":
+        d.appendVar("CANADIANEXTRAOS", " linux-gnueabi linux-musleabi")
         d.setVar("TARGET_OS", "linux-gnueabi")
     else:
         d.setVar("TARGET_OS", "linux")
 
     # Also need to handle multilib target vendors
-    vendors = d.getVar("CANADIANEXTRAVENDOR", True)
+    vendors = d.getVar("CANADIANEXTRAVENDOR")
     if not vendors:
         vendors = all_multilib_tune_values(d, 'TARGET_VENDOR')
-    origvendor = d.getVar("TARGET_VENDOR_MULTILIB_ORIGINAL", True)
+    origvendor = d.getVar("TARGET_VENDOR_MULTILIB_ORIGINAL")
     if origvendor:
         d.setVar("TARGET_VENDOR", origvendor)
         if origvendor not in vendors.split():
@@ -87,9 +100,9 @@ MULTIMACH_TARGET_SYS = "${PACKAGE_ARCH}${HOST_VENDOR}-${HOST_OS}"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
-STAGING_DIR_HOST = "${STAGING_DIR}/${HOST_ARCH}-${SDKPKGSUFFIX}${HOST_VENDOR}-${HOST_OS}"
+STAGING_DIR_HOST = "${RECIPE_SYSROOT}"
 
-TOOLCHAIN_OPTIONS = " --sysroot=${STAGING_DIR}/${HOST_ARCH}-${SDKPKGSUFFIX}${HOST_VENDOR}-${HOST_OS}"
+TOOLCHAIN_OPTIONS = " --sysroot=${RECIPE_SYSROOT}"
 
 PATH_append = ":${TMPDIR}/sysroots/${HOST_ARCH}/${bindir_cross}"
 PKGHIST_DIR = "${TMPDIR}/pkghistory/${HOST_ARCH}-${SDKPKGSUFFIX}${HOST_VENDOR}-${HOST_OS}/"
@@ -103,7 +116,7 @@ HOST_LD_ARCH = "${SDK_LD_ARCH}"
 HOST_AS_ARCH = "${SDK_AS_ARCH}"
 
 #assign DPKG_ARCH
-DPKG_ARCH = "${SDK_ARCH}"
+DPKG_ARCH = "${@debian_arch_map(d.getVar('SDK_ARCH'), '')}"
 
 CPPFLAGS = "${BUILDSDK_CPPFLAGS}"
 CFLAGS = "${BUILDSDK_CFLAGS}"
@@ -111,8 +124,6 @@ CXXFLAGS = "${BUILDSDK_CFLAGS}"
 LDFLAGS = "${BUILDSDK_LDFLAGS} \
            -Wl,-rpath-link,${STAGING_LIBDIR}/.. \
            -Wl,-rpath,${libdir}/.. "
-
-DEPENDS_GETTEXT = "gettext-native nativesdk-gettext"
 
 #
 # We need chrpath >= 0.14 to ensure we can deal with 32 and 64 bit
@@ -143,9 +154,6 @@ libdir = "${exec_prefix}/lib/${TARGET_ARCH}${TARGET_VENDOR}-${TARGET_OS}"
 libexecdir = "${exec_prefix}/libexec/${TARGET_ARCH}${TARGET_VENDOR}-${TARGET_OS}"
 
 FILES_${PN} = "${prefix}"
-FILES_${PN}-dbg += "${prefix}/.debug \
-                    ${prefix}/bin/.debug \
-                   "
 
 export PKG_CONFIG_DIR = "${STAGING_DIR_HOST}${layout_libdir}/pkgconfig"
 export PKG_CONFIG_SYSROOT_DIR = "${STAGING_DIR_HOST}"
@@ -159,6 +167,7 @@ USE_NLS = "${SDKUSE_NLS}"
 # and not any particular tune that is enabled.
 TARGET_ARCH[vardepsexclude] = "TUNE_ARCH"
 
+PKGDATA_DIR = "${TMPDIR}/pkgdata/${SDK_SYS}"
 # If MLPREFIX is set by multilib code, shlibs
 # points to the wrong place so force it
 SHLIBSDIRS = "${PKGDATA_DIR}/nativesdk-shlibs2"

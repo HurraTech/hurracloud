@@ -10,39 +10,35 @@
 # same system at the same time if really necessary.
 SECTION = "libs"
 SUMMARY = "Berkeley Database v5"
-HOMEPAGE = "http://www.oracle.com/technology/products/berkeley-db/db/index.html"
+HOMEPAGE = "https://www.oracle.com/database/technologies/related/berkeleydb.html"
 LICENSE = "Sleepycat"
-VIRTUAL_NAME ?= "virtual/db"
 RCONFLICTS_${PN} = "db3"
 
-SRC_URI = "http://download.oracle.com/berkeley-db/db-${PV}.tar.gz"
-SRC_URI += "file://arm-thumb-mutex_db5.patch;patchdir=.. \
-            file://fix-parallel-build.patch \
+CVE_PRODUCT = "oracle_berkeley_db"
+CVE_VERSION = "11.2.${PV}"
+
+PR = "r1"
+PE = "1"
+
+SRC_URI = "https://download.oracle.com/berkeley-db/db-${PV}.tar.gz"
+SRC_URI += "file://fix-parallel-build.patch \
+            file://0001-atomic-Rename-local-__atomic_compare_exchange-to-avo.patch \
+            file://0001-configure-Add-explicit-tag-options-to-libtool-invoca.patch \
+            file://sequence-type.patch \
+            file://0001-Fix-libc-compatibility-by-renaming-atomic_init-API.patch \
+            file://0001-clock-Do-not-define-own-timespec.patch \
            "
+# We are not interested in official latest 6.x versions;
+# let's track what debian is using.
+UPSTREAM_CHECK_URI = "${DEBIAN_MIRROR}/main/d/db5.3/"
+UPSTREAM_CHECK_REGEX = "db5\.3_(?P<pver>\d+(\.\d+)+).+\.orig"
 
 SRC_URI[md5sum] = "b99454564d5b4479750567031d66fe24"
 SRC_URI[sha256sum] = "e0a992d740709892e81f9d93f06daf305cf73fb81b545afe72478043172c3628"
 
-LIC_FILES_CHKSUM = "file://../LICENSE;md5=ed1158e31437f4f87cdd4ab2b8613955"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=ed1158e31437f4f87cdd4ab2b8613955"
 
 inherit autotools
-
-# Put virtual/db in any appropriate provider of a
-# relational database, use it as a dependency in
-# place of a specific db and use:
-#
-# PREFERRED_PROVIDER_virtual/db
-#
-# to select the correct db in the build (distro) .conf
-PROVIDES += "${VIRTUAL_NAME}"
-
-# bitbake isn't quite clever enough to deal with sleepycat,
-# the distribution sits in the expected directory, but all
-# the builds must occur from a sub-directory.  The following
-# persuades bitbake to go to the right place
-S = "${WORKDIR}/db-${PV}/dist"
-B = "${WORKDIR}/db-${PV}/build_unix"
-SPDX_S = "${WORKDIR}/db-${PV}"
 
 # The executables go in a separate package - typically there
 # is no need to install these unless doing real database
@@ -51,7 +47,6 @@ inherit lib_package
 
 PACKAGES =+ "${PN}-cxx"
 FILES_${PN}-cxx = "${libdir}/*cxx*so"
-
 
 # The dev package has the .so link (as in db3) and the .a's -
 # it is therefore incompatible (cannot be installed at the
@@ -62,33 +57,40 @@ FILES_SOLIBSDEV = "${libdir}/libdb.so ${libdir}/libdb_cxx.so"
 
 #configuration - set in local.conf to override
 # All the --disable-* options replace --enable-smallbuild, which breaks a bunch of stuff (eg. postfix)
-DB5_CONFIG ?= "--enable-o_direct --disable-cryptography --disable-queue --disable-replication --disable-verify --disable-compat185 --disable-sql"
+DB5_CONFIG ?= "--enable-o_direct --disable-cryptography --disable-queue --disable-replication --disable-compat185 --disable-sql"
 
-EXTRA_OECONF = "${DB5_CONFIG} --enable-shared --enable-cxx --with-sysroot"
+EXTRA_OECONF = "${DB5_CONFIG} --enable-shared --enable-cxx --with-sysroot STRIP=true"
 
-# Override the MUTEX setting here, the POSIX library is
-# the default - "POSIX/pthreads/library".
-# Don't ignore the nice SWP instruction on the ARM:
-# These enable the ARM assembler mutex code, this won't
-# work with thumb compilation...
-ARM_MUTEX = "--with-mutex=ARM/gcc-assembly"
-MUTEX = ""
-MUTEX_arm = "${ARM_MUTEX}"
-MUTEX_armeb = "${ARM_MUTEX}"
-EXTRA_OECONF += "${MUTEX}"
+PACKAGECONFIG ??= ""
+PACKAGECONFIG[verify] = "--enable-verify, --disable-verify"
+PACKAGECONFIG[dbm] = "--enable-dbm,--disable-dbm,"
+
+EXTRA_OEMAKE += "LIBTOOL='./${HOST_SYS}-libtool'"
+
+EXTRA_AUTORECONF += "--exclude=autoheader  -I ${S}/dist/aclocal -I${S}/dist/aclocal_java"
+AUTOTOOLS_SCRIPT_PATH = "${S}/dist"
 
 # Cancel the site stuff - it's set for db3 and destroys the
 # configure.
 CONFIG_SITE = ""
-do_configure() {
-	gnu-configize --force ${S}
-	export STRIP="true"
-	oe_runconf
+
+oe_runconf_prepend() {
+	. ${S}/dist/RELEASE
+	# Edit version information we couldn't pre-compute.
+	sed -i -e "s/__EDIT_DB_VERSION_FAMILY__/$DB_VERSION_FAMILY/g" \
+	    -e "s/__EDIT_DB_VERSION_RELEASE__/$DB_VERSION_RELEASE/g" \
+	    -e "s/__EDIT_DB_VERSION_MAJOR__/$DB_VERSION_MAJOR/g" \
+	    -e "s/__EDIT_DB_VERSION_MINOR__/$DB_VERSION_MINOR/g" \
+	    -e "s/__EDIT_DB_VERSION_PATCH__/$DB_VERSION_PATCH/g" \
+	    -e "s/__EDIT_DB_VERSION_STRING__/$DB_VERSION_STRING/g" \
+	    -e "s/__EDIT_DB_VERSION_FULL_STRING__/$DB_VERSION_FULL_STRING/g" \
+	    -e "s/__EDIT_DB_VERSION_UNIQUE_NAME__/$DB_VERSION_UNIQUE_NAME/g" \
+	    -e "s/__EDIT_DB_VERSION__/$DB_VERSION/g" ${S}/dist/configure
 }
 
 do_compile_prepend() {
-	sed -i -e 's|hardcode_into_libs=yes|hardcode_into_libs=no|' \
-		${B}/libtool
+    # Stop libtool adding RPATHs
+    sed -i -e 's|hardcode_into_libs=yes|hardcode_into_libs=no|' ${B}/${HOST_SYS}-libtool
 }
 
 do_install_append() {
@@ -107,10 +109,12 @@ do_install_append() {
 	fi
 
 	chown -R root:root ${D}
+	if ${@bb.utils.contains('PACKAGECONFIG', 'verify', 'false', 'true', d)}; then
+		rm -f ${D}${bindir}/db_verify
+	fi
 }
 
 INSANE_SKIP_${PN} = "dev-so"
 INSANE_SKIP_${PN}-cxx = "dev-so"
 
 BBCLASSEXTEND = "native nativesdk"
-

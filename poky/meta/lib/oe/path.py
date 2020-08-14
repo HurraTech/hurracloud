@@ -1,3 +1,7 @@
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
 import errno
 import glob
 import shutil
@@ -50,9 +54,30 @@ def make_relative_symlink(path):
     os.remove(path)
     os.symlink(base, path)
 
+def replace_absolute_symlinks(basedir, d):
+    """
+    Walk basedir looking for absolute symlinks and replacing them with relative ones.
+    The absolute links are assumed to be relative to basedir
+    (compared to make_relative_symlink above which tries to compute common ancestors
+    using pattern matching instead)
+    """
+    for walkroot, dirs, files in os.walk(basedir):
+        for file in files + dirs:
+            path = os.path.join(walkroot, file)
+            if not os.path.islink(path):
+                continue
+            link = os.readlink(path)
+            if not os.path.isabs(link):
+                continue
+            walkdir = os.path.dirname(path.rpartition(basedir)[2])
+            base = os.path.relpath(link, walkdir)
+            bb.debug(2, "Replacing absolute path %s with relative path %s" % (link, base))
+            os.remove(path)
+            os.symlink(base, path)
+
 def format_display(path, metadata):
     """ Prepare a path for display to the user. """
-    rel = relative(metadata.getVar("TOPDIR", True), path)
+    rel = relative(metadata.getVar("TOPDIR"), path)
     if len(rel) > len(path):
         return path
     else:
@@ -65,27 +90,66 @@ def copytree(src, dst):
     # This way we also preserve hardlinks between files in the tree.
 
     bb.utils.mkdirhier(dst)
-    cmd = 'tar -cf - -C %s -p . | tar -xf - -C %s' % (src, dst)
-    check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    cmd = "tar --xattrs --xattrs-include='*' -cf - -S -C %s -p . | tar --xattrs --xattrs-include='*' -xf - -C %s" % (src, dst)
+    subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
 
 def copyhardlinktree(src, dst):
-    """ Make the hard link when possible, otherwise copy. """
+    """Make a tree of hard links when possible, otherwise copy."""
     bb.utils.mkdirhier(dst)
     if os.path.isdir(src) and not len(os.listdir(src)):
-        return	
+        return
 
-    if (os.stat(src).st_dev ==  os.stat(dst).st_dev):
+    canhard = False
+    testfile = None
+    for root, dirs, files in os.walk(src):
+        if len(files):
+            testfile = os.path.join(root, files[0])
+            break
+
+    if testfile is not None:
+        try:
+            os.link(testfile, os.path.join(dst, 'testfile'))
+            os.unlink(os.path.join(dst, 'testfile'))
+            canhard = True
+        except Exception as e:
+            bb.debug(2, "Hardlink test failed with " + str(e))
+
+    if (canhard):
         # Need to copy directories only with tar first since cp will error if two 
         # writers try and create a directory at the same time
-        cmd = 'cd %s; find . -type d -print | tar -cf - -C %s -p --files-from - --no-recursion | tar -xf - -C %s' % (src, src, dst)
-        check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        cmd = 'cd %s; find . -print0 | cpio --null -pdlu %s' % (src, dst)
-        check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        cmd = "cd %s; find . -type d -print | tar --xattrs --xattrs-include='*' -cf - -S -C %s -p --no-recursion --files-from - | tar --xattrs --xattrs-include='*' -xhf - -C %s" % (src, src, dst)
+        subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        source = ''
+        if os.path.isdir(src):
+            if len(glob.glob('%s/.??*' % src)) > 0:
+                source = './.??* '
+            source += './*'
+            s_dir = src
+        else:
+            source = src
+            s_dir = os.getcwd()
+        cmd = 'cp -afl --preserve=xattr %s %s' % (source, os.path.realpath(dst))
+        subprocess.check_output(cmd, shell=True, cwd=s_dir, stderr=subprocess.STDOUT)
     else:
         copytree(src, dst)
 
+def copyhardlink(src, dst):
+    """Make a hard link when possible, otherwise copy."""
+
+    try:
+        os.link(src, dst)
+    except OSError:
+        shutil.copy(src, dst)
+
 def remove(path, recurse=True):
-    """Equivalent to rm -f or rm -rf"""
+    """
+    Equivalent to rm -f or rm -rf
+    NOTE: be careful about passing paths that may contain filenames with
+    wildcards in them (as opposed to passing an actual wildcarded path) -
+    since we use glob.glob() to expand the path. Filenames containing
+    square brackets are particularly problematic since the they may not
+    actually expand to match the original filename.
+    """
     for name in glob.glob(path):
         try:
             os.unlink(name)
@@ -104,47 +168,6 @@ def symlink(source, destination, force=False):
     except OSError as e:
         if e.errno != errno.EEXIST or os.readlink(destination) != source:
             raise
-
-class CalledProcessError(Exception):
-    def __init__(self, retcode, cmd, output = None):
-        self.retcode = retcode
-        self.cmd = cmd
-        self.output = output
-    def __str__(self):
-        return "Command '%s' returned non-zero exit status %d with output %s" % (self.cmd, self.retcode, self.output)
-
-# Not needed when we move to python 2.7
-def check_output(*popenargs, **kwargs):
-    r"""Run command with arguments and return its output as a byte string.
-
-    If the exit code was non-zero it raises a CalledProcessError.  The
-    CalledProcessError object will have the return code in the returncode
-    attribute and output in the output attribute.
-
-    The arguments are the same as for the Popen constructor.  Example:
-
-    >>> check_output(["ls", "-l", "/dev/null"])
-    'crw-rw-rw- 1 root root 1, 3 Oct 18  2007 /dev/null\n'
-
-    The stdout argument is not allowed as it is used internally.
-    To capture standard error in the result, use stderr=STDOUT.
-
-    >>> check_output(["/bin/sh", "-c",
-    ...               "ls -l non_existent_file ; exit 0"],
-    ...              stderr=STDOUT)
-    'ls: non_existent_file: No such file or directory\n'
-    """
-    if 'stdout' in kwargs:
-        raise ValueError('stdout argument not allowed, it will be overridden.')
-    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-    output, unused_err = process.communicate()
-    retcode = process.poll()
-    if retcode:
-        cmd = kwargs.get("args")
-        if cmd is None:
-            cmd = popenargs[0]
-        raise CalledProcessError(retcode, cmd, output=output)
-    return output
 
 def find(dir, **walkoptions):
     """ Given a directory, recurses into that directory,
@@ -241,3 +264,59 @@ def realpath(file, root, use_physdir = True, loop_cnt = 100, assume_dir = False)
         raise
 
     return file
+
+def is_path_parent(possible_parent, *paths):
+    """
+    Return True if a path is the parent of another, False otherwise.
+    Multiple paths to test can be specified in which case all
+    specified test paths must be under the parent in order to
+    return True.
+    """
+    def abs_path_trailing(pth):
+        pth_abs = os.path.abspath(pth)
+        if not pth_abs.endswith(os.sep):
+            pth_abs += os.sep
+        return pth_abs
+
+    possible_parent_abs = abs_path_trailing(possible_parent)
+    if not paths:
+        return False
+    for path in paths:
+        path_abs = abs_path_trailing(path)
+        if not path_abs.startswith(possible_parent_abs):
+            return False
+    return True
+
+def which_wild(pathname, path=None, mode=os.F_OK, *, reverse=False, candidates=False):
+    """Search a search path for pathname, supporting wildcards.
+
+    Return all paths in the specific search path matching the wildcard pattern
+    in pathname, returning only the first encountered for each file. If
+    candidates is True, information on all potential candidate paths are
+    included.
+    """
+    paths = (path or os.environ.get('PATH', os.defpath)).split(':')
+    if reverse:
+        paths.reverse()
+
+    seen, files = set(), []
+    for index, element in enumerate(paths):
+        if not os.path.isabs(element):
+            element = os.path.abspath(element)
+
+        candidate = os.path.join(element, pathname)
+        globbed = glob.glob(candidate)
+        if globbed:
+            for found_path in sorted(globbed):
+                if not os.access(found_path, mode):
+                    continue
+                rel = os.path.relpath(found_path, element)
+                if rel not in seen:
+                    seen.add(rel)
+                    if candidates:
+                        files.append((found_path, [os.path.join(p, rel) for p in paths[:index+1]]))
+                    else:
+                        files.append(found_path)
+
+    return files
+

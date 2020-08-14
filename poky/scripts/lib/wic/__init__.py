@@ -1,4 +1,10 @@
-import os, sys
+#!/usr/bin/env python3
+#
+# Copyright (c) 2007 Red Hat, Inc.
+# Copyright (c) 2011 Intel, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
 
-cur_path = os.path.dirname(__file__) or '.'
-sys.path.insert(0, cur_path + '/3rdparty')
+class WicError(Exception):
+    pass

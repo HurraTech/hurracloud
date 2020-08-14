@@ -1,4 +1,7 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
 
 import sys
 try:
@@ -17,6 +20,15 @@ def children (elem, name=None):
     if name:
         l = [e for e in l if e.tag == name]
     return l
+
+if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
+    print('oe-trim-schemas: error: the following arguments are required: schema\n'
+          'Usage: oe-trim-schemas schema\n\n'
+          'OpenEmbedded trim schemas - remove unneeded schema locale translations\n'
+          '                            from gconf schema files\n\n'
+          'arguments:\n'
+          '  schema                gconf schema file to trim\n')
+    sys.exit(2)
 
 xml = etree.parse(sys.argv[1])
 

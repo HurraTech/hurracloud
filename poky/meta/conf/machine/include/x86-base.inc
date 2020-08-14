@@ -8,28 +8,22 @@
 MACHINE_FEATURES += "screen keyboard pci usbhost ext2 ext3 x86 \
                      acpi serial usbgadget alsa"
 
-MACHINE_EXTRA_RRECOMMENDS += "kernel-modules"
-
-IMAGE_FSTYPES += "live"
+IMAGE_FSTYPES ?= "wic"
 
 KERNEL_IMAGETYPE ?= "bzImage"
 
-SERIAL_CONSOLE ?= "115200 ttyS0"
+SERIAL_CONSOLES ?= "115200;ttyS0"
 
 #
 # kernel-related variables
 #
 PREFERRED_PROVIDER_virtual/kernel ??= "linux-yocto"
-PREFERRED_VERSION_linux-yocto ??= "3.0%"
+PREFERRED_VERSION_linux-yocto ??= "5.4%"
 
 #
 # XSERVER subcomponents, used to build the XSERVER variable
 #
 XSERVER_X86_BASE = "xserver-xorg \
-           xf86-input-mouse \
-           xf86-input-keyboard \
-           xf86-input-evdev \
-           xf86-input-synaptics \
            "
 
 XSERVER_X86_EXT = " \

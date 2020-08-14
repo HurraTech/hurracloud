@@ -2,12 +2,24 @@ GCCMULTILIB = "--enable-multilib"
 require gcc-configure-common.inc
 
 EXTRA_OECONF_PATHS = "\
-    --with-sysroot=/ \
     --with-build-sysroot=${STAGING_DIR_TARGET} \
-    --with-gxx-include-dir=${includedir}/c++/${BINV} \
 "
 
 EXTRA_OECONF_append_linuxstdbase = " --enable-clocale=gnu"
+
+# Configure gcc running on the target to default to an architecture which will
+# be compatible with that of gcc-runtime (which is cross compiled to be target
+# specific). For example, for ARM, ARMv6+ adds atomic instructions that may
+# affect the ABI in the gcc-runtime libs. Since we can't rely on gcc on the
+# target to always be passed -march etc, its built-in default needs to be safe.
+
+ARMFPARCHEXT ?= ""
+
+EXTRA_OECONF_append_armv6_class-target = " --with-arch=armv6${ARMFPARCHEXT}"
+EXTRA_OECONF_append_armv7a_class-target = " --with-arch=armv7-a${ARMFPARCHEXT}"
+EXTRA_OECONF_append_armv7ve_class-target = " --with-arch=armv7ve${ARMFPARCHEXT}"
+EXTRA_OECONF_append_arc_class-target = " --with-cpu=${TUNE_PKGARCH}"
+EXTRA_OECONF_append_x86-64_class-target = " --with-arch=native"
 
 # libcc1 requres gcc_cv_objdump when cross build, but gcc_cv_objdump is
 # set in subdir gcc, so subdir libcc1 can't use it, export it here to
@@ -31,7 +43,7 @@ PACKAGES = "\
 FILES_${PN} = "\
     ${bindir}/${TARGET_PREFIX}gcc* \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/collect2* \
-    ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/cc* \
+    ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/cc1plus \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/lto* \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/lib*${SOLIBS} \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/liblto*${SOLIBSDEV} \
@@ -42,11 +54,12 @@ FILES_${PN} = "\
     ${gcclibdir}/${TARGET_SYS}/${BINV}/include-fixed \
 "
 INSANE_SKIP_${PN} += "dev-so"
-
-FILES_${PN}-dbg += "\
-    ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/.debug/ \
-    ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/plugin/.debug/ \
+RRECOMMENDS_${PN} += "\
+    libssp \
+    libssp-dev \
 "
+RDEPENDS_${PN} += "cpp"
+
 FILES_${PN}-dev = "\
     ${gcclibdir}/${TARGET_SYS}/${BINV}/lib*${SOLIBSDEV} \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/lib*${SOLIBSDEV} \
@@ -73,9 +86,18 @@ FILES_g77-symlinks = "\
     ${bindir}/g77 \
     ${bindir}/f77 \
 "
+RRECOMMENDS_g77 = "\
+    libg2c \
+    libg2c-dev \
+"
+
 FILES_gfortran = "\
     ${bindir}/${TARGET_PREFIX}gfortran \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/f951 \
+"
+RRECOMMENDS_gfortran = "\
+    libquadmath \
+    libquadmath-dev \
 "
 FILES_gfortran-symlinks = "\
     ${bindir}/gfortran \
@@ -102,6 +124,12 @@ FILES_g++-symlinks = "\
     ${bindir}/c++ \
     ${bindir}/g++ \
 "
+RRECOMMENDS_g++ = "\
+    libstdc++ \
+    libstdc++-dev \
+    libatomic \
+    libatomic-dev \
+"
 
 FILES_${PN}-doc = "\
     ${infodir} \
@@ -110,6 +138,21 @@ FILES_${PN}-doc = "\
 "
 
 do_compile () {
+	# Prevent full target sysroot path from being used in configargs.h header,
+	# as it will be rewritten when used by other sysroots preventing support
+	# for gcc plugins. Additionally the path is embeddeded into the output
+	# binary, this prevents building a reproducible binary.
+	oe_runmake configure-gcc
+	sed -i 's@${STAGING_DIR_TARGET}@/@g' ${B}/gcc/configargs.h
+	sed -i 's@${STAGING_DIR_HOST}@/@g' ${B}/gcc/configargs.h
+
+	# Prevent sysroot/workdir paths from being used in checksum-options.
+	# checksum-options is used to generate a checksum which is embedded into
+	# the output binary.
+	oe_runmake TARGET-gcc=checksum-options all-gcc
+	sed -i 's@${DEBUG_PREFIX_MAP}@@g' ${B}/gcc/checksum-options
+	sed -i 's@${STAGING_DIR_TARGET}@/@g' ${B}/gcc/checksum-options
+
 	oe_runmake all-host
 }
 
@@ -137,6 +180,10 @@ do_install () {
 	# Cleanup manpages..
 	rm -rf ${D}${mandir}/man7
 
+	# Don't package details about the build host
+	rm -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/plugin/include/auto-build.h
+	rm -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/plugin/include/bconfig.h
+
 	cd ${D}${bindir}
 
 	# We care about g++ not c++
@@ -144,10 +191,6 @@ do_install () {
 
 	# We don't care about the gcc-<version> ones for this
 	rm -f *gcc-?.?*
-
-	# We use libiberty from binutils
-	find ${D}${libdir} -name libiberty.a | xargs rm -f
-	find ${D}${libdir} -name libiberty.h | xargs rm -f
 
 	# Not sure why we end up with these but we don't want them...
 	rm -f ${TARGET_PREFIX}${TARGET_PREFIX}*
@@ -164,6 +207,8 @@ do_install () {
 	ln -sf ${TARGET_PREFIX}g++ g++
 	ln -sf ${TARGET_PREFIX}gcc gcc
 	ln -sf ${TARGET_PREFIX}cpp cpp
+	ln -sf ${TARGET_PREFIX}gcov gcov
+	ln -sf ${TARGET_PREFIX}gcov-tool gcov-tool
 	install -d ${D}${base_libdir}
 	ln -sf ${bindir}/${TARGET_PREFIX}cpp ${D}${base_libdir}/cpp
 	ln -sf g++ c++
@@ -208,6 +253,4 @@ do_install_append () {
 # and builds track file dependencies (e.g. perl and its makedepends code).
 # For determinism we don't install this ever and rely on the copy from gcc-cross.
 # [YOCTO #7287]
-sysroot_stage_dirs_append () {
-	rm -rf $to${libdir}/gcc
-}
+SYSROOT_DIRS_BLACKLIST += "${libdir}/gcc"

@@ -3,7 +3,7 @@ inherit cross-canadian
 SUMMARY = "GNU cc and gcc C compilers (cross-canadian for ${TARGET_ARCH} target)"
 PN = "gcc-cross-canadian-${TRANSLATED_TARGET_ARCH}"
 
-DEPENDS = "virtual/${TARGET_PREFIX}gcc virtual/${HOST_PREFIX}binutils-crosssdk virtual/nativesdk-${HOST_PREFIX}libc-for-gcc nativesdk-gettext"
+DEPENDS = "virtual/${TARGET_PREFIX}gcc virtual/${HOST_PREFIX}gcc-crosssdk virtual/${HOST_PREFIX}binutils-crosssdk virtual/nativesdk-libc nativesdk-gettext flex-native virtual/libc"
 
 GCCMULTILIB = "--enable-multilib"
 
@@ -60,10 +60,8 @@ do_configure () {
 
 do_compile () {
 	oe_runmake all-host configure-target-libgcc
+	(cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
 }
-
-# Having anything auto depending on gcc-cross-sdk is a really bad idea...
-EXCLUDE_FROM_SHLIBS = "1"
 
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc"
 
@@ -80,16 +78,9 @@ FILES_${PN} = "\
     ${includedir}/c++/${BINV} \
     ${prefix}/${TARGET_SYS}/bin/* \
     ${prefix}/${TARGET_SYS}/lib/* \
-    ${prefix}/${TARGET_SYS}/usr/include/* \
+    ${prefix}/${TARGET_SYS}${target_includedir}/* \
 "
 INSANE_SKIP_${PN} += "dev-so"
-INSANE_SKIP_${PN} += "libdir"
-INSANE_SKIP_${PN}-dbg += "libdir"
-
-FILES_${PN}-dbg += " \
-    ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/.debug \
-    ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/plugin/.debug \
-"
 
 FILES_${PN}-doc = "\
     ${infodir} \
@@ -103,7 +94,7 @@ EXEEXT = ""
 BINRELPATH = "${@os.path.relpath(d.expand("${bindir}"), d.expand("${libexecdir}/gcc/${TARGET_SYS}/${BINV}"))}"
 
 do_install () {
-	( cd ${B}/${TARGET_SYS}/libgcc; oe_runmake 'DESTDIR=${D}' install-unwind_h )
+	( cd ${B}/${TARGET_SYS}/libgcc; oe_runmake 'DESTDIR=${D}' install-unwind_h-forbuild install-unwind_h )
 	oe_runmake 'DESTDIR=${D}' install-host
 
 	# Cleanup some of the ${libdir}{,exec}/gcc stuff ...
@@ -116,12 +107,6 @@ do_install () {
 
 	# We don't care about the gcc-<version> copies
 	rm -f ${D}${bindir}/*gcc-?.?*
-
-	# We use libiberty from binutils
-	rm -f ${D}${prefix}/${TARGET_SYS}/lib/libiberty.a
-	# Not sure where the strange paths come from
-	rm -f ${D}${libdir}/../lib/libiberty.a
-	rm -f ${D}${libdir}/libiberty.a
 
 	# Cleanup empty directories which are not shipped
 	# we use rmdir instead of 'rm -f' to ensure the non empty directories are not deleted
@@ -160,20 +145,14 @@ ELFUTILS = "nativesdk-elfutils"
 DEPENDS += "nativesdk-gmp nativesdk-mpfr nativesdk-libmpc ${ELFUTILS} nativesdk-zlib"
 RDEPENDS_${PN} += "nativesdk-mpfr nativesdk-libmpc ${ELFUTILS}"
 
-SYSTEMHEADERS = "/usr/include"
+SYSTEMHEADERS = "${target_includedir}/"
 SYSTEMLIBS = "${target_base_libdir}/"
 SYSTEMLIBS1 = "${target_libdir}/"
 
 EXTRA_OECONF += "--enable-poison-system-directories"
-
-EXTRA_OECONF += "\
-    --with-mpfr=${STAGING_DIR_HOST}${layout_exec_prefix} \
-    --with-mpc=${STAGING_DIR_HOST}${layout_exec_prefix} \
-"
-
-EXTRA_OECONF_append_libc-baremetal = " --without-headers"
-EXTRA_OECONF_remove_libc-baremetal = "--with-sysroot=/not/exist"
-EXTRA_OECONF_remove_libc-baremetal = "--with-build-sysroot=${STAGING_DIR_TARGET}"
-
+EXTRA_OECONF_remove_elf = "--with-sysroot=/not/exist"
+EXTRA_OECONF_remove_eabi = "--with-sysroot=/not/exist"
+EXTRA_OECONF_append_elf = " --without-headers --with-newlib"
+EXTRA_OECONF_append_eabi = " --without-headers --with-newlib"
 # gcc 4.7 needs -isystem
 export ARCH_FLAGS_FOR_TARGET = "--sysroot=${STAGING_DIR_TARGET} -isystem=${target_includedir}"

@@ -2,7 +2,7 @@
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-ROOT_MOUNT="/rootfs/"
+ROOT_MOUNT="/rootfs"
 ROOT_IMAGE="rootfs.img"
 MOUNT="/bin/mount"
 UMOUNT="/bin/umount"
@@ -28,17 +28,13 @@ udev_daemon() {
 _UDEV_DAEMON=`udev_daemon`
 
 early_setup() {
-    mkdir -p /proc
-    mkdir -p /sys
+    mkdir -p /proc /sys /run /var/run
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
     mount -t devtmpfs none /dev
 
     # support modular kernel
     modprobe isofs 2> /dev/null
-
-    mkdir -p /run
-    mkdir -p /var/run
 
     $_UDEV_DAEMON --daemon
     udevadm trigger --action=add
@@ -80,7 +76,13 @@ read_args() {
 boot_live_root() {
     # Watches the udev event queue, and exits if all current events are handled
     udevadm settle --timeout=3 --quiet
-    killall "${_UDEV_DAEMON##*/}" 2>/dev/null
+    # Kills the current udev running processes, which survived after
+    # device node creation events were handled, to avoid unexpected behavior
+    killall -9 "${_UDEV_DAEMON##*/}" 2>/dev/null
+
+    # Don't run systemd-update-done on systemd-based live systems
+    # because it triggers a slow rebuild of ldconfig caches.
+    touch ${ROOT_MOUNT}/etc/.updated ${ROOT_MOUNT}/var/.updated
 
     # Allow for identification of the real root even after boot
     mkdir -p  ${ROOT_MOUNT}/media/realroot
@@ -89,8 +91,11 @@ boot_live_root() {
     # Move the mount points of some filesystems over to
     # the corresponding directories under the real root filesystem.
     for dir in `awk '/\/dev.* \/run\/media/{print $2}' /proc/mounts`; do
-        mkdir -p  ${ROOT_MOUNT}/media/${dir##*/}
-        mount -n --move $dir ${ROOT_MOUNT}/media/${dir##*/}
+        # Parse any OCT or HEX encoded chars such as spaces
+        # in the mount points to actual ASCII chars
+        dir=`printf $dir`
+        mkdir -p "${ROOT_MOUNT}/media/${dir##*/}"
+        mount -n --move "$dir" "${ROOT_MOUNT}/media/${dir##*/}"
     done
     mount -n --move /proc ${ROOT_MOUNT}/proc
     mount -n --move /sys ${ROOT_MOUNT}/sys
@@ -169,8 +174,8 @@ mount_and_boot() {
 
     # determine which unification filesystem to use
     union_fs_type=""
-    if grep -q -w "overlayfs" /proc/filesystems; then
-	union_fs_type="overlayfs"
+    if grep -q -w "overlay" /proc/filesystems; then
+	union_fs_type="overlay"
     elif grep -q -w "aufs" /proc/filesystems; then
 	union_fs_type="aufs"
     else
@@ -179,14 +184,15 @@ mount_and_boot() {
 
     # make a union mount if possible
     case $union_fs_type in
-	"overlayfs")
+	"overlay")
 	    mkdir -p /rootfs.ro /rootfs.rw
 	    if ! mount -n --move $ROOT_MOUNT /rootfs.ro; then
 		rm -rf /rootfs.ro /rootfs.rw
 		fatal "Could not move rootfs mount point"
 	    else
 		mount -t tmpfs -o rw,noatime,mode=755 tmpfs /rootfs.rw
-		mount -t overlayfs -o "lowerdir=/rootfs.ro,upperdir=/rootfs.rw" overlayfs $ROOT_MOUNT
+		mkdir -p /rootfs.rw/upperdir /rootfs.rw/work
+		mount -t overlay overlay -o "lowerdir=/rootfs.ro,upperdir=/rootfs.rw/upperdir,workdir=/rootfs.rw/work" $ROOT_MOUNT
 		mkdir -p $ROOT_MOUNT/rootfs.ro $ROOT_MOUNT/rootfs.rw
 		mount --move /rootfs.ro $ROOT_MOUNT/rootfs.ro
 		mount --move /rootfs.rw $ROOT_MOUNT/rootfs.rw
@@ -214,11 +220,7 @@ mount_and_boot() {
     boot_live_root
 }
 
-case $label in
-    boot)
-	mount_and_boot
-	;;
-    install|install-efi)
+if [ "$label" != "boot" -a -f $label.sh ] ; then
 	if [ -f /run/media/$i/$ISOLINUX/$ROOT_IMAGE ] ; then
 	    ./$label.sh $i/$ISOLINUX $ROOT_IMAGE $video_mode $vga_mode $console_params
 	else
@@ -226,10 +228,8 @@ case $label in
 	fi
 
 	# If we're getting here, we failed...
-	fatal "Installation image failed"
-	;;
-    *)
-	# Not sure what boot label is provided.  Try to boot to avoid locking up.
-	mount_and_boot
-	;;
-esac
+	fatal "Target $label failed"
+fi
+
+mount_and_boot
+

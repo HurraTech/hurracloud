@@ -1,25 +1,31 @@
-_tkinter module needs tk module along with tcl. tk is not yet integrated
-in yocto so we skip the check for this module.
-Avoid a warning by not adding this module to missing variable.
+From ba7202700578d435b07cfdfb7b57e83185752800 Mon Sep 17 00:00:00 2001
+From: Andrei Gherzan <andrei@gherzan.ro>
+Date: Mon, 28 Jan 2019 15:57:54 +0000
+Subject: [PATCH] _tkinter module needs tk module along with tcl. tk is not yet
+ integrated in yocto so we skip the check for this module. Avoid a warning by
+ not adding this module to missing variable.
 
 Upstream-Status: Inappropriate [distribution]
 
+Also simply disable the tk module since its not in DEPENDS.
 Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
 
-Index: Python-2.7.2/setup.py
-===================================================================
---- Python-2.7.2.orig/setup.py	2012-04-05 23:18:38.500136647 +0300
-+++ Python-2.7.2/setup.py	2012-04-05 23:19:35.888134969 +0300
-@@ -1634,8 +1634,10 @@
-         # Call the method for detecting whether _tkinter can be compiled
-         self.detect_tkinter(inc_dirs, lib_dirs)
+---
+ setup.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index ab18ff0..7691258 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1706,8 +1706,8 @@ class PyBuildExt(build_ext):
+         self.detect_decimal()
+         self.detect_ctypes()
+         self.detect_multiprocessing()
+-        if not self.detect_tkinter():
+-            self.missing.append('_tkinter')
++#        if not self.detect_tkinter():
++#            self.missing.append('_tkinter')
+         self.detect_uuid()
  
--        if '_tkinter' not in [e.name for e in self.extensions]:
--            missing.append('_tkinter')
-+        # tkinter module will not be avalaible as yocto
-+        # doesn't have tk integrated (yet)
-+        #if '_tkinter' not in [e.name for e in self.extensions]:
-+        #    missing.append('_tkinter')
- 
-         return missing
- 
+ ##         # Uncomment these lines if you want to play with xxmodule.c

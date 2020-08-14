@@ -7,8 +7,6 @@ USE_NLS = "yes"
 
 SRC_URI += "file://db_linking_hack.patch \
             file://0001-Revert-always-run-dpkg-configure-a-at-the-end-of-our.patch \
-            file://0001-remove-Wsuggest-attribute-from-CFLAGS.patch \
-            file://0001-fix-the-gcc-version-check.patch \
 "
 
 python do_install () {
@@ -17,20 +15,20 @@ python do_install () {
 }
 
 python do_install_config () {
-    indir = os.path.dirname(d.getVar('FILE',1))
-    infile = file(oe.path.join(indir, 'files', 'apt.conf'), 'r')
+    indir = os.path.dirname(d.getVar('FILE'))
+    infile = open(oe.path.join(indir, 'files', 'apt.conf'), 'r')
     data = infile.read()
     infile.close()
 
     data = d.expand(data)
 
-    outdir = oe.path.join(d.getVar('D', True), d.getVar('sysconfdir', True), 'apt')
+    outdir = oe.path.join(d.getVar('D'), d.getVar('sysconfdir'), 'apt')
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
     outpath = oe.path.join(outdir, 'apt.conf.sample')
     if not os.path.exists(outpath):
-        outfile = file(outpath, 'w')
+        outfile = open(outpath, 'w')
         outfile.write(data)
         outfile.close()
 }
@@ -67,4 +65,10 @@ do_install_base () {
 	install -d ${D}${localstatedir}/cache/apt/archives/partial
 
 	install -d ${D}${localstatedir}/log/apt/
+
+	install -d ${D}${includedir}/apt-pkg
+	for h in `find ${S}/apt-pkg ${S}/apt-inst -name '*.h'`
+	do
+		install -m 0644 $h ${D}${includedir}/apt-pkg
+	done
 }

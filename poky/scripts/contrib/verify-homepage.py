@@ -1,63 +1,64 @@
-#!/usr/bin/env python
-
-# This script is used for verify HOMEPAGE.
+#!/usr/bin/env python3
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# This script can be used to verify HOMEPAGE values for all recipes in
+# the current configuration.
 # The result is influenced by network environment, since the timeout of connect url is 5 seconds as default.
 
 import sys
 import os
 import subprocess
-import urllib2
+import urllib.request
 
-def search_bitbakepath():
-    bitbakepath = ""
 
-    # Search path to bitbake lib dir in order to load bb modules
-    if os.path.exists(os.path.join(os.path.dirname(sys.argv[0]), '../../bitbake/lib/bb')):
-        bitbakepath = os.path.join(os.path.dirname(sys.argv[0]), '../../bitbake/lib')
-        bitbakepath = os.path.abspath(bitbakepath)
-    else:
-        # Look for bitbake/bin dir in PATH
-        for pth in os.environ['PATH'].split(':'):
-            if os.path.exists(os.path.join(pth, '../lib/bb')):
-                bitbakepath = os.path.abspath(os.path.join(pth, '../lib'))
-                break
-        if not bitbakepath:
-            sys.stderr.write("Unable to find bitbake by searching parent directory of this script or PATH\n")
-            sys.exit(1)
-    return bitbakepath
+# Allow importing scripts/lib modules
+scripts_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + '/..')
+lib_path = scripts_path + '/lib'
+sys.path = sys.path + [lib_path]
+import scriptpath
+import scriptutils
 
-# For importing the following modules
-sys.path.insert(0, search_bitbakepath())
+# Allow importing bitbake modules
+bitbakepath = scriptpath.add_bitbake_lib_path()
+
 import bb.tinfoil
+
+logger = scriptutils.logger_create('verify_homepage')
 
 def wgetHomepage(pn, homepage):
     result = subprocess.call('wget ' + '-q -T 5 -t 1 --spider ' + homepage, shell = True)
     if result:
-        bb.warn("Failed to verify HOMEPAGE (%s) of %s" % (homepage, pn))
+        logger.warning("%s: failed to verify HOMEPAGE: %s " % (pn, homepage))
         return 1
     else:
         return 0
 
 def verifyHomepage(bbhandler):
-    pkg_pn = bbhandler.cooker.recipecache.pkg_pn
+    pkg_pn = bbhandler.cooker.recipecaches[''].pkg_pn
     pnlist = sorted(pkg_pn)
     count = 0
+    checked = []
     for pn in pnlist:
-        fn = pkg_pn[pn].pop()
-        data = bb.cache.Cache.loadDataFull(fn, bbhandler.cooker.collection.get_file_appends(fn), bbhandler.config_data)
-        homepage = data.getVar("HOMEPAGE")
-        if homepage:
-            try:
-                urllib2.urlopen(homepage, timeout=5)
-            except Exception:
-                count = count + wgetHomepage(pn, homepage)
+        for fn in pkg_pn[pn]:
+            # There's no point checking multiple BBCLASSEXTENDed variants of the same recipe
+            realfn, _, _ = bb.cache.virtualfn2realfn(fn)
+            if realfn in checked:
+                continue
+            data = bbhandler.parse_recipe_file(realfn)
+            homepage = data.getVar("HOMEPAGE")
+            if homepage:
+                try:
+                    urllib.request.urlopen(homepage, timeout=5)
+                except Exception:
+                    count = count + wgetHomepage(os.path.basename(realfn), homepage)
+            checked.append(realfn)
     return count
 
 if __name__=='__main__':
-    failcount = 0
-    bbhandler = bb.tinfoil.Tinfoil()
-    bbhandler.prepare()
-    print "Start to verify HOMEPAGE:"
-    failcount = verifyHomepage(bbhandler)
-    print "finish to verify HOMEPAGE."
-    print "Summary: %s failed" % failcount
+    with bb.tinfoil.Tinfoil() as bbhandler:
+        bbhandler.prepare()
+        logger.info("Start verifying HOMEPAGE:")
+        failcount = verifyHomepage(bbhandler)
+        logger.info("Finished verifying HOMEPAGE.")
+        logger.info("Summary: %s failed" % failcount)

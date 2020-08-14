@@ -2,31 +2,59 @@ SUMMARY = "Free peer-reviewed portable C++ source libraries"
 SECTION = "libs"
 DEPENDS = "bjam-native zlib bzip2"
 
-ARM_INSTRUCTION_SET = "arm"
+CVE_PRODUCT = "boost:boost"
+
+ARM_INSTRUCTION_SET_armv4 = "arm"
+ARM_INSTRUCTION_SET_armv5 = "arm"
 
 BOOST_LIBS = "\
 	atomic \
 	chrono \
+	container \
+	contract \
 	date_time \
+	exception \
 	filesystem \
 	graph \
 	iostreams \
 	log \
+	math \
 	program_options \
 	random \
 	regex \
 	serialization \
-	signals \
 	system \
+	timer \
 	test \
 	thread \
+	wave \
 	"
 
-# optional boost-python library
-PACKAGECONFIG ??= ""
-PACKAGECONFIG[python] = ",,python python3"
-BOOST_LIBS += "${@bb.utils.contains('PACKAGECONFIG', 'python', 'python python3', '', d)}"
-inherit python-dir
+# only supported by x86 and powerpc
+BOOST_LIBS_append_x86 = " context coroutine"
+BOOST_LIBS_append_x86-64 = " context coroutine"
+BOOST_LIBS_append_powerpc = " context coroutine"
+BOOST_LIBS_append_arm = " context coroutine"
+BOOST_LIBS_append_aarch64 = " context coroutine"
+# need consistent settings for native builds (x86 override not applied for native)
+BOOST_LIBS_remove_class-native = " context coroutine"
+# does not compile
+BOOST_LIBS_remove_mips16e = "wave"
+
+# optional libraries
+PACKAGECONFIG ??= "locale python"
+PACKAGECONFIG[locale] = ",,icu"
+PACKAGECONFIG[graph_parallel] = ",,,boost-mpi mpich"
+PACKAGECONFIG[mpi] = ",,mpich"
+PACKAGECONFIG[python] = ",,python3"
+
+BOOST_LIBS += "\
+    ${@bb.utils.filter('PACKAGECONFIG', 'locale python', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'graph_parallel', 'graph_parallel mpi', \
+                         bb.utils.filter('PACKAGECONFIG', 'mpi', d), d)} \
+"
+
+inherit python3-dir
 PYTHON_ROOT = "${STAGING_DIR_HOST}/${prefix}"
 
 # Make a package for each library, plus -dev
@@ -34,24 +62,20 @@ PACKAGES = "${PN}-dbg ${BOOST_PACKAGES}"
 python __anonymous () {
     packages = []
     extras = []
-    for lib in d.getVar('BOOST_LIBS', True).split( ):
-        # BJAM does not know '--with-python3' (only --with-python)
-        if lib != "python3":
-            extras.append("--with-%s" % lib)
+    for lib in d.getVar('BOOST_LIBS').split():
+        extras.append("--with-%s" % lib)
         pkg = "boost-%s" % lib.replace("_", "-")
         packages.append(pkg)
-        if lib == "python":
-            # special: python*.so matches python3.so !!
-            if not d.getVar("FILES_%s" % pkg, True):
-                    d.setVar("FILES_%s" % pkg, "${libdir}/libboost_%s.so.*" % lib)
-        else:
-            if not d.getVar("FILES_%s" % pkg, True):
-                    d.setVar("FILES_%s" % pkg, "${libdir}/libboost_%s*.so.*" % lib)
+        if not d.getVar("FILES_%s" % pkg):
+                d.setVar("FILES_%s" % pkg, "${libdir}/libboost_%s*.so.*" % lib)
     d.setVar("BOOST_PACKAGES", " ".join(packages))
     d.setVar("BJAM_EXTRA", " ".join(extras))
 }
 
 # Override the contents of specific packages
+FILES_${PN}-graph_parallel = "${libdir}/libboost_graph_parallel.so.*"
+FILES_${PN}-locale = "${libdir}/libboost_locale.so.*"
+FILES_${PN}-mpi = "${libdir}/mpi.so ${libdir}/libboost_mpi*.so.*"
 FILES_boost-serialization = "${libdir}/libboost_serialization*.so.* \
 	${libdir}/libboost_wserialization*.so.*"
 FILES_boost-test = "${libdir}/libboost_prg_exec_monitor*.so.* \
@@ -59,15 +83,15 @@ FILES_boost-test = "${libdir}/libboost_prg_exec_monitor*.so.* \
 
 # -dev last to pick up the remaining stuff
 PACKAGES += "${PN}-dev ${PN}-staticdev"
-FILES_${PN} = ""
-FILES_${PN}-dev = "${includedir} ${libdir}/libboost_*.so"
+FILES_${PN}-dev = "${includedir} ${libdir}/libboost_*.so ${libdir}/cmake"
 FILES_${PN}-staticdev = "${libdir}/libboost_*.a"
 
 # "boost" is a metapackage which pulls in all boost librabries
 PACKAGES += "${PN}"
+FILES_${PN} = ""
+ALLOW_EMPTY_${PN} = "1"
 RRECOMMENDS_${PN} += "${BOOST_PACKAGES}"
 RRECOMMENDS_${PN}_class-native = ""
-ALLOW_EMPTY_${PN} = "1"
 
 # to avoid GNU_HASH QA errors added LDFLAGS to ARCH; a little bit dirty but at least it works
 TARGET_CC_ARCH += "${LDFLAGS}"
@@ -113,68 +137,58 @@ BJAM_TOOLS   = "--ignore-site-config \
 		'--layout=system' \
 		"
 
-# use PARALLEL_MAKE to speed up the build, but limit it by -j 64, greater paralelism causes bjam to segfault or to ignore -j
-# https://svn.boost.org/trac/boost/ticket/7634
-def get_boost_parallel_make(bb, d):
-    pm = d.getVar('PARALLEL_MAKE', True)
-    if pm:
-        # look for '-j' and throw other options (e.g. '-l') away
-        # because they might have different meaning in bjam
-        pm = pm.split()
-        while pm:
-            v = None
-            opt = pm.pop(0)
-            if opt == '-j':
-                v = pm.pop(0)
-            elif opt.startswith('-j'):
-                v = opt[2:].strip()
-            else:
-                v = None
-
-            if v:
-                v = min(64, int(v))
-                return '-j' + str(v)
-
-    return ""
-
-BOOST_PARALLEL_MAKE = "${@get_boost_parallel_make(bb, d)}"
-BJAM_OPTS    = '${BOOST_PARALLEL_MAKE} \
+# use PARALLEL_MAKE to speed up the build
+BOOST_PARALLEL_MAKE = "${@oe.utils.parallel_make_argument(d, '-j%d')}"
+BJAM_OPTS    = '${BOOST_PARALLEL_MAKE} -d+2 -q \
 		${BJAM_TOOLS} \
-		-sBOOST_BUILD_USER_CONFIG=${S}/tools/build/example/user-config.jam \
-		--builddir=${S}/${TARGET_SYS} \
+		-sBOOST_BUILD_USER_CONFIG=${WORKDIR}/user-config.jam \
+		--build-dir=${S}/${TARGET_SYS} \
 		--disable-icu \
 		${BJAM_EXTRA}'
 
 # Native compilation of bzip2 isn't working
 BJAM_OPTS_append_class-native = ' -sNO_BZIP2=1'
 
-do_boostconfig() {
-	cp -f boost/config/platform/linux.hpp boost/config/platform/linux-gnueabi.hpp
+# Adjust the build for x32
+BJAM_OPTS_append_x86-x32 = " abi=x32 address-model=64"
+
+# cross compiling for arm fails to detect abi, so provide some help
+BJAM_OPTS_append_arm = " abi=aapcs architecture=arm"
+BJAM_OPTS_append_aarch64 = " abi=aapcs address-model=64 architecture=arm"
+
+do_configure() {
+	cp -f ${S}/boost/config/platform/linux.hpp ${S}/boost/config/platform/linux-gnueabi.hpp
 
 	# D2194:Fixing the failure of "error: duplicate initialization of gcc with the following parameters" during compilation.
-	sed -i "/^using gcc : 4.3.1/d" ${S}/tools/build/example/user-config.jam
-	sed -i "/^using python : ${PYTHON_BASEVERSION}"/d ${S}/tools/build/example/user-config.jam
-	echo 'using gcc : 4.3.1 : ${CXX} : <cflags>"${CFLAGS}" <cxxflags>"${CXXFLAGS}" <linkflags>"${LDFLAGS}" ;' >> ${S}/tools/build/example/user-config.jam
-	echo "using python : ${PYTHON_BASEVERSION} : : ${STAGING_INCDIR}/python${PYTHON_BASEVERSION} ;" >> ${S}/tools/build/example/user-config.jam
-	echo "using python : 3.4 : : ${STAGING_INCDIR}/python3.4m ;" >> ${S}/tools/build/example/user-config.jam
+	rm -f ${WORKDIR}/user-config.jam
+	echo 'using gcc : 4.3.1 : ${CXX} : <cflags>"${CFLAGS}" <cxxflags>"${CXXFLAGS}" <linkflags>"${LDFLAGS}" ;' >> ${WORKDIR}/user-config.jam
 
-	CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" ./bootstrap.sh --with-bjam=bjam --with-toolset=gcc --with-python-root=${PYTHON_ROOT}
-	sed -i '/^using python/d' project-config.jam
+	# If we want Python then we need to tell Boost *exactly* where to find it
+	if ${@bb.utils.contains('BOOST_LIBS', 'python', 'true', 'false', d)}; then
+		echo "using python : ${PYTHON_BASEVERSION} : ${STAGING_DIR_HOST}${bindir}/python3 : ${STAGING_DIR_HOST}${includedir}/${PYTHON_DIR}${PYTHON_ABI} : ${STAGING_DIR_HOST}${libdir}/${PYTHON_DIR} ;" >> ${WORKDIR}/user-config.jam
+	fi
+
+	if ${@bb.utils.contains('BOOST_LIBS', 'mpi', 'true', 'false', d)}; then
+		echo "using mpi : : <find-shared-library>mpi ;" >> ${WORKDIR}/user-config.jam
+	fi
+
+	CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" ./bootstrap.sh --with-bjam=bjam --with-toolset=gcc
+
+	# Boost can't be trusted to find Python on it's own, so remove any mention
+	# of it from the boost configuration
+	sed -i '/using python/d' ${S}/project-config.jam
 }
 
-do_boostconfig[dirs] = "${S}"
-addtask do_boostconfig after do_patch before do_configure
-
 do_compile() {
-	set -ex
+	rm -rf ${S}/${TARGET_SYS}
 	bjam ${BJAM_OPTS} --prefix=${prefix} \
 		--exec-prefix=${exec_prefix} \
 		--libdir=${libdir} \
-		--includedir=${includedir}
+		--includedir=${includedir} \
+		--debug-configuration
 }
 
 do_install() {
-	set -ex
 	bjam ${BJAM_OPTS} \
 		--libdir=${D}${libdir} \
 		--includedir=${D}${includedir} \
@@ -187,6 +201,11 @@ do_install() {
 			ln -s libboost_${lib}.so ${D}${libdir}/libboost_${lib}-mt.so
 		fi
 	done
+
+        # Cmake files reference full paths to image
+        find ${D}${libdir}/cmake -type f | \
+             grep 'cmake$' | \
+             xargs -n 1 sed -e 's,${D}${libdir}/cmake,${libdir}/cmake,' -i
 
 }
 

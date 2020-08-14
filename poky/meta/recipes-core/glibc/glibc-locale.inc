@@ -1,4 +1,4 @@
-include glibc-collateral.inc
+require glibc-collateral.inc
 
 SUMMARY = "Locale data from glibc"
 
@@ -12,18 +12,20 @@ BINUTILSDEP = "virtual/${MLPREFIX}${TARGET_PREFIX}binutils:do_populate_sysroot"
 BINUTILSDEP_class-nativesdk = "virtual/${TARGET_PREFIX}binutils-crosssdk:do_populate_sysroot"
 do_package[depends] += "${BINUTILSDEP}"
 
+DEPENDS += "virtual/libc"
+
 # Binary locales are generated at build time if ENABLE_BINARY_LOCALE_GENERATION
 # is set. The idea is to avoid running localedef on the target (at first boot)
 # to decrease initial boot time and avoid localedef being killed by the OOM
 # killer which used to effectively break i18n on machines with < 128MB RAM.
 
-# default to disabled 
+# default to disabled
 ENABLE_BINARY_LOCALE_GENERATION ?= "0"
-ENABLE_BINARY_LOCALE_GENERATION_pn-nativesdk-glibc-locale = "0"
+ENABLE_BINARY_LOCALE_GENERATION_pn-nativesdk-glibc-locale = "1"
 
 #enable locale generation on these arches
 # BINARY_LOCALE_ARCHES is a space separated list of regular expressions
-BINARY_LOCALE_ARCHES ?= "arm.* aarch64 i[3-6]86 x86_64 powerpc mips mips64"
+BINARY_LOCALE_ARCHES ?= "arc arm.* aarch64 i[3-6]86 x86_64 powerpc mips mips64 riscv32 riscv64"
 
 # set "1" to use cross-localedef for locale generation
 # set "0" for qemu emulation of native localedef for locale generation
@@ -35,28 +37,27 @@ PACKAGES = "localedef ${PN}-dbg"
 
 PACKAGES_DYNAMIC = "^locale-base-.* \
                     ^glibc-gconv-.* ^glibc-charmap-.* ^glibc-localedata-.* ^glibc-binary-localedata-.* \
-                    ^glibc-gconv-.*  ^glibc-charmap-.*  ^glibc-localedata-.*  ^glibc-binary-localedata-.* \
                     ^${MLPREFIX}glibc-gconv$"
 
 # Create a glibc-binaries package
 ALLOW_EMPTY_${BPN}-binaries = "1"
 PACKAGES += "${BPN}-binaries"
-RRECOMMENDS_${BPN}-binaries =  "${@" ".join([p for p in d.getVar('PACKAGES', True).split() if p.find("glibc-binary") != -1])}"
+RRECOMMENDS_${BPN}-binaries =  "${@" ".join([p for p in d.getVar('PACKAGES').split() if p.find("glibc-binary") != -1])}"
 
 # Create a glibc-charmaps package
 ALLOW_EMPTY_${BPN}-charmaps = "1"
 PACKAGES += "${BPN}-charmaps"
-RRECOMMENDS_${BPN}-charmaps =  "${@" ".join([p for p in d.getVar('PACKAGES', True).split() if p.find("glibc-charmap") != -1])}"
+RRECOMMENDS_${BPN}-charmaps =  "${@" ".join([p for p in d.getVar('PACKAGES').split() if p.find("glibc-charmap") != -1])}"
 
 # Create a glibc-gconvs package
 ALLOW_EMPTY_${BPN}-gconvs = "1"
 PACKAGES += "${BPN}-gconvs"
-RRECOMMENDS_${BPN}-gconvs =  "${@" ".join([p for p in d.getVar('PACKAGES', True).split() if p.find("glibc-gconv") != -1])}"
+RRECOMMENDS_${BPN}-gconvs =  "${@" ".join([p for p in d.getVar('PACKAGES').split() if p.find("glibc-gconv") != -1])}"
 
 # Create a glibc-localedatas package
 ALLOW_EMPTY_${BPN}-localedatas = "1"
 PACKAGES += "${BPN}-localedatas"
-RRECOMMENDS_${BPN}-localedatas =  "${@" ".join([p for p in d.getVar('PACKAGES', True).split() if p.find("glibc-localedata") != -1])}"
+RRECOMMENDS_${BPN}-localedatas =  "${@" ".join([p for p in d.getVar('PACKAGES').split() if p.find("glibc-localedata") != -1])}"
 
 DESCRIPTION_localedef = "glibc: compile locale definition files"
 
@@ -64,33 +65,39 @@ DESCRIPTION_localedef = "glibc: compile locale definition files"
 # FILES_glibc-gconv will not be automatically extended in multilib.
 # Explicitly add ${MLPREFIX} for FILES_glibc-gconv.
 FILES_${MLPREFIX}glibc-gconv = "${libdir}/gconv/*"
-FILES_${PN}-dbg += "${libdir}/gconv/.debug/*"
 FILES_localedef = "${bindir}/localedef"
 
-LOCALETREESRC = "${STAGING_INCDIR}/glibc-locale-internal-${MULTIMACH_TARGET_SYS}"
+LOCALETREESRC = "${COMPONENTS_DIR}/${PACKAGE_ARCH}/glibc-stash-locale"
 
-do_install () {
-	mkdir -p ${D}${bindir} ${D}${datadir} ${D}${libdir}
-	if [ -n "$(ls ${LOCALETREESRC}/${bindir})" ]; then
-		cp -fpPR ${LOCALETREESRC}/${bindir}/* ${D}${bindir}
+copy_locale_files() {
+	local dir=$1 mode=$2
+
+	[ -e "${LOCALETREESRC}$dir" ] || return 0
+
+	for d in . $(find "${LOCALETREESRC}$dir" -type d -printf '%P '); do
+		install -d ${D}$dir/$d
+		find "${LOCALETREESRC}$dir/$d" -maxdepth 1 -type f \
+			-exec install -m $mode -t "${D}$dir/$d" {} \;
+	done
+}
+
+do_install() {
+	copy_locale_files ${bindir} 0755
+	copy_locale_files ${localedir} 0644
+	if [ ${PACKAGE_NO_GCONV} -eq 0 ]; then
+		copy_locale_files ${libdir}/gconv 0755
+		copy_locale_files ${datadir}/i18n 0644
+	else
+		# Remove the libdir if it is empty when gconv is not copied
+		find ${D}${libdir} -type d -empty -delete
 	fi
-	if [ -n "$(ls ${LOCALETREESRC}/${localedir})" ]; then
-		mkdir -p ${D}${localedir}
-		cp -fpPR ${LOCALETREESRC}/${localedir}/* ${D}${localedir}
-	fi
-	if [ -e ${LOCALETREESRC}/${libdir}/gconv ]; then
-		cp -fpPR ${LOCALETREESRC}/${libdir}/gconv ${D}${libdir}
-	fi
-	if [ -e ${LOCALETREESRC}/${datadir}/i18n ]; then
-		cp -fpPR ${LOCALETREESRC}/${datadir}/i18n ${D}${datadir}
-	fi
-	if [ -e ${LOCALETREESRC}/${datadir}/locale ]; then
-		cp -fpPR ${LOCALETREESRC}/${datadir}/locale ${D}${datadir}
-	fi
-	chown root:root -R ${D}
-	cp -fpPR ${LOCALETREESRC}/SUPPORTED ${WORKDIR}
+	copy_locale_files ${datadir}/locale 0644
+	install -m 0644 ${LOCALETREESRC}/SUPPORTED ${WORKDIR}/SUPPORTED
 }
 
 inherit libc-package
 
 BBCLASSEXTEND = "nativesdk"
+
+# Don't scan for CVEs as glibc will be scanned
+CVE_PRODUCT = ""

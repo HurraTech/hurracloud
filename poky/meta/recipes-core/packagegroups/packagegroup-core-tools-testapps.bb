@@ -3,7 +3,6 @@
 #
 
 SUMMARY = "Testing tools/applications"
-LICENSE = "MIT"
 
 PR = "r2"
 
@@ -11,17 +10,18 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-# kexec-tools doesn't work on Mips
+# kexec-tools doesn't work on e5500-64b, microblaze and nios2 yet
 KEXECTOOLS ?= "kexec"
-KEXECTOOLS_mips ?= ""
-KEXECTOOLS_mipsel ?= ""
-KEXECTOOLS_powerpc ?= ""
 KEXECTOOLS_e5500-64b ?= ""
-KEXECTOOLS_aarch64 ?= ""
+KEXECTOOLS_microblaze ?= ""
+KEXECTOOLS_nios2 ?= ""
+KEXECTOOLS_riscv64 ?= ""
+
+GSTEXAMPLES ?= "gst-examples"
+GSTEXAMPLES_riscv64 = ""
 
 X11GLTOOLS = "\
     mesa-demos \
-    piglit \
     "
 
 3GTOOLS = "\
@@ -29,20 +29,15 @@ X11GLTOOLS = "\
     "
 
 X11TOOLS = "\
-    fstests \
-    gst-player-bin \
+    ${GSTEXAMPLES} \
     x11perf \
     xrestop \
     xwininfo \
     xprop \
-    xvideo-tests \
     "
 
 RDEPENDS_${PN} = "\
     blktool \
-    tslib-calibrate \
-    tslib-tests \
-    lrzsz \
     ${KEXECTOOLS} \
     alsa-utils-amixer \
     alsa-utils-aplay \

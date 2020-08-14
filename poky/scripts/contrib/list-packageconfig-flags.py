@@ -1,20 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation.
-#
 # Copyright (C) 2013 Wind River Systems, Inc.
 # Copyright (C) 2014 Intel Corporation
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # - list available recipes which have PACKAGECONFIG flags
 # - list available PACKAGECONFIG flags and all affected recipes
@@ -37,7 +26,6 @@ if not bitbakepath:
     sys.stderr.write("Unable to find bitbake by searching parent directory of this script or PATH\n")
     sys.exit(1)
 
-import bb.cache
 import bb.cooker
 import bb.providers
 import bb.tinfoil
@@ -45,7 +33,7 @@ import bb.tinfoil
 def get_fnlist(bbhandler, pkg_pn, preferred):
     ''' Get all recipe file names '''
     if preferred:
-        (latest_versions, preferred_versions) = bb.providers.findProviders(bbhandler.config_data, bbhandler.cooker.recipecache, pkg_pn)
+        (latest_versions, preferred_versions) = bb.providers.findProviders(bbhandler.config_data, bbhandler.cooker.recipecaches[''], pkg_pn)
 
     fn_list = []
     for pn in sorted(pkg_pn):
@@ -58,11 +46,11 @@ def get_fnlist(bbhandler, pkg_pn, preferred):
 
 def get_recipesdata(bbhandler, preferred):
     ''' Get data of all available recipes which have PACKAGECONFIG flags '''
-    pkg_pn = bbhandler.cooker.recipecache.pkg_pn
+    pkg_pn = bbhandler.cooker.recipecaches[''].pkg_pn
 
     data_dict = {}
     for fn in get_fnlist(bbhandler, pkg_pn, preferred):
-        data = bb.cache.Cache.loadDataFull(fn, bbhandler.cooker.collection.get_file_appends(fn), bbhandler.config_data)
+        data = bbhandler.parse_recipe_file(fn)
         flags = data.getVarFlags("PACKAGECONFIG")
         flags.pop('doc', None)
         if flags:
@@ -77,7 +65,7 @@ def collect_pkgs(data_dict):
     for fn in data_dict:
         pkgconfigflags = data_dict[fn].getVarFlags("PACKAGECONFIG")
         pkgconfigflags.pop('doc', None)
-        pkgname = data_dict[fn].getVar("P", True)
+        pkgname = data_dict[fn].getVar("PN")
         pkg_dict[pkgname] = sorted(pkgconfigflags.keys())
 
     return pkg_dict
@@ -86,7 +74,7 @@ def collect_flags(pkg_dict):
     ''' Collect available PACKAGECONFIG flags and all affected pkgs '''
     # flag_dict = {'flag': ['pkg1', 'pkg2',...]}
     flag_dict = {}
-    for pkgname, flaglist in pkg_dict.iteritems():
+    for pkgname, flaglist in pkg_dict.items():
         for flag in flaglist:
             if flag in flag_dict:
                 flag_dict[flag].append(pkgname)
@@ -104,8 +92,8 @@ def display_pkgs(pkg_dict):
     pkgname_len += 1
 
     header = '%-*s%s' % (pkgname_len, str("RECIPE NAME"), str("PACKAGECONFIG FLAGS"))
-    print header
-    print str("").ljust(len(header), '=')
+    print(header)
+    print(str("").ljust(len(header), '='))
     for pkgname in sorted(pkg_dict):
         print('%-*s%s' % (pkgname_len, pkgname, ' '.join(pkg_dict[pkgname])))
 
@@ -115,28 +103,28 @@ def display_flags(flag_dict):
     flag_len = len("PACKAGECONFIG FLAG") + 5
 
     header = '%-*s%s' % (flag_len, str("PACKAGECONFIG FLAG"), str("RECIPE NAMES"))
-    print header
-    print str("").ljust(len(header), '=')
+    print(header)
+    print(str("").ljust(len(header), '='))
 
     for flag in sorted(flag_dict):
         print('%-*s%s' % (flag_len, flag, '  '.join(sorted(flag_dict[flag]))))
 
 def display_all(data_dict):
     ''' Display all pkgs and PACKAGECONFIG information '''
-    print str("").ljust(50, '=')
+    print(str("").ljust(50, '='))
     for fn in data_dict:
-        print('%s' % data_dict[fn].getVar("P", True))
-        print fn
-        packageconfig = data_dict[fn].getVar("PACKAGECONFIG", True) or ''
+        print('%s' % data_dict[fn].getVar("P"))
+        print(fn)
+        packageconfig = data_dict[fn].getVar("PACKAGECONFIG") or ''
         if packageconfig.strip() == '':
             packageconfig = 'None'
         print('PACKAGECONFIG %s' % packageconfig)
 
-        for flag,flag_val in data_dict[fn].getVarFlags("PACKAGECONFIG").iteritems():
+        for flag,flag_val in data_dict[fn].getVarFlags("PACKAGECONFIG").items():
             if flag == "doc":
                 continue
             print('PACKAGECONFIG[%s] %s' % (flag, flag_val))
-        print ''
+        print('')
 
 def main():
     pkg_dict = {}
@@ -160,20 +148,20 @@ def main():
 
     options, args = parser.parse_args(sys.argv)
 
-    bbhandler = bb.tinfoil.Tinfoil()
-    bbhandler.prepare()
-    print("Gathering recipe data...")
-    data_dict = get_recipesdata(bbhandler, options.preferred)
+    with bb.tinfoil.Tinfoil() as bbhandler:
+        bbhandler.prepare()
+        print("Gathering recipe data...")
+        data_dict = get_recipesdata(bbhandler, options.preferred)
 
-    if options.listtype == 'flags':
-        pkg_dict = collect_pkgs(data_dict)
-        flag_dict = collect_flags(pkg_dict)
-        display_flags(flag_dict)
-    elif options.listtype == 'recipes':
-        pkg_dict = collect_pkgs(data_dict)
-        display_pkgs(pkg_dict)
-    elif options.listtype == 'all':
-        display_all(data_dict)
+        if options.listtype == 'flags':
+            pkg_dict = collect_pkgs(data_dict)
+            flag_dict = collect_flags(pkg_dict)
+            display_flags(flag_dict)
+        elif options.listtype == 'recipes':
+            pkg_dict = collect_pkgs(data_dict)
+            display_pkgs(pkg_dict)
+        elif options.listtype == 'all':
+            display_all(data_dict)
 
 if __name__ == "__main__":
     main()

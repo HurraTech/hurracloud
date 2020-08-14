@@ -26,20 +26,20 @@ python do_spdx () {
     import json, shutil
 
     info = {} 
-    info['workdir'] = d.getVar('WORKDIR', True)
-    info['sourcedir'] = d.getVar('SPDX_S', True)
-    info['pn'] = d.getVar('PN', True)
-    info['pv'] = d.getVar('PV', True)
-    info['spdx_version'] = d.getVar('SPDX_VERSION', True)
-    info['data_license'] = d.getVar('DATA_LICENSE', True)
+    info['workdir'] = d.getVar('WORKDIR')
+    info['sourcedir'] = d.getVar('SPDX_S')
+    info['pn'] = d.getVar('PN')
+    info['pv'] = d.getVar('PV')
+    info['spdx_version'] = d.getVar('SPDX_VERSION')
+    info['data_license'] = d.getVar('DATA_LICENSE')
 
-    sstatedir = d.getVar('SPDXSSTATEDIR', True)
+    sstatedir = d.getVar('SPDXSSTATEDIR')
     sstatefile = os.path.join(sstatedir, info['pn'] + info['pv'] + ".spdx")
 
-    manifest_dir = d.getVar('SPDX_MANIFEST_DIR', True)
+    manifest_dir = d.getVar('SPDX_MANIFEST_DIR')
     info['outfile'] = os.path.join(manifest_dir, info['pn'] + ".spdx" )
 
-    info['spdx_temp_dir'] = d.getVar('SPDX_TEMP_DIR', True)
+    info['spdx_temp_dir'] = d.getVar('SPDX_TEMP_DIR')
     info['tar_file'] = os.path.join(info['workdir'], info['pn'] + ".tar.gz" )
 
     # Make sure important dirs exist
@@ -74,9 +74,9 @@ python do_spdx () {
         foss_license_info = cached_spdx['Licenses']
     else:
         ## setup fossology command
-        foss_server = d.getVar('FOSS_SERVER', True)
-        foss_flags = d.getVar('FOSS_WGET_FLAGS', True)
-        foss_full_spdx = d.getVar('FOSS_FULL_SPDX', True) == "true" or False
+        foss_server = d.getVar('FOSS_SERVER')
+        foss_flags = d.getVar('FOSS_WGET_FLAGS')
+        foss_full_spdx = d.getVar('FOSS_FULL_SPDX') == "true" or False
         foss_command = "wget %s --post-file=%s %s"\
             % (foss_flags, info['tar_file'], foss_server)
         
@@ -202,37 +202,31 @@ def list_files(dir):
     return
 
 def hash_file(file_name):
-    try:
-        with open(file_name, 'rb') as f:
-            data_string = f.read()
-            sha1 = hash_string(data_string)
-            return sha1
-    except:
-        return None
+    from bb.utils import sha1_file
+    return sha1_file(file_name)
 
 def hash_string(data):
     import hashlib
     sha1 = hashlib.sha1()
-    sha1.update(data)
+    sha1.update(data.encode('utf-8'))
     return sha1.hexdigest()
 
 def run_fossology(foss_command, full_spdx):
     import string, re
     import subprocess
-    
-    p = subprocess.Popen(foss_command.split(),
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    foss_output, foss_error = p.communicate()
-    if p.returncode != 0:
+
+    try:
+        foss_output = subprocess.check_output(foss_command.split(),
+                stderr=subprocess.STDOUT).decode('utf-8')
+    except subprocess.CalledProcessError as e:
         return None
 
-    foss_output = unicode(foss_output, "utf-8")
-    foss_output = string.replace(foss_output, '\r', '')
+    foss_output = foss_output.replace('\r', '')
 
     # Package info
     package_info = {}
     if full_spdx:
-        # All mandatory, only one occurance
+        # All mandatory, only one occurrence
         package_info['PackageCopyrightText'] = re.findall('PackageCopyrightText: (.*?</text>)', foss_output, re.S)[0]
         package_info['PackageLicenseDeclared'] = re.findall('PackageLicenseDeclared: (.*)', foss_output)[0]
         package_info['PackageLicenseConcluded'] = re.findall('PackageLicenseConcluded: (.*)', foss_output)[0]
@@ -290,7 +284,8 @@ def create_spdx_doc(file_info, scanned_files):
 def get_ver_code(dirname):
     chksums = []
     for f_dir, f in list_files(dirname):
-        hash = hash_file(os.path.join(dirname, f_dir, f))
+        path = os.path.join(dirname, f_dir, f)
+        hash = hash_file(path)
         if not hash is None:
             chksums.append(hash)
         else:

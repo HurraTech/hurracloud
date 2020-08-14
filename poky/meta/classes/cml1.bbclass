@@ -1,7 +1,7 @@
 cml1_do_configure() {
 	set -e
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-	oe_runmake oldconfig
+	yes '' | oe_runmake oldconfig
 }
 
 EXPORT_FUNCTIONS do_configure
@@ -26,7 +26,8 @@ python do_menuconfig() {
     except OSError:
         mtime = 0
 
-    oe_terminal("${SHELL} -c \"make ${KCONFIG_CONFIG_COMMAND}; if [ \$? -ne 0 ]; then echo 'Command failed.'; printf 'Press any key to continue... '; read r; fi\"", '${PN} Configuration', d)
+    oe_terminal("sh -c \"make %s; if [ \\$? -ne 0 ]; then echo 'Command failed.'; printf 'Press any key to continue... '; read r; fi\"" % d.getVar('KCONFIG_CONFIG_COMMAND'),
+                d.getVar('PN') + ' Configuration', d)
 
     # FIXME this check can be removed when the minimum bitbake version has been bumped
     if hasattr(bb.build, 'write_taint'):
@@ -41,13 +42,14 @@ python do_menuconfig() {
 }
 do_menuconfig[depends] += "ncurses-native:do_populate_sysroot"
 do_menuconfig[nostamp] = "1"
+do_menuconfig[dirs] = "${B}"
 addtask menuconfig after do_configure
 
 python do_diffconfig() {
     import shutil
     import subprocess
 
-    workdir = d.getVar('WORKDIR', True)
+    workdir = d.getVar('WORKDIR')
     fragment = workdir + '/fragment.cfg'
     configorig = '.config.orig'
     config = '.config'
@@ -62,7 +64,8 @@ python do_diffconfig() {
     if isdiff:
         statement = 'diff --unchanged-line-format= --old-line-format= --new-line-format="%L" ' + configorig + ' ' + config + '>' + fragment
         subprocess.call(statement, shell=True)
-
+        # No need to check the exit code as we know it's going to be
+        # non-zero, but that's what we expect.
         shutil.copy(configorig, config)
 
         bb.plain("Config fragment has been dumped into:\n %s" % fragment)
@@ -72,4 +75,5 @@ python do_diffconfig() {
 }
 
 do_diffconfig[nostamp] = "1"
+do_diffconfig[dirs] = "${B}"
 addtask diffconfig

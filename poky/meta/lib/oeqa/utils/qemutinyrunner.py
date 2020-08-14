@@ -1,6 +1,8 @@
+#
 # Copyright (C) 2015 Intel Corporation
 #
-# Released under the MIT license (see COPYING.MIT)
+# SPDX-License-Identifier: MIT
+#
 
 # This module provides a class for starting qemu images of poky tiny.
 # It's used by testimage.bbclass.
@@ -13,11 +15,11 @@ import re
 import socket
 import select
 import bb
-from qemurunner import QemuRunner
+from .qemurunner import QemuRunner
 
 class QemuTinyRunner(QemuRunner):
 
-    def __init__(self, machine, rootfs, display, tmpdir, deploy_dir_image, logfile, kernel, boottime):
+    def __init__(self, machine, rootfs, display, tmpdir, deploy_dir_image, logfile, kernel, boottime, logger):
 
         # Popen object for runqemu
         self.runqemu = None
@@ -40,6 +42,7 @@ class QemuTinyRunner(QemuRunner):
         self.socketfile = "console.sock"
         self.server_socket = None
         self.kernel = kernel
+        self.logger = logger
 
 
     def create_socket(self):
@@ -50,7 +53,7 @@ class QemuTinyRunner(QemuRunner):
                 self.server_socket.connect(self.socketfile)
                 bb.note("Created listening socket for qemu serial console.")
                 tries = 0
-            except socket.error, msg:
+            except socket.error as msg:
                 self.server_socket.close()
                 bb.fatal("Failed to create listening socket.")
                 tries -= 1
@@ -60,7 +63,7 @@ class QemuTinyRunner(QemuRunner):
             with open(self.logfile, "a") as f:
                 f.write("%s" % msg)
 
-    def start(self, qemuparams = None):
+    def start(self, qemuparams = None, ssh=True, extra_bootparams=None, runqemuparams='', discard_writes=True):
 
         if self.display:
             os.environ["DISPLAY"] = self.display
@@ -102,19 +105,22 @@ class QemuTinyRunner(QemuRunner):
             bb.note("Qemu pid didn't appeared in %s seconds" % self.runqemutime)
             output = self.runqemu.stdout
             self.stop()
-            bb.note("Output from runqemu:\n%s" % output.read())
+            bb.note("Output from runqemu:\n%s" % output.read().decode("utf-8"))
             return False
 
         return self.is_alive()
 
-    def run_serial(self, command):
+    def run_serial(self, command, timeout=60):
         self.server_socket.sendall(command+'\n')
         data = ''
         status = 0
         stopread = False
-        endtime = time.time()+5
+        endtime = time.time()+timeout
         while time.time()<endtime and not stopread:
-                sread, _, _ = select.select([self.server_socket],[],[],5)
+                try:
+                        sread, _, _ = select.select([self.server_socket],[],[],1)
+                except InterruptedError:
+                        continue
                 for sock in sread:
                         answer = sock.recv(1024)
                         if answer:
@@ -124,14 +130,16 @@ class QemuTinyRunner(QemuRunner):
                                 stopread = True
         if not data:
             status = 1
+        if not stopread:
+            data += "<<< run_serial(): command timed out after %d seconds without output >>>\r\n\r\n" % timeout
         return (status, str(data))
 
     def find_child(self,parent_pid):
         #
         # Walk the process tree from the process specified looking for a qemu-system. Return its [pid'cmd]
         #
-        ps = subprocess.Popen(['ps', 'axww', '-o', 'pid,ppid,command'], stdout=subprocess.PIPE).communicate()[0]
-        processes = ps.split('\n')
+        ps = subprocess.Popen(['ps', 'axww', '-o', 'pid,ppid,pri,ni,command'], stdout=subprocess.PIPE).communicate()[0]
+        processes = ps.decode("utf-8").split('\n')
         nfields = len(processes[0].split()) - 1
         pids = {}
         commands = {}
@@ -160,9 +168,9 @@ class QemuTinyRunner(QemuRunner):
                 if p not in parents:
                     parents.append(p)
                     newparents = next
-        #print "Children matching %s:" % str(parents)
+        #print("Children matching %s:" % str(parents))
         for p in parents:
-            # Need to be careful here since runqemu-internal runs "ldd qemu-system-xxxx"
+            # Need to be careful here since runqemu runs "ldd qemu-system-xxxx"
             # Also, old versions of ldd (2.11) run "LD_XXXX qemu-system-xxxx"
             basecmd = commands[p].split()[0]
             basecmd = os.path.basename(basecmd)

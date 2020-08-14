@@ -1,10 +1,17 @@
-from django.core.management.base import NoArgsCommand, CommandError
-from django.db import transaction
-from bldcontrol.bbcontroller import getBuildEnvironmentController, ShellCmdException
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
+from django.core.management.base import BaseCommand
+
+from django.core.management import call_command
 from bldcontrol.models import BuildRequest, BuildEnvironment, BRError
-from orm.models import ToasterSetting, Build
+from orm.models import ToasterSetting, Build, Layer
+
 import os
 import traceback
+import warnings
+
 
 def DN(path):
     if path is None:
@@ -13,46 +20,13 @@ def DN(path):
         return os.path.dirname(path)
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     args = ""
     help = "Verifies that the configured settings are valid and usable, or prompts the user to fix the settings."
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         self.guesspath = DN(DN(DN(DN(DN(DN(DN(__file__)))))))
-
-    def _find_first_path_for_file(self, startdirectory, filename, level=0):
-        if level < 0:
-            return None
-        dirs = []
-        for i in os.listdir(startdirectory):
-            j = os.path.join(startdirectory, i)
-            if os.path.isfile(j):
-                if i == filename:
-                    return startdirectory
-            elif os.path.isdir(j):
-                dirs.append(j)
-        for j in dirs:
-            ret = self._find_first_path_for_file(j, filename, level - 1)
-            if ret is not None:
-                return ret
-        return None
-
-    def _recursive_list_directories(self, startdirectory, level=0):
-        if level < 0:
-            return []
-        dirs = []
-        try:
-            for i in os.listdir(startdirectory):
-                j = os.path.join(startdirectory, i)
-                if os.path.isdir(j):
-                    dirs.append(j)
-        except OSError:
-            pass
-        for j in dirs:
-            dirs = dirs + self._recursive_list_directories(j, level - 1)
-        return dirs
-
 
     def _verify_build_environment(self):
         # provide a local build env. This will be extended later to include non local
@@ -70,11 +44,10 @@ class Command(NoArgsCommand):
                     return True
 
                 if len(be.sourcedir) == 0:
-                    print "\n -- Validation: The layers checkout directory must be set."
                     is_changed = _update_sourcedir()
 
                 if not be.sourcedir.startswith("/"):
-                    print "\n -- Validation: The layers checkout directory must be set to an absolute path."
+                    print("\n -- Validation: The layers checkout directory must be set to an absolute path.")
                     is_changed = _update_sourcedir()
 
                 if is_changed:
@@ -87,38 +60,74 @@ class Command(NoArgsCommand):
                     return True
 
                 if len(be.builddir) == 0:
-                    print "\n -- Validation: The build directory must be set."
                     is_changed = _update_builddir()
 
                 if not be.builddir.startswith("/"):
-                    print "\n -- Validation: The build directory must to be set to an absolute path."
+                    print("\n -- Validation: The build directory must to be set to an absolute path.")
                     is_changed = _update_builddir()
 
-
                 if is_changed:
-                    print "\nBuild configuration saved"
+                    print("\nBuild configuration saved")
                     be.save()
                     return True
 
-
                 if be.needs_import:
                     try:
-                        config_file = os.environ.get('TOASTER_CONF')
-                        print "\nImporting file: %s" % config_file
-                        from loadconf import Command as LoadConfigCommand
+                        print("Loading default settings")
+                        call_command("loaddata", "settings")
+                        template_conf = os.environ.get("TEMPLATECONF", "")
+                        custom_xml_only = os.environ.get("CUSTOM_XML_ONLY")
 
-                        LoadConfigCommand()._import_layer_config(config_file)
+                        if ToasterSetting.objects.filter(name='CUSTOM_XML_ONLY').count() > 0 or custom_xml_only is not None:
+                            # only use the custom settings
+                            pass
+                        elif "poky" in template_conf:
+                            print("Loading poky configuration")
+                            call_command("loaddata", "poky")
+                        else:
+                            print("Loading OE-Core configuration")
+                            call_command("loaddata", "oe-core")
+                            if template_conf:
+                                oe_core_path = os.path.realpath(
+                                    template_conf +
+                                    "/../")
+                            else:
+                                print("TEMPLATECONF not found. You may have to"
+                                      " manually configure layer paths")
+                                oe_core_path = input("Please enter the path of"
+                                                     " your openembedded-core "
+                                                     "layer: ")
+                            # Update the layer instances of openemebedded-core
+                            for layer in Layer.objects.filter(
+                                    name="openembedded-core",
+                                    local_source_dir="OE-CORE-LAYER-DIR"):
+                                layer.local_path = oe_core_path
+                                layer.save()
+
+                        # Import the custom fixture if it's present
+                        with warnings.catch_warnings():
+                            warnings.filterwarnings(
+                                action="ignore",
+                                message="^.*No fixture named.*$")
+                            print("Importing custom settings if present")
+                            try:
+                                call_command("loaddata", "custom")
+                            except:
+                                print("NOTE: optional fixture 'custom' not found")
+
                         # we run lsupdates after config update
-                        print "\nLayer configuration imported. Updating information from the layer sources, please wait.\nYou can re-update any time later by running bitbake/lib/toaster/manage.py lsupdates"
-                        from django.core.management import call_command
+                        print("\nFetching information from the layer index, "
+                              "please wait.\nYou can re-update any time later "
+                              "by running bitbake/lib/toaster/manage.py "
+                              "lsupdates\n")
                         call_command("lsupdates")
 
                         # we don't look for any other config files
                         return is_changed
                     except Exception as e:
-                        print "Failure while trying to import the toaster config file %s: %s" %\
-                            (config_file, e)
-                        traceback.print_exc(e)
+                        print("Failure while trying to setup toaster: %s"
+                              % e)
+                        traceback.print_exc()
 
                 return is_changed
 
@@ -152,7 +161,7 @@ class Command(NoArgsCommand):
 
 
 
-    def handle_noargs(self, **options):
+    def handle(self, **options):
         retval = 0
         retval += self._verify_build_environment()
         retval += self._verify_default_settings()

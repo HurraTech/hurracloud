@@ -1,3 +1,7 @@
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
 import logging
 import signal
 import subprocess
@@ -17,7 +21,7 @@ class CmdError(RuntimeError):
         self.msg = msg
 
     def __str__(self):
-        if not isinstance(self.command, basestring):
+        if not isinstance(self.command, str):
             cmd = subprocess.list2cmdline(self.command)
         else:
             cmd = self.command
@@ -94,33 +98,52 @@ def _logged_communicate(pipe, log, input, extrafiles):
                 if data is not None:
                     func(data)
 
-    try:
-        while pipe.poll() is None:
-            rlist = rin
-            try:
-                r,w,e = select.select (rlist, [], [], 1)
-            except OSError as e:
-                if e.errno != errno.EINTR:
-                    raise
+    def read_all_pipes(log, rin, outdata, errdata):
+        rlist = rin
+        stdoutbuf = b""
+        stderrbuf = b""
 
-            if pipe.stdout in r:
-                data = pipe.stdout.read()
-                if data is not None:
+        try:
+            r,w,e = select.select (rlist, [], [], 1)
+        except OSError as e:
+            if e.errno != errno.EINTR:
+                raise
+
+        readextras(r)
+
+        if pipe.stdout in r:
+            data = stdoutbuf + pipe.stdout.read()
+            if data is not None and len(data) > 0:
+                try:
+                    data = data.decode("utf-8")
                     outdata.append(data)
                     log.write(data)
+                    log.flush()
+                    stdoutbuf = b""
+                except UnicodeDecodeError:
+                    stdoutbuf = data
 
-            if pipe.stderr in r:
-                data = pipe.stderr.read()
-                if data is not None:
+        if pipe.stderr in r:
+            data = stderrbuf + pipe.stderr.read()
+            if data is not None and len(data) > 0:
+                try:
+                    data = data.decode("utf-8")
                     errdata.append(data)
                     log.write(data)
+                    log.flush()
+                    stderrbuf = b""
+                except UnicodeDecodeError:
+                    stderrbuf = data
 
-            readextras(r)
+    try:
+        # Read all pipes while the process is open
+        while pipe.poll() is None:
+            read_all_pipes(log, rin, outdata, errdata)
 
-    finally:    
+        # Pocess closed, drain all pipes...
+        read_all_pipes(log, rin, outdata, errdata)
+    finally:
         log.flush()
-
-    readextras([fobj for fobj, _ in extrafiles])
 
     if pipe.stdout is not None:
         pipe.stdout.close()
@@ -135,7 +158,7 @@ def run(cmd, input=None, log=None, extrafiles=None, **options):
     if not extrafiles:
         extrafiles = []
 
-    if isinstance(cmd, basestring) and not "shell" in options:
+    if isinstance(cmd, str) and not "shell" in options:
         options["shell"] = True
 
     try:
@@ -150,6 +173,10 @@ def run(cmd, input=None, log=None, extrafiles=None, **options):
         stdout, stderr = _logged_communicate(pipe, log, input, extrafiles)
     else:
         stdout, stderr = pipe.communicate(input)
+        if not stdout is None:
+            stdout = stdout.decode("utf-8")
+        if not stderr is None:
+            stderr = stderr.decode("utf-8")
 
     if pipe.returncode != 0:
         raise ExecutionError(cmd, pipe.returncode, stdout, stderr)

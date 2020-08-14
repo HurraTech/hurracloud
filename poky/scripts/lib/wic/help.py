@@ -1,21 +1,6 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
-#
 # Copyright (c) 2013, Intel Corporation.
-# All rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # DESCRIPTION
 # This module implements some basic help invocation functions along
@@ -28,10 +13,12 @@
 import subprocess
 import logging
 
-from wic.plugin import pluginmgr, PLUGIN_TYPES
+from wic.pluginbase import PluginMgr, PLUGIN_TYPES
+
+logger = logging.getLogger('wic')
 
 def subcommand_error(args):
-    logging.info("invalid subcommand %s" % args[0])
+    logger.info("invalid subcommand %s", args[0])
 
 
 def display_help(subcommand, subcommands):
@@ -45,7 +32,7 @@ def display_help(subcommand, subcommands):
     if callable(hlp):
         hlp = hlp()
     pager = subprocess.Popen('less', stdin=subprocess.PIPE)
-    pager.communicate(hlp)
+    pager.communicate(hlp.encode('utf-8'))
 
     return True
 
@@ -54,8 +41,8 @@ def wic_help(args, usage_str, subcommands):
     """
     Subcommand help dispatcher.
     """
-    if len(args) == 1 or not display_help(args[1], subcommands):
-        print usage_str
+    if args.help_topic == None or not display_help(args.help_topic, subcommands):
+        print(usage_str)
 
 
 def get_wic_plugins_help():
@@ -66,7 +53,7 @@ def get_wic_plugins_help():
     result = wic_plugins_help
     for plugin_type in PLUGIN_TYPES:
         result += '\n\n%s PLUGINS\n\n' % plugin_type.upper()
-        for name, plugin in pluginmgr.get_plugins(plugin_type).iteritems():
+        for name, plugin in PluginMgr.get_plugins(plugin_type).items():
             result += "\n %s plugin:\n" % name
             if plugin.__doc__:
                 result += plugin.__doc__
@@ -80,19 +67,20 @@ def invoke_subcommand(args, parser, main_command_usage, subcommands):
     Dispatch to subcommand handler borrowed from combo-layer.
     Should use argparse, but has to work in 2.6.
     """
-    if not args:
-        logging.error("No subcommand specified, exiting")
+    if not args.command:
+        logger.error("No subcommand specified, exiting")
         parser.print_help()
         return 1
-    elif args[0] == "help":
+    elif args.command == "help":
         wic_help(args, main_command_usage, subcommands)
-    elif args[0] not in subcommands:
-        logging.error("Unsupported subcommand %s, exiting\n" % (args[0]))
+    elif args.command not in subcommands:
+        logger.error("Unsupported subcommand %s, exiting\n", args.command)
         parser.print_help()
         return 1
     else:
-        usage = subcommands.get(args[0], subcommand_error)[1]
-        subcommands.get(args[0], subcommand_error)[0](args[1:], usage)
+        subcmd = subcommands.get(args.command, subcommand_error)
+        usage = subcmd[1]
+        subcmd[0](args, usage)
 
 
 ##
@@ -128,10 +116,10 @@ wic_create_usage = """
  Create a new OpenEmbedded image
 
  usage: wic create <wks file or image name> [-o <DIRNAME> | --outdir <DIRNAME>]
-            [-i <JSON PROPERTY FILE> | --infile <JSON PROPERTY_FILE>]
             [-e | --image-name] [-s, --skip-build-check] [-D, --debug]
             [-r, --rootfs-dir] [-b, --bootimg-dir]
             [-k, --kernel-dir] [-n, --native-sysroot] [-f, --build-rootfs]
+            [-c, --compress-with] [-m, --bmap]
 
  This command creates an OpenEmbedded image based on the 'OE kickstart
  commands' found in the <wks file>.
@@ -152,7 +140,7 @@ SYNOPSIS
         [-e | --image-name] [-s, --skip-build-check] [-D, --debug]
         [-r, --rootfs-dir] [-b, --bootimg-dir]
         [-k, --kernel-dir] [-n, --native-sysroot] [-f, --build-rootfs]
-        [-c, --compress-with]
+        [-c, --compress-with] [-m, --bmap] [--no-fstab-update]
 
 DESCRIPTION
     This command creates an OpenEmbedded image based on the 'OE
@@ -221,6 +209,14 @@ DESCRIPTION
 
     The -c option is used to specify compressor utility to compress
     an image. gzip, bzip2 and xz compressors are supported.
+
+    The -m option is used to produce .bmap file for the image. This file
+    can be used to flash image using bmaptool utility.
+
+    The --no-fstab-update option is used to doesn't change fstab file. When
+    using this option the final fstab file will be same that in rootfs and
+    wic doesn't update file, e.g adding a new mount point. User can control
+    the fstab file content in base-files recipe.
 """
 
 wic_list_usage = """
@@ -278,6 +274,243 @@ DESCRIPTION
     details.
 """
 
+wic_ls_usage = """
+
+ List content of a partitioned image
+
+ usage: wic ls <image>[:<partition>[<path>]] [--native-sysroot <path>]
+
+ This command  outputs either list of image partitions or directory contents
+ of vfat and ext* partitions.
+
+ See 'wic help ls' for more detailed instructions.
+
+"""
+
+wic_ls_help = """
+
+NAME
+    wic ls - List contents of partitioned image or partition
+
+SYNOPSIS
+    wic ls <image>
+    wic ls <image>:<vfat or ext* partition>
+    wic ls <image>:<vfat or ext* partition><path>
+    wic ls <image>:<vfat or ext* partition><path> --native-sysroot <path>
+
+DESCRIPTION
+    This command lists either partitions of the image or directory contents
+    of vfat or ext* partitions.
+
+    The first form it lists partitions of the image.
+    For example:
+        $ wic ls tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic
+        Num     Start        End          Size      Fstype
+        1        1048576     24438783     23390208  fat16
+        2       25165824     50315263     25149440  ext4
+
+    Second and third form list directory content of the partition:
+        $ wic ls tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1
+        Volume in drive : is boot
+         Volume Serial Number is 2DF2-5F02
+        Directory for ::/
+
+        efi          <DIR>     2017-05-11  10:54
+        startup  nsh        26 2017-05-11  10:54
+        vmlinuz        6922288 2017-05-11  10:54
+                3 files           6 922 314 bytes
+                                 15 818 752 bytes free
+
+
+        $ wic ls tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1/EFI/boot/
+        Volume in drive : is boot
+         Volume Serial Number is 2DF2-5F02
+        Directory for ::/EFI/boot
+
+        .            <DIR>     2017-05-11  10:54
+        ..           <DIR>     2017-05-11  10:54
+        grub     cfg       679 2017-05-11  10:54
+        bootx64  efi    571392 2017-05-11  10:54
+                4 files             572 071 bytes
+                                 15 818 752 bytes free
+
+    The -n option is used to specify the path to the native sysroot
+    containing the tools(parted and mtools) to use.
+
+"""
+
+wic_cp_usage = """
+
+ Copy files and directories to/from the vfat or ext* partition
+
+ usage: wic cp <src> <dest> [--native-sysroot <path>]
+
+ source/destination image in format <image>:<partition>[<path>]
+
+ This command copies files or directories either
+  - from local to vfat or ext* partitions of partitioned image
+  - from vfat or ext* partitions of partitioned image to local
+
+ See 'wic help cp' for more detailed instructions.
+
+"""
+
+wic_cp_help = """
+
+NAME
+    wic cp - copy files and directories to/from the vfat or ext* partitions
+
+SYNOPSIS
+    wic cp <src> <dest>:<partition>
+    wic cp <src>:<partition> <dest>
+    wic cp <src> <dest-image>:<partition><path>
+    wic cp <src> <dest-image>:<partition><path> --native-sysroot <path>
+
+DESCRIPTION
+    This command copies files or directories either
+      - from local to vfat or ext* partitions of partitioned image
+      - from vfat or ext* partitions of partitioned image to local
+
+    The first form of it copies file or directory to the root directory of
+    the partition:
+        $ wic cp test.wks tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1
+        $ wic ls tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1
+        Volume in drive : is boot
+         Volume Serial Number is DB4C-FD4C
+        Directory for ::/
+
+        efi          <DIR>     2017-05-24  18:15
+        loader       <DIR>     2017-05-24  18:15
+        startup  nsh        26 2017-05-24  18:15
+        vmlinuz        6926384 2017-05-24  18:15
+        test     wks       628 2017-05-24  21:22
+                5 files           6 927 038 bytes
+                                 15 677 440 bytes free
+
+    The second form of the command copies file or directory to the specified directory
+    on the partition:
+       $ wic cp test tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1/efi/
+       $ wic ls tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1/efi/
+       Volume in drive : is boot
+        Volume Serial Number is DB4C-FD4C
+       Directory for ::/efi
+
+       .            <DIR>     2017-05-24  18:15
+       ..           <DIR>     2017-05-24  18:15
+       boot         <DIR>     2017-05-24  18:15
+       test         <DIR>     2017-05-24  21:27
+               4 files                   0 bytes
+                                15 675 392 bytes free
+
+    The third form of the command copies file or directory from the specified directory
+    on the partition to local:
+       $ wic cp tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1/vmlinuz test
+
+    The -n option is used to specify the path to the native sysroot
+    containing the tools(parted and mtools) to use.
+"""
+
+wic_rm_usage = """
+
+ Remove files or directories from the vfat or ext* partitions
+
+ usage: wic rm <image>:<partition><path> [--native-sysroot <path>]
+
+ This command  removes files or directories from the vfat or ext* partitions of
+ the partitioned image.
+
+ See 'wic help rm' for more detailed instructions.
+
+"""
+
+wic_rm_help = """
+
+NAME
+    wic rm - remove files or directories from the vfat or ext* partitions
+
+SYNOPSIS
+    wic rm <src> <image>:<partition><path>
+    wic rm <src> <image>:<partition><path> --native-sysroot <path>
+    wic rm -r <image>:<partition><path>
+
+DESCRIPTION
+    This command removes files or directories from the vfat or ext* partition of the
+    partitioned image:
+
+        $ wic ls ./tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1
+        Volume in drive : is boot
+         Volume Serial Number is 11D0-DE21
+        Directory for ::/
+
+        libcom32 c32    186500 2017-06-02  15:15
+        libutil  c32     24148 2017-06-02  15:15
+        syslinux cfg       209 2017-06-02  15:15
+        vesamenu c32     27104 2017-06-02  15:15
+        vmlinuz        6926384 2017-06-02  15:15
+                5 files           7 164 345 bytes
+                                 16 582 656 bytes free
+
+        $ wic rm ./tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1/libutil.c32
+
+        $ wic ls ./tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic:1
+        Volume in drive : is boot
+         Volume Serial Number is 11D0-DE21
+        Directory for ::/
+
+        libcom32 c32    186500 2017-06-02  15:15
+        syslinux cfg       209 2017-06-02  15:15
+        vesamenu c32     27104 2017-06-02  15:15
+        vmlinuz        6926384 2017-06-02  15:15
+                4 files           7 140 197 bytes
+                                 16 607 232 bytes free
+
+    The -n option is used to specify the path to the native sysroot
+    containing the tools(parted and mtools) to use.
+
+    The -r option is used to remove directories and their contents
+    recursively,this only applies to ext* partition.
+"""
+
+wic_write_usage = """
+
+ Write image to a device
+
+ usage: wic write <image> <target device> [--expand [rules]] [--native-sysroot <path>]
+
+ This command writes partitioned image to a target device (USB stick, SD card etc).
+
+ See 'wic help write' for more detailed instructions.
+
+"""
+
+wic_write_help = """
+
+NAME
+    wic write - write an image to a device
+
+SYNOPSIS
+    wic write <image> <target>
+    wic write <image> <target> --expand auto
+    wic write <image> <target> --expand 1:100M,2:300M
+    wic write <image> <target> --native-sysroot <path>
+
+DESCRIPTION
+    This command writes an image to a target device (USB stick, SD card etc)
+
+        $ wic write ./tmp/deploy/images/qemux86-64/core-image-minimal-qemux86-64.wic /dev/sdb
+
+    The --expand option is used to resize image partitions.
+    --expand auto expands partitions to occupy all free space available on the target device.
+    It's also possible to specify expansion rules in a format
+    <partition>:<size>[,<partition>:<size>...] for one or more partitions.
+    Specifying size 0 will keep partition unmodified.
+    Note: Resizing boot partition can result in non-bootable image for non-EFI images. It is
+    recommended to use size 0 for boot partition to keep image bootable.
+
+    The --native-sysroot option is used to specify the path to the native sysroot
+    containing the tools(parted, resize2fs) to use.
+"""
+
 wic_plugins_help = """
 
 NAME
@@ -303,7 +536,8 @@ DESCRIPTION
 
     Source plugins can also be implemented and added by external
     layers - any plugins found in a scripts/lib/wic/plugins/source/
-    directory in an external layer will also be made available.
+    or lib/wic/plugins/source/ directory in an external layer will
+    also be made available.
 
     When the wic implementation needs to invoke a partition-specific
     implementation, it looks for the plugin that has the same name as
@@ -341,6 +575,10 @@ DESCRIPTION
           partition. In other words, it 'prepares' the final partition
           image which will be incorporated into the disk image.
 
+      do_post_partition()
+          Called after the partition is created. It is useful to add post
+          operations e.g. signing the partition.
+
       do_configure_partition()
           Called before do_prepare_partition(), typically used to
           create custom configuration files for a partition, for
@@ -368,12 +606,7 @@ DESCRIPTION
 
     This scheme is extensible - adding more hooks is a simple matter
     of adding more plugin methods to SourcePlugin and derived classes.
-    The code that then needs to call the plugin methods uses
-    plugin.get_source_plugin_methods() to find the method(s) needed by
-    the call; this is done by filling up a dict with keys containing
-    the method names of interest - on success, these will be filled in
-    with the actual methods. Please see the implementation for
-    examples and details.
+    Please see the implementation for details.
 """
 
 wic_overview_help = """
@@ -617,7 +850,7 @@ DESCRIPTION
        This command creates a partition on the system and uses the
        following syntax:
 
-         part <mountpoint>
+         part [<mountpoint>]
 
        The <mountpoint> is where the partition will be mounted and
        must take of one of the following forms:
@@ -626,12 +859,31 @@ DESCRIPTION
 
          swap: The partition will be used as swap space.
 
+       If a <mountpoint> is not specified the partition will be created
+       but will not be mounted.
+
+       Partitions with a <mountpoint> specified will be automatically mounted.
+       This is achieved by wic adding entries to the fstab during image
+       generation. In order for a valid fstab to be generated one of the
+       --ondrive, --ondisk, --use-uuid or --use-label partition options must
+       be used for each partition that specifies a mountpoint.  Note that with
+       --use-{uuid,label} and non-root <mountpoint>, including swap, the mount
+       program must understand the PARTUUID or LABEL syntax.  This currently
+       excludes the busybox versions of these applications.
+
+
        The following are supported 'part' options:
 
          --size: The minimum partition size. Specify an integer value
                  such as 500. Multipliers k, M ang G can be used. If
                  not specified, the size is in MB.
                  You do not need this option if you use --source.
+
+         --fixed-size: Exact partition size. Value format is the same
+                       as for --size option. This option cannot be
+                       specified along with --size. If partition data
+                       is larger than --fixed-size and error will be
+                       raised when assembling disk image.
 
          --source: This option is a wic-specific option that names the
                    source of the data that will populate the
@@ -671,6 +923,8 @@ DESCRIPTION
            apply to partitions created using '--source rootfs' (see
            --source above).  Valid values are:
 
+             vfat
+             msdos
              ext2
              ext3
              ext4
@@ -690,6 +944,14 @@ DESCRIPTION
                         label is already in use by another filesystem,
                         a new label is created for the partition.
 
+         --use-label: This option is specific to wic. It makes wic to use the
+                      label in /etc/fstab to specify a partition. If the
+                      --use-label and --use-uuid are used at the same time,
+                      we prefer the uuid because it is less likely to cause
+                      name confliction. We don't support using this parameter
+                      on the root partition since it requires an initramfs to
+                      parse this value and we do not currently support that.
+
          --active: Marks the partition as active.
 
          --align (in KBytes): This option is specific to wic and says
@@ -702,17 +964,37 @@ DESCRIPTION
                      partition table. It may be useful for
                      bootloaders.
 
+         --exclude-path: This option is specific to wic. It excludes the given
+                         relative path from the resulting image. If the path
+                         ends with a slash, only the content of the directory
+                         is omitted, not the directory itself. This option only
+                         has an effect with the rootfs source plugin.
+
+         --include-path: This option is specific to wic. It adds the contents
+                         of the given path to the resulting image. The path is
+                         relative to the directory in which wic is running not
+                         the rootfs itself so use of an absolute path is
+                         recommended. This option is most useful when multiple
+                         copies of the rootfs are added to an image and it is
+                         required to add extra content to only one of these
+                         copies. This option only has an effect with the rootfs
+                         source plugin.
+
          --extra-space: This option is specific to wic. It adds extra
                         space after the space filled by the content
                         of the partition. The final size can go
                         beyond the size specified by --size.
-                        By default, 10MB.
+                        By default, 10MB. This option cannot be used
+                        with --fixed-size option.
 
          --overhead-factor: This option is specific to wic. The
                             size of the partition is multiplied by
                             this factor. It has to be greater than or
-                            equal to 1.
-                            The default value is 1.3.
+                            equal to 1. The default value is 1.3.
+                            This option cannot be used with --fixed-size
+                            option.
+
+         --part-name: This option is specific to wic. It specifies name for GPT partitions.
 
          --part-type: This option is specific to wic. It specifies partition
                       type GUID for GPT partitions.
@@ -728,6 +1010,21 @@ DESCRIPTION
                  in bootloader configuration before running wic. In this case .wks file can
                  be generated or modified to set preconfigured parition UUID using this option.
 
+         --fsuuid: This option is specific to wic. It specifies filesystem UUID.
+                   It's useful if preconfigured filesystem UUID is added to kernel command line
+                   in bootloader configuration before running wic. In this case .wks file can
+                   be generated or modified to set preconfigured filesystem UUID using this option.
+
+         --system-id: This option is specific to wic. It specifies partition system id. It's useful
+                      for the harware that requires non-default partition system ids. The parameter
+                      in one byte long hex number either with 0x prefix or without it.
+
+         --mkfs-extraopts: This option specifies extra options to pass to mkfs utility.
+                           NOTE, that wic uses default options for some filesystems, for example
+                           '-S 512' for mkfs.fat or '-F -i 8192' for mkfs.ext. Those options will
+                           not take effect when --mkfs-extraopts is used. This should be taken into
+                           account when using --mkfs-extraopts.
+
     * bootloader
 
       This command allows the user to specify various bootloader
@@ -740,8 +1037,92 @@ DESCRIPTION
                   bootloader command-line - for example, the syslinux
                   APPEND or grub kernel command line.
 
+        --configfile: Specifies a user defined configuration file for
+                      the bootloader. This file must be located in the
+                      canned-wks folder or could be the full path to the
+                      file. Using this option will override any other
+                      bootloader option.
+
       Note that bootloader functionality and boot partitions are
       implemented by the various --source plugins that implement
       bootloader functionality; the bootloader command essentially
       provides a means of modifying bootloader configuration.
+
+    * include
+
+      This command allows the user to include the content of .wks file
+      into original .wks file.
+
+      Command uses the following syntax:
+
+         include <file>
+
+      The <file> is either path to the file or its name. If name is
+      specified wic will try to find file in the directories with canned
+      .wks files.
+
+"""
+
+wic_help_help = """
+NAME
+    wic help - display a help topic
+
+DESCRIPTION
+    Specify a help topic to display it. Topics are shown above.
+"""
+
+
+wic_help = """
+Creates a customized OpenEmbedded image.
+
+Usage:  wic [--version]
+        wic help [COMMAND or TOPIC]
+        wic COMMAND [ARGS]
+
+    usage 1: Returns the current version of Wic
+    usage 2: Returns detailed help for a COMMAND or TOPIC
+    usage 3: Executes COMMAND
+
+
+COMMAND:
+
+    list   -   List available canned images and source plugins
+    ls     -   List contents of partitioned image or partition
+    rm     -   Remove files or directories from the vfat or ext* partitions
+    help   -   Show help for a wic COMMAND or TOPIC
+    write  -   Write an image to a device
+    cp     -   Copy files and directories to the vfat or ext* partitions
+    create -   Create a new OpenEmbedded image
+
+
+TOPIC:
+    overview  - Presents an overall overview of Wic
+    plugins   - Presents an overview and API for Wic plugins
+    kickstart - Presents a Wic kicstart file reference
+
+
+Examples:
+
+    $ wic --version
+
+    Returns the current version of Wic
+
+
+    $ wic help cp
+
+    Returns the SYNOPSIS and DESCRIPTION for the Wic "cp" command.
+
+
+    $ wic list images
+
+    Returns the list of canned images (i.e. *.wks files located in
+    the /scripts/lib/wic/canned-wks directory.
+
+
+    $ wic create mkefidisk -e core-image-minimal
+
+    Creates an EFI disk image from artifacts used in a previous
+    core-image-minimal build in standard BitBake locations
+    (e.g. Cooked Mode).
+
 """

@@ -10,11 +10,11 @@
 import os.path
 import sys
 
-import pyshlex
+import bb.pysh.pyshlex as pyshlex
 tokens = pyshlex.tokens
 
 from ply import yacc
-import sherrors
+import bb.pysh.sherrors as sherrors
     
 class IORedirect:
     def __init__(self, op, filename, io_number=None):
@@ -570,6 +570,7 @@ def p_linebreak(p):
 
 def p_separator_op(p):                 
     """separator_op : COMMA
+                    | COMMA COMMA
                     | AMP"""
     p[0] = p[1]
 
@@ -636,13 +637,16 @@ def p_empty(p):
 def p_error(p):
     msg = []
     w = msg.append
-    w('%r\n' % p)
-    w('followed by:\n')
-    for i in range(5):
-        n = yacc.token()
-        if not n:
-            break
-        w('  %r\n' % n)
+    if p:
+        w('%r\n' % p)
+        w('followed by:\n')
+        for i in range(5):
+            n = yacc.token()
+            if not n:
+                break
+            w('  %r\n' % n)
+    else:
+        w('Unexpected EOF')
     raise sherrors.ShellSyntaxError(''.join(msg))
 
 # Build the parser

@@ -2,10 +2,10 @@
 /* Unit tests for Toaster's JS */
 
 /* libtoaster tests */
-
 QUnit.test("Layer alert notification", function(assert) {
   var layer = {
     "layerdetailurl":"/toastergui/project/1/layer/22",
+    "xhrLayerUrl":"/toastergui/xhr_layer/1/9",
     "vcs_url":"git://example.com/example.git",
     "detail":"[ git://example.com/example.git | master ]",
     "vcs_reference":"master",
@@ -16,6 +16,7 @@ QUnit.test("Layer alert notification", function(assert) {
   var layerDepsList = [
     {
     "layerdetailurl":"/toastergui/project/1/layer/9",
+    "xhrLayerUrl":"/toastergui/xhr_layer/1/9",
     "vcs_url":"git://example.com/example.git",
     "detail":"[ git://example.com/example.git | master ]",
     "vcs_reference":"master",
@@ -24,6 +25,7 @@ QUnit.test("Layer alert notification", function(assert) {
     },
     {
     "layerdetailurl":"/toastergui/project/1/layer/9",
+    "xhrLayerUrl":"/toastergui/xhr_layer/1/9",
     "vcs_url":"git://example.com/example.git",
     "detail":"[ git://example.com/example.git | master ]",
     "vcs_reference":"master",
@@ -43,9 +45,8 @@ QUnit.test("Layer alert notification", function(assert) {
 
 QUnit.test("Project info", function(assert){
   var done = assert.async();
-  libtoaster.getProjectInfo(libtoaster.ctx.projectPageUrl, function(prjInfo){
+  libtoaster.getProjectInfo(libtoaster.ctx.xhrProjectUrl, function(prjInfo){
     assert.ok(prjInfo.machine.name);
-    assert.ok(prjInfo.releases.length > 0);
     assert.ok(prjInfo.layers.length > 0);
     assert.ok(prjInfo.freqtargets);
     assert.ok(prjInfo.release);
@@ -68,7 +69,8 @@ QUnit.test("Show notification", function(assert){
 var layer = {
   "id": 1,
   "name":  "meta-testing",
-  "layerdetailurl": "/toastergui/project/1/layer/1"
+  "layerdetailurl": "/toastergui/project/1/layer/1",
+  "xhrLayerUrl": "/toastergui/xhr_layer/1/1"
 };
 
 QUnit.test("Add layer", function(assert){
@@ -83,11 +85,11 @@ QUnit.test("Add layer", function(assert){
   }, 200);
 
   /* Compare the number of layers before and after the add in the project */
-  libtoaster.getProjectInfo(libtoaster.ctx.projectPageUrl, function(prjInfo){
+  libtoaster.getProjectInfo(libtoaster.ctx.xhrProjectUrl, function(prjInfo){
     var origNumLayers = prjInfo.layers.length;
 
     libtoaster.addRmLayer(layer, true, function(deps){
-      libtoaster.getProjectInfo(libtoaster.ctx.projectPageUrl,
+      libtoaster.getProjectInfo(libtoaster.ctx.xhrProjectUrl,
         function(prjInfo){
         assert.ok(prjInfo.layers.length > origNumLayers,
           "Layer not added to project");
@@ -135,10 +137,10 @@ QUnit.test("Make typeaheads", function(assert){
   libtoaster.makeTypeahead(recipesT,
     libtoaster.ctx.recipesTypeAheadUrl, {}, function(){});
 
-  assert.ok(recipesT.data('typeahead'));
-  assert.ok(layersT.data('typeahead'));
-  assert.ok(projectsT.data('typeahead'));
-  assert.ok(recipesT.data('typeahead'));
+  assert.ok(recipesT.data('ttTypeahead'));
+  assert.ok(layersT.data('ttTypeahead'));
+  assert.ok(projectsT.data('ttTypeahead'));
+  assert.ok(recipesT.data('ttTypeahead'));
 });
 
 
@@ -146,7 +148,7 @@ QUnit.test("Make typeaheads", function(assert){
 /* Page init functions */
 
 QUnit.test("Import layer page init", function(assert){
-  assert.throws(importLayerPageInit());
+  assert.throws(importLayerPageInit({ xhrGitRevTypeAheadUrl: "url" }));
 });
 
 QUnit.test("Project page init", function(assert){

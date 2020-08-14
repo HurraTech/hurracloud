@@ -1,25 +1,12 @@
 #
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
-#
 # BitBake Toaster Implementation
 #
 # Copyright (C) 2013        Intel Corporation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from os.path import relpath
 import re
 from django import template
@@ -57,7 +44,7 @@ def json(value, default = None):
     # it manually here
     return mark_safe(JsonLib.dumps(value, indent=2, default = default, ensure_ascii=False).replace('</', '<\\/'))
 
-@register.assignment_tag
+@register.simple_tag
 def query(qs, **kwargs):
     """ template tag which allows queryset filtering. Usage:
           {% query books author=author as mybooks %}
@@ -90,13 +77,13 @@ def whitespace_space_filter(value, arg):
 def divide(value, arg):
     if int(arg) == 0:
         return -1
-    return int(value) / int(arg)
+    return int(value) // int(arg)
 
 @register.filter
 def multiply(value, arg):
     return int(value) * int(arg)
 
-@register.assignment_tag
+@register.simple_tag
 def datecompute(delta, start = timezone.now()):
     return start + timedelta(delta)
 
@@ -112,11 +99,11 @@ def task_color(task_object, show_green=False):
         show_green argument should be True to get green color.
     """
     if not task_object.task_executed:
-        return 'class=muted'
+        return 'class=text-muted'
     elif task_object.outcome == task_object.OUTCOME_FAILED:
-        return 'class=error'
+        return 'class=text-danger'
     elif task_object.outcome == task_object.OUTCOME_SUCCESS and show_green:
-        return 'class=green'
+        return 'class=text-success'
     else:
         return ''
 
@@ -225,7 +212,7 @@ def filtered_installedsize(size, installed_size):
     """If package.installed_size not null and not empty return it,
        else return package.size
     """
-    return size if (installed_size == 0) or (installed_size == "") or (installed_size == None) else installed_size
+    return size if (installed_size == 0) or (installed_size == "") or (installed_size is None) else installed_size
 
 @register.filter
 def filtered_packageversion(version, revision):
@@ -241,7 +228,7 @@ def filter_sizeovertotal(package_object, total_size):
         formatted nicely.
     """
     size = package_object.installed_size
-    if size == None or size == '':
+    if size is None or size == '':
         size = package_object.size
 
     return '{:.1%}'.format(float(size)/float(total_size))
@@ -250,15 +237,15 @@ from django.utils.safestring import mark_safe
 @register.filter
 def format_vpackage_rowclass(size):
     if size == -1:
-        return mark_safe('class="muted"')
+        return mark_safe('class="text-muted"')
     return ''
 
 @register.filter
 def format_vpackage_namehelp(name):
     r =  name + '&nbsp;'
-    r += '<i class="icon-question-sign get-help hover-help"'
+    r += '<span class="glyphicon glyphicon-question-sign get-help hover-help"'
     r += ' title = "' + name + ' has not been built">'
-    r += '</i>'
+    r += '</span>'
     return mark_safe(r)
 
 @register.filter
@@ -269,14 +256,6 @@ def get_dict_value(dictionary, key):
         return dictionary[key]
     except (KeyError, IndexError):
         return ''
-
-@register.filter
-def format_build_date(completed_on):
-    now = timezone.now()
-    delta = now - completed_on
-
-    if delta.days >= 1:
-        return True
 
 @register.filter
 def is_shaid(text):
@@ -297,3 +276,11 @@ def cut_path_prefix(fullpath, prefixes):
         if fullpath.startswith(prefix):
             return relpath(fullpath, prefix)
     return fullpath
+
+
+@register.filter
+def for_target(package_dependencies, target):
+    """ filter the dependencies to be displayed by the supplied target
+    if no dependences are found for the target then return the predicted
+    dependences"""
+    return package_dependencies.for_target_or_none(target)

@@ -28,42 +28,26 @@ python do_clean() {
     bb.note("Removing " + dir)
     oe.path.remove(dir)
 
-    dir = "%s.*" % bb.data.expand(d.getVar('STAMP', False), d)
+    dir = "%s.*" % d.getVar('STAMP')
     bb.note("Removing " + dir)
     oe.path.remove(dir)
 
-    for f in (d.getVar('CLEANFUNCS', True) or '').split():
+    for f in (d.getVar('CLEANFUNCS') or '').split():
         bb.build.exec_func(f, d)
 }
 
 addtask checkuri
 do_checkuri[nostamp] = "1"
 python do_checkuri() {
-    src_uri = (d.getVar('SRC_URI', True) or "").split()
+    src_uri = (d.getVar('SRC_URI') or "").split()
     if len(src_uri) == 0:
         return
 
-    localdata = bb.data.createCopy(d)
-    bb.data.update_data(localdata)
-
     try:
-        fetcher = bb.fetch2.Fetch(src_uri, localdata)
+        fetcher = bb.fetch2.Fetch(src_uri, d)
         fetcher.checkstatus()
-    except bb.fetch2.BBFetchException, e:
-        raise bb.build.FuncFailed(e)
+    except bb.fetch2.BBFetchException as e:
+        bb.fatal(str(e))
 }
 
-addtask checkuriall after do_checkuri
-do_checkuriall[recrdeptask] = "do_checkuriall do_checkuri"
-do_checkuriall[recideptask] = "do_${BB_DEFAULT_TASK}"
-do_checkuriall[nostamp] = "1"
-do_checkuriall() {
-	:
-}
 
-addtask fetchall after do_fetch
-do_fetchall[recrdeptask] = "do_fetchall do_fetch"
-do_fetchall[recideptask] = "do_${BB_DEFAULT_TASK}"
-do_fetchall() {
-	:
-}

@@ -12,9 +12,11 @@
 
         <abstract>
             The Yocto Project Mega-Manual is a concatenation of the published
-            Yocto Project HTML manuals for the given release.
-            The manual exists to help users efficiently search for strings
-            across the entire Yocto Project documentation set.
+            Yocto Project HTML manuals along with the corresponding BitBake
+            User Manual for the given release.
+            The Mega-Manual exists to help users efficiently search for strings
+            across the entire Yocto Project documentation set inclusive of
+            the BitBake User Manual.
         </abstract>
 
         <mediaobject>
@@ -31,11 +33,10 @@
 
         <authorgroup>
             <author>
-                <firstname>Scott</firstname> <surname>Rifenbark</surname>
                 <affiliation>
-                    <orgname>Intel Corporation</orgname>
+                    <orgname>&ORGNAME;</orgname>
                 </affiliation>
-                <email>srifenbark@gmail.com</email>
+                <email>&ORGEMAIL;</email>
             </author>
         </authorgroup>
 
@@ -43,7 +44,7 @@
             <revision>
                 <revnumber>1.8</revnumber>
                 <date>April 2015</date>
-                <revremark>Released with the Yocto Project 1.8 Release.</revremark>
+                <revremark>The initial document released with the Yocto Project 1.8 Release.</revremark>
             </revision>
             <revision>
                 <revnumber>2.0</revnumber>
@@ -51,19 +52,59 @@
                 <revremark>Released with the Yocto Project 2.0 Release.</revremark>
             </revision>
             <revision>
-                <revnumber>2.0.1</revnumber>
-                <date>March 2016</date>
-                <revremark>Released with the Yocto Project 2.0.1 Release.</revremark>
+                <revnumber>2.1</revnumber>
+                <date>April 2016</date>
+                <revremark>Released with the Yocto Project 2.1 Release.</revremark>
             </revision>
             <revision>
-                <revnumber>2.0.2</revnumber>
-                <date>June 2016</date>
-                <revremark>Released with the Yocto Project 2.0.2 Release.</revremark>
+                <revnumber>2.2</revnumber>
+                <date>October 2016</date>
+                <revremark>Released with the Yocto Project 2.2 Release.</revremark>
             </revision>
             <revision>
-                <revnumber>2.0.3</revnumber>
-                <date>December 2016</date>
-                <revremark>Released with the Yocto Project 2.0.3 Release.</revremark>
+                <revnumber>2.3</revnumber>
+                <date>May 2017</date>
+                <revremark>Released with the Yocto Project 2.3 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>2.4</revnumber>
+                <date>October 2017</date>
+                <revremark>Released with the Yocto Project 2.4 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>2.5</revnumber>
+                <date>May 2018</date>
+                <revremark>Released with the Yocto Project 2.5 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>2.6</revnumber>
+                <date>November 2018</date>
+                <revremark>Released with the Yocto Project 2.6 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>2.7</revnumber>
+                <date>May 2019</date>
+                <revremark>Released with the Yocto Project 2.7 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>3.0</revnumber>
+                <date>October 2019</date>
+                <revremark>Released with the Yocto Project 3.0 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>3.1</revnumber>
+                <date>April 2020</date>
+                <revremark>Released with the Yocto Project 3.1 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>3.1.1</revnumber>
+                <date>June 2020</date>
+                <revremark>Released with the Yocto Project 3.1.1 Release.</revremark>
+            </revision>
+            <revision>
+                <revnumber>3.1.2</revnumber>
+                <date>&REL_MONTH_YEAR;</date>
+                <revremark>Released with the Yocto Project 3.1.2 Release.</revremark>
             </revision>
        </revhistory>
 
@@ -86,7 +127,7 @@
                        Yocto Project.
                        To be sure you have the latest version of the manual
                        for this release, go to the
-                       <ulink url='&YOCTO_HOME_URL;/documentation'>Yocto Project documentation page</ulink>
+                       <ulink url='&YOCTO_DOCS_URL;'>Yocto Project documentation page</ulink>
                        and select the manual from that site.
                        Manuals from the site are more up-to-date than manuals
                        derived from the Yocto Project released TAR files.
@@ -103,18 +144,20 @@
                        page.
                        If you need a version of this manual for a different
                        Yocto Project release, visit the
-                       <ulink url='&YOCTO_HOME_URL;/documentation'>Yocto Project documentation page</ulink>
+                       <ulink url='&YOCTO_DOCS_URL;'>Yocto Project documentation page</ulink>
                        and select the manual set by using the
                        "ACTIVE RELEASES DOCUMENTATION" or "DOCUMENTS ARCHIVE"
                        pull-down menus.
                        </para></listitem>
-                   <listitem><para>
+                   <listitem>
+                       <para>
                        To report any inaccuracies or problems with this
-                       manual, send an email to the Yocto Project
-                       discussion group at
-                       <filename>yocto@yoctoproject.com</filename> or log into
-                       the freenode <filename>#yocto</filename> channel.
-                       </para></listitem>
+                       (or any other Yocto Project) manual, send an email to
+                       the Yocto Project documentation mailing list at
+                       <filename>docs@lists.yoctoproject.org</filename> or
+                       log into the freenode <filename>#yocto</filename> channel.
+                       </para>
+                   </listitem>
                </itemizedlist>
            </note>
 
@@ -122,10 +165,32 @@
 
     </bookinfo>
 
-<!-- Includes yocto-project-qs -->
+<!-- Includes brief-yoctoprojectqs -->
+
+    <para>
+        <imagedata fileref="figures/bypqs-title.png" width="100%" align="left" scalefit="1" />
+    </para>
 
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../yocto-project-qs/yocto-project-qs.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../brief-yoctoprojectqs/brief-yoctoprojectqs.xml"/>
+
+<!-- Includes overview-manual title image and then overview-manual chapters -->
+
+    <para>
+        <imagedata fileref="figures/overview-manual-title.png" width="100%" align="left" scalefit="1" />
+    </para>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../overview-manual/overview-manual-intro.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../overview-manual/overview-manual-yp-intro.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../overview-manual/overview-manual-development-environment.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../overview-manual/overview-manual-concepts.xml"/>
 
 <!-- Includes dev-manual title image and then dev-manual chapters -->
 
@@ -138,30 +203,30 @@
     <xi:include
         xmlns:xi="http://www.w3.org/2003/XInclude" href="../dev-manual/dev-manual-start.xml"/>
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../dev-manual/dev-manual-newbie.xml"/>
-    <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../dev-manual/dev-manual-model.xml"/>
-    <xi:include
         xmlns:xi="http://www.w3.org/2003/XInclude" href="../dev-manual/dev-manual-common-tasks.xml"/>
     <xi:include
         xmlns:xi="http://www.w3.org/2003/XInclude" href="../dev-manual/dev-manual-qemu.xml"/>
 
-<!-- Includes adt-manual title image and then adt-manual chapters -->
+<!-- Includes sdk-manual title image and then sdk-manual chapters -->
 
     <para>
-        <imagedata fileref="figures/adt-title.png" width="100%" align="left" scalefit="1" />
+        <imagedata fileref="figures/sdk-title.png" width="100%" align="left" scalefit="1" />
     </para>
 
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../adt-manual/adt-manual-intro.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../sdk-manual/sdk-intro.xml"/>
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../adt-manual/adt-intro.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../sdk-manual/sdk-extensible.xml"/>
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../adt-manual/adt-prepare.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../sdk-manual/sdk-using.xml"/>
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../adt-manual/adt-package.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../sdk-manual/sdk-working-projects.xml"/>
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../adt-manual/adt-command.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../sdk-manual/sdk-appendix-obtain.xml"/>
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../sdk-manual/sdk-appendix-customizing.xml"/>
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../sdk-manual/sdk-appendix-customizing-standard.xml"/>
 
 <!-- Includes bsp-guide title image and then bsp-guide chapters -->
 
@@ -211,16 +276,13 @@
     </para>
 
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/introduction.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/ref-system-requirements.xml"/>
 
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/usingpoky.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/ref-terms.xml"/>
 
     <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/closer-look.xml"/>
-
-    <xi:include
-        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/technical-details.xml"/>
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/ref-release-process.xml"/>
 
     <xi:include
         xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/migration.xml"/>
@@ -233,6 +295,12 @@
 
     <xi:include
         xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/ref-tasks.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/ref-devtool-reference.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/ref-kickstart.xml"/>
 
     <xi:include
         xmlns:xi="http://www.w3.org/2003/XInclude" href="../ref-manual/ref-qa-checks.xml"/>
@@ -272,6 +340,30 @@
 
     <xi:include
         xmlns:xi="http://www.w3.org/2003/XInclude" href="../toaster-manual/toaster-manual-reference.xml"/>
+
+<!-- Includes bitbake-user-manual title image and then bitbake-user-manual chapters -->
+
+    <para>
+        <imagedata fileref="figures/bitbake-title.png" width="100%" align="left" scalefit="1" />
+    </para>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../../bitbake/doc/bitbake-user-manual/bitbake-user-manual-intro.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../../bitbake/doc/bitbake-user-manual/bitbake-user-manual-execution.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../../bitbake/doc/bitbake-user-manual/bitbake-user-manual-metadata.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../../bitbake/doc/bitbake-user-manual/bitbake-user-manual-fetching.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../../bitbake/doc/bitbake-user-manual/bitbake-user-manual-ref-variables.xml"/>
+
+    <xi:include
+        xmlns:xi="http://www.w3.org/2003/XInclude" href="../../bitbake/doc/bitbake-user-manual/bitbake-user-manual-hello.xml"/>
 
 </book>
 

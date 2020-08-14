@@ -20,19 +20,21 @@
 do_bootimg[depends] += "${MLPREFIX}syslinux:do_populate_sysroot \
                         syslinux-native:do_populate_sysroot"
 
-SYSLINUXCFG  = "${S}/syslinux.cfg"
-
-ISOLINUXDIR = "/isolinux"
+ISOLINUXDIR ?= "/isolinux"
 SYSLINUXDIR = "/"
 # The kernel has an internal default console, which you can override with
 # a console=...some_tty...
 SYSLINUX_DEFAULT_CONSOLE ?= ""
 SYSLINUX_SERIAL ?= "0 115200"
 SYSLINUX_SERIAL_TTY ?= "console=ttyS0,115200"
-ISO_BOOTIMG = "isolinux/isolinux.bin"
-ISO_BOOTCAT = "isolinux/boot.cat"
-MKISOFS_OPTIONS = "-no-emul-boot -boot-load-size 4 -boot-info-table"
-APPEND_prepend = " ${SYSLINUX_ROOT} "
+SYSLINUX_PROMPT ?= "0"
+SYSLINUX_TIMEOUT ?= "50"
+AUTO_SYSLINUXMENU ?= "1"
+SYSLINUX_ALLOWOPTIONS ?= "1"
+SYSLINUX_ROOT ?= "${ROOT}"
+SYSLINUX_CFG_VM  ?= "${S}/syslinux_vm.cfg"
+SYSLINUX_CFG_LIVE ?= "${S}/syslinux_live.cfg"
+APPEND ?= ""
 
 # Need UUID utility code.
 inherit fs-uuid
@@ -45,7 +47,7 @@ syslinux_populate() {
 	install -d ${DEST}${BOOTDIR}
 
 	# Install the config files
-	install -m 0644 ${SYSLINUXCFG} ${DEST}${BOOTDIR}/${CFGNAME}
+	install -m 0644 ${SYSLINUX_CFG} ${DEST}${BOOTDIR}/${CFGNAME}
 	if [ "${AUTO_SYSLINUXMENU}" = 1 ] ; then
 		install -m 0644 ${STAGING_DATADIR}/syslinux/vesamenu.c32 ${DEST}${BOOTDIR}/vesamenu.c32
 		install -m 0444 ${STAGING_DATADIR}/syslinux/libcom32.c32 ${DEST}${BOOTDIR}/libcom32.c32
@@ -70,24 +72,19 @@ syslinux_hddimg_populate() {
 }
 
 syslinux_hddimg_install() {
-	syslinux ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.hddimg
-}
-
-syslinux_hdddirect_install() {
-	DEST=$1
-	syslinux $DEST
+	syslinux ${IMGDEPLOYDIR}/${IMAGE_NAME}.hddimg
 }
 
 python build_syslinux_cfg () {
     import copy
     import sys
 
-    workdir = d.getVar('WORKDIR', True)
+    workdir = d.getVar('WORKDIR')
     if not workdir:
         bb.error("WORKDIR not defined, unable to package")
         return
         
-    labels = d.getVar('LABELS', True)
+    labels = d.getVar('LABELS')
     if not labels:
         bb.debug(1, "LABELS not defined, nothing to do")
         return
@@ -96,45 +93,50 @@ python build_syslinux_cfg () {
         bb.debug(1, "No labels, nothing to do")
         return
 
-    cfile = d.getVar('SYSLINUXCFG', True)
+    cfile = d.getVar('SYSLINUX_CFG')
     if not cfile:
-        raise bb.build.FuncFailed('Unable to read SYSLINUXCFG')
+        bb.fatal('Unable to read SYSLINUX_CFG')
 
     try:
-        cfgfile = file(cfile, 'w')
+        cfgfile = open(cfile, 'w')
     except OSError:
-        raise bb.build.funcFailed('Unable to open %s' % (cfile))
+        bb.fatal('Unable to open %s' % cfile)
 
     cfgfile.write('# Automatically created by OE\n')
 
-    opts = d.getVar('SYSLINUX_OPTS', True)
+    opts = d.getVar('SYSLINUX_OPTS')
 
     if opts:
         for opt in opts.split(';'):
             cfgfile.write('%s\n' % opt)
 
-    cfgfile.write('ALLOWOPTIONS 1\n');
-    syslinux_default_console = d.getVar('SYSLINUX_DEFAULT_CONSOLE', True)
-    syslinux_serial_tty = d.getVar('SYSLINUX_SERIAL_TTY', True)
-    syslinux_serial = d.getVar('SYSLINUX_SERIAL', True)
+    allowoptions = d.getVar('SYSLINUX_ALLOWOPTIONS')
+    if allowoptions:
+        cfgfile.write('ALLOWOPTIONS %s\n' % allowoptions)
+    else:
+        cfgfile.write('ALLOWOPTIONS 1\n')
+
+    syslinux_default_console = d.getVar('SYSLINUX_DEFAULT_CONSOLE')
+    syslinux_serial_tty = d.getVar('SYSLINUX_SERIAL_TTY')
+    syslinux_serial = d.getVar('SYSLINUX_SERIAL')
     if syslinux_serial:
         cfgfile.write('SERIAL %s\n' % syslinux_serial)
 
-    menu = d.getVar('AUTO_SYSLINUXMENU', True)
+    menu = (d.getVar('AUTO_SYSLINUXMENU') == "1")
 
     if menu and syslinux_serial:
         cfgfile.write('DEFAULT Graphics console %s\n' % (labels.split()[0]))
     else:
         cfgfile.write('DEFAULT %s\n' % (labels.split()[0]))
 
-    timeout = d.getVar('SYSLINUX_TIMEOUT', True)
+    timeout = d.getVar('SYSLINUX_TIMEOUT')
 
     if timeout:
         cfgfile.write('TIMEOUT %s\n' % timeout)
     else:
         cfgfile.write('TIMEOUT 50\n')
 
-    prompt = d.getVar('SYSLINUX_PROMPT', True)
+    prompt = d.getVar('SYSLINUX_PROMPT')
     if prompt:
         cfgfile.write('PROMPT %s\n' % prompt)
     else:
@@ -144,47 +146,49 @@ python build_syslinux_cfg () {
         cfgfile.write('ui vesamenu.c32\n')
         cfgfile.write('menu title Select kernel options and boot kernel\n')
         cfgfile.write('menu tabmsg Press [Tab] to edit, [Return] to select\n')
-        splash = d.getVar('SYSLINUX_SPLASH', True)
+        splash = d.getVar('SYSLINUX_SPLASH')
         if splash:
             cfgfile.write('menu background splash.lss\n')
     
     for label in labels.split():
         localdata = bb.data.createCopy(d)
 
-        overrides = localdata.getVar('OVERRIDES', True)
+        overrides = localdata.getVar('OVERRIDES')
         if not overrides:
-            raise bb.build.FuncFailed('OVERRIDES not defined')
+            bb.fatal('OVERRIDES not defined')
 
         localdata.setVar('OVERRIDES', label + ':' + overrides)
-        bb.data.update_data(localdata)
     
         btypes = [ [ "", syslinux_default_console ] ]
         if menu and syslinux_serial:
             btypes = [ [ "Graphics console ", syslinux_default_console  ],
                 [ "Serial console ", syslinux_serial_tty ] ]
 
-        for btype in btypes:
-            cfgfile.write('LABEL %s%s\nKERNEL /vmlinuz\n' % (btype[0], label))
+        root= d.getVar('SYSLINUX_ROOT')
+        if not root:
+            bb.fatal('SYSLINUX_ROOT not defined')
 
-            exargs = d.getVar('SYSLINUX_KERNEL_ARGS', True)
+        kernel = localdata.getVar('KERNEL_IMAGETYPE')
+        for btype in btypes:
+            cfgfile.write('LABEL %s%s\nKERNEL /%s\n' % (btype[0], label, kernel))
+
+            exargs = d.getVar('SYSLINUX_KERNEL_ARGS')
             if exargs:
                 btype[1] += " " + exargs
 
-            append = localdata.getVar('APPEND', True)
-            initrd = localdata.getVar('INITRD', True)
+            append = localdata.getVar('APPEND')
+            initrd = localdata.getVar('INITRD')
 
-            if append:
-                cfgfile.write('APPEND ')
+            append = root + " " + append
+            cfgfile.write('APPEND ')
 
-                if initrd:
-                    cfgfile.write('initrd=/initrd ')
+            if initrd:
+                cfgfile.write('initrd=/initrd ')
 
-                cfgfile.write('LABEL=%s '% (label))
-                append = replace_rootfs_uuid(d, append)
-                cfgfile.write('%s %s\n' % (append, btype[1]))
-            else:
-                cfgfile.write('APPEND %s\n' % btype[1])
+            cfgfile.write('LABEL=%s '% (label))
+            append = replace_rootfs_uuid(d, append)
+            cfgfile.write('%s %s\n' % (append, btype[1]))
 
     cfgfile.close()
 }
-build_syslinux_cfg[vardeps] += "APPEND"
+build_syslinux_cfg[dirs] = "${S}"

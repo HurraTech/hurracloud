@@ -1,5 +1,3 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 """
 BitBake SFTP Fetch implementation
 
@@ -44,30 +42,16 @@ SRC_URI = "sftp://user@host.example.com/dir/path.file.txt"
 # Based in part on bb.fetch2.wget:
 #    Copyright (C) 2003, 2004  Chris Larson
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # Based on functions from the base bb module, Copyright 2003 Holger Schurig
 
 import os
 import bb
-import urllib
-import commands
-from bb import data
+import urllib.request, urllib.parse, urllib.error
 from bb.fetch2 import URI
 from bb.fetch2 import FetchMethod
 from bb.fetch2 import runfetchcmd
-
 
 class SFTP(FetchMethod):
     """Class to fetch urls via 'sftp'"""
@@ -93,7 +77,7 @@ class SFTP(FetchMethod):
         else:
             ud.basename = os.path.basename(ud.path)
 
-        ud.localfile = data.expand(urllib.unquote(ud.basename), d)
+        ud.localfile = d.expand(urllib.parse.unquote(ud.basename))
 
     def download(self, ud, d):
         """Fetch urls"""
@@ -105,7 +89,7 @@ class SFTP(FetchMethod):
             port = '-P %d' % urlo.port
             urlo.port = None
 
-        dldir = data.getVar('DL_DIR', d, True)
+        dldir = d.getVar('DL_DIR')
         lpath = os.path.join(dldir, ud.localfile)
 
         user = ''
@@ -121,8 +105,7 @@ class SFTP(FetchMethod):
 
         remote = '%s%s:%s' % (user, urlo.hostname, path)
 
-        cmd = '%s %s %s %s' % (basecmd, port, commands.mkarg(remote),
-                               commands.mkarg(lpath))
+        cmd = '%s %s %s %s' % (basecmd, port, remote, lpath)
 
         bb.fetch2.check_network_access(d, cmd, ud.url)
         runfetchcmd(cmd, d)

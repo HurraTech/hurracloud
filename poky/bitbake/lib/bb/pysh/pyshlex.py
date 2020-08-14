@@ -13,14 +13,9 @@
 # PLY in pull mode. It was designed to work incrementally and it would not be
 # that hard to enable pull mode.
 import re
-try:
-    s = set()
-    del s
-except NameError:
-    from Set import Set as set
 
 from ply import lex
-from sherrors import *
+from bb.pysh.sherrors import *
 
 class NeedMore(Exception):
     pass

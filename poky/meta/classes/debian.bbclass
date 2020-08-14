@@ -20,22 +20,20 @@ do_package_write_tar[rdeptask] = "${DEBIANRDEP}"
 do_package_write_rpm[rdeptask] = "${DEBIANRDEP}"
 
 python () {
-    if not d.getVar("PACKAGES", True):
+    if not d.getVar("PACKAGES"):
         d.setVar("DEBIANRDEP", "")
 }
 
 python debian_package_name_hook () {
-    import glob, copy, stat, errno, re
+    import glob, copy, stat, errno, re, pathlib, subprocess
 
-    pkgdest = d.getVar('PKGDEST', True)
-    packages = d.getVar('PACKAGES', True)
-    bin_re = re.compile(".*/s?" + os.path.basename(d.getVar("bindir", True)) + "$")
-    lib_re = re.compile(".*/" + os.path.basename(d.getVar("libdir", True)) + "$")
-    so_re = re.compile("lib.*\.so")
+    pkgdest = d.getVar("PKGDEST")
+    packages = d.getVar('PACKAGES')
+    so_re = re.compile(r"lib.*\.so")
 
     def socrunch(s):
         s = s.lower().replace('_', '-')
-        m = re.match("^(.*)(.)\.so\.(.*)$", s)
+        m = re.match(r"^(.*)(.)\.so\.(.*)$", s)
         if m is None:
             return None
         if m.group(2) in '0123456789':
@@ -53,38 +51,45 @@ python debian_package_name_hook () {
         return (s[stat.ST_MODE] & stat.S_IEXEC)
 
     def add_rprovides(pkg, d):
-        newpkg = d.getVar('PKG_' + pkg, False)
+        newpkg = d.getVar('PKG_' + pkg)
         if newpkg and newpkg != pkg:
-            provs = (d.getVar('RPROVIDES_' + pkg, True) or "").split()
+            provs = (d.getVar('RPROVIDES_' + pkg) or "").split()
             if pkg not in provs:
-                d.appendVar('RPROVIDES_' + pkg, " " + pkg + " (=" + d.getVar("PKGV", True) + ")")
+                d.appendVar('RPROVIDES_' + pkg, " " + pkg + " (=" + d.getVar("PKGV") + ")")
 
     def auto_libname(packages, orig_pkg):
+        p = lambda var: pathlib.PurePath(d.getVar(var))
+        libdirs = (p("base_libdir"), p("libdir"))
+        bindirs = (p("base_bindir"), p("base_sbindir"), p("bindir"), p("sbindir"))
+
         sonames = []
         has_bins = 0
         has_libs = 0
-        for file in pkgfiles[orig_pkg]:
-            root = os.path.dirname(file)
-            if bin_re.match(root):
+        for f in pkgfiles[orig_pkg]:
+            # This is .../packages-split/orig_pkg/
+            pkgpath = pathlib.PurePath(pkgdest, orig_pkg)
+            # Strip pkgpath off the full path to a file in the package, re-root
+            # so it is absolute, and then get the parent directory of the file.
+            path = pathlib.PurePath("/") / (pathlib.PurePath(f).relative_to(pkgpath).parent)
+            if path in bindirs:
                 has_bins = 1
-            if lib_re.match(root):
+            if path in libdirs:
                 has_libs = 1
-                if so_re.match(os.path.basename(file)):
-                    cmd = (d.getVar('TARGET_PREFIX', True) or "") + "objdump -p " + file + " 2>/dev/null"
-                    fd = os.popen(cmd)
-                    lines = fd.readlines()
-                    fd.close()
-                    for l in lines:
-                        m = re.match("\s+SONAME\s+([^\s]*)", l)
-                        if m and not m.group(1) in sonames:
-                            sonames.append(m.group(1))
-
+                if so_re.match(os.path.basename(f)):
+                    try:
+                        cmd = [d.expand("${TARGET_PREFIX}objdump"), "-p", f]
+                        output = subprocess.check_output(cmd).decode("utf-8")
+                        for m in re.finditer(r"\s+SONAME\s+([^\s]+)", output):
+                            if m.group(1) not in sonames:
+                                sonames.append(m.group(1))
+                    except subprocess.CalledProcessError:
+                        pass
         bb.debug(1, 'LIBNAMES: pkg %s libs %d bins %d sonames %s' % (orig_pkg, has_libs, has_bins, sonames))
         soname = None
         if len(sonames) == 1:
             soname = sonames[0]
         elif len(sonames) > 1:
-            lead = d.getVar('LEAD_SONAME', True)
+            lead = d.getVar('LEAD_SONAME')
             if lead:
                 r = re.compile(lead)
                 filtered = []
@@ -115,11 +120,12 @@ python debian_package_name_hook () {
                         newpkg = pkgname
                     else:
                         newpkg = pkg.replace(orig_pkg, devname, 1)
-                    mlpre=d.getVar('MLPREFIX', True)
+                    mlpre=d.getVar('MLPREFIX')
                     if mlpre:
                         if not newpkg.find(mlpre) == 0:
                             newpkg = mlpre + newpkg
                     if newpkg != pkg:
+                        bb.note("debian: renaming %s to %s" % (pkg, newpkg))
                         d.setVar('PKG_' + pkg, newpkg)
                         add_rprovides(pkg, d)
         else:
@@ -131,11 +137,10 @@ python debian_package_name_hook () {
     # and later
     # DEBUG: LIBNAMES: pkgname libtic5 devname libtic pkg ncurses-libticw orig_pkg ncurses-libtic debian_pn None newpkg libticw
     # so we need to handle ncurses-libticw->libticw5 before ncurses-libtic->libtic5
-    for pkg in sorted((d.getVar('AUTO_LIBNAME_PKGS', True) or "").split(), reverse=True):
+    for pkg in sorted((d.getVar('AUTO_LIBNAME_PKGS') or "").split(), reverse=True):
         auto_libname(packages, pkg)
 }
 
 EXPORT_FUNCTIONS package_name_hook
 
 DEBIAN_NAMES = "1"
-

@@ -6,23 +6,25 @@ It is simple, straight-forward, and extensible. \
 "
 HOMEPAGE = "http://www.ruby-lang.org/"
 SECTION = "devel/ruby"
-LICENSE = "Ruby | BSD | GPLv2"
+LICENSE = "Ruby | BSD-2-Clause | BSD-3-Clause | GPLv2 | ISC | MIT"
 LIC_FILES_CHKSUM = "\
-    file://COPYING;md5=837b32593517ae48b9c3b5c87a5d288c \
+    file://COPYING;md5=5b8c87559868796979806100db3f3805 \
     file://BSDL;md5=19aaf65c88a40b508d17ae4be539c4b5\
     file://GPL;md5=b234ee4d69f5fce4486a80fdaf4a4263\
-    file://LEGAL;md5=c440adb575ba4e6e2344c2630b6a5584\
+    file://LEGAL;md5=2b6d62dc0d608f34d510ca3f428110ec \
 "
 
-DEPENDS = "ruby-native zlib openssl tcl libyaml db gdbm readline"
-DEPENDS_class-native = "openssl-native libyaml-native"
+DEPENDS = "ruby-native zlib openssl tcl libyaml gdbm readline libffi"
+DEPENDS_class-native = "openssl-native libyaml-native readline-native zlib-native"
 
 SHRT_VER = "${@oe.utils.trim_version("${PV}", 2)}"
 SRC_URI = "http://cache.ruby-lang.org/pub/ruby/${SHRT_VER}/ruby-${PV}.tar.gz \
-           file://extmk.patch \
-"
+           file://0001-extmk-fix-cross-compilation-of-external-gems.patch \
+           file://0002-Obey-LDFLAGS-for-the-link-of-libruby.patch \
+           "
+UPSTREAM_CHECK_URI = "https://www.ruby-lang.org/en/downloads/"
 
-inherit autotools
+inherit autotools ptest
 
 
 # This snippet lets compiled extensions which rely on external libraries,
@@ -33,6 +35,6 @@ inherit autotools
 # built.
 
 do_configure_prepend() {
-    sed -i "s#%%TARGET_CFLAGS%%#$TARGET_CFLAGS#; s#%%TARGET_LDFLAGS%%#$TARGET_LDFLAGS#" ${S}/common.mk
+    sed -i "s#%%TARGET_CFLAGS%%#$CFLAGS#; s#%%TARGET_LDFLAGS%%#$LDFLAGS#" ${S}/common.mk
     rm -rf ${S}/ruby/
 }

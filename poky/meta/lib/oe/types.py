@@ -1,3 +1,7 @@
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
 import errno
 import re
 import os
@@ -33,7 +37,7 @@ def choice(value, choices):
     Acts as a multiple choice for the user.  To use this, set the variable
     type flag to 'choice', and set the 'choices' flag to a space separated
     list of valid values."""
-    if not isinstance(value, basestring):
+    if not isinstance(value, str):
         raise TypeError("choice accepts a string, not '%s'" % type(value))
 
     value = value.lower()
@@ -103,10 +107,15 @@ def boolean(value):
     """OpenEmbedded 'boolean' type
 
     Valid values for true: 'yes', 'y', 'true', 't', '1'
-    Valid values for false: 'no', 'n', 'false', 'f', '0'
+    Valid values for false: 'no', 'n', 'false', 'f', '0', None
     """
+    if value is None:
+        return False
 
-    if not isinstance(value, basestring):
+    if isinstance(value, bool):
+        return value
+
+    if not isinstance(value, str):
         raise TypeError("boolean accepts a string, not '%s'" % type(value))
 
     value = value.lower()
@@ -145,9 +154,33 @@ def path(value, relativeto='', normalize='true', mustexist='false'):
 
     if boolean(mustexist):
         try:
-            open(value, 'r')
+            with open(value, 'r'):
+                pass
         except IOError as exc:
             if exc.errno == errno.ENOENT:
                 raise ValueError("{0}: {1}".format(value, os.strerror(errno.ENOENT)))
 
     return value
+
+def is_x86(arch):
+    """
+    Check whether arch is x86 or x86_64
+    """
+    if arch.startswith('x86_') or re.match('i.*86', arch):
+        return True
+    else:
+        return False
+
+def qemu_use_kvm(kvm, target_arch):
+    """
+    Enable kvm if target_arch == build_arch or both of them are x86 archs.
+    """
+
+    use_kvm = False
+    if kvm and boolean(kvm):
+        build_arch = os.uname()[4]
+        if is_x86(build_arch) and is_x86(target_arch):
+            use_kvm = True
+        elif build_arch == target_arch:
+            use_kvm = True
+    return use_kvm

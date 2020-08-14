@@ -5,17 +5,17 @@ DEVSHELL = "${SHELL}"
 python do_devshell () {
     if d.getVarFlag("do_devshell", "manualfakeroot"):
        d.prependVar("DEVSHELL", "pseudo ")
-       fakeenv = d.getVar("FAKEROOTENV", True).split()
+       fakeenv = d.getVar("FAKEROOTENV").split()
        for f in fakeenv:
             k = f.split("=")
-            d.setVar(k[0], k[1])           
+            d.setVar(k[0], k[1])
             d.appendVar("OE_TERMINAL_EXPORTS", " " + k[0])
        d.delVarFlag("do_devshell", "fakeroot")
 
-    oe_terminal(d.getVar('DEVSHELL', True), 'OpenEmbedded Developer Shell', d)
+    oe_terminal(d.getVar('DEVSHELL'), 'OpenEmbedded Developer Shell', d)
 }
 
-addtask devshell after do_patch
+addtask devshell after do_patch do_prepare_recipe_sysroot
 
 # The directory that the terminal starts in
 DEVSHELL_STARTDIR ?= "${S}"
@@ -49,7 +49,7 @@ def devpyshell(d):
         old[3] = old[3] &~ termios.ECHO &~ termios.ICANON
         # &~ termios.ISIG
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
-    
+
     # No echo or buffering over the pty
     noechoicanon(s)
 
@@ -64,9 +64,6 @@ def devpyshell(d):
         os.dup2(m, sys.stdin.fileno())
         os.dup2(m, sys.stdout.fileno())
         os.dup2(m, sys.stderr.fileno())
-
-        sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-        sys.stdin = os.fdopen(sys.stdin.fileno(), 'r', 0)
 
         bb.utils.nonblockingfd(sys.stdout)
         bb.utils.nonblockingfd(sys.stderr)
@@ -85,7 +82,7 @@ def devpyshell(d):
         more = False
 
         i = code.InteractiveInterpreter(locals=_context)
-        print("OE PyShell (PN = %s)\n" % d.getVar("PN", True))
+        print("OE PyShell (PN = %s)\n" % d.getVar("PN"))
 
         def prompt(more):
             if more:
@@ -93,6 +90,7 @@ def devpyshell(d):
             else:
                 prompt = ps1
             sys.stdout.write(prompt)
+            sys.stdout.flush()
 
         # Restore Ctrl+C since bitbake masks this
         def signal_handler(signal, frame):
@@ -114,6 +112,7 @@ def devpyshell(d):
                         continue
                 except EOFError as e:
                     sys.stdout.write("\n")
+                    sys.stdout.flush()
                 except (OSError, IOError) as e:
                     if e.errno == 11:
                         continue
@@ -146,7 +145,7 @@ python do_devpyshell() {
     try:
         devpyshell(d)
     except SystemExit:
-        # Stop the SIGTERM above causing an error exit code    
+        # Stop the SIGTERM above causing an error exit code
         return
     finally:
         return

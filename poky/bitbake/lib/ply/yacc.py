@@ -195,6 +195,8 @@ class YaccProduction:
         self.lexer = None
         self.parser= None
     def __getitem__(self,n):
+        if isinstance(n,slice):
+            return [self[i] for i in range(*(n.indices(len(self.slice))))]
         if n >= 0: return self.slice[n].value
         else: return self.stack[n].value
 
@@ -486,7 +488,7 @@ class LRParser:
                     # --! DEBUG
                     return result
 
-            if t == None:
+            if t is None:
 
                 # --! DEBUG
                 debug.error('Error  : %s',
@@ -764,7 +766,7 @@ class LRParser:
                     n = symstack[-1]
                     return getattr(n,"value",None)
 
-            if t == None:
+            if t is None:
 
                 # We have some kind of parsing error here.  To handle
                 # this, we are going to push the current token onto
@@ -1019,7 +1021,7 @@ class LRParser:
                     n = symstack[-1]
                     return getattr(n,"value",None)
 
-            if t == None:
+            if t is None:
 
                 # We have some kind of parsing error here.  To handle
                 # this, we are going to push the current token onto

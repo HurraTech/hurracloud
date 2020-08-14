@@ -1,14 +1,41 @@
 # remove tasks that modify the source tree in case externalsrc is inherited
-SRCTREECOVEREDTASKS += "do_kernel_link_vmlinux do_kernel_configme do_validate_branches do_kernel_configcheck do_kernel_checkout do_shared_workdir do_fetch do_unpack do_patch"
+SRCTREECOVEREDTASKS += "do_validate_branches do_kernel_configcheck do_kernel_checkout do_fetch do_unpack do_patch"
+PATCH_GIT_USER_EMAIL ?= "kernel-yocto@oe"
+PATCH_GIT_USER_NAME ?= "OpenEmbedded"
+
+# The distro or local.conf should set this, but if nobody cares...
+LINUX_KERNEL_TYPE ??= "standard"
+
+# KMETA ?= ""
+KBRANCH ?= "master"
+KMACHINE ?= "${MACHINE}"
+SRCREV_FORMAT ?= "meta_machine"
+
+# LEVELS:
+#   0: no reporting
+#   1: report options that are specified, but not in the final config
+#   2: report options that are not hardware related, but set by a BSP
+KCONF_AUDIT_LEVEL ?= "1"
+KCONF_BSP_AUDIT_LEVEL ?= "0"
+KMETA_AUDIT ?= "yes"
 
 # returns local (absolute) path names for all valid patches in the
 # src_uri
-def find_patches(d):
+def find_patches(d,subdir):
     patches = src_patches(d)
     patch_list=[]
     for p in patches:
-        _, _, local, _, _, _ = bb.fetch.decodeurl(p)
-        patch_list.append(local)
+        _, _, local, _, _, parm = bb.fetch.decodeurl(p)
+        # if patchdir has been passed, we won't be able to apply it so skip
+        # the patch for now, and special processing happens later
+        patchdir = ''
+        if "patchdir" in parm:
+            patchdir = parm["patchdir"]
+        if subdir:
+            if subdir == patchdir:
+                patch_list.append(local)
+        else:
+            patch_list.append(local)
 
     return patch_list
 
@@ -20,7 +47,7 @@ def find_sccs(d):
         base, ext = os.path.splitext(os.path.basename(s))
         if ext and ext in [".scc", ".cfg"]:
             sources_list.append(s)
-        elif base and base in 'defconfig':
+        elif base and 'defconfig' in base:
             sources_list.append(s)
 
     return sources_list
@@ -72,13 +99,6 @@ do_kernel_metadata() {
 		fi
 	fi
 
-	machine_branch="${@ get_machine_branch(d, "${KBRANCH}" )}"
-	machine_srcrev="${SRCREV_machine}"
-	if [ -z "${machine_srcrev}" ]; then
-		# fallback to SRCREV if a non machine_meta tree is being built
-		machine_srcrev="${SRCREV}"
-	fi
-
 	# In a similar manner to the kernel itself:
 	#
 	#   defconfig: $(obj)/conf
@@ -105,76 +125,146 @@ do_kernel_metadata() {
 				cmp "${WORKDIR}/defconfig" "${S}/arch/${ARCH}/configs/${KBUILD_DEFCONFIG}"
 				if [ $? -ne 0 ]; then
 					bbwarn "defconfig detected in WORKDIR. ${KBUILD_DEFCONFIG} skipped"
+				else
+					cp -f ${S}/arch/${ARCH}/configs/${KBUILD_DEFCONFIG} ${WORKDIR}/defconfig
 				fi
 			else
 				cp -f ${S}/arch/${ARCH}/configs/${KBUILD_DEFCONFIG} ${WORKDIR}/defconfig
-				sccs="${WORKDIR}/defconfig"
 			fi
+			in_tree_defconfig="${WORKDIR}/defconfig"
 		else
-			bbfatal "A KBUILD_DECONFIG '${KBUILD_DEFCONFIG}' was specified, but not present in the source tree"
+			bbfatal "A KBUILD_DEFCONFIG '${KBUILD_DEFCONFIG}' was specified, but not present in the source tree"
 		fi
 	fi
 
-	sccs="$sccs ${@" ".join(find_sccs(d))}"
-	patches="${@" ".join(find_patches(d))}"
+	# was anyone trying to patch the kernel meta data ?, we need to do
+	# this here, since the scc commands migrate the .cfg fragments to the
+	# kernel source tree, where they'll be used later.
+	check_git_config
+	patches="${@" ".join(find_patches(d,'kernel-meta'))}"
+	for p in $patches; do
+	    (
+		cd ${WORKDIR}/kernel-meta
+		git am -s $p
+	    )
+	done
+
+	sccs_from_src_uri="${@" ".join(find_sccs(d))}"
+	patches="${@" ".join(find_patches(d,''))}"
 	feat_dirs="${@" ".join(find_kernel_feature_dirs(d))}"
 
-	# add any explicitly referenced features onto the end of the feature
-	# list that is passed to the kernel build scripts.
-	if [ -n "${KERNEL_FEATURES}" ]; then
-		for feat in ${KERNEL_FEATURES}; do
-			addon_features="$addon_features --feature $feat"
-		done
+	# a quick check to make sure we don't have duplicate defconfigs If
+	# there's a defconfig in the SRC_URI, did we also have one from the
+	# KBUILD_DEFCONFIG processing above ?
+	src_uri_defconfig=$(echo $sccs_from_src_uri | awk '(match($0, "defconfig") != 0) { print $0 }' RS=' ')
+	# drop and defconfig's from the src_uri variable, we captured it just above here if it existed
+	sccs_from_src_uri=$(echo $sccs_from_src_uri | awk '(match($0, "defconfig") == 0) { print $0 }' RS=' ')
+
+	if [ -n "$in_tree_defconfig" ]; then
+		sccs_defconfig=$in_tree_defconfig
+		if [ -n "$src_uri_defconfig" ]; then
+			bbwarn "[NOTE]: defconfig was supplied both via KBUILD_DEFCONFIG and SRC_URI. Dropping SRC_URI defconfig"
+		fi
+	else
+		# if we didn't have an in-tree one, make our defconfig the one
+		# from the src_uri. Note: there may not have been one from the
+		# src_uri, so this can be an empty variable.
+		sccs_defconfig=$src_uri_defconfig
 	fi
+	sccs="$sccs_from_src_uri"
 
 	# check for feature directories/repos/branches that were part of the
 	# SRC_URI. If they were supplied, we convert them into include directives
 	# for the update part of the process
-	if [ -n "${feat_dirs}" ]; then
-	    for f in ${feat_dirs}; do
+	for f in ${feat_dirs}; do
 		if [ -d "${WORKDIR}/$f/meta" ]; then
-		    includes="$includes -I${WORKDIR}/$f/meta"
-		elif [ -d "${WORKDIR}/$f" ]; then
-		    includes="$includes -I${WORKDIR}/$f"
+			includes="$includes -I${WORKDIR}/$f/kernel-meta"
+		elif [ -d "${WORKDIR}/../oe-local-files/$f" ]; then
+			includes="$includes -I${WORKDIR}/../oe-local-files/$f"
+	        elif [ -d "${WORKDIR}/$f" ]; then
+			includes="$includes -I${WORKDIR}/$f"
 		fi
-	    done
+	done
+	for s in ${sccs} ${patches}; do
+		sdir=$(dirname $s)
+		includes="$includes -I${sdir}"
+                # if a SRC_URI passed patch or .scc has a subdir of "kernel-meta",
+                # then we add it to the search path
+                if [ -d "${sdir}/kernel-meta" ]; then
+			includes="$includes -I${sdir}/kernel-meta"
+                fi
+	done
+
+	# expand kernel features into their full path equivalents
+	bsp_definition=$(spp ${includes} --find -DKMACHINE=${KMACHINE} -DKTYPE=${LINUX_KERNEL_TYPE})
+	if [ -z "$bsp_definition" ]; then
+		if [ -z "$sccs_defconfig" ]; then
+			bbfatal_log "Could not locate BSP definition for ${KMACHINE}/${LINUX_KERNEL_TYPE} and no defconfig was provided"
+		fi
+	else
+		# if the bsp definition has "define KMETA_EXTERNAL_BSP t",
+		# then we need to set a flag that will instruct the next
+		# steps to use the BSP as both configuration and patches.
+		grep -q KMETA_EXTERNAL_BSP $bsp_definition
+		if [ $? -eq 0 ]; then
+		    KMETA_EXTERNAL_BSPS="t"
+		fi
+	fi
+	meta_dir=$(kgit --meta)
+
+	# run1: pull all the configuration fragments, no matter where they come from
+	elements="`echo -n ${bsp_definition} $sccs_defconfig ${sccs} ${patches} ${KERNEL_FEATURES}`"
+	if [ -n "${elements}" ]; then
+		echo "${bsp_definition}" > ${S}/${meta_dir}/bsp_definition
+		scc --force -o ${S}/${meta_dir}:cfg,merge,meta ${includes} $sccs_defconfig $bsp_definition $sccs $patches ${KERNEL_FEATURES}
+		if [ $? -ne 0 ]; then
+			bbfatal_log "Could not generate configuration queue for ${KMACHINE}."
+		fi
 	fi
 
-	# updates or generates the target description
-	updateme ${updateme_flags} -DKDESC=${KMACHINE}:${LINUX_KERNEL_TYPE} \
-                         ${includes} ${addon_features} ${ARCH} ${KMACHINE} ${sccs} ${patches}
-	if [ $? -ne 0 ]; then
-		bbfatal_log "Could not update ${machine_branch}"
+	# if KMETA_EXTERNAL_BSPS has been set, or it has been detected from
+	# the bsp definition, then we inject the bsp_definition into the
+	# patch phase below.  we'll piggy back on the sccs variable.
+	if [ -n "${KMETA_EXTERNAL_BSPS}" ]; then
+		sccs="${bsp_definition} ${sccs}"
+	fi
+
+	# run2: only generate patches for elements that have been passed on the SRC_URI
+	elements="`echo -n ${sccs} ${patches} ${KERNEL_FEATURES}`"
+	if [ -n "${elements}" ]; then
+		scc --force -o ${S}/${meta_dir}:patch --cmds patch ${includes} ${sccs} ${patches} ${KERNEL_FEATURES}
+		if [ $? -ne 0 ]; then
+			bbfatal_log "Could not generate configuration queue for ${KMACHINE}."
+		fi
 	fi
 }
 
 do_patch() {
+	set +e
 	cd ${S}
 
-	# executes and modifies the source tree as required
-	patchme ${KMACHINE}
-	if [ $? -ne 0 ]; then
-		bberror "Could not apply patches for ${KMACHINE}."
-		bbfatal_log "Patch failures can be resolved in the linux source directory ${S})"
-	fi
-
-	# check to see if the specified SRCREV is reachable from the final branch.
-	# if it wasn't something wrong has happened, and we should error.
-	machine_srcrev="${SRCREV_machine}"
-	if [ -z "${machine_srcrev}" ]; then
-		# fallback to SRCREV if a non machine_meta tree is being built
-		machine_srcrev="${SRCREV}"
-		# if SRCREV cannot be reached something is wrong.
-		if [ -z "${machine_srcrev}" ]; then
-			bbfatal "Neither SRCREV_machine or SRCREV was specified!"
+	check_git_config
+	meta_dir=$(kgit --meta)
+	(cd ${meta_dir}; ln -sf patch.queue series)
+	if [ -f "${meta_dir}/series" ]; then
+		kgit-s2q --gen -v --patches .kernel-meta/
+		if [ $? -ne 0 ]; then
+			bberror "Could not apply patches for ${KMACHINE}."
+			bbfatal_log "Patch failures can be resolved in the linux source directory ${S})"
 		fi
 	fi
 
-	if [ "${machine_srcrev}" != "AUTOINC" ]; then
-		if ! [ "$(git rev-parse --verify ${machine_srcrev}~0)" = "$(git merge-base ${machine_srcrev} HEAD)" ]; then
-			bberror "SRCREV ${machine_srcrev} was specified, but is not reachable"
-			bbfatal "Check the BSP description for incorrect branch selection, or other errors."
-		fi
+	if [ -f "${meta_dir}/merge.queue" ]; then
+		# we need to merge all these branches
+		for b in $(cat ${meta_dir}/merge.queue); do
+			git show-ref --verify --quiet refs/heads/${b}
+			if [ $? -eq 0 ]; then
+				bbnote "Merging branch ${b}"
+				git merge -q --no-ff -m "Merge branch ${b}" ${b}
+			else
+				bbfatal "branch ${b} does not exist, cannot merge"
+			fi
+		done
 	fi
 }
 
@@ -214,6 +304,7 @@ do_kernel_checkout() {
 		fi
 		rm -f .gitignore
 		git init
+		check_git_config
 		git add .
 		git commit -q -m "baseline commit: creating repo for ${PN}-${PV}"
 		git clean -d -f
@@ -236,79 +327,121 @@ do_kernel_checkout() {
 }
 do_kernel_checkout[dirs] = "${S}"
 
-addtask kernel_checkout before do_kernel_metadata after do_unpack
+addtask kernel_checkout before do_kernel_metadata after do_symlink_kernsrc
 addtask kernel_metadata after do_validate_branches do_unpack before do_patch
 do_kernel_metadata[depends] = "kern-tools-native:do_populate_sysroot"
+do_validate_branches[depends] = "kern-tools-native:do_populate_sysroot"
 
+do_kernel_configme[depends] += "virtual/${TARGET_PREFIX}binutils:do_populate_sysroot"
+do_kernel_configme[depends] += "virtual/${TARGET_PREFIX}gcc:do_populate_sysroot"
+do_kernel_configme[depends] += "bc-native:do_populate_sysroot bison-native:do_populate_sysroot"
+do_kernel_configme[depends] += "kern-tools-native:do_populate_sysroot"
 do_kernel_configme[dirs] += "${S} ${B}"
 do_kernel_configme() {
-	bbnote "kernel configme"
-	export KMETA=${KMETA}
-
-	if [ -n "${KCONFIG_MODE}" ]; then
-		configmeflags=${KCONFIG_MODE}
-	else
-		# If a defconfig was passed, use =n as the baseline, which is achieved
-		# via --allnoconfig
+	# translate the kconfig_mode into something that merge_config.sh
+	# understands
+	case ${KCONFIG_MODE} in
+		*allnoconfig)
+			config_flags="-n"
+			;;
+		*alldefconfig)
+			config_flags=""
+			;;
+	    *)
 		if [ -f ${WORKDIR}/defconfig ]; then
-			configmeflags="--allnoconfig"
+			config_flags="-n"
+		fi
+	    ;;
+	esac
+
+	cd ${S}
+
+	meta_dir=$(kgit --meta)
+	configs="$(scc --configs -o ${meta_dir})"
+	if [ $? -ne 0 ]; then
+		bberror "${configs}"
+		bbfatal_log "Could not find configuration queue (${meta_dir}/config.queue)"
+	fi
+
+	CFLAGS="${CFLAGS} ${TOOLCHAIN_OPTIONS}" HOSTCC="${BUILD_CC} ${BUILD_CFLAGS} ${BUILD_LDFLAGS}" HOSTCPP="${BUILD_CPP}" CC="${KERNEL_CC}" LD="${KERNEL_LD}" ARCH=${ARCH} merge_config.sh -O ${B} ${config_flags} ${configs} > ${meta_dir}/cfg/merge_config_build.log 2>&1
+	if [ $? -ne 0 -o ! -f ${B}/.config ]; then
+		bberror "Could not generate a .config for ${KMACHINE}-${LINUX_KERNEL_TYPE}"
+		if [ ${KCONF_AUDIT_LEVEL} -gt 1 ]; then
+			bbfatal_log "`cat ${meta_dir}/cfg/merge_config_build.log`"
+		else
+			bbfatal_log "Details can be found at: ${S}/${meta_dir}/cfg/merge_config_build.log"
 		fi
 	fi
 
-	cd ${S}
-	PATH=${PATH}:${S}/scripts/util
-	configme ${configmeflags} --reconfig --output ${B} ${LINUX_KERNEL_TYPE} ${KMACHINE}
-	if [ $? -ne 0 ]; then
-		bbfatal_log "Could not configure ${KMACHINE}-${LINUX_KERNEL_TYPE}"
+	if [ ! -z "${LINUX_VERSION_EXTENSION}" ]; then
+		echo "# Global settings from linux recipe" >> ${B}/.config
+		echo "CONFIG_LOCALVERSION="\"${LINUX_VERSION_EXTENSION}\" >> ${B}/.config
 	fi
-	
-	echo "# Global settings from linux recipe" >> ${B}/.config
-	echo "CONFIG_LOCALVERSION="\"${LINUX_VERSION_EXTENSION}\" >> ${B}/.config
 }
 
 addtask kernel_configme before do_configure after do_patch
 
 python do_kernel_configcheck() {
-    import re, string, sys
+    import re, string, sys, subprocess
 
     # if KMETA isn't set globally by a recipe using this routine, we need to
     # set the default to 'meta'. Otherwise, kconf_check is not passed a valid
     # meta-series for processing
-    kmeta = d.getVar( "KMETA", True ) or "meta"
+    kmeta = d.getVar("KMETA") or "meta"
     if not os.path.exists(kmeta):
         kmeta = "." + kmeta
 
-    pathprefix = "export PATH=%s:%s; " % (d.getVar('PATH', True), "${S}/scripts/util/")
-    cmd = d.expand("cd ${S}; kconf_check -config %s/meta-series ${S} ${B}" % kmeta)
-    ret, result = oe.utils.getstatusoutput("%s%s" % (pathprefix, cmd))
+    s = d.getVar('S')
 
-    config_check_visibility = int(d.getVar( "KCONF_AUDIT_LEVEL", True ) or 0)
-    bsp_check_visibility = int(d.getVar( "KCONF_BSP_AUDIT_LEVEL", True ) or 0)
+    env = os.environ.copy()
+    env['PATH'] = "%s:%s%s" % (d.getVar('PATH'), s, "/scripts/util/")
+    env['LD'] = "${KERNEL_LD}"
+
+    try:
+        configs = subprocess.check_output(['scc', '--configs', '-o', s + '/.kernel-meta'], env=env).decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        bb.fatal( "Cannot gather config fragments for audit: %s" % e.output.decode("utf-8") )
+
+    try:
+        subprocess.check_call(['kconf_check', '--report', '-o',
+                '%s/%s/cfg' % (s, kmeta), d.getVar('B') + '/.config', s, configs], cwd=s, env=env)
+    except subprocess.CalledProcessError:
+        # The configuration gathering can return different exit codes, but
+        # we interpret them based on the KCONF_AUDIT_LEVEL variable, so we catch
+        # everything here, and let the run continue.
+        pass
+
+    config_check_visibility = int(d.getVar("KCONF_AUDIT_LEVEL") or 0)
+    bsp_check_visibility = int(d.getVar("KCONF_BSP_AUDIT_LEVEL") or 0)
 
     # if config check visibility is non-zero, report dropped configuration values
-    mismatch_file = "${S}/" + kmeta + "/" + "mismatch.cfg"
+    mismatch_file = d.expand("${S}/%s/cfg/mismatch.txt" % kmeta)
     if os.path.exists(mismatch_file):
         if config_check_visibility:
             with open (mismatch_file, "r") as myfile:
                 results = myfile.read()
                 bb.warn( "[kernel config]: specified values did not make it into the kernel's final configuration:\n\n%s" % results)
 
-    # if config check visibility is level 2 or higher, report non-hardware options
-    nonhw_file = "${S}/" + kmeta + "/" + "nonhw_report.cfg"
-    if os.path.exists(nonhw_file):
-        if config_check_visibility > 1:
-            with open (nonhw_file, "r") as myfile:
+    if bsp_check_visibility:
+        invalid_file = d.expand("${S}/%s/cfg/invalid.cfg" % kmeta)
+        if os.path.exists(invalid_file) and os.stat(invalid_file).st_size > 0:
+            with open (invalid_file, "r") as myfile:
                 results = myfile.read()
-                bb.warn( "[kernel config]: BSP specified non-hw configuration:\n\n%s" % results)
+                bb.warn( "[kernel config]: This BSP sets config options that are not offered anywhere within this kernel:\n\n%s" % results)
+        errors_file = d.expand("${S}/%s/cfg/fragment_errors.txt" % kmeta)
+        if os.path.exists(errors_file) and os.stat(errors_file).st_size > 0:
+            with open (errors_file, "r") as myfile:
+               results = myfile.read()
+               bb.warn( "[kernel config]: This BSP contains fragments with errors:\n\n%s" % results)
 
-    bsp_desc = "${S}/" + kmeta + "/" + "top_tgt"
-    if os.path.exists(bsp_desc) and bsp_check_visibility > 1:
-        with open (bsp_desc, "r") as myfile:
-            bsp_tgt = myfile.read()
-            m = re.match("^(.*)scratch.obj(.*)$", bsp_tgt)
-            if not m is None:
-                bb.warn( "[kernel]: An auto generated BSP description was used, this normally indicates a misconfiguration.\n" +
-                         "Check that your machine (%s) has an associated kernel description." % "${MACHINE}" )
+    # if the audit level is greater than two, we report if a fragment has overriden
+    # a value from a base fragment. This is really only used for new kernel introduction
+    if bsp_check_visibility > 2:
+        redefinition_file = d.expand("${S}/%s/cfg/redefinition.txt" % kmeta)
+        if os.path.exists(redefinition_file) and os.stat(redefinition_file).st_size > 0:
+            with open (redefinition_file, "r") as myfile:
+                results = myfile.read()
+                bb.warn( "[kernel config]: This BSP has configuration options defined in more than one config, with differing values:\n\n%s" % results)
 }
 
 # Ensure that the branches (BSP and meta) are on the locations specified by
@@ -351,20 +484,12 @@ do_validate_branches() {
 			current_branch=`git rev-parse --abbrev-ref HEAD`
 			git branch "$current_branch-orig"
 			git reset --hard ${force_srcrev}
+			# We've checked out HEAD, make sure we cleanup kgit-s2q fence post check
+			# so the patches are applied as expected otherwise no patching
+			# would be done in some corner cases.
+			kgit-s2q --clean
 		fi
 	fi
-}
-
-# Many scripts want to look in arch/$arch/boot for the bootable
-# image. This poses a problem for vmlinux based booting. This 
-# task arranges to have vmlinux appear in the normalized directory
-# location.
-do_kernel_link_vmlinux() {
-	if [ ! -d "${B}/arch/${ARCH}/boot" ]; then
-		mkdir ${B}/arch/${ARCH}/boot
-	fi
-	cd ${B}/arch/${ARCH}/boot
-	ln -sf ../../../vmlinux
 }
 
 OE_TERMINAL_EXPORTS += "KBUILD_OUTPUT"
@@ -374,4 +499,15 @@ python () {
     # If diffconfig is available, ensure it runs after kernel_configme
     if 'do_diffconfig' in d:
         bb.build.addtask('do_diffconfig', None, 'do_kernel_configme', d)
+
+    externalsrc = d.getVar('EXTERNALSRC')
+    if externalsrc:
+        # If we deltask do_patch, do_kernel_configme is left without
+        # dependencies and runs too early
+        d.setVarFlag('do_kernel_configme', 'deps', (d.getVarFlag('do_kernel_configme', 'deps', False) or []) + ['do_unpack'])
 }
+
+# extra tasks
+addtask kernel_version_sanity_check after do_kernel_metadata do_kernel_checkout before do_compile
+addtask validate_branches before do_patch after do_kernel_checkout
+addtask kernel_configcheck after do_configure before do_compile

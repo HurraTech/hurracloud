@@ -1,4 +1,7 @@
-from __future__ import absolute_import
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
 import inspect
 import traceback
 import bb.namedtuple_with_abc
@@ -86,6 +89,6 @@ def format_exception(etype, value, tb, context=1, limit=None, formatter=None):
 
 def to_string(exc):
     if isinstance(exc, SystemExit):
-        if not isinstance(exc.code, basestring):
+        if not isinstance(exc.code, str):
             return 'Exited with "%d"' % exc.code
     return str(exc)

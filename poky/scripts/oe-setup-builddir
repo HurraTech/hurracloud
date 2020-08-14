@@ -4,23 +4,20 @@
 #
 # Copyright (C) 2006-2011 Linux Foundation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 if [ -z "$BUILDDIR" ]; then
     echo >&2 "Error: The build directory (BUILDDIR) must be set!"
     exit 1
+fi
+
+if [ "$1" = '--help' -o "$1" = '-h' ]; then
+    echo 'Usage: oe-setup-builddir'
+    echo ''
+    echo "OpenEmbedded setup-builddir - setup build directory $BUILDDIR"
+    echo ''
+    exit 2
 fi
 
 mkdir -p "$BUILDDIR/conf"
@@ -61,7 +58,7 @@ if [ -n "$TEMPLATECONF" ]; then
             TEMPLATECONF="$OEROOT/$TEMPLATECONF"
         fi
         if [ ! -d "$TEMPLATECONF" ]; then
-            echo >&2 "Error: '$TEMPLATECONF' must be a directory containing local.conf & bblayers.conf"
+            echo >&2 "Error: TEMPLATECONF value points to nonexistent directory '$TEMPLATECONF'"
             exit 1
         fi
     fi
@@ -75,12 +72,11 @@ if [ -z "$OECORELOCALCONF" ]; then
     OECORELOCALCONF="$OEROOT/meta/conf/local.conf.sample"
 fi
 if [ ! -r "$BUILDDIR/conf/local.conf" ]; then
-cat <<EOM
+    cat <<EOM
 You had no conf/local.conf file. This configuration file has therefore been
-created for you with some default values. You may wish to edit it to use a 
-different MACHINE (target hardware) or enable parallel build options to take 
-advantage of multiple cores for example. See the file for more information as 
-common configuration options are commented.
+created for you with some default values. You may wish to edit it to, for
+example, select a different MACHINE (target hardware). See conf/local.conf
+for more information as common configuration options are commented.
 
 EOM
     cp -f $OECORELOCALCONF "$BUILDDIR/conf/local.conf"
@@ -92,9 +88,9 @@ if [ -z "$OECORELAYERCONF" ]; then
 fi
 if [ ! -r "$BUILDDIR/conf/bblayers.conf" ]; then
     cat <<EOM
-You had no conf/bblayers.conf file. The configuration file has been created for
-you with some default values. To add additional metadata layers into your
-configuration please add entries to this file.
+You had no conf/bblayers.conf file. This configuration file has therefore been
+created for you with some default values. To add additional metadata layers
+into your configuration please add entries to conf/bblayers.conf.
 
 EOM
 
@@ -126,13 +122,6 @@ EOM
 #    unset SHOWYPDOC
 fi
 
-cat <<EOM
-
-### Shell environment set up for builds. ###
-
-You can now run 'bitbake <target>'
-
-EOM
 if [ -z "$OECORENOTESCONF" ]; then
     OECORENOTESCONF="$OEROOT/meta/conf/conf-notes.txt"
 fi

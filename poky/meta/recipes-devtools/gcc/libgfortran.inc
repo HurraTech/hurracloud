@@ -6,31 +6,33 @@ EXTRA_OECONF_PATHS = "\
 "
 
 do_configure () {
-	mtarget=`echo ${TARGET_SYS} | sed -e s#-${SDKPKGSUFFIX}##`
-	target=`echo ${TARGET_SYS} | sed -e s#-${SDKPKGSUFFIX}##`
-	hardlinkdir ${STAGING_INCDIR_NATIVE}/gcc-build-internal-$mtarget ${B}
-
-	echo "Configuring libgfortran"
-	rm -rf ${B}/$target/libgfortran/
-	mkdir -p ${B}/$target/libgfortran/
-	cd ${B}/$target/libgfortran/
-	chmod a+x ${S}/libgfortran/configure
-	${S}/libgfortran/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
-	# Easiest way to stop bad RPATHs getting into the library since we have a
-	# broken libtool here
-	sed -i -e 's/hardcode_into_libs=yes/hardcode_into_libs=no/' ${B}/$target/libgfortran/libtool
+	for target in libbacktrace libgfortran
+	do
+		rm -rf ${B}/${TARGET_SYS}/$target/
+		mkdir -p ${B}/${TARGET_SYS}/$target/
+		cd ${B}/${TARGET_SYS}/$target/
+		chmod a+x ${S}/$target/configure
+		relpath=${@os.path.relpath("${S}", "${B}/${TARGET_SYS}")}
+		../$relpath/$target/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
+		# Easiest way to stop bad RPATHs getting into the library since we have a
+		# broken libtool here
+		sed -i -e 's/hardcode_into_libs=yes/hardcode_into_libs=no/' ${B}/${TARGET_SYS}/$target/libtool
+	done
 }
+EXTRACONFFUNCS += "extract_stashed_builddir"
+do_configure[depends] += "${COMPILERDEP}"
 
 do_compile () {
-	target=`echo ${TARGET_SYS} | sed -e s#-${SDKPKGSUFFIX}##`
-	cd ${B}/$target/libgfortran/
-	oe_runmake MULTIBUILDTOP=${B}/$target/libgfortran/
+	for target in libbacktrace libgfortran
+	do
+		cd ${B}/${TARGET_SYS}/$target/
+		oe_runmake MULTIBUILDTOP=${B}/${TARGET_SYS}/$target/
+	done
 }
 
 do_install () {
-	target=`echo ${TARGET_SYS} | sed -e s#-${SDKPKGSUFFIX}##`
-	cd ${B}/$target/libgfortran/
-	oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/$target/libgfortran/ install
+	cd ${B}/${TARGET_SYS}/libgfortran/
+	oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/libgfortran/ install
 	if [ -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude ]; then
 		rmdir --ignore-fail-on-non-empty -p ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude
 	fi
@@ -41,7 +43,7 @@ do_install () {
 }
 
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "gcc-runtime"
+DEPENDS = "gcc-runtime gcc-cross-${TARGET_ARCH}"
 
 BBCLASSEXTEND = "nativesdk"
 
@@ -51,6 +53,11 @@ PACKAGES = "\
     libgfortran-dev \
     libgfortran-staticdev \
 "
+
+LICENSE_${PN} = "GPL-3.0-with-GCC-exception"
+LICENSE_${PN}-dev = "GPL-3.0-with-GCC-exception"
+LICENSE_${PN}-dbg = "GPL-3.0-with-GCC-exception"
+
 FILES_${PN} = "${libdir}/libgfortran.so.*"
 FILES_${PN}-dev = "\
     ${libdir}/libgfortran*.so \
@@ -58,6 +65,8 @@ FILES_${PN}-dev = "\
     ${libdir}/libgfortran.la \
     ${libdir}/gcc/${TARGET_SYS}/${BINV}/libgfortranbegin.* \
     ${libdir}/gcc/${TARGET_SYS}/${BINV}/libcaf_single* \
+    ${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude/ \
+    ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ \
 "
 FILES_${PN}-staticdev = "${libdir}/libgfortran.a"
 
@@ -68,7 +77,7 @@ do_package_write_deb[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 do_package_write_rpm[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 
 python __anonymous () {
-    f = d.getVar("FORTRAN", True)
+    f = d.getVar("FORTRAN")
     if "fortran" not in f:
-        raise bb.parse.SkipPackage("libgfortran needs fortran support to be enabled in the compiler")
+        raise bb.parse.SkipRecipe("libgfortran needs fortran support to be enabled in the compiler")
 }

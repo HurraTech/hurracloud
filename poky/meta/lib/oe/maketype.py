@@ -1,3 +1,6 @@
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
 """OpenEmbedded variable typing support
 
 Types are defined in the metadata by name, using the 'type' flag on a
@@ -6,7 +9,13 @@ the arguments of the type's factory for details.
 """
 
 import inspect
-import types
+import oe.types as types
+try:
+    # Python 3.7+
+    from collections.abc import Callable
+except ImportError:
+    # Python < 3.7
+    from collections import Callable
 
 available_types = {}
 
@@ -53,7 +62,9 @@ def get_callable_args(obj):
     if type(obj) is type:
         obj = obj.__init__
 
-    args, varargs, keywords, defaults = inspect.getargspec(obj)
+    sig = inspect.signature(obj)
+    args = list(sig.parameters.keys())
+    defaults = list(s for s in sig.parameters.keys() if sig.parameters[s].default != inspect.Parameter.empty)
     flaglist = []
     if args:
         if len(args) > 1 and args[0] == 'self':
@@ -93,7 +104,7 @@ for name in dir(types):
         continue
 
     obj = getattr(types, name)
-    if not callable(obj):
+    if not isinstance(obj, Callable):
         continue
 
     register(name, obj)

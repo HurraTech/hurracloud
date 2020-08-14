@@ -13,15 +13,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with pybootchartgui. If not, see <http://www.gnu.org/licenses/>.
 
-
-from __future__ import with_statement
-
 import os
 import string
 import re
 import sys
 import tarfile
-from time import clock
+import time
 from collections import defaultdict
 from functools import reduce
 
@@ -41,16 +38,18 @@ class Trace:
         self.min = None
         self.max = None
         self.headers = None
-        self.disk_stats = None
+        self.disk_stats =  []
         self.ps_stats = None
         self.taskstats = None
-        self.cpu_stats = None
+        self.cpu_stats = []
         self.cmdline = None
         self.kernel = None
         self.kernel_tree = None
         self.filename = None
         self.parent_map = None
-        self.mem_stats = None
+        self.mem_stats = []
+        self.monitor_disk = None
+        self.times = [] # Always empty, but expected by draw.py when drawing system charts.
 
         if len(paths):
             parse_paths (writer, self, paths)
@@ -60,6 +59,19 @@ class Trace:
             if options.full_time:
                 self.min = min(self.start.keys())
                 self.max = max(self.end.keys())
+
+
+        # Rendering system charts depends on start and end
+        # time. Provide them where the original drawing code expects
+        # them, i.e. in proc_tree.
+        class BitbakeProcessTree:
+            def __init__(self, start_time, end_time):
+                self.start_time = start_time
+                self.end_time = end_time
+                self.duration = self.end_time - self.start_time
+        self.proc_tree = BitbakeProcessTree(min(self.start.keys()),
+                                            max(self.end.keys()))
+
 
         return
 
@@ -255,7 +267,7 @@ def _parse_headers(file):
             value = line.strip()
         headers[last] += value
         return headers, last
-    return reduce(parse, file.read().decode('utf-8').split('\n'), (defaultdict(str),''))[0]
+    return reduce(parse, file.read().split('\n'), (defaultdict(str),''))[0]
 
 def _parse_timed_blocks(file):
     """Parses (ie., splits) a file into so-called timed-blocks. A
@@ -269,7 +281,7 @@ def _parse_timed_blocks(file):
             return (int(lines[0]), lines[1:])
         except ValueError:
             raise ParseError("expected a timed-block, but timestamp '%s' is not an integer" % lines[0])
-    blocks = file.read().decode('utf-8').split('\n\n')
+    blocks = file.read().split('\n\n')
     return [parse(block) for block in blocks if block.strip() and not block.endswith(' not running\n')]
 
 def _parse_proc_ps_log(writer, file):
@@ -430,7 +442,13 @@ def _parse_proc_stat_log(file):
         # skip the rest of statistics lines
     return samples
 
-def _parse_proc_disk_stat_log(file, numCpu):
+def _parse_reduced_log(file, sample_class):
+    samples = []
+    for time, lines in _parse_timed_blocks(file):
+        samples.append(sample_class(time, *[float(x) for x in lines[0].split()]))
+    return samples
+
+def _parse_proc_disk_stat_log(file):
     """
     Parse file for disk stats, but only look at the whole device, eg. sda,
     not sda1, sda2 etc. The format of relevant lines should be:
@@ -465,11 +483,30 @@ def _parse_proc_disk_stat_log(file, numCpu):
         sums = [ a - b for a, b in zip(sample1.diskdata, sample2.diskdata) ]
         readTput = sums[0] / 2.0 * 100.0 / interval
         writeTput = sums[1] / 2.0 * 100.0 / interval
-        util = float( sums[2] ) / 10 / interval / numCpu
+        util = float( sums[2] ) / 10 / interval
         util = max(0.0, min(1.0, util))
         disk_stats.append(DiskSample(sample2.time, readTput, writeTput, util))
 
     return disk_stats
+
+def _parse_reduced_proc_meminfo_log(file):
+    """
+    Parse file for global memory statistics with
+    'MemTotal', 'MemFree', 'Buffers', 'Cached', 'SwapTotal', 'SwapFree' values
+    (in that order) directly stored on one line.
+    """
+    used_values = ('MemTotal', 'MemFree', 'Buffers', 'Cached', 'SwapTotal', 'SwapFree',)
+
+    mem_stats = []
+    for time, lines in _parse_timed_blocks(file):
+        sample = MemSample(time)
+        for name, value in zip(used_values, lines[0].split()):
+            sample.add_value(name, int(value))
+
+        if sample.valid():
+            mem_stats.append(DrawMemSample(sample))
+
+    return mem_stats
 
 def _parse_proc_meminfo_log(file):
     """
@@ -487,13 +524,36 @@ def _parse_proc_meminfo_log(file):
         for line in lines:
             match = meminfo_re.match(line)
             if not match:
-                raise ParseError("Invalid meminfo line \"%s\"" % match.groups(0))
+                raise ParseError("Invalid meminfo line \"%s\"" % line)
             sample.add_value(match.group(1), int(match.group(2)))
 
         if sample.valid():
-            mem_stats.append(sample)
+            mem_stats.append(DrawMemSample(sample))
 
     return mem_stats
+
+def _parse_monitor_disk_log(file):
+    """
+    Parse file with information about amount of diskspace used.
+    The format of relevant lines should be: ^volume path: number-of-bytes?
+    """
+    disk_stats = []
+    diskinfo_re = re.compile(r'^(.+):\s*(\d+)$')
+
+    for time, lines in _parse_timed_blocks(file):
+        sample = DiskSpaceSample(time)
+
+        for line in lines:
+            match = diskinfo_re.match(line)
+            if not match:
+                raise ParseError("Invalid monitor_disk line \"%s\"" % line)
+            sample.add_value(match.group(1), int(match.group(2)))
+
+        if sample.valid():
+            disk_stats.append(sample)
+
+    return disk_stats
+
 
 # if we boot the kernel with: initcall_debug printk.time=1 we can
 # get all manner of interesting data from the dmesg output
@@ -517,7 +577,7 @@ def _parse_dmesg(writer, file):
     processMap['k-boot'] = kernel
     base_ts = False
     max_ts = 0
-    for line in file.read().decode('utf-8').split('\n'):
+    for line in file.read().split('\n'):
         t = timestamp_re.match (line)
         if t is None:
 #                       print "duff timestamp " + line
@@ -605,7 +665,7 @@ def _parse_pacct(writer, file):
 def _parse_paternity_log(writer, file):
     parent_map = {}
     parent_map[0] = 0
-    for line in file.read().decode('utf-8').split('\n'):
+    for line in file.read().split('\n'):
         if not line:
             continue
         elems = line.split(' ') # <Child> <Parent>
@@ -618,7 +678,7 @@ def _parse_paternity_log(writer, file):
 
 def _parse_cmdline_log(writer, file):
     cmdLines = {}
-    for block in file.read().decode('utf-8').split('\n\n'):
+    for block in file.read().split('\n\n'):
         lines = block.split('\n')
         if len (lines) >= 3:
 #                       print "Lines '%s'" % (lines[0])
@@ -630,6 +690,20 @@ def _parse_cmdline_log(writer, file):
             values['args'] = args
             cmdLines[pid] = values
     return cmdLines
+
+def _parse_bitbake_buildstats(writer, state, filename, file):
+    paths = filename.split("/")
+    task = paths[-1]
+    pn = paths[-2]
+    start = None
+    end = None
+    for line in file:
+        if line.startswith("Started:"):
+            start = int(float(line.split()[-1]))
+        elif line.startswith("Ended:"):
+            end = int(float(line.split()[-1]))
+    if start and end:
+        state.add_process(pn + ":" + task, start, end)
 
 def get_num_cpus(headers):
     """Get the number of CPUs from the system.cpu header property. As the
@@ -649,20 +723,27 @@ def get_num_cpus(headers):
 
 def _do_parse(writer, state, filename, file):
     writer.info("parsing '%s'" % filename)
-    t1 = clock()
-    paths = filename.split("/")
-    task = paths[-1]
-    pn = paths[-2]
-    start = None
-    end = None
-    for line in file:
-        if line.startswith("Started:"):
-            start = int(float(line.split()[-1]))
-        elif line.startswith("Ended:"):
-            end = int(float(line.split()[-1]))
-    if start and end:
-        state.add_process(pn + ":" + task, start, end)
-    t2 = clock()
+    t1 = time.process_time()
+    name = os.path.basename(filename)
+    if name == "proc_diskstats.log":
+        state.disk_stats = _parse_proc_disk_stat_log(file)
+    elif name == "reduced_proc_diskstats.log":
+        state.disk_stats = _parse_reduced_log(file, DiskSample)
+    elif name == "proc_stat.log":
+        state.cpu_stats = _parse_proc_stat_log(file)
+    elif name == "reduced_proc_stat.log":
+        state.cpu_stats = _parse_reduced_log(file, CPUSample)
+    elif name == "proc_meminfo.log":
+        state.mem_stats = _parse_proc_meminfo_log(file)
+    elif name == "reduced_proc_meminfo.log":
+        state.mem_stats = _parse_reduced_proc_meminfo_log(file)
+    elif name == "cmdline2.log":
+        state.cmdline = _parse_cmdline_log(writer, file)
+    elif name == "monitor_disk.log":
+        state.monitor_disk = _parse_monitor_disk_log(file)
+    elif not filename.endswith('.log'):
+        _parse_bitbake_buildstats(writer, state, filename, file)
+    t2 = time.process_time()
     writer.info("  %s seconds" % str(t2-t1))
     return state
 
@@ -670,7 +751,7 @@ def parse_file(writer, state, filename):
     if state.filename is None:
         state.filename = filename
     basename = os.path.basename(filename)
-    with open(filename, "rb") as file:
+    with open(filename, "r") as file:
         return _do_parse(writer, state, filename, file)
 
 def parse_paths(writer, state, paths):

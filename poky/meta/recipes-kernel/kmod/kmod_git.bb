@@ -13,9 +13,7 @@ RREPLACES_${PN} += "module-init-tools-insmod-static module-init-tools-depmod mod
 RCONFLICTS_libkmod2 += "module-init-tools-insmod-static module-init-tools-depmod module-init-tools"
 
 # autotools set prefix to /usr, however we want them in /bin and /sbin
-bindir = "${base_bindir}"
-sbindir = "${base_sbindir}"
-# libdir = "${base_libdir}"
+EXTRA_OECONF += " --bindir=${base_bindir} --sbindir=${base_sbindir}"
 
 do_install_append () {
         install -dm755 ${D}${base_bindir}
@@ -39,9 +37,9 @@ do_compile_prepend() {
             sed -i 's/ac_pwd=/#ac_pwd=/' config.status ; sed -i "/#ac_pwd=/a\ac_pwd='.'" config.status
 }
 
-inherit update-alternatives
+inherit update-alternatives bash-completion
 
-ALTERNATIVE_PRIORITY = "60"
+ALTERNATIVE_PRIORITY = "70"
 
 ALTERNATIVE_kmod = "insmod modprobe rmmod modinfo bin-lsmod lsmod depmod"
 
@@ -56,8 +54,7 @@ ALTERNATIVE_TARGET[lsmod] = "${base_bindir}/lsmod.${BPN}"
 
 ALTERNATIVE_LINK_NAME[depmod] = "${base_sbindir}/depmod"
 
-PACKAGES =+ "libkmod ${PN}-bash-completion"
+PACKAGES =+ "libkmod"
 
 FILES_libkmod = "${base_libdir}/libkmod*${SOLIBS} ${libdir}/libkmod*${SOLIBS}"
 FILES_${PN} += "${base_libdir}/depmod.d ${base_libdir}/modprobe.d"
-FILES_${PN}-bash-completion = "${datadir}/bash-completion"

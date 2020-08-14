@@ -1,6 +1,6 @@
-From 9e27fc2e1b3dc8c36ef6a502edffc3a3d84d9dd9 Mon Sep 17 00:00:00 2001
-From: Christopher Larson <chris_larson@mentor.com>
-Date: Wed, 26 Aug 2015 17:23:48 -0700
+From ff9f0a631c99fb6e2677c02bf572a5e69c70f5cf Mon Sep 17 00:00:00 2001
+From: Changhyeok Bae <changhyeok.bae@gmail.com>
+Date: Mon, 27 Jan 2020 22:48:03 +0100
 Subject: [PATCH] Support separation of SRCDIR and OBJDIR
 
 Typical use of VPATH to locate the sources.
@@ -8,50 +8,43 @@ Typical use of VPATH to locate the sources.
 Upstream-Status: Pending
 
 Signed-off-by: Christopher Larson <chris_larson@mentor.com>
-
+Signed-off-by: Maxin B. John <maxin.john@intel.com>
 ---
- Makefile   | 7 +++++--
- version.sh | 2 +-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ Makefile | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 548591a..da8d33a 100644
+index 90f2251..714cdb9 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -1,5 +1,8 @@
+@@ -1,5 +1,9 @@
  MAKEFLAGS += --no-print-directory
  
 +SRCDIR ?= $(dir $(lastword $(MAKEFILE_LIST)))
 +OBJDIR ?= $(PWD)
 +VPATH = $(SRCDIR)
++
  PREFIX ?= /usr
  SBINDIR ?= $(PREFIX)/sbin
  MANDIR ?= $(PREFIX)/share/man
-@@ -95,11 +98,11 @@ VERSION_OBJS := $(filter-out version.o, $(OBJS))
+@@ -92,7 +96,7 @@ all: $(ALL)
  version.c: version.sh $(patsubst %.o,%.c,$(VERSION_OBJS)) nl80211.h iw.h Makefile \
  		$(wildcard .git/index .git/refs/tags)
  	@$(NQ) ' GEN ' $@
 -	$(Q)./version.sh $@
 +	$(Q)cd $(SRCDIR) && ./version.sh $(OBJDIR)/$@
  
- %.o: %.c iw.h nl80211.h
+ nl80211-commands.inc: nl80211.h
+ 	@$(NQ) ' GEN ' $@
+@@ -100,7 +104,7 @@ nl80211-commands.inc: nl80211.h
+ 
+ %.o: %.c iw.h nl80211.h nl80211-commands.inc
  	@$(NQ) ' CC  ' $@
--	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
-+	$(Q)$(CC) -I$(SRCDIR) $(CFLAGS) -c -o $@ $<
+-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
++	$(Q)$(CC) -I$(SRCDIR) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
  
  ifeq ($(IW_ANDROID_BUILD),)
  iw:	$(OBJS)
-diff --git a/version.sh b/version.sh
-index 5354383..fa954cf 100755
---- a/version.sh
-+++ b/version.sh
-@@ -5,5 +5,5 @@ OUT="$1"
- 
- v="$VERSION"
- 
--echo '#include "iw.h"' > "$OUT"
-+echo '#include <iw.h>' > "$OUT"
- echo "const char iw_version[] = \"$v\";" >> "$OUT"
 -- 
-2.2.1
+2.23.0
 

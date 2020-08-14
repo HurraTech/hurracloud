@@ -35,14 +35,9 @@ FILES_${PN} = "${datadir}/opkg/keyrings"
 # We need 'opkg-key' to run the postinst script
 RDEPENDS_${PN} = "opkg"
 
-pkg_postinst_${PN} () {
-#! /bin/sh
-set -e
-
-if [ x"$D" = "x" ]; then
-    # On target
-    opkg-key populate
-else
-    exit 1
-fi
+pkg_postinst_ontarget_${PN} () {
+    if test -x ${bindir}/opkg-key
+    then
+        ${bindir}/opkg-key populate
+    fi
 }

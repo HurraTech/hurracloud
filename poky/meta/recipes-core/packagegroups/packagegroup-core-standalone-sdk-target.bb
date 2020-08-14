@@ -1,6 +1,7 @@
 SUMMARY = "Target packages for the standalone SDK"
 PR = "r8"
-LICENSE = "MIT"
+
+PACKAGE_ARCH = "${TUNE_PKGARCH}"
 
 inherit packagegroup
 
@@ -12,4 +13,9 @@ RDEPENDS_${PN} = "\
     libstdc++ \
     libstdc++-dev \
     ${LIBC_DEPENDENCIES} \
+    "
+
+RRECOMMENDS_${PN}_mingw32 = "\
+    libssp \
+    libssp-dev \
     "

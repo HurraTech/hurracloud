@@ -1,21 +1,7 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #
 # Copyright (c) 2014, Intel Corporation.
-# All rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # DESCRIPTION
 # This implements the 'bootimg-efi' source plugin class for 'wic'
@@ -24,54 +10,102 @@
 # Tom Zanussi <tom.zanussi (at] linux.intel.com>
 #
 
+import logging
 import os
 import shutil
 
-from wic import kickstart, msger
+from wic import WicError
+from wic.engine import get_custom_config
 from wic.pluginbase import SourcePlugin
-from wic.utils.oe.misc import exec_cmd, exec_native_cmd, get_bitbake_var, \
-                              BOOTDD_EXTRA_SPACE
+from wic.misc import (exec_cmd, exec_native_cmd,
+                      get_bitbake_var, BOOTDD_EXTRA_SPACE)
+
+logger = logging.getLogger('wic')
 
 class BootimgEFIPlugin(SourcePlugin):
     """
     Create EFI boot partition.
-    This plugin supports GRUB 2 and gummiboot bootloaders.
+    This plugin supports GRUB 2 and systemd-boot bootloaders.
     """
 
     name = 'bootimg-efi'
 
     @classmethod
-    def do_configure_grubefi(cls, hdddir, creator, cr_workdir):
+    def do_configure_grubefi(cls, hdddir, creator, cr_workdir, source_params):
         """
         Create loader-specific (grub-efi) config
         """
-        options = creator.ks.handler.bootloader.appendLine
+        configfile = creator.ks.bootloader.configfile
+        custom_cfg = None
+        if configfile:
+            custom_cfg = get_custom_config(configfile)
+            if custom_cfg:
+                # Use a custom configuration for grub
+                grubefi_conf = custom_cfg
+                logger.debug("Using custom configuration file "
+                             "%s for grub.cfg", configfile)
+            else:
+                raise WicError("configfile is specified but failed to "
+                               "get it from %s." % configfile)
 
-        grubefi_conf = ""
-        grubefi_conf += "serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1\n"
-        grubefi_conf += "default=boot\n"
-        timeout = kickstart.get_timeout(creator.ks)
-        if not timeout:
-            timeout = 0
-        grubefi_conf += "timeout=%s\n" % timeout
-        grubefi_conf += "menuentry 'boot'{\n"
+        initrd = source_params.get('initrd')
 
-        kernel = "/bzImage"
+        if initrd:
+            bootimg_dir = get_bitbake_var("DEPLOY_DIR_IMAGE")
+            if not bootimg_dir:
+                raise WicError("Couldn't find DEPLOY_DIR_IMAGE, exiting")
 
-        grubefi_conf += "linux %s root=%s rootwait %s\n" \
-            % (kernel, creator.rootdev, options)
-        grubefi_conf += "}\n"
+            initrds = initrd.split(';')
+            for rd in initrds:
+                cp_cmd = "cp %s/%s %s" % (bootimg_dir, rd, hdddir)
+                exec_cmd(cp_cmd, True)
+        else:
+            logger.debug("Ignoring missing initrd")
 
-        msger.debug("Writing grubefi config %s/hdd/boot/EFI/BOOT/grub.cfg" \
-                        % cr_workdir)
+        if not custom_cfg:
+            # Create grub configuration using parameters from wks file
+            bootloader = creator.ks.bootloader
+            title = source_params.get('title')
+
+            grubefi_conf = ""
+            grubefi_conf += "serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1\n"
+            grubefi_conf += "default=boot\n"
+            grubefi_conf += "timeout=%s\n" % bootloader.timeout
+            grubefi_conf += "menuentry '%s'{\n" % (title if title else "boot")
+
+            kernel = get_bitbake_var("KERNEL_IMAGETYPE")
+            if get_bitbake_var("INITRAMFS_IMAGE_BUNDLE") == "1":
+                if get_bitbake_var("INITRAMFS_IMAGE"):
+                    kernel = "%s-%s.bin" % \
+                        (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+
+            label = source_params.get('label')
+            label_conf = "root=%s" % creator.rootdev
+            if label:
+                label_conf = "LABEL=%s" % label
+
+            grubefi_conf += "linux /%s %s rootwait %s\n" \
+                % (kernel, label_conf, bootloader.append)
+
+            if initrd:
+                initrds = initrd.split(';')
+                grubefi_conf += "initrd"
+                for rd in initrds:
+                    grubefi_conf += " /%s" % rd
+                grubefi_conf += "\n"
+
+            grubefi_conf += "}\n"
+
+        logger.debug("Writing grubefi config %s/hdd/boot/EFI/BOOT/grub.cfg",
+                     cr_workdir)
         cfg = open("%s/hdd/boot/EFI/BOOT/grub.cfg" % cr_workdir, "w")
         cfg.write(grubefi_conf)
         cfg.close()
 
     @classmethod
-    def do_configure_gummiboot(cls, hdddir, creator, cr_workdir):
+    def do_configure_systemdboot(cls, hdddir, creator, cr_workdir, source_params):
         """
-        Create loader-specific (gummiboot) config
+        Create loader-specific systemd-boot/gummiboot config
         """
         install_cmd = "install -d %s/loader" % hdddir
         exec_cmd(install_cmd)
@@ -79,31 +113,75 @@ class BootimgEFIPlugin(SourcePlugin):
         install_cmd = "install -d %s/loader/entries" % hdddir
         exec_cmd(install_cmd)
 
-        options = creator.ks.handler.bootloader.appendLine
-
-        timeout = kickstart.get_timeout(creator.ks)
-        if not timeout:
-            timeout = 0
+        bootloader = creator.ks.bootloader
 
         loader_conf = ""
         loader_conf += "default boot\n"
-        loader_conf += "timeout %d\n" % timeout
+        loader_conf += "timeout %d\n" % bootloader.timeout
 
-        msger.debug("Writing gummiboot config %s/hdd/boot/loader/loader.conf" \
-                        % cr_workdir)
+        initrd = source_params.get('initrd')
+
+        if initrd:
+            # obviously we need to have a common common deploy var
+            bootimg_dir = get_bitbake_var("DEPLOY_DIR_IMAGE")
+            if not bootimg_dir:
+                raise WicError("Couldn't find DEPLOY_DIR_IMAGE, exiting")
+
+            initrds = initrd.split(';')
+            for rd in initrds:
+                cp_cmd = "cp %s/%s %s" % (bootimg_dir, rd, hdddir)
+                exec_cmd(cp_cmd, True)
+        else:
+            logger.debug("Ignoring missing initrd")
+
+        logger.debug("Writing systemd-boot config "
+                     "%s/hdd/boot/loader/loader.conf", cr_workdir)
         cfg = open("%s/hdd/boot/loader/loader.conf" % cr_workdir, "w")
         cfg.write(loader_conf)
         cfg.close()
 
-        kernel = "/bzImage"
+        configfile = creator.ks.bootloader.configfile
+        custom_cfg = None
+        if configfile:
+            custom_cfg = get_custom_config(configfile)
+            if custom_cfg:
+                # Use a custom configuration for systemd-boot
+                boot_conf = custom_cfg
+                logger.debug("Using custom configuration file "
+                             "%s for systemd-boots's boot.conf", configfile)
+            else:
+                raise WicError("configfile is specified but failed to "
+                               "get it from %s.", configfile)
 
-        boot_conf = ""
-        boot_conf += "title boot\n"
-        boot_conf += "linux %s\n" % kernel
-        boot_conf += "options LABEL=Boot root=%s %s\n" % (creator.rootdev, options)
+        if not custom_cfg:
+            # Create systemd-boot configuration using parameters from wks file
+            kernel = get_bitbake_var("KERNEL_IMAGETYPE")
+            if get_bitbake_var("INITRAMFS_IMAGE_BUNDLE") == "1":
+                if get_bitbake_var("INITRAMFS_IMAGE"):
+                    kernel = "%s-%s.bin" % \
+                        (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
 
-        msger.debug("Writing gummiboot config %s/hdd/boot/loader/entries/boot.conf" \
-                        % cr_workdir)
+            title = source_params.get('title')
+
+            boot_conf = ""
+            boot_conf += "title %s\n" % (title if title else "boot")
+            boot_conf += "linux /%s\n" % kernel
+
+            label = source_params.get('label')
+            label_conf = "LABEL=Boot root=%s" % creator.rootdev
+            if label:
+                label_conf = "LABEL=%s" % label
+
+            boot_conf += "options %s %s\n" % \
+                             (label_conf, bootloader.append)
+
+            if initrd:
+                initrds = initrd.split(';')
+                for rd in initrds:
+                    boot_conf += "initrd /%s\n" % rd
+
+        logger.debug("Writing systemd-boot config "
+                     "%s/hdd/boot/loader/entries/boot.conf", cr_workdir)
         cfg = open("%s/hdd/boot/loader/entries/boot.conf" % cr_workdir, "w")
         cfg.write(boot_conf)
         cfg.close()
@@ -117,21 +195,19 @@ class BootimgEFIPlugin(SourcePlugin):
         Called before do_prepare_partition(), creates loader-specific config
         """
         hdddir = "%s/hdd/boot" % cr_workdir
-        rm_cmd = "rm -rf %s" % cr_workdir
-        exec_cmd(rm_cmd)
 
         install_cmd = "install -d %s/EFI/BOOT" % hdddir
         exec_cmd(install_cmd)
 
         try:
             if source_params['loader'] == 'grub-efi':
-                cls.do_configure_grubefi(hdddir, creator, cr_workdir)
-            elif source_params['loader'] == 'gummiboot':
-                cls.do_configure_gummiboot(hdddir, creator, cr_workdir)
+                cls.do_configure_grubefi(hdddir, creator, cr_workdir, source_params)
+            elif source_params['loader'] == 'systemd-boot':
+                cls.do_configure_systemdboot(hdddir, creator, cr_workdir, source_params)
             else:
-                msger.error("unrecognized bootimg-efi loader: %s" % source_params['loader'])
+                raise WicError("unrecognized bootimg-efi loader: %s" % source_params['loader'])
         except KeyError:
-            msger.error("bootimg-efi requires a loader, none specified")
+            raise WicError("bootimg-efi requires a loader, none specified")
 
 
     @classmethod
@@ -143,36 +219,49 @@ class BootimgEFIPlugin(SourcePlugin):
         'prepares' the partition to be incorporated into the image.
         In this case, prepare content for an EFI (grub) boot partition.
         """
-        if not bootimg_dir:
-            bootimg_dir = get_bitbake_var("HDDDIR")
-            if not bootimg_dir:
-                msger.error("Couldn't find HDDDIR, exiting\n")
-            # just so the result notes display it
-            creator.set_bootimg_dir(bootimg_dir)
+        if not kernel_dir:
+            kernel_dir = get_bitbake_var("DEPLOY_DIR_IMAGE")
+            if not kernel_dir:
+                raise WicError("Couldn't find DEPLOY_DIR_IMAGE, exiting")
 
         staging_kernel_dir = kernel_dir
 
         hdddir = "%s/hdd/boot" % cr_workdir
 
-        install_cmd = "install -m 0644 %s/bzImage %s/bzImage" % \
-            (staging_kernel_dir, hdddir)
+        kernel = get_bitbake_var("KERNEL_IMAGETYPE")
+        if get_bitbake_var("INITRAMFS_IMAGE_BUNDLE") == "1":
+            if get_bitbake_var("INITRAMFS_IMAGE"):
+                kernel = "%s-%s.bin" % \
+                    (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+
+        install_cmd = "install -m 0644 %s/%s %s/%s" % \
+            (staging_kernel_dir, kernel, hdddir, kernel)
         exec_cmd(install_cmd)
+
 
         try:
             if source_params['loader'] == 'grub-efi':
                 shutil.copyfile("%s/hdd/boot/EFI/BOOT/grub.cfg" % cr_workdir,
                                 "%s/grub.cfg" % cr_workdir)
-                cp_cmd = "cp %s/EFI/BOOT/* %s/EFI/BOOT" % (bootimg_dir, hdddir)
-                exec_cmd(cp_cmd, True)
+                for mod in [x for x in os.listdir(kernel_dir) if x.startswith("grub-efi-")]:
+                    cp_cmd = "cp %s/%s %s/EFI/BOOT/%s" % (kernel_dir, mod, hdddir, mod[9:])
+                    exec_cmd(cp_cmd, True)
                 shutil.move("%s/grub.cfg" % cr_workdir,
                             "%s/hdd/boot/EFI/BOOT/grub.cfg" % cr_workdir)
-            elif source_params['loader'] == 'gummiboot':
-                cp_cmd = "cp %s/EFI/BOOT/* %s/EFI/BOOT" % (bootimg_dir, hdddir)
-                exec_cmd(cp_cmd, True)
+            elif source_params['loader'] == 'systemd-boot':
+                for mod in [x for x in os.listdir(kernel_dir) if x.startswith("systemd-")]:
+                    cp_cmd = "cp %s/%s %s/EFI/BOOT/%s" % (kernel_dir, mod, hdddir, mod[8:])
+                    exec_cmd(cp_cmd, True)
             else:
-                msger.error("unrecognized bootimg-efi loader: %s" % source_params['loader'])
+                raise WicError("unrecognized bootimg-efi loader: %s" %
+                               source_params['loader'])
         except KeyError:
-            msger.error("bootimg-efi requires a loader, none specified")
+            raise WicError("bootimg-efi requires a loader, none specified")
+
+        startup = os.path.join(kernel_dir, "startup.nsh")
+        if os.path.exists(startup):
+            cp_cmd = "cp %s %s/" % (startup, hdddir)
+            exec_cmd(cp_cmd, True)
 
         du_cmd = "du -bks %s" % hdddir
         out = exec_cmd(du_cmd)
@@ -185,19 +274,16 @@ class BootimgEFIPlugin(SourcePlugin):
 
         blocks += extra_blocks
 
-        msger.debug("Added %d extra blocks to %s to get to %d total blocks" % \
-                    (extra_blocks, part.mountpoint, blocks))
-
-        # Ensure total sectors is an integral number of sectors per
-        # track or mcopy will complain. Sectors are 512 bytes, and we
-        # generate images with 32 sectors per track. This calculation is
-        # done in blocks, thus the mod by 16 instead of 32.
-        blocks += (16 - (blocks % 16))
+        logger.debug("Added %d extra blocks to %s to get to %d total blocks",
+                     extra_blocks, part.mountpoint, blocks)
 
         # dosfs image, created by mkdosfs
         bootimg = "%s/boot.img" % cr_workdir
 
-        dosfs_cmd = "mkdosfs -n efi -C %s %d" % (bootimg, blocks)
+        label = part.label if part.label else "ESP"
+
+        dosfs_cmd = "mkdosfs -n %s -i %s -C %s %d" % \
+                    (label, part.fsuuid, bootimg, blocks)
         exec_native_cmd(dosfs_cmd, native_sysroot)
 
         mcopy_cmd = "mcopy -i %s -s %s/* ::/" % (bootimg, hdddir)
@@ -210,5 +296,5 @@ class BootimgEFIPlugin(SourcePlugin):
         out = exec_cmd(du_cmd)
         bootimg_size = out.split()[0]
 
-        part.set_size(bootimg_size)
-        part.set_source_file(bootimg)
+        part.size = int(bootimg_size)
+        part.source_file = bootimg

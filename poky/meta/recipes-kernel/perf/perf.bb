@@ -5,69 +5,62 @@ performance analysis. It covers hardware level \
 (CPU/PMU, Performance Monitoring Unit) features \
 and software features (software counters, tracepoints) \
 as well."
+HOMEPAGE = "https://perf.wiki.kernel.org/index.php/Main_Page"
 
 LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
 PR = "r9"
 
-require perf-features.inc
-
-BUILDPERF_libc-uclibc = "no"
-
+PACKAGECONFIG ??= "scripting tui libunwind"
+PACKAGECONFIG[dwarf] = ",NO_DWARF=1"
+PACKAGECONFIG[scripting] = ",NO_LIBPERL=1 NO_LIBPYTHON=1,perl python3"
 # gui support was added with kernel 3.6.35
 # since 3.10 libnewt was replaced by slang
 # to cover a wide range of kernel we add both dependencies
-TUI_DEPENDS = "${@perf_feature_enabled('perf-tui', 'libnewt slang', '',d)}"
-SCRIPTING_DEPENDS = "${@perf_feature_enabled('perf-scripting', 'perl python', '',d)}"
-LIBUNWIND_DEPENDS = "${@perf_feature_enabled('perf-libunwind', 'libunwind', '',d)}"
+PACKAGECONFIG[tui] = ",NO_NEWT=1,libnewt slang"
+PACKAGECONFIG[libunwind] = ",NO_LIBUNWIND=1 NO_LIBDW_DWARF_UNWIND=1,libunwind"
+PACKAGECONFIG[libnuma] = ",NO_LIBNUMA=1"
+PACKAGECONFIG[systemtap] = ",NO_SDT=1,systemtap"
+PACKAGECONFIG[jvmti] = ",NO_JVMTI=1"
+# libaudit support would need scripting to be enabled
+PACKAGECONFIG[audit] = ",NO_LIBAUDIT=1,audit"
+PACKAGECONFIG[manpages] = ",,xmlto-native asciidoc-native"
+PACKAGECONFIG[cap] = ",,libcap"
+
+# libunwind is not yet ported for some architectures
+PACKAGECONFIG_remove_arc = "libunwind"
+PACKAGECONFIG_remove_riscv64 = "libunwind"
 
 DEPENDS = " \
     virtual/${MLPREFIX}libc \
     ${MLPREFIX}elfutils \
     ${MLPREFIX}binutils \
-    ${TUI_DEPENDS} \
-    ${SCRIPTING_DEPENDS} \
-    ${LIBUNWIND_DEPENDS} \
-    bison flex xz \
+    bison-native flex-native xz \
 "
 
 do_configure[depends] += "virtual/kernel:do_shared_workdir"
 
 PROVIDES = "virtual/perf"
 
-inherit linux-kernel-base kernel-arch pythonnative
+inherit linux-kernel-base kernel-arch manpages
 
 # needed for building the tools/perf Python bindings
-inherit python-dir
-export STAGING_INCDIR
-export STAGING_LIBDIR
-export BUILD_SYS
-export HOST_SYS
+inherit ${@bb.utils.contains('PACKAGECONFIG', 'scripting', 'python3native', '', d)}
+inherit python3-dir
 export PYTHON_SITEPACKAGES_DIR
 
 #kernel 3.1+ supports WERROR to disable warnings as errors
 export WERROR = "0"
 
-do_populate_lic[depends] += "virtual/kernel:do_patch"
+do_populate_lic[depends] += "virtual/kernel:do_shared_workdir"
 
 # needed for building the tools/perf Perl binding
-inherit perlnative cpan-base
-# Env var which tells perl if it should use host (no) or target (yes) settings
-export PERLCONFIGTARGET = "${@is_target(d)}"
-export PERL_INC = "${STAGING_LIBDIR}${PERL_OWN_DIR}/perl/${@get_perl_version(d)}/CORE"
-export PERL_LIB = "${STAGING_LIBDIR}${PERL_OWN_DIR}/perl/${@get_perl_version(d)}"
-export PERL_ARCHLIB = "${STAGING_LIBDIR}${PERL_OWN_DIR}/perl/${@get_perl_version(d)}"
+include ${@bb.utils.contains('PACKAGECONFIG', 'scripting', 'perf-perl.inc', '', d)}
 
 inherit kernelsrc
 
-B = "${WORKDIR}/${BPN}-${PV}"
+S = "${WORKDIR}/${BP}"
 SPDX_S = "${S}/tools/perf"
-
-SCRIPTING_DEFINES = "${@perf_feature_enabled('perf-scripting', '', 'NO_LIBPERL=1 NO_LIBPYTHON=1',d)}"
-TUI_DEFINES = "${@perf_feature_enabled('perf-tui', '', 'NO_NEWT=1',d)}"
-LIBUNWIND_DEFINES = "${@perf_feature_enabled('perf-libunwind', '', 'NO_LIBUNWIND=1 NO_LIBDW_DWARF_UNWIND=1',d)}"
-LIBNUMA_DEFINES = "${@perf_feature_enabled('perf-libnuma', '', 'NO_LIBNUMA=1',d)}"
 
 # The LDFLAGS is required or some old kernels fails due missing
 # symbols and this is preferred than requiring patches to every old
@@ -80,26 +73,57 @@ EXTRA_OEMAKE = '\
     CROSS_COMPILE=${TARGET_PREFIX} \
     ARCH=${ARCH} \
     CC="${CC}" \
+    CCLD="${CC}" \
+    LDSHARED="${CC} -shared" \
     AR="${AR}" \
+    LD="${LD}" \
     EXTRA_CFLAGS="-ldw" \
+    EXTRA_LDFLAGS="${PERF_EXTRA_LDFLAGS}" \
     perfexecdir=${libexecdir} \
-    NO_GTK2=1 ${TUI_DEFINES} NO_DWARF=1 ${LIBUNWIND_DEFINES} \
-    ${SCRIPTING_DEFINES} ${LIBNUMA_DEFINES} \
+    NO_GTK2=1 \
+    ${PACKAGECONFIG_CONFARGS} \
+    TMPDIR="${B}" \
+    LIBUNWIND_DIR=${STAGING_EXECPREFIXDIR} \
 '
 
 EXTRA_OEMAKE += "\
+    'DESTDIR=${D}' \
     'prefix=${prefix}' \
     'bindir=${bindir}' \
     'sharedir=${datadir}' \
     'sysconfdir=${sysconfdir}' \
     'perfexecdir=${libexecdir}/perf-core' \
-    \
     'ETC_PERFCONFIG=${@os.path.relpath(sysconfdir, prefix)}' \
     'sharedir=${@os.path.relpath(datadir, prefix)}' \
     'mandir=${@os.path.relpath(mandir, prefix)}' \
     'infodir=${@os.path.relpath(infodir, prefix)}' \
+    ${@bb.utils.contains('PACKAGECONFIG', 'scripting', 'PYTHON=python3 PYTHON_CONFIG=python3-config', '', d)} \
 "
 
+# During do_configure, we might run a 'make clean'. That often breaks
+# when done in parallel, so disable parallelism for do_configure. Note
+# that it has to be done this way rather than by passing -j1, since
+# perf's build system by default ignores any -j argument, but does
+# honour a JOBS variable.
+EXTRA_OEMAKE_append_task-configure = " JOBS=1"
+
+PERF_SRC ?= "Makefile \
+             tools/arch \
+             tools/build \
+             tools/include \
+             tools/lib \
+             tools/Makefile \
+             tools/perf \
+             tools/scripts \
+             scripts/ \
+             arch/${ARCH}/Makefile \
+"
+
+PERF_EXTRA_LDFLAGS = ""
+
+# MIPS N32
+PERF_EXTRA_LDFLAGS_mipsarchn32eb = "-m elf32btsmipn32"
+PERF_EXTRA_LDFLAGS_mipsarchn32el = "-m elf32ltsmipn32"
 
 do_compile() {
 	# Linux kernel build system is expected to do the right thing
@@ -110,18 +134,34 @@ do_compile() {
 do_install() {
 	# Linux kernel build system is expected to do the right thing
 	unset CFLAGS
-	oe_runmake DESTDIR=${D} install
+	oe_runmake install
 	# we are checking for this make target to be compatible with older perf versions
-	if [ "${@perf_feature_enabled('perf-scripting', 1, 0, d)}" = "1" ] && grep -q install-python_ext ${S}/tools/perf/Makefile*; then
-		oe_runmake DESTDIR=${D} install-python_ext
+	if ${@bb.utils.contains('PACKAGECONFIG', 'scripting', 'true', 'false', d)} && grep -q install-python_ext ${S}/tools/perf/Makefile*; then
+	    oe_runmake DESTDIR=${D} install-python_ext
 	fi
 }
 
-do_configure_prepend () {
-    # Fix for rebuilding
-    rm -rf ${B}/
-    mkdir -p ${B}/
+do_configure[prefuncs] += "copy_perf_source_from_kernel"
+python copy_perf_source_from_kernel() {
+    sources = (d.getVar("PERF_SRC") or "").split()
+    src_dir = d.getVar("STAGING_KERNEL_DIR")
+    dest_dir = d.getVar("S")
+    bb.utils.mkdirhier(dest_dir)
+    bb.utils.prunedir(dest_dir)
+    for s in sources:
+        src = oe.path.join(src_dir, s)
+        dest = oe.path.join(dest_dir, s)
+        if not os.path.exists(src):
+            bb.fatal("Path does not exist: %s. Maybe PERF_SRC does not match the kernel version." % src)
+        if os.path.isdir(src):
+            oe.path.copyhardlinktree(src, dest)
+        else:
+            src_path = os.path.dirname(s)
+            os.makedirs(os.path.join(dest_dir,src_path),exist_ok=True)
+            bb.utils.copyfile(src, dest)
+}
 
+do_configure_prepend () {
     # If building a multlib based perf, the incorrect library path will be
     # detected by perf, since it triggers via: ifeq ($(ARCH),x86_64). In a 32 bit
     # build, with a 64 bit multilib, the arch won't match and the detection of a 
@@ -135,11 +175,24 @@ do_configure_prepend () {
     # with each other if its in the shared source directory
     #
     if [ -e "${S}/tools/perf/config/Makefile" ]; then
+        perfconfig="${S}/tools/perf/config/Makefile"
+    fi
+    if [ -e "${S}/tools/perf/Makefile.config" ]; then
+        perfconfig="${S}/tools/perf/Makefile.config"
+    fi
+    if [ -n "${perfconfig}" ]; then
         # Match $(prefix)/$(lib) and $(prefix)/lib
         sed -i -e 's,^libdir = \($(prefix)/.*lib\),libdir ?= \1,' \
                -e 's,^perfexecdir = \(.*\),perfexecdir ?= \1,' \
                -e 's,\ .config-detected, $(OUTPUT)/config-detected,g' \
-            ${S}/tools/perf/config/Makefile
+            ${perfconfig}
+    fi
+    # The man pages installation is "$(INSTALL) -d -m 755 $(DESTDIR)$(man1dir)"
+    # in ${S}/tools/perf/Documentation/Makefile, if the mandir set to '?=', it
+    # will use the relative path 'share/man', in the way it will resulting in
+    # incorrect installation for man pages.
+    if [ -e "${S}/tools/perf/Documentation/Makefile" ]; then
+	sed -i 's,^mandir?=,mandir:=,' ${S}/tools/perf/Documentation/Makefile
     fi
     if [ -e "${S}/tools/perf/Makefile.perf" ]; then
         sed -i -e 's,\ .config-detected, $(OUTPUT)/config-detected,g' \
@@ -159,10 +212,16 @@ do_configure_prepend () {
     if [ -e "${S}/tools/perf/Makefile.perf" ]; then
         sed -i 's,CC = $(CROSS_COMPILE)gcc,#CC,' ${S}/tools/perf/Makefile.perf
         sed -i 's,AR = $(CROSS_COMPILE)ar,#AR,' ${S}/tools/perf/Makefile.perf
+        sed -i 's,LD = $(CROSS_COMPILE)ld,#LD,' ${S}/tools/perf/Makefile.perf
     fi
     if [ -e "${S}/tools/lib/api/Makefile" ]; then
         sed -i 's,CC = $(CROSS_COMPILE)gcc,#CC,' ${S}/tools/lib/api/Makefile
         sed -i 's,AR = $(CROSS_COMPILE)ar,#AR,' ${S}/tools/lib/api/Makefile
+        sed -i 's,LD = $(CROSS_COMPILE)ld,#LD,' ${S}/tools/lib/api/Makefile
+    fi
+    if [ -e "${S}/tools/lib/subcmd/Makefile" ]; then
+        sed -i 's,CC = $(CROSS_COMPILE)gcc,#CC,' ${S}/tools/lib/subcmd/Makefile
+        sed -i 's,AR = $(CROSS_COMPILE)ar,#AR,' ${S}/tools/lib/subcmd/Makefile
     fi
     if [ -e "${S}/tools/perf/config/feature-checks/Makefile" ]; then
         sed -i 's,CC := $(CROSS_COMPILE)gcc -MD,CC += -MD,' ${S}/tools/perf/config/feature-checks/Makefile
@@ -179,10 +238,20 @@ do_configure_prepend () {
         sed -i 's,#include "tests/tests.h",#include "tests/tests.h"\n#include "util/debug.h",' ${S}/tools/perf/arch/arm/tests/dwarf-unwind.c
         sed -i 's,#include "perf_regs.h",#include "perf_regs.h"\n#include "util/debug.h",' ${S}/tools/perf/arch/arm/util/unwind-libunwind.c
     fi
+
+    # use /usr/bin/env instead of version specific python
+    for s in `find ${S}/tools/perf/ -name '*.py'` `find ${S}/scripts/ -name 'bpf_helpers_doc.py'`; do
+        sed -i -e "s,#!.*python.*,#!${USRBINPATH}/env python3," ${s}
+    done
+
+    # unistd.h can be out of sync between libc-headers and the captured version in the perf source
+    # so we copy it from the sysroot unistd.h to the perf unistd.h
+    install -D -m0644 ${STAGING_INCDIR}/asm-generic/unistd.h ${S}/tools/include/uapi/asm-generic/unistd.h
+    install -D -m0644 ${STAGING_INCDIR}/asm-generic/unistd.h ${S}/include/uapi/asm-generic/unistd.h
 }
 
 python do_package_prepend() {
-    d.setVar('PKGV', d.getVar("KERNEL_VERSION", True).split("-")[0])
+    d.setVar('PKGV', d.getVar("KERNEL_VERSION").split("-")[0])
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
@@ -192,19 +261,23 @@ PACKAGES =+ "${PN}-archive ${PN}-tests ${PN}-perl ${PN}-python"
 
 RDEPENDS_${PN} += "elfutils bash"
 RDEPENDS_${PN}-archive =+ "bash"
-RDEPENDS_${PN}-python =+ "bash python"
+RDEPENDS_${PN}-python =+ "bash python3 python3-modules ${@bb.utils.contains('PACKAGECONFIG', 'audit', 'audit-python3', '', d)}"
 RDEPENDS_${PN}-perl =+ "bash perl perl-modules"
-RDEPENDS_${PN}-tests =+ "python"
+RDEPENDS_${PN}-tests =+ "python3"
 
-RSUGGESTS_SCRIPTING = "${@perf_feature_enabled('perf-scripting', '${PN}-perl ${PN}-python', '',d)}"
+RSUGGESTS_SCRIPTING = "${@bb.utils.contains('PACKAGECONFIG', 'scripting', '${PN}-perl ${PN}-python', '',d)}"
 RSUGGESTS_${PN} += "${PN}-archive ${PN}-tests ${RSUGGESTS_SCRIPTING}"
 
-FILES_${PN} += "${libexecdir}/perf-core ${exec_prefix}/libexec/perf-core ${libdir}/traceevent"
-FILES_${PN}-dbg += "${libdir}/python*/site-packages/.debug"
+FILES_SOLIBSDEV = ""
+FILES_${PN} += "${libexecdir}/perf-core ${exec_prefix}/libexec/perf-core ${libdir}/traceevent ${libdir}/libperf-jvmti.so"
 FILES_${PN}-archive = "${libdir}/perf/perf-core/perf-archive"
-FILES_${PN}-tests = "${libdir}/perf/perf-core/tests"
-FILES_${PN}-python = "${libdir}/python*/site-packages ${libdir}/perf/perf-core/scripts/python"
-FILES_${PN}-perl = "${libdir}/perf/perf-core/scripts/perl"
+FILES_${PN}-tests = "${libdir}/perf/perf-core/tests ${libexecdir}/perf-core/tests"
+FILES_${PN}-python = " \
+                       ${PYTHON_SITEPACKAGES_DIR} \
+                       ${libexecdir}/perf-core/scripts/python \
+                       "
+FILES_${PN}-perl = "${libexecdir}/perf-core/scripts/perl"
 
 
 INHIBIT_PACKAGE_DEBUG_SPLIT="1"
+DEBUG_OPTIMIZATION_append = " -Wno-error=maybe-uninitialized"

@@ -1,5 +1,3 @@
-# ex:ts=4:sw=4:sts=4:et
-# -*- tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #
 # Copyright (C) 2003, 2004  Chris Larson
 # Copyright (C) 2003, 2004  Phil Blundell
@@ -8,18 +6,8 @@
 # Copyright (C) 2005        ROAD GmbH
 # Copyright (C) 2006        Richard Purdie
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2 as
-# published by the Free Software Foundation.
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import re
 import logging
@@ -48,7 +36,6 @@ def findProviders(cfgData, dataCache, pkg_pn = None):
 
     # Need to ensure data store is expanded
     localdata = data.createCopy(cfgData)
-    bb.data.update_data(localdata)
     bb.data.expandKeys(localdata)
 
     preferred_versions = {}
@@ -105,11 +92,11 @@ def preferredVersionMatch(pe, pv, pr, preferred_e, preferred_v, preferred_r):
     Check if the version pe,pv,pr is the preferred one.
     If there is preferred version defined and ends with '%', then pv has to start with that version after removing the '%'
     """
-    if (pr == preferred_r or preferred_r == None):
-        if (pe == preferred_e or preferred_e == None):
+    if pr == preferred_r or preferred_r is None:
+        if pe == preferred_e or preferred_e is None:
             if preferred_v == pv:
                 return True
-            if preferred_v != None and preferred_v.endswith('%') and pv.startswith(preferred_v[:len(preferred_v)-1]):
+            if preferred_v is not None and preferred_v.endswith('%') and pv.startswith(preferred_v[:len(preferred_v)-1]):
                 return True
     return False
 
@@ -121,13 +108,16 @@ def findPreferredProvider(pn, cfgData, dataCache, pkg_pn = None, item = None):
     preferred_file = None
     preferred_ver = None
 
-    localdata = data.createCopy(cfgData)
-    localdata.setVar('OVERRIDES', "%s:pn-%s:%s" % (data.getVar('OVERRIDES', localdata), pn, pn))
-    bb.data.update_data(localdata)
+    # pn can contain '_', e.g. gcc-cross-x86_64 and an override cannot
+    # hence we do this manually rather than use OVERRIDES
+    preferred_v = cfgData.getVar("PREFERRED_VERSION_pn-%s" % pn)
+    if not preferred_v:
+        preferred_v = cfgData.getVar("PREFERRED_VERSION_%s" % pn)
+    if not preferred_v:
+        preferred_v = cfgData.getVar("PREFERRED_VERSION")
 
-    preferred_v = localdata.getVar('PREFERRED_VERSION', True)
     if preferred_v:
-        m = re.match('(\d+:)*(.*)(_.*)*', preferred_v)
+        m = re.match(r'(\d+:)*(.*)(_.*)*', preferred_v)
         if m:
             if m.group(1):
                 preferred_e = m.group(1)[:-1]
@@ -223,7 +213,7 @@ def findBestProvider(pn, cfgData, dataCache, pkg_pn = None, item = None):
 def _filterProviders(providers, item, cfgData, dataCache):
     """
     Take a list of providers and filter/reorder according to the
-    environment variables and previous build results
+    environment variables
     """
     eligible = []
     preferred_versions = {}
@@ -242,17 +232,17 @@ def _filterProviders(providers, item, cfgData, dataCache):
             pkg_pn[pn] = []
         pkg_pn[pn].append(p)
 
-    logger.debug(1, "providers for %s are: %s", item, pkg_pn.keys())
+    logger.debug(1, "providers for %s are: %s", item, list(sorted(pkg_pn.keys())))
 
     # First add PREFERRED_VERSIONS
-    for pn in pkg_pn:
+    for pn in sorted(pkg_pn):
         sortpkg_pn[pn] = sortPriorities(pn, dataCache, pkg_pn)
         preferred_versions[pn] = findPreferredProvider(pn, cfgData, dataCache, sortpkg_pn[pn], item)
         if preferred_versions[pn][1]:
             eligible.append(preferred_versions[pn][1])
 
     # Now add latest versions
-    for pn in sortpkg_pn:
+    for pn in sorted(sortpkg_pn):
         if pn in preferred_versions and preferred_versions[pn][1]:
             continue
         preferred_versions[pn] = findLatestProvider(pn, cfgData, dataCache, sortpkg_pn[pn][0])
@@ -280,13 +270,13 @@ def _filterProviders(providers, item, cfgData, dataCache):
 def filterProviders(providers, item, cfgData, dataCache):
     """
     Take a list of providers and filter/reorder according to the
-    environment variables and previous build results
+    environment variables
     Takes a "normal" target item
     """
 
     eligible = _filterProviders(providers, item, cfgData, dataCache)
 
-    prefervar = cfgData.getVar('PREFERRED_PROVIDER_%s' % item, True)
+    prefervar = cfgData.getVar('PREFERRED_PROVIDER_%s' % item)
     if prefervar:
         dataCache.preferred[item] = prefervar
 
@@ -308,38 +298,56 @@ def filterProviders(providers, item, cfgData, dataCache):
 def filterProvidersRunTime(providers, item, cfgData, dataCache):
     """
     Take a list of providers and filter/reorder according to the
-    environment variables and previous build results
+    environment variables
     Takes a "runtime" target item
     """
 
     eligible = _filterProviders(providers, item, cfgData, dataCache)
 
-    # Should use dataCache.preferred here?
-    preferred = []
-    preferred_vars = []
-    pns = {}
-    for p in eligible:
-        pns[dataCache.pkg_fn[p]] = p
-    for p in eligible:
-        pn = dataCache.pkg_fn[p]
-        provides = dataCache.pn_provides[pn]
-        for provide in provides:
-            prefervar = cfgData.getVar('PREFERRED_PROVIDER_%s' % provide, True)
-            #logger.debug(1, "checking PREFERRED_PROVIDER_%s (value %s) against %s", provide, prefervar, pns.keys())
-            if prefervar in pns and pns[prefervar] not in preferred:
-                var = "PREFERRED_PROVIDER_%s = %s" % (provide, prefervar)
-                logger.verbose("selecting %s to satisfy runtime %s due to %s", prefervar, item, var)
-                preferred_vars.append(var)
-                pref = pns[prefervar]
-                eligible.remove(pref)
-                eligible = [pref] + eligible
-                preferred.append(pref)
+    # First try and match any PREFERRED_RPROVIDER entry
+    prefervar = cfgData.getVar('PREFERRED_RPROVIDER_%s' % item)
+    foundUnique = False
+    if prefervar:
+        for p in eligible:
+            pn = dataCache.pkg_fn[p]
+            if prefervar == pn:
+                logger.verbose("selecting %s to satisfy %s due to PREFERRED_RPROVIDER", pn, item)
+                eligible.remove(p)
+                eligible = [p] + eligible
+                foundUnique = True
+                numberPreferred = 1
                 break
 
-    numberPreferred = len(preferred)
+    # If we didn't find an RPROVIDER entry, try and infer the provider from PREFERRED_PROVIDER entries
+    # by looking through the provides of each eligible recipe and seeing if a PREFERRED_PROVIDER was set.
+    # This is most useful for virtual/ entries rather than having a RPROVIDER per entry.
+    if not foundUnique:
+        # Should use dataCache.preferred here?
+        preferred = []
+        preferred_vars = []
+        pns = {}
+        for p in eligible:
+            pns[dataCache.pkg_fn[p]] = p
+        for p in eligible:
+            pn = dataCache.pkg_fn[p]
+            provides = dataCache.pn_provides[pn]
+            for provide in provides:
+                prefervar = cfgData.getVar('PREFERRED_PROVIDER_%s' % provide)
+                #logger.debug(1, "checking PREFERRED_PROVIDER_%s (value %s) against %s", provide, prefervar, pns.keys())
+                if prefervar in pns and pns[prefervar] not in preferred:
+                    var = "PREFERRED_PROVIDER_%s = %s" % (provide, prefervar)
+                    logger.verbose("selecting %s to satisfy runtime %s due to %s", prefervar, item, var)
+                    preferred_vars.append(var)
+                    pref = pns[prefervar]
+                    eligible.remove(pref)
+                    eligible = [pref] + eligible
+                    preferred.append(pref)
+                    break
+
+        numberPreferred = len(preferred)
 
     if numberPreferred > 1:
-        logger.error("Trying to resolve runtime dependency %s resulted in conflicting PREFERRED_PROVIDER entries being found.\nThe providers found were: %s\nThe PREFERRED_PROVIDER entries resulting in this conflict were: %s", item, preferred, preferred_vars)
+        logger.error("Trying to resolve runtime dependency %s resulted in conflicting PREFERRED_PROVIDER entries being found.\nThe providers found were: %s\nThe PREFERRED_PROVIDER entries resulting in this conflict were: %s. You could set PREFERRED_RPROVIDER_%s" % (item, preferred, preferred_vars, item))
 
     logger.debug(1, "sorted runtime providers for %s are: %s", item, eligible)
 
@@ -364,7 +372,7 @@ def getRuntimeProviders(dataCache, rdepend):
 
     # Only search dynamic packages if we can't find anything in other variables
     for pattern in dataCache.packages_dynamic:
-        pattern = pattern.replace('+', "\+")
+        pattern = pattern.replace(r'+', r"\+")
         if pattern in regexp_cache:
             regexp = regexp_cache[pattern]
         else:
@@ -379,3 +387,32 @@ def getRuntimeProviders(dataCache, rdepend):
             logger.debug(1, "Assuming %s is a dynamic package, but it may not exist" % rdepend)
 
     return rproviders
+
+
+def buildWorldTargetList(dataCache, task=None):
+    """
+    Build package list for "bitbake world"
+    """
+    if dataCache.world_target:
+        return
+
+    logger.debug(1, "collating packages for \"world\"")
+    for f in dataCache.possible_world:
+        terminal = True
+        pn = dataCache.pkg_fn[f]
+        if task and task not in dataCache.task_deps[f]['tasks']:
+            logger.debug(2, "World build skipping %s as task %s doesn't exist", f, task)
+            terminal = False
+
+        for p in dataCache.pn_provides[pn]:
+            if p.startswith('virtual/'):
+                logger.debug(2, "World build skipping %s due to %s provider starting with virtual/", f, p)
+                terminal = False
+                break
+            for pf in dataCache.providers[p]:
+                if dataCache.pkg_fn[pf] != pn:
+                    logger.debug(2, "World build skipping %s due to both us and %s providing %s", f, pf, p)
+                    terminal = False
+                    break
+        if terminal:
+            dataCache.world_target.add(pn)
