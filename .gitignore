@@ -39,6 +39,7 @@ poky/build-rpi3/tmp*
 poky/build-rpi3/cache
 poky/build-rpi3/sstate-cache
 poky/build-rpi3/downloads
+bitbake-cookerdaemon.log
 
 # Runtime data
 database.sqlite
