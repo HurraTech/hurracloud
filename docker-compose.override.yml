@@ -20,7 +20,6 @@ services:
     command: sh -c "bundle update google-protobuf && bundle install && ./bin/start_jawhar.sh"
 
   samaa:
-    image: registry.local:10001/hurracloud:samaa-v1
     build:
       context: .
       dockerfile: Samaa.Dockerfile
