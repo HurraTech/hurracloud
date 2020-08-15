@@ -81,7 +81,7 @@ class RunCmdTests(OESelftestTestCase):
         self.assertEqual(result.status, -signal.SIGTERM)
         end = time.time()
         self.assertLess(end - start, self.TIMEOUT + self.DELTA)
-        self.assertEqual(numthreads, threading.active_count(), msg="Thread counts were not equal before (%s) and after (%s), active threads: %s" % (numthreads, threading.active_count(), threading.enumerate()))
+        self.assertEqual(numthreads, threading.active_count())
 
     def test_timeout_split(self):
         numthreads = threading.active_count()
@@ -91,14 +91,13 @@ class RunCmdTests(OESelftestTestCase):
         self.assertEqual(result.status, -signal.SIGTERM)
         end = time.time()
         self.assertLess(end - start, self.TIMEOUT + self.DELTA)
-        self.assertEqual(numthreads, threading.active_count(), msg="Thread counts were not equal before (%s) and after (%s), active threads: %s" % (numthreads, threading.active_count(), threading.enumerate()))
+        self.assertEqual(numthreads, threading.active_count())
 
     def test_stdin(self):
         numthreads = threading.active_count()
         result = runCmd("cat", data=b"hello world", timeout=self.TIMEOUT)
         self.assertEqual("hello world", result.output)
-        self.assertEqual(numthreads, threading.active_count(), msg="Thread counts were not equal before (%s) and after (%s), active threads: %s" % (numthreads, threading.active_count(), threading.enumerate()))
-        self.assertEqual(numthreads, 1)
+        self.assertEqual(numthreads, threading.active_count())
 
     def test_stdin_timeout(self):
         numthreads = threading.active_count()
@@ -107,7 +106,7 @@ class RunCmdTests(OESelftestTestCase):
         self.assertEqual(result.status, -signal.SIGTERM)
         end = time.time()
         self.assertLess(end - start, self.TIMEOUT + self.DELTA)
-        self.assertEqual(numthreads, threading.active_count(), msg="Thread counts were not equal before (%s) and after (%s), active threads: %s" % (numthreads, threading.active_count(), threading.enumerate()))
+        self.assertEqual(numthreads, threading.active_count())
 
     def test_log(self):
         log = MemLogger()

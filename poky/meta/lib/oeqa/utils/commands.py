@@ -95,9 +95,7 @@ class Command(object):
         # reason, the main process will still exit, which will then
         # kill the write thread.
         if self.data:
-            thread = threading.Thread(target=writeThread, daemon=True)
-            thread.start()
-            self.threads.append(thread)
+            threading.Thread(target=writeThread, daemon=True).start()
         if self.process.stderr:
             thread = threading.Thread(target=readStderrThread)
             thread.start()
@@ -317,15 +315,15 @@ def runqemu(pn, ssh=True, runqemuparams='', image_fstype=None, launch_cmd=None, 
     try:
         tinfoil.logger.setLevel(logging.WARNING)
         import oeqa.targetcontrol
-        recipedata = tinfoil.parse_recipe(pn)
-        recipedata.setVar("TEST_LOG_DIR", "${WORKDIR}/testimage")
-        recipedata.setVar("TEST_QEMUBOOT_TIMEOUT", "1000")
+        tinfoil.config_data.setVar("TEST_LOG_DIR", "${WORKDIR}/testimage")
+        tinfoil.config_data.setVar("TEST_QEMUBOOT_TIMEOUT", "1000")
         # Tell QemuTarget() whether need find rootfs/kernel or not
         if launch_cmd:
-            recipedata.setVar("FIND_ROOTFS", '0')
+            tinfoil.config_data.setVar("FIND_ROOTFS", '0')
         else:
-            recipedata.setVar("FIND_ROOTFS", '1')
+            tinfoil.config_data.setVar("FIND_ROOTFS", '1')
 
+        recipedata = tinfoil.parse_recipe(pn)
         for key, value in overrides.items():
             recipedata.setVar(key, value)
 
@@ -353,7 +351,10 @@ def runqemu(pn, ssh=True, runqemuparams='', image_fstype=None, launch_cmd=None, 
 
     finally:
         targetlogger.removeHandler(handler)
-        qemu.stop()
+        try:
+            qemu.stop()
+        except:
+            pass
 
 def updateEnv(env_file):
     """

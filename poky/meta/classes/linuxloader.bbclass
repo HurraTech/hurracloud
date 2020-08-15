@@ -1,31 +1,27 @@
-def get_musl_loader_arch(d):
+def get_musl_loader(d):
     import re
-    ldso_arch = None
+    dynamic_loader = None
 
     targetarch = d.getVar("TARGET_ARCH")
     if targetarch.startswith("microblaze"):
-        ldso_arch = "microblaze${@bb.utils.contains('TUNE_FEATURES', 'bigendian', '', 'el' ,d)}"
+        dynamic_loader = "${base_libdir}/ld-musl-microblaze${@bb.utils.contains('TUNE_FEATURES', 'bigendian', '', 'el' ,d)}.so.1"
     elif targetarch.startswith("mips"):
-        ldso_arch = "mips${ABIEXTENSION}${MIPSPKGSFX_BYTE}${MIPSPKGSFX_R6}${MIPSPKGSFX_ENDIAN}${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}"
+        dynamic_loader = "${base_libdir}/ld-musl-mips${ABIEXTENSION}${MIPSPKGSFX_BYTE}${MIPSPKGSFX_R6}${MIPSPKGSFX_ENDIAN}${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}.so.1"
     elif targetarch == "powerpc":
-        ldso_arch = "powerpc${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}"
+        dynamic_loader = "${base_libdir}/ld-musl-powerpc${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}.so.1"
     elif targetarch == "powerpc64":
-        ldso_arch = "powerpc64"
+        dynamic_loader = "${base_libdir}/ld-musl-powerpc64.so.1"
     elif targetarch == "x86_64":
-        ldso_arch = "x86_64"
+        dynamic_loader = "${base_libdir}/ld-musl-x86_64.so.1"
     elif re.search("i.86", targetarch):
-        ldso_arch = "i386"
+        dynamic_loader = "${base_libdir}/ld-musl-i386.so.1"
     elif targetarch.startswith("arm"):
-        ldso_arch = "arm${ARMPKGSFX_ENDIAN}${ARMPKGSFX_EABI}"
+        dynamic_loader = "${base_libdir}/ld-musl-arm${ARMPKGSFX_ENDIAN}${ARMPKGSFX_EABI}.so.1"
     elif targetarch.startswith("aarch64"):
-        ldso_arch = "aarch64${ARMPKGSFX_ENDIAN_64}"
+        dynamic_loader = "${base_libdir}/ld-musl-aarch64${ARMPKGSFX_ENDIAN_64}.so.1"
     elif targetarch.startswith("riscv64"):
-        ldso_arch = "riscv64${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}"
-    return ldso_arch
-
-def get_musl_loader(d):
-    import re
-    return "/lib/ld-musl-" + get_musl_loader_arch(d) + ".so.1"
+        dynamic_loader = "${base_libdir}/ld-musl-riscv64${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}.so.1"
+    return dynamic_loader
 
 def get_glibc_loader(d):
     import re
@@ -66,5 +62,4 @@ def get_linuxloader(d):
 
 get_linuxloader[vardepvalue] = "${@get_linuxloader(d)}"
 get_musl_loader[vardepvalue] = "${@get_musl_loader(d)}"
-get_musl_loader_arch[vardepvalue] = "${@get_musl_loader_arch(d)}"
 get_glibc_loader[vardepvalue] = "${@get_glibc_loader(d)}"

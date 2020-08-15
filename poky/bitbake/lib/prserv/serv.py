@@ -378,8 +378,9 @@ def stop_daemon(host, port):
     ip = socket.gethostbyname(host)
     pidfile = PIDPREFIX % (ip, port)
     try:
-        with open(pidfile) as pf:
-            pid = int(pf.readline().strip())
+        pf = open(pidfile,'r')
+        pid = int(pf.readline().strip())
+        pf.close()
     except IOError:
         pid = None
 

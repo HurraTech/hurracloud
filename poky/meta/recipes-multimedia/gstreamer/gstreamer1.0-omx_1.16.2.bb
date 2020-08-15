@@ -14,14 +14,16 @@ SRC_URI[sha256sum] = "11ed411a2eba75610d72331eeb14ff05e2df28f4fd05cb69225a88bec6
 
 S = "${WORKDIR}/gst-omx-${PV}"
 
-DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad virtual/libomxil"
+DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad"
 
-inherit meson pkgconfig upstream-version-is-even
+inherit autotools pkgconfig gettext gtk-doc upstream-version-is-even
+
+acpaths = "-I ${S}/common/m4 -I ${S}/m4"
 
 GSTREAMER_1_0_OMX_TARGET ?= "bellagio"
 GSTREAMER_1_0_OMX_CORE_NAME ?= "${libdir}/libomxil-bellagio.so.0"
 
-EXTRA_OEMESON += "-Dtarget=${GSTREAMER_1_0_OMX_TARGET}"
+EXTRA_OECONF += "--disable-valgrind --with-omx-target=${GSTREAMER_1_0_OMX_TARGET}"
 
 python __anonymous () {
     omx_target = d.getVar("GSTREAMER_1_0_OMX_TARGET")
@@ -35,13 +37,21 @@ python __anonymous () {
         d.setVar("PACKAGE_ARCH", d.getVar("MACHINE_ARCH"))
 }
 
+delete_pkg_m4_file() {
+    # Delete m4 files which we provide patched versions of but will be ignored
+    # if these exist
+	rm -f "${S}/common/m4/pkg.m4"
+	rm -f "${S}/common/m4/gtk-doc.m4"
+}
+do_configure[prefuncs] += "delete_pkg_m4_file"
+
 set_omx_core_name() {
 	sed -i -e "s;^core-name=.*;core-name=${GSTREAMER_1_0_OMX_CORE_NAME};" "${D}${sysconfdir}/xdg/gstomx.conf"
 }
 do_install[postfuncs] += " set_omx_core_name "
 
 FILES_${PN} += "${libdir}/gstreamer-1.0/*.so"
+FILES_${PN}-dev += "${libdir}/gstreamer-1.0/*.la"
 FILES_${PN}-staticdev += "${libdir}/gstreamer-1.0/*.a"
 
-VIRTUAL-RUNTIME_libomxil ?= "libomxil"
-RDEPENDS_${PN} = "${VIRTUAL-RUNTIME_libomxil}"
+RDEPENDS_${PN} = "libomxil"

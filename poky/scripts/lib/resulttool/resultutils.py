@@ -130,29 +130,23 @@ def decode_log(logdata):
             return data.decode("utf-8", errors='ignore')
     return None
 
-def generic_get_log(sectionname, results, section):
-    if sectionname not in results:
+def ptestresult_get_log(results, section):
+    if 'ptestresult.sections' not in results:
         return None
-    if section not in results[sectionname]:
+    if section not in results['ptestresult.sections']:
         return None
 
-    ptest = results[sectionname][section]
+    ptest = results['ptestresult.sections'][section]
     if 'log' not in ptest:
         return None
     return decode_log(ptest['log'])
 
-def ptestresult_get_log(results, section):
-    return generic_get_log('ptestresuls.sections', results, section)
-
-def generic_get_rawlogs(sectname, results):
-    if sectname not in results:
-        return None
-    if 'log' not in results[sectname]:
-        return None
-    return decode_log(results[sectname]['log'])
-
 def ptestresult_get_rawlogs(results):
-    return generic_get_rawlogs('ptestresult.rawlogs', results)
+    if 'ptestresult.rawlogs' not in results:
+        return None
+    if 'log' not in results['ptestresult.rawlogs']:
+        return None
+    return decode_log(results['ptestresult.rawlogs']['log'])
 
 def save_resultsdata(results, destdir, fn="testresults.json", ptestjson=False, ptestlogs=False):
     for res in results:
@@ -180,7 +174,7 @@ def save_resultsdata(results, destdir, fn="testresults.json", ptestjson=False, p
                             with open(dst.replace(fn, "ptest-%s.log" % i), "w+") as f:
                                 f.write(sectionlog)
 
-def git_get_result(repo, tags, configmap=store_map):
+def git_get_result(repo, tags):
     git_objs = []
     for tag in tags:
         files = repo.run_cmd(['ls-tree', "--name-only", "-r", tag]).splitlines()
@@ -203,7 +197,7 @@ def git_get_result(repo, tags, configmap=store_map):
     # Optimize by reading all data with one git command
     results = {}
     for obj in parse_json_stream(repo.run_cmd(['show'] + git_objs + ['--'])):
-        append_resultsdata(results, obj, configmap=configmap)
+        append_resultsdata(results, obj)
 
     return results
 

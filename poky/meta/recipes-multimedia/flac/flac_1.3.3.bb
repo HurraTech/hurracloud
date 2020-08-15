@@ -33,7 +33,6 @@ EXTRA_OECONF = "--disable-oggtest \
                 "
 
 EXTRA_OECONF += "${@bb.utils.contains("TUNE_FEATURES", "altivec", " --enable-altivec", " --disable-altivec", d)}"
-EXTRA_OECONF += "${@bb.utils.contains("TUNE_FEATURES", "vsx", " --enable-vsx", " --disable-vsx", d)}"
 EXTRA_OECONF += "${@bb.utils.contains("TUNE_FEATURES", "core2", " --enable-sse", "", d)}"
 EXTRA_OECONF += "${@bb.utils.contains("TUNE_FEATURES", "corei7", " --enable-sse", "", d)}"
 

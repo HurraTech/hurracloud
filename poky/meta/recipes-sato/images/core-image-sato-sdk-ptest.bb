@@ -3,6 +3,8 @@ require conf/distro/include/ptest-packagelists.inc
 
 DESCRIPTION += "Also includes ptest packages."
 
+IMAGE_FEATURES += "ptest-pkgs"
+
 PROVIDES += "core-image-sato-ptest"
 
 # Also include ptests which may not otherwise be included in a sato image
@@ -16,8 +18,4 @@ IMAGE_OVERHEAD_FACTOR = "1.0"
 IMAGE_ROOTFS_EXTRA_SPACE = "1124288"
 
 # ptests need more memory than standard to avoid the OOM killer
-# also lttng-tools needs /tmp that has at least 1G
-QB_MEM = "-m 2048"
-
-# Sadly at the moment the full set of ptests is not robust enough and sporadically fails in random places
-PTEST_EXPECT_FAILURE = "1"
+QB_MEM = "-m 1024"

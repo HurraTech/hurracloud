@@ -3,8 +3,7 @@ DESCRIPTION = "Use JSON-GLib it is possible to parse and generate valid JSON\
  data structures, using a DOM-like API. JSON-GLib also offers GObject \
 integration, providing the ability to serialize and deserialize GObject \
 instances to and from JSON data types."
-HOMEPAGE = "https://wiki.gnome.org/Projects/JsonGlib"
-BUGTRACKER = "https://gitlab.gnome.org/GNOME/json-glib/issues"
+HOMEPAGE = "http://live.gnome.org/JsonGlib"
 
 LICENSE = "LGPLv2.1"
 LIC_FILES_CHKSUM = "file://COPYING;md5=7fbc338309ac38fefcd64b04bb903e34"

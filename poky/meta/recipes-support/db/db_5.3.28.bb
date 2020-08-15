@@ -26,7 +26,6 @@ SRC_URI += "file://fix-parallel-build.patch \
             file://0001-configure-Add-explicit-tag-options-to-libtool-invoca.patch \
             file://sequence-type.patch \
             file://0001-Fix-libc-compatibility-by-renaming-atomic_init-API.patch \
-            file://0001-clock-Do-not-define-own-timespec.patch \
            "
 # We are not interested in official latest 6.x versions;
 # let's track what debian is using.
@@ -61,9 +60,7 @@ DB5_CONFIG ?= "--enable-o_direct --disable-cryptography --disable-queue --disabl
 
 EXTRA_OECONF = "${DB5_CONFIG} --enable-shared --enable-cxx --with-sysroot STRIP=true"
 
-PACKAGECONFIG ??= ""
 PACKAGECONFIG[verify] = "--enable-verify, --disable-verify"
-PACKAGECONFIG[dbm] = "--enable-dbm,--disable-dbm,"
 
 EXTRA_OEMAKE += "LIBTOOL='./${HOST_SYS}-libtool'"
 
@@ -109,9 +106,6 @@ do_install_append() {
 	fi
 
 	chown -R root:root ${D}
-	if ${@bb.utils.contains('PACKAGECONFIG', 'verify', 'false', 'true', d)}; then
-		rm -f ${D}${bindir}/db_verify
-	fi
 }
 
 INSANE_SKIP_${PN} = "dev-so"

@@ -32,7 +32,7 @@ def _run(cmd, cwd=''):
 
 def _get_srctree(tmpdir):
     srctree = tmpdir
-    dirs = scriptutils.filter_src_subdirs(tmpdir)
+    dirs = os.listdir(tmpdir)
     if len(dirs) == 1:
         srctree = os.path.join(tmpdir, dirs[0])
     return srctree
@@ -281,8 +281,7 @@ def _extract_new_source(newpv, srctree, no_patch, srcrev, srcbranch, branch, kee
             logger.info('Preserving temporary directory %s' % tmpsrctree)
         else:
             shutil.rmtree(tmpsrctree)
-            if tmpdir != tmpsrctree:
-                shutil.rmtree(tmpdir)
+            shutil.rmtree(tmpdir)
 
     return (rev, md5, sha256, srcbranch, srcsubdir_rel)
 
@@ -550,12 +549,12 @@ def upgrade(args, config, basepath, workspace):
         try:
             logger.info('Extracting current version source...')
             rev1, srcsubdir1 = standard._extract_source(srctree, False, 'devtool-orig', False, config, basepath, workspace, args.fixed_setup, rd, tinfoil, no_overrides=args.no_overrides)
-            old_licenses = _extract_licenses(srctree, (rd.getVar('LIC_FILES_CHKSUM') or ""))
+            old_licenses = _extract_licenses(srctree, rd.getVar('LIC_FILES_CHKSUM'))
             logger.info('Extracting upgraded version source...')
             rev2, md5, sha256, srcbranch, srcsubdir2 = _extract_new_source(args.version, srctree, args.no_patch,
                                                     args.srcrev, args.srcbranch, args.branch, args.keep_temp,
                                                     tinfoil, rd)
-            new_licenses = _extract_licenses(srctree, (rd.getVar('LIC_FILES_CHKSUM') or ""))
+            new_licenses = _extract_licenses(srctree, rd.getVar('LIC_FILES_CHKSUM'))
             license_diff = _generate_license_diff(old_licenses, new_licenses)
             rf, copied = _create_new_recipe(args.version, md5, sha256, args.srcrev, srcbranch, srcsubdir1, srcsubdir2, config.workspace_path, tinfoil, rd, license_diff, new_licenses, srctree, args.keep_failure)
         except bb.process.CmdError as e:

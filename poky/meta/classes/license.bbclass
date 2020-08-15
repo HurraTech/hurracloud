@@ -306,26 +306,6 @@ def incompatible_license_contains(license, truevalue, falsevalue, d):
     bad_licenses = expand_wildcard_licenses(d, bad_licenses)
     return truevalue if license in bad_licenses else falsevalue
 
-def incompatible_pkg_license(d, dont_want_licenses, license):
-    # Handles an "or" or two license sets provided by
-    # flattened_licenses(), pick one that works if possible.
-    def choose_lic_set(a, b):
-        return a if all(oe.license.license_ok(canonical_license(d, lic),
-                            dont_want_licenses) for lic in a) else b
-
-    try:
-        licenses = oe.license.flattened_licenses(license, choose_lic_set)
-    except oe.license.LicenseError as exc:
-        bb.fatal('%s: %s' % (d.getVar('P'), exc))
-
-    incompatible_lic = []
-    for l in licenses:
-        license = canonical_license(d, l)
-        if not oe.license.license_ok(license, dont_want_licenses):
-            incompatible_lic.append(license)
-
-    return sorted(incompatible_lic)
-
 def incompatible_license(d, dont_want_licenses, package=None):
     """
     This function checks if a recipe has only incompatible licenses. It also
@@ -337,7 +317,18 @@ def incompatible_license(d, dont_want_licenses, package=None):
     if not license:
         license = d.getVar('LICENSE')
 
-    return incompatible_pkg_license(d, dont_want_licenses, license)
+    # Handles an "or" or two license sets provided by
+    # flattened_licenses(), pick one that works if possible.
+    def choose_lic_set(a, b):
+        return a if all(oe.license.license_ok(canonical_license(d, lic), 
+                            dont_want_licenses) for lic in a) else b
+
+    try:
+        licenses = oe.license.flattened_licenses(license, choose_lic_set)
+    except oe.license.LicenseError as exc:
+        bb.fatal('%s: %s' % (d.getVar('P'), exc))
+    return any(not oe.license.license_ok(canonical_license(d, l), \
+               dont_want_licenses) for l in licenses)
 
 def check_license_flags(d):
     """

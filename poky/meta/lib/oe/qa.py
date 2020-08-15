@@ -41,15 +41,13 @@ class ELFFile:
     def __init__(self, name):
         self.name = name
         self.objdump_output = {}
-        self.data = None
 
     # Context Manager functions to close the mmap explicitly
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.data:
-            self.data.close()
+        self.data.close()
 
     def open(self):
         with open(self.name, "rb") as f:

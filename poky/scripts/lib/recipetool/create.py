@@ -66,7 +66,7 @@ class RecipeHandler(object):
         libdir = d.getVar('libdir')
         base_libdir = d.getVar('base_libdir')
         libpaths = list(set([base_libdir, libdir]))
-        libname_re = re.compile(r'^lib(.+)\.so.*$')
+        libname_re = re.compile('^lib(.+)\.so.*$')
         pkglibmap = {}
         for lib, item in shlib_providers.items():
             for path, pkg in item.items():
@@ -428,7 +428,7 @@ def create_recipe(args):
 
     if scriptutils.is_src_url(source):
         # Warn about github archive URLs
-        if re.match(r'https?://github.com/[^/]+/[^/]+/archive/.+(\.tar\..*|\.zip)$', source):
+        if re.match('https?://github.com/[^/]+/[^/]+/archive/.+(\.tar\..*|\.zip)$', source):
             logger.warning('github archive files are not guaranteed to be stable and may be re-generated over time. If the latter occurs, the checksums will likely change and the recipe will fail at do_fetch. It is recommended that you point to an actual commit or tag in the repository instead (using the repository URL in conjunction with the -S/--srcrev option).')
         # Fetch a URL
         fetchuri = reformat_git_uri(urldefrag(source)[0])
@@ -460,7 +460,6 @@ def create_recipe(args):
                 logger.error('branch= parameter and -B/--srcbranch option cannot both be specified - use one or the other')
                 sys.exit(1)
             srcbranch = args.srcbranch
-            params['branch'] = srcbranch
         nobranch = params.get('nobranch')
         if nobranch and srcbranch:
             logger.error('nobranch= cannot be used if you specify a branch')
@@ -478,6 +477,8 @@ def create_recipe(args):
             storeTagName = params['tag']
             params['nobranch'] = '1'
             del params['tag']
+        if scheme == 'npm':
+            params['noverify'] = '1'
         fetchuri = bb.fetch2.encodeurl((scheme, network, path, user, passwd, params))
 
         tmpparent = tinfoil.config_data.getVar('BASE_WORKDIR')
@@ -494,7 +495,9 @@ def create_recipe(args):
         if ftmpdir and args.keep_temp:
             logger.info('Fetch temp directory is %s' % ftmpdir)
 
-        dirlist = scriptutils.filter_src_subdirs(srctree)
+        dirlist = os.listdir(srctree)
+        filterout = ['git.indirectionsymlink']
+        dirlist = [x for x in dirlist if x not in filterout]
         logger.debug('Directory listing (excluding filtered out):\n  %s' % '\n  '.join(dirlist))
         if len(dirlist) == 1:
             singleitem = os.path.join(srctree, dirlist[0])
@@ -713,8 +716,10 @@ def create_recipe(args):
         lines_after.append('INSANE_SKIP_${PN} += "already-stripped"')
         lines_after.append('')
 
-    if args.npm_dev:
-        extravalues['NPM_INSTALL_DEV'] = 1
+    if args.fetch_dev:
+        extravalues['fetchdev'] = True
+    else:
+        extravalues['fetchdev'] = None
 
     # Find all plugins that want to register handlers
     logger.debug('Loading recipe handlers')
@@ -830,7 +835,7 @@ def create_recipe(args):
         elif line.startswith('PV = '):
             if realpv:
                 # Replace the first part of the PV value
-                line = re.sub(r'"[^+]*\+', '"%s+' % realpv, line)
+                line = re.sub('"[^+]*\+', '"%s+' % realpv, line)
         lines_before.append(line)
 
     if args.also_native:
@@ -1066,8 +1071,8 @@ def crunch_license(licfile):
     import oe.utils
 
     # Note: these are carefully constructed!
-    license_title_re = re.compile(r'^\(?(#+ *)?(The )?.{1,10} [Ll]icen[sc]e( \(.{1,10}\))?\)?:?$')
-    license_statement_re = re.compile(r'^(This (project|software) is( free software)? (released|licen[sc]ed)|(Released|Licen[cs]ed)) under the .{1,10} [Ll]icen[sc]e:?$')
+    license_title_re = re.compile('^\(?(#+ *)?(The )?.{1,10} [Ll]icen[sc]e( \(.{1,10}\))?\)?:?$')
+    license_statement_re = re.compile('^(This (project|software) is( free software)? (released|licen[sc]ed)|(Released|Licen[cs]ed)) under the .{1,10} [Ll]icen[sc]e:?$')
     copyright_re = re.compile('^(#+)? *Copyright .*$')
 
     crunched_md5sums = {}
@@ -1310,7 +1315,7 @@ def register_commands(subparsers):
     group.add_argument('-S', '--srcrev', help='Source revision to fetch if fetching from an SCM such as git (default latest)')
     parser_create.add_argument('-B', '--srcbranch', help='Branch in source repository if fetching from an SCM such as git (default master)')
     parser_create.add_argument('--keep-temp', action="store_true", help='Keep temporary directory (for debugging)')
-    parser_create.add_argument('--npm-dev', action="store_true", help='For npm, also fetch devDependencies')
+    parser_create.add_argument('--fetch-dev', action="store_true", help='For npm, also fetch devDependencies')
     parser_create.add_argument('--devtool', action="store_true", help=argparse.SUPPRESS)
     parser_create.add_argument('--mirrors', action="store_true", help='Enable PREMIRRORS and MIRRORS for source tree fetching (disabled by default).')
     parser_create.set_defaults(func=create_recipe)

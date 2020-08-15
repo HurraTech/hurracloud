@@ -21,7 +21,6 @@ SRC_URI = "https://www.cpan.org/src/5.0/perl-${PV}.tar.gz;name=perl \
            file://0001-enc2xs-Add-environment-variable-to-suppress-comments.patch \
            file://0002-Constant-Fix-up-shebang.patch \
            file://0001-tests-adjust-to-correctly-exclude-unbuilt-extensions.patch \
-           file://0001-PATCH-perl-134117-Close-DATA-in-loc_tools.pl.patch \
            file://determinism.patch  \
            file://racefix.patch \
            file://CVE-2020-10543.patch \
@@ -42,15 +41,14 @@ SRC_URI[perl-cross.sha256sum] = "edce0b0c2f725e2db3f203d6d8e9f3f7161256f5d159055
 
 S = "${WORKDIR}/perl-${PV}"
 
-inherit upstream-version-is-even update-alternatives
+inherit upstream-version-is-even
 
-DEPENDS += "zlib virtual/crypt"
+DEPENDS += "gdbm zlib virtual/crypt"
 
 PERL_LIB_VER = "${@'.'.join(d.getVar('PV').split('.')[0:2])}.0"
 
-PACKAGECONFIG ??= "bdb gdbm"
+PACKAGECONFIG ??= "bdb"
 PACKAGECONFIG[bdb] = ",-Ui_db,db"
-PACKAGECONFIG[gdbm] = ",-Ui_gdbm,gdbm"
 
 # Don't generate comments in enc2xs output files. They are not reproducible
 export ENC2XS_NO_COMMENTS = "1"
@@ -193,13 +191,13 @@ perl_package_preprocess () {
                -e "s,${STAGING_BINDIR_NATIVE}/,,g" \
                -e "s,${STAGING_BINDIR_TOOLCHAIN}/${TARGET_PREFIX},${bindir},g" \
                -e 's:${RECIPE_SYSROOT}::g' \
-            ${PKGD}${bindir}/h2xs.perl \
-            ${PKGD}${bindir}/h2ph.perl \
-            ${PKGD}${bindir}/pod2man.perl \
-            ${PKGD}${bindir}/pod2text.perl \
-            ${PKGD}${bindir}/pod2usage.perl \
-            ${PKGD}${bindir}/podchecker.perl \
-            ${PKGD}${bindir}/podselect.perl \
+            ${PKGD}${bindir}/h2xs \
+            ${PKGD}${bindir}/h2ph \
+            ${PKGD}${bindir}/pod2man \
+            ${PKGD}${bindir}/pod2text \
+            ${PKGD}${bindir}/pod2usage \
+            ${PKGD}${bindir}/podchecker \
+            ${PKGD}${bindir}/podselect \
             ${PKGD}${libdir}/perl5/${PV}/${TARGET_ARCH}-linux/CORE/config.h \
             ${PKGD}${libdir}/perl5/${PV}/${TARGET_ARCH}-linux/CORE/perl.h \
             ${PKGD}${libdir}/perl5/${PV}/${TARGET_ARCH}-linux/CORE/pp.h \
@@ -213,39 +211,6 @@ perl_package_preprocess () {
             ${PKGD}${libdir}/perl5/${PV}/pod/*.pod \
             ${PKGD}${libdir}/perl5/config.sh
 }
-
-inherit update-alternatives
-
-ALTERNATIVE_PRIORITY = "100"
-
-ALTERNATIVE_${PN}-misc = "corelist cpan enc2xs encguess h2ph h2xs instmodsh json_pp libnetcfg \
-                     piconv pl2pm pod2html pod2man pod2text pod2usage podchecker podselect \
-                     prove ptar ptardiff ptargrep shasum splain xsubpp zipdetails"
-ALTERNATIVE_LINK_NAME[corelist] = "${bindir}/corelist"
-ALTERNATIVE_LINK_NAME[cpan] = "${bindir}/cpan"
-ALTERNATIVE_LINK_NAME[enc2xs] = "${bindir}/enc2xs"
-ALTERNATIVE_LINK_NAME[encguess] = "${bindir}/encguess"
-ALTERNATIVE_LINK_NAME[h2ph] = "${bindir}/h2ph"
-ALTERNATIVE_LINK_NAME[h2xs] = "${bindir}/h2xs"
-ALTERNATIVE_LINK_NAME[instmodsh] = "${bindir}/instmodsh"
-ALTERNATIVE_LINK_NAME[json_pp] = "${bindir}/json_pp"
-ALTERNATIVE_LINK_NAME[libnetcfg] = "${bindir}/libnetcfg"
-ALTERNATIVE_LINK_NAME[piconv] = "${bindir}/piconv"
-ALTERNATIVE_LINK_NAME[pl2pm] = "${bindir}/pl2pm"
-ALTERNATIVE_LINK_NAME[pod2html] = "${bindir}/pod2html"
-ALTERNATIVE_LINK_NAME[pod2man] = "${bindir}/pod2man"
-ALTERNATIVE_LINK_NAME[pod2text] = "${bindir}/pod2text"
-ALTERNATIVE_LINK_NAME[pod2usage] = "${bindir}/pod2usage"
-ALTERNATIVE_LINK_NAME[podchecker] = "${bindir}/podchecker"
-ALTERNATIVE_LINK_NAME[podselect] = "${bindir}/podselect"
-ALTERNATIVE_LINK_NAME[prove] = "${bindir}/prove"
-ALTERNATIVE_LINK_NAME[ptar] = "${bindir}/ptar"
-ALTERNATIVE_LINK_NAME[ptardiff] = "${bindir}/ptardiff"
-ALTERNATIVE_LINK_NAME[ptargrep] = "${bindir}/ptargrep"
-ALTERNATIVE_LINK_NAME[shasum] = "${bindir}/shasum"
-ALTERNATIVE_LINK_NAME[splain] = "${bindir}/splain"
-ALTERNATIVE_LINK_NAME[xsubpp] = "${bindir}/xsubpp"
-ALTERNATIVE_LINK_NAME[zipdetails] = "${bindir}/zipdetails"
 
 require perl-ptest.inc
 
@@ -294,10 +259,6 @@ PACKAGES += "${PN}-module-cpan ${PN}-module-unicore"
 FILES_${PN}-module-cpan += "${libdir}/perl5/${PV}/CPAN \
                           "
 FILES_${PN}-module-unicore += "${libdir}/perl5/${PV}/unicore"
-
-ALTERNATIVE_PRIORITY = "40"
-ALTERNATIVE_${PN}-doc = "Thread.3"
-ALTERNATIVE_LINK_NAME[Thread.3] = "${mandir}/man3/Thread.3"
 
 # Create a perl-modules package recommending all the other perl
 # packages (actually the non modules packages and not created too)
@@ -392,3 +353,4 @@ EOF
        chmod 0755 ${SYSROOT_DESTDIR}${bindir}/nativeperl
        cat ${SYSROOT_DESTDIR}${bindir}/nativeperl
 }
+

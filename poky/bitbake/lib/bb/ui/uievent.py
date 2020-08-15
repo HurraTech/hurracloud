@@ -46,7 +46,7 @@ class BBUIEventQueue:
                 self.EventHandle = ret
                 error = ""
 
-            if self.EventHandle is not None:
+            if self.EventHandle != None:
                 break
 
             errmsg = "Could not register UI event handler. Error: %s, host %s, "\

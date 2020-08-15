@@ -12,10 +12,11 @@ BitBake build tools.
 #
 # Based on functions from the base bb module, Copyright 2003 Holger Schurig
 
-import shlex
 import re
 import tempfile
+import subprocess
 import os
+import logging
 import errno
 import bb
 import bb.progress
@@ -26,6 +27,7 @@ from   bb.fetch2 import FetchMethod
 from   bb.fetch2 import FetchError
 from   bb.fetch2 import logger
 from   bb.fetch2 import runfetchcmd
+from   bb.fetch2 import FetchConnectionCache
 from   bb.utils import export_proxies
 from   bs4 import BeautifulSoup
 from   bs4 import SoupStrainer
@@ -92,9 +94,9 @@ class Wget(FetchMethod):
         fetchcmd = self.basecmd
 
         if 'downloadfilename' in ud.parm:
-            localpath = os.path.join(d.getVar("DL_DIR"), ud.localfile)
-            bb.utils.mkdirhier(os.path.dirname(localpath))
-            fetchcmd += " -O %s" % shlex.quote(localpath)
+            dldir = d.getVar("DL_DIR")
+            bb.utils.mkdirhier(os.path.dirname(dldir + os.sep + ud.localfile))
+            fetchcmd += " -O " + dldir + os.sep + ud.localfile
 
         if ud.user and ud.pswd:
             fetchcmd += " --user=%s --password=%s --auth-no-challenge" % (ud.user, ud.pswd)
@@ -300,7 +302,6 @@ class Wget(FetchMethod):
             # Some servers (FusionForge, as used on Alioth) require that the
             # optional Accept header is set.
             r.add_header("Accept", "*/*")
-            r.add_header("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.12) Gecko/20101027 Ubuntu/9.10 (karmic) Firefox/3.6.12")
             def add_basic_auth(login_str, request):
                 '''Adds Basic auth to http request, pass in login:password as string'''
                 import base64

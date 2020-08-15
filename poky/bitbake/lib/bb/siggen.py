@@ -14,10 +14,8 @@ import simplediff
 from bb.checksum import FileChecksumCache
 from bb import runqueue
 import hashserv
-import hashserv.client
 
 logger = logging.getLogger('BitBake.SigGen')
-hashequiv_logger = logging.getLogger('BitBake.SigGen.HashEquiv')
 
 def init(d):
     siggens = [obj for obj in globals().values()
@@ -147,7 +145,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
     def _build_data(self, fn, d):
 
         ignore_mismatch = ((d.getVar("BB_HASH_IGNORE_MISMATCH") or '') == '1')
-        tasklist, gendeps, lookupcache = bb.data.generate_dependencies(d, self.basewhitelist)
+        tasklist, gendeps, lookupcache = bb.data.generate_dependencies(d)
 
         taskdeps, basehash = bb.data.generate_dependency_hash(tasklist, gendeps, lookupcache, self.basewhitelist, fn)
 
@@ -504,9 +502,9 @@ class SignatureGeneratorUniHashMixIn(object):
                 # A unique hash equal to the taskhash is not very interesting,
                 # so it is reported it at debug level 2. If they differ, that
                 # is much more interesting, so it is reported at debug level 1
-                hashequiv_logger.debug((1, 2)[unihash == taskhash], 'Found unihash %s in place of %s for %s from %s' % (unihash, taskhash, tid, self.server))
+                bb.debug((1, 2)[unihash == taskhash], 'Found unihash %s in place of %s for %s from %s' % (unihash, taskhash, tid, self.server))
             else:
-                hashequiv_logger.debug(2, 'No reported unihash for %s:%s from %s' % (tid, taskhash, self.server))
+                bb.debug(2, 'No reported unihash for %s:%s from %s' % (tid, taskhash, self.server))
         except hashserv.client.HashConnectionError as e:
             bb.warn('Error contacting Hash Equivalence Server %s: %s' % (self.server, str(e)))
 
@@ -580,12 +578,12 @@ class SignatureGeneratorUniHashMixIn(object):
                 new_unihash = data['unihash']
 
                 if new_unihash != unihash:
-                    hashequiv_logger.debug(1, 'Task %s unihash changed %s -> %s by server %s' % (taskhash, unihash, new_unihash, self.server))
+                    bb.debug(1, 'Task %s unihash changed %s -> %s by server %s' % (taskhash, unihash, new_unihash, self.server))
                     bb.event.fire(bb.runqueue.taskUniHashUpdate(fn + ':do_' + task, new_unihash), d)
                     self.set_unihash(tid, new_unihash)
                     d.setVar('BB_UNIHASH', new_unihash)
                 else:
-                    hashequiv_logger.debug(1, 'Reported task %s as unihash %s to %s' % (taskhash, unihash, self.server))
+                    bb.debug(1, 'Reported task %s as unihash %s to %s' % (taskhash, unihash, self.server))
             except hashserv.client.HashConnectionError as e:
                 bb.warn('Error contacting Hash Equivalence Server %s: %s' % (self.server, str(e)))
         finally:
@@ -608,7 +606,7 @@ class SignatureGeneratorUniHashMixIn(object):
                 method = method + self.extramethod[tid]
 
             data = self.client().report_unihash_equiv(taskhash, method, wanted_unihash, extra_data)
-            hashequiv_logger.verbose('Reported task %s as unihash %s to %s (%s)' % (tid, wanted_unihash, self.server, str(data)))
+            bb.note('Reported task %s as unihash %s to %s (%s)' % (tid, wanted_unihash, self.server, str(data)))
 
             if data is None:
                 bb.warn("Server unable to handle unihash report")
@@ -617,14 +615,14 @@ class SignatureGeneratorUniHashMixIn(object):
             finalunihash = data['unihash']
 
             if finalunihash == current_unihash:
-                hashequiv_logger.verbose('Task %s unihash %s unchanged by server' % (tid, finalunihash))
+                bb.note('Task %s unihash %s unchanged by server' % (tid, finalunihash))
             elif finalunihash == wanted_unihash:
-                hashequiv_logger.verbose('Task %s unihash changed %s -> %s as wanted' % (tid, current_unihash, finalunihash))
+                bb.note('Task %s unihash changed %s -> %s as wanted' % (tid, current_unihash, finalunihash))
                 self.set_unihash(tid, finalunihash)
                 return True
             else:
                 # TODO: What to do here?
-                hashequiv_logger.verbose('Task %s unihash reported as unwanted hash %s' % (tid, finalunihash))
+                bb.note('Task %s unihash reported as unwanted hash %s' % (tid, finalunihash))
 
         except hashserv.client.HashConnectionError as e:
             bb.warn('Error contacting Hash Equivalence Server %s: %s' % (self.server, str(e)))

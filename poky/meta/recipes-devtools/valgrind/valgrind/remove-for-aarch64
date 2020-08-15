@@ -1,4 +1,3 @@
-gdbserver_tests/hgtls
 cachegrind/tests/ann1
 callgrind/tests/simwork1
 callgrind/tests/simwork2

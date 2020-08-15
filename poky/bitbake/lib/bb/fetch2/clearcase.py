@@ -49,6 +49,7 @@ User credentials:
 #
 
 import os
+import sys
 import shutil
 import bb
 from   bb.fetch2 import FetchMethod
@@ -237,7 +238,7 @@ class ClearCase(FetchMethod):
 
         # Clean clearcase meta-data before tar
 
-        runfetchcmd('tar -czf "%s" .' % (ud.localpath), d, cleanup = [ud.localpath], workdir = ud.viewdir)
+        runfetchcmd('tar -czf "%s" .' % (ud.localpath), d, cleanup = [ud.localpath])
 
         # Clean up so we can create a new view next time
         self.clean(ud, d);

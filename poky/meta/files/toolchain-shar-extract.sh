@@ -1,13 +1,13 @@
 #!/bin/sh
 
-export LC_ALL=en_US.UTF-8
-#Make sure at least one python is installed
-INIT_PYTHON=$(which python3 2>/dev/null )
-[ -z "$INIT_PYTHON" ] && INIT_PYTHON=$(which python2 2>/dev/null)
-[ -z "$INIT_PYTHON" ] && echo "Error: The SDK needs a python installed" && exit 1
-
-# Remove invalid PATH elements first (maybe from a previously setup toolchain now deleted
-PATH=`$INIT_PYTHON -c 'import os; print(":".join(e for e in os.environ["PATH"].split(":") if os.path.exists(e)))'`
+[ -z "$ENVCLEANED" ] && exec /usr/bin/env -i ENVCLEANED=1 HOME="$HOME" \
+	LC_ALL=en_US.UTF-8 \
+	TERM=$TERM \
+	ICECC_PATH="$ICECC_PATH" \
+	http_proxy="$http_proxy" https_proxy="$https_proxy" ftp_proxy="$ftp_proxy" \
+	no_proxy="$no_proxy" all_proxy="$all_proxy" GIT_PROXY_COMMAND="$GIT_PROXY_COMMAND" "$0" "$@"
+[ -f /etc/environment ] && . /etc/environment
+export PATH=`echo "$PATH" | sed -e 's/:\.//' -e 's/::/:/'`
 
 tweakpath () {
     case ":${PATH}:" in

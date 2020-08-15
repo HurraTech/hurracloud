@@ -137,7 +137,6 @@ class DevtoolBase(OESelftestTestCase):
         with open(recipefile, 'r') as f:
             invar = None
             invalue = None
-            inherits = set()
             for line in f:
                 var = None
                 if invar:
@@ -159,7 +158,7 @@ class DevtoolBase(OESelftestTestCase):
                         invar = var
                         continue
                 elif line.startswith('inherit '):
-                    inherits.update(line.split()[1:])
+                    inherits = line.split()[1:]
 
                 if var and var in checkvars:
                     needvalue = checkvars.pop(var)
@@ -510,26 +509,6 @@ class DevtoolAddTests(DevtoolBase):
         checkvars['S'] = None
         checkvars['SRC_URI'] = url.replace(testver, '${PV}')
         self._test_recipe_contents(recipefile, checkvars, [])
-
-    def test_devtool_add_npm(self):
-        pn = 'savoirfairelinux-node-server-example'
-        pv = '1.0.0'
-        url = 'npm://registry.npmjs.org;package=@savoirfairelinux/node-server-example;version=' + pv
-        # Test devtool add
-        self.track_for_cleanup(self.workspacedir)
-        self.add_command_to_tearDown('bitbake -c cleansstate %s' % pn)
-        self.add_command_to_tearDown('bitbake-layers remove-layer */workspace')
-        result = runCmd('devtool add \'%s\'' % url)
-        self.assertExists(os.path.join(self.workspacedir, 'conf', 'layer.conf'), 'Workspace directory not created')
-        self.assertExists(os.path.join(self.workspacedir, 'recipes', pn, '%s_%s.bb' % (pn, pv)), 'Recipe not created')
-        self.assertExists(os.path.join(self.workspacedir, 'recipes', pn, pn, 'npm-shrinkwrap.json'), 'Shrinkwrap not created')
-        # Test devtool status
-        result = runCmd('devtool status')
-        self.assertIn(pn, result.output)
-        # Clean up anything in the workdir/sysroot/sstate cache (have to do this *after* devtool add since the recipe only exists then)
-        bitbake('%s -c cleansstate' % pn)
-        # Test devtool build
-        result = runCmd('devtool build %s' % pn)
 
 class DevtoolModifyTests(DevtoolBase):
 
@@ -1447,11 +1426,7 @@ class DevtoolUpgradeTests(DevtoolBase):
             dstdir = os.path.join(dstdir, p)
             if not os.path.exists(dstdir):
                 os.makedirs(dstdir)
-                if p == "lib":
-                    # Can race with other tests
-                    self.add_command_to_tearDown('rmdir --ignore-fail-on-non-empty %s' % dstdir)
-                else:
-                    self.track_for_cleanup(dstdir)
+                self.track_for_cleanup(dstdir)
         dstfile = os.path.join(dstdir, os.path.basename(srcfile))
         if srcfile != dstfile:
             shutil.copy(srcfile, dstfile)
@@ -1745,7 +1720,7 @@ class DevtoolUpgradeTests(DevtoolBase):
                          when building the kernel.
          """
         kernel_provider = get_bb_var('PREFERRED_PROVIDER_virtual/kernel')
-        # Clean up the environment
+        # Clean up the enviroment
         bitbake('%s -c clean' % kernel_provider)
         tempdir = tempfile.mkdtemp(prefix='devtoolqa')
         tempdir_cfg = tempfile.mkdtemp(prefix='config_qa')

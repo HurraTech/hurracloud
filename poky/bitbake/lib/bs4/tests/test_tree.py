@@ -9,12 +9,16 @@ same markup, but all Beautiful Soup trees can be traversed with the
 methods tested here.
 """
 
+from pdb import set_trace
 import copy
 import pickle
 import re
 import warnings
 from bs4 import BeautifulSoup
-from bs4.builder import builder_registry
+from bs4.builder import (
+    builder_registry,
+    HTMLParserTreeBuilder,
+)
 from bs4.element import (
     PY3K,
     CData,
@@ -25,7 +29,10 @@ from bs4.element import (
     SoupStrainer,
     Tag,
 )
-from bs4.testing import SoupTest
+from bs4.testing import (
+    SoupTest,
+    skipIf,
+)
 
 XML_BUILDER_PRESENT = (builder_registry.lookup("xml") is not None)
 LXML_PRESENT = (builder_registry.lookup("lxml") is not None)

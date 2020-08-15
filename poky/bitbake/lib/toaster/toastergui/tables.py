@@ -7,10 +7,15 @@
 #
 
 from toastergui.widgets import ToasterTable
-from orm.models import Recipe, ProjectLayer, Layer_Version, Project
+from orm.models import Recipe, ProjectLayer, Layer_Version, Machine, Project
 from orm.models import CustomImageRecipe, Package, Target, Build, LogMessage, Task
 from orm.models import CustomImagePackage, Package_DependencyManager
-from django.db.models import Q, Sum, Count, When, Case, Value, IntegerField
+from orm.models import Distro
+from django.db.models import Q, Max, Sum, Count, When, Case, Value, IntegerField
+from django.conf.urls import url
+from django.core.urlresolvers import reverse, resolve
+from django.http import HttpResponse
+from django.views.generic import TemplateView
 
 from toastergui.tablefilter import TableFilter
 from toastergui.tablefilter import TableFilterActionToggle

@@ -7,7 +7,10 @@
 #   Plugin base class
 #   Utility Functions for working on layerindex data
 
+import argparse
 import logging
+import os
+import bb.msg
 
 logger = logging.getLogger('BitBake.layerindexlib.plugin')
 

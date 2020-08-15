@@ -4,13 +4,11 @@ LICENSE = "GPLv3"
 LIC_FILES_CHKSUM = "file://COPYING;md5=270bbafe360e73f9840bd7981621f9c2"
 SECTION = "console/utils"
 DEPENDS = "ncurses glib-2.0 util-linux"
-RDEPENDS_${PN} = "ncurses-terminfo-base"
-RRECOMMENDS_${PN} = "ncurses-terminfo"
+RDEPENDS_${PN} = "ncurses-terminfo"
 
 SRC_URI = "http://www.midnight-commander.org/downloads/${BPN}-${PV}.tar.bz2 \
            file://0001-mc-replace-perl-w-with-use-warnings.patch \
            file://0001-Add-option-to-control-configure-args.patch \
-           file://0001-Ticket-3629-configure.ac-drop-bundled-gettext.patch \
            file://nomandate.patch \
            "
 SRC_URI[md5sum] = "152927ac29cf0e61d7d019f261bb7d89"

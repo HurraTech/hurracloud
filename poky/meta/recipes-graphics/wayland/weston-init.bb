@@ -5,7 +5,6 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 SRC_URI = "file://init \
-           file://weston.env \
            file://weston.ini \
            file://weston@.service \
            file://71-weston-drm.rules \
@@ -16,7 +15,6 @@ S = "${WORKDIR}"
 do_install() {
 	install -Dm755 ${WORKDIR}/init ${D}/${sysconfdir}/init.d/weston
 	install -D -p -m0644 ${WORKDIR}/weston.ini ${D}${sysconfdir}/xdg/weston/weston.ini
-	install -Dm644 ${WORKDIR}/weston.env ${D}${sysconfdir}/default/weston
 
 	# Install Weston systemd service and accompanying udev rule
 	install -D -p -m0644 ${WORKDIR}/weston@.service ${D}${systemd_system_unitdir}/weston@.service
@@ -32,15 +30,7 @@ do_install() {
 	sed -i 's,@LOCALSTATEDIR@,${localstatedir},g' ${D}${bindir}/weston-start
 }
 
-do_install_append_libc-musl_qemux86() {
-        echo "WESTON_DISABLE_ATOMIC=Y" >> ${D}${sysconfdir}/default/weston
-}
-
-do_install_append_libc-musl_qemux86-64() {
-        echo "WESTON_DISABLE_ATOMIC=Y" >> ${D}${sysconfdir}/default/weston
-}
-
-inherit update-rc.d features_check systemd
+inherit update-rc.d distro_features_check systemd
 
 # rdepends on weston which depends on virtual/egl
 REQUIRED_DISTRO_FEATURES = "opengl"
@@ -50,9 +40,9 @@ RDEPENDS_${PN} = "weston kbd"
 INITSCRIPT_NAME = "weston"
 INITSCRIPT_PARAMS = "start 9 5 2 . stop 20 0 1 6 ."
 
-FILES_${PN} += "${sysconfdir}/xdg/weston/weston.ini ${systemd_system_unitdir}/weston@.service ${sysconfdir}/default/weston"
+FILES_${PN} += "${sysconfdir}/xdg/weston/weston.ini ${systemd_system_unitdir}/weston@.service"
 
-CONFFILES_${PN} += "${sysconfdir}/xdg/weston/weston.ini ${sysconfdir}/default/weston"
+CONFFILES_${PN} += "${sysconfdir}/xdg/weston/weston.ini"
 
 SYSTEMD_SERVICE_${PN} = "weston@%i.service"
 SYSTEMD_AUTO_ENABLE = "disable"

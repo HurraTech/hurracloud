@@ -22,10 +22,10 @@ class HTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 class HTTPService(object):
 
-    def __init__(self, root_dir, host='', port=0, logger=None):
+    def __init__(self, root_dir, host='', logger=None):
         self.root_dir = root_dir
         self.host = host
-        self.port = port
+        self.port = 0
         self.logger = logger
 
     def start(self):

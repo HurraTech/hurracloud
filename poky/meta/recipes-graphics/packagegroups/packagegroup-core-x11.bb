@@ -4,7 +4,7 @@
 
 PR = "r40"
 
-inherit packagegroup features_check
+inherit packagegroup distro_features_check
 REQUIRED_DISTRO_FEATURES = "x11"
 
 PACKAGES = "${PN} ${PN}-utils"

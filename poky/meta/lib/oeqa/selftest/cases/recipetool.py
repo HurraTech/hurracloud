@@ -421,31 +421,6 @@ class RecipetoolTests(RecipetoolBase):
         inherits = ['cmake']
         self._test_recipe_contents(recipefile, checkvars, inherits)
 
-    def test_recipetool_create_npm(self):
-        temprecipe = os.path.join(self.tempdir, 'recipe')
-        os.makedirs(temprecipe)
-        recipefile = os.path.join(temprecipe, 'savoirfairelinux-node-server-example_1.0.0.bb')
-        shrinkwrap = os.path.join(temprecipe, 'savoirfairelinux-node-server-example', 'npm-shrinkwrap.json')
-        srcuri = 'npm://registry.npmjs.org;package=@savoirfairelinux/node-server-example;version=1.0.0'
-        result = runCmd('recipetool create -o %s \'%s\'' % (temprecipe, srcuri))
-        self.assertTrue(os.path.isfile(recipefile))
-        self.assertTrue(os.path.isfile(shrinkwrap))
-        checkvars = {}
-        checkvars['SUMMARY'] = 'Node Server Example'
-        checkvars['HOMEPAGE'] = 'https://github.com/savoirfairelinux/node-server-example#readme'
-        checkvars['LICENSE'] = set(['MIT', 'ISC', 'Unknown'])
-        urls = []
-        urls.append('npm://registry.npmjs.org/;package=@savoirfairelinux/node-server-example;version=${PV}')
-        urls.append('npmsw://${THISDIR}/${BPN}/npm-shrinkwrap.json')
-        checkvars['SRC_URI'] = set(urls)
-        checkvars['S'] = '${WORKDIR}/npm'
-        checkvars['LICENSE_${PN}'] = 'MIT'
-        checkvars['LICENSE_${PN}-base64'] = 'Unknown'
-        checkvars['LICENSE_${PN}-accepts'] = 'MIT'
-        checkvars['LICENSE_${PN}-inherits'] = 'ISC'
-        inherits = ['npm']
-        self._test_recipe_contents(recipefile, checkvars, inherits)
-
     def test_recipetool_create_github(self):
         # Basic test to see if github URL mangling works
         temprecipe = os.path.join(self.tempdir, 'recipe')
@@ -534,11 +509,7 @@ class RecipetoolTests(RecipetoolBase):
             dstdir = os.path.join(dstdir, p)
             if not os.path.exists(dstdir):
                 os.makedirs(dstdir)
-                if p == "lib":
-                    # Can race with other tests
-                    self.add_command_to_tearDown('rmdir --ignore-fail-on-non-empty %s' % dstdir)
-                else:
-                    self.track_for_cleanup(dstdir)
+                self.track_for_cleanup(dstdir)
         dstfile = os.path.join(dstdir, os.path.basename(srcfile))
         if srcfile != dstfile:
             shutil.copy(srcfile, dstfile)
@@ -714,9 +685,7 @@ class RecipetoolAppendsrcTests(RecipetoolAppendsrcBase):
 
         self._test_appendsrcfile(testrecipe, filepath, srcdir=subdir)
         bitbake('%s:do_unpack' % testrecipe)
-        with open(self.testfile, 'r') as testfile:
-            with open(os.path.join(srcdir, filepath), 'r') as makefilein:
-                self.assertEqual(testfile.read(), makefilein.read())
+        self.assertEqual(open(self.testfile, 'r').read(), open(os.path.join(srcdir, filepath), 'r').read())
 
     def test_recipetool_appendsrcfiles_basic(self, destdir=None):
         newfiles = [self.testfile]

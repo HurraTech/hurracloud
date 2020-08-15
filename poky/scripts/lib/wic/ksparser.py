@@ -137,7 +137,6 @@ class KickStart():
         part.add_argument('--active', action='store_true')
         part.add_argument('--align', type=int)
         part.add_argument('--exclude-path', nargs='+')
-        part.add_argument('--include-path', nargs='+')
         part.add_argument("--extra-space", type=sizetype)
         part.add_argument('--fsoptions', dest='fsopts')
         part.add_argument('--fstype', default='vfat',
@@ -246,11 +245,6 @@ class KickStart():
                     elif line.startswith('bootloader'):
                         if not self.bootloader:
                             self.bootloader = parsed
-                            # Concatenate the strings set in APPEND
-                            append_var = get_bitbake_var("APPEND")
-                            if append_var:
-                                self.bootloader.append = ' '.join(filter(None, \
-                                                         (self.bootloader.append, append_var)))
                         else:
                             err = "%s:%d: more than one bootloader specified" \
                                       % (confpath, lineno)

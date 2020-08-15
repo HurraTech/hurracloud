@@ -35,4 +35,4 @@ EXTRA_OECONF = " \
     --disable-rpath \
 "
 
-BBCLASSEXTEND = "native nativesdk"
+BBCLASSEXTEND = "native"

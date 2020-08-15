@@ -202,11 +202,6 @@ do_install() {
 		fi
 	done
 
-        # Cmake files reference full paths to image
-        find ${D}${libdir}/cmake -type f | \
-             grep 'cmake$' | \
-             xargs -n 1 sed -e 's,${D}${libdir}/cmake,${libdir}/cmake,' -i
-
 }
 
 BBCLASSEXTEND = "native nativesdk"

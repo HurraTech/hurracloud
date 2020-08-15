@@ -13,6 +13,8 @@ BitBake 'Fetch' implementation for mercurial DRCS (hg).
 #
 
 import os
+import sys
+import logging
 import bb
 import errno
 from bb.fetch2 import FetchMethod

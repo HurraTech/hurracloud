@@ -9,7 +9,7 @@ XSERVER ?= "xserver-xorg \
             xf86-video-fbdev \
             "
 
-MACHINE_FEATURES = "alsa bluetooth usbgadget screen vfat"
+MACHINE_FEATURES = "alsa bluetooth usbgadget screen"
 
 MACHINEOVERRIDES =. "qemuall:"
 

@@ -4,8 +4,9 @@
 #
 
 import logging
+import json
 
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 from urllib.parse import unquote, urlparse
 
@@ -93,7 +94,7 @@ class CookerPlugin(layerindexlib.plugin.IndexPlugin):
             return index
 
         collections = d.getVar('BBFILE_COLLECTIONS')
-        layerconfs = d.varhistory.get_variable_items_files('BBFILE_COLLECTIONS')
+        layerconfs = d.varhistory.get_variable_items_files('BBFILE_COLLECTIONS', d)
         bbfile_collections = {layer: os.path.dirname(os.path.dirname(path)) for layer, path in layerconfs.items()}
 
         (_, bb_branch, _, _) = self._get_bitbake_info()

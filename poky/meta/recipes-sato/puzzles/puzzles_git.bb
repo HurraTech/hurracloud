@@ -1,7 +1,7 @@
 SUMMARY = "Simon Tatham's Portable Puzzle Collection"
 HOMEPAGE = "http://www.chiark.greenend.org.uk/~sgtatham/puzzles/"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENCE;md5=6099f4981f9461d7f411091e69a7f07a"
+LIC_FILES_CHKSUM = "file://LICENCE;md5=da6110d4ed1225a287eab2bf0ac0193b"
 
 DEPENDS = "libxt"
 
@@ -10,6 +10,7 @@ REQUIRED_DISTRO_FEATURES = "x11"
 
 SRC_URI = "git://git.tartarus.org/simon/puzzles.git \
            file://fix-compiling-failure-with-option-g-O.patch \
+           file://0001-Use-labs-instead-of-abs.patch \
            file://0001-palisade-Fix-warnings-with-clang-on-arm.patch \
            file://0001-Use-Wno-error-format-overflow-if-the-compiler-suppor.patch \
            file://0001-pattern.c-Change-string-lenght-parameter-to-be-size_.patch \
@@ -17,13 +18,13 @@ SRC_URI = "git://git.tartarus.org/simon/puzzles.git \
            "
 
 UPSTREAM_CHECK_COMMITS = "1"
-SRCREV = "79a5378b5adc46ee33ba34d55738f916fb8adfc9"
+SRCREV = "c6e0161dd475415316ed66dc82794d68e52f0025"
 PE = "2"
 PV = "0.0+git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-inherit autotools features_check pkgconfig
+inherit autotools distro_features_check pkgconfig
 
 PACKAGECONFIG ??= "gtk3"
 PACKAGECONFIG[gtk2] = "--with-gtk=2,,gtk+,"

@@ -6,7 +6,7 @@ SUMMARY = "Clutter package groups"
 
 PR = "r6"
 
-inherit packagegroup features_check
+inherit packagegroup distro_features_check
 # rdepends on clutter-*
 REQUIRED_DISTRO_FEATURES = "opengl"
 

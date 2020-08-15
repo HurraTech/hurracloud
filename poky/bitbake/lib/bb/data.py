@@ -79,7 +79,7 @@ def expand(s, d, varname = None):
     return d.expand(s, varname)
 
 def expandKeys(alterdata, readdata = None):
-    if readdata is None:
+    if readdata == None:
         readdata = alterdata
 
     todolist = {}
@@ -365,7 +365,7 @@ def build_dependencies(key, keys, shelldeps, varflagsexcl, d):
     #bb.note("Variable %s references %s and calls %s" % (key, str(deps), str(execs)))
     #d.setVarFlag(key, "vardeps", deps)
 
-def generate_dependencies(d, whitelist):
+def generate_dependencies(d):
 
     keys = set(key for key in d if not key.startswith("__"))
     shelldeps = set(key for key in d.getVar("__exportlist", False) if d.getVarFlag(key, "export", False) and not d.getVarFlag(key, "unexport", False))
@@ -380,7 +380,7 @@ def generate_dependencies(d, whitelist):
         newdeps = deps[task]
         seen = set()
         while newdeps:
-            nextdeps = newdeps - whitelist
+            nextdeps = newdeps
             seen |= nextdeps
             newdeps = set()
             for dep in nextdeps:

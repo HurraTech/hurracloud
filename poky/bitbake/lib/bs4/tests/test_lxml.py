@@ -1,5 +1,6 @@
 """Tests to ensure that the lxml tree builder generates good trees."""
 
+import re
 import warnings
 
 try:
@@ -13,8 +14,13 @@ except ImportError as e:
 if LXML_PRESENT:
     from bs4.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
 
-from bs4 import BeautifulStoneSoup
+from bs4 import (
+    BeautifulSoup,
+    BeautifulStoneSoup,
+    )
+from bs4.element import Comment, Doctype, SoupStrainer
 from bs4.testing import skipIf
+from bs4.tests import test_htmlparser
 from bs4.testing import (
     HTMLTreeBuilderSmokeTest,
     XMLTreeBuilderSmokeTest,

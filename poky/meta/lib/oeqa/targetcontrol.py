@@ -143,8 +143,7 @@ class QemuTarget(BaseTarget):
                             use_kvm = use_kvm,
                             dump_dir = dump_dir,
                             dump_host_cmds = d.getVar("testimage_dump_host"),
-                            logger = logger,
-                            serial_ports = len(d.getVar("SERIAL_CONSOLES").split()))
+                            logger = logger)
 
         self.target_dumper = TargetDumper(dump_target_cmds, dump_dir, self.runner)
 
@@ -182,12 +181,8 @@ class QemuTarget(BaseTarget):
         return self.runner.is_alive()
 
     def stop(self):
-        try:
-            self.runner.stop()
-        except:
-            pass
+        self.runner.stop()
         self.logger.removeHandler(self.loggerhandler)
-        self.loggerhandler.close()
         self.connection = None
         self.ip = None
         self.server_ip = None

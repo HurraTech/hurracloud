@@ -13,7 +13,7 @@ SRC_URI = "file://misc"
 PE = "1"
 PR = "r2"
 
-inherit allarch features_check
+inherit allarch distro_features_check
 
 # The font-alias requires x11 in DISTRO_FEATURES
 REQUIRED_DISTRO_FEATURES = "x11"

@@ -1,5 +1,4 @@
 SUMMARY = "Custom Matchbox session files"
-DESCRIPTION = "Very simple session manager for matchbox tools"
 HOMEPAGE = "http://www.matchbox-project.org/"
 BUGTRACKER = "http://bugzilla.yoctoproject.org/"
 

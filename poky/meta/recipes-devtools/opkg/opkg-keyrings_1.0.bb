@@ -36,8 +36,5 @@ FILES_${PN} = "${datadir}/opkg/keyrings"
 RDEPENDS_${PN} = "opkg"
 
 pkg_postinst_ontarget_${PN} () {
-    if test -x ${bindir}/opkg-key
-    then
-        ${bindir}/opkg-key populate
-    fi
+opkg-key populate
 }

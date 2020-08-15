@@ -107,7 +107,6 @@ def generate_locale_archive(d, rootfs, target_arch, localedir):
         "sh4": ["--uint32-align=4", "--big-endian"],
         "powerpc": ["--uint32-align=4", "--big-endian"],
         "powerpc64": ["--uint32-align=4", "--big-endian"],
-        "powerpc64le": ["--uint32-align=4", "--little-endian"],
         "mips": ["--uint32-align=4", "--big-endian"],
         "mipsisa32r6": ["--uint32-align=4", "--big-endian"],
         "mips64": ["--uint32-align=4", "--big-endian"],
@@ -132,7 +131,7 @@ def generate_locale_archive(d, rootfs, target_arch, localedir):
     env = dict(os.environ)
     env["LOCALEARCHIVE"] = oe.path.join(localedir, "locale-archive")
 
-    for name in sorted(os.listdir(localedir)):
+    for name in os.listdir(localedir):
         path = os.path.join(localedir, name)
         if os.path.isdir(path):
             cmd = ["cross-localedef", "--verbose"]
@@ -218,7 +217,7 @@ class OpkgIndexer(Indexer):
                 if not os.path.exists(pkgs_file):
                     open(pkgs_file, "w").close()
 
-                index_cmds.add('%s --checksum md5 --checksum sha256 -r %s -p %s -m %s' %
+                index_cmds.add('%s -r %s -p %s -m %s' %
                                   (opkg_index_cmd, pkgs_file, pkgs_file, pkgs_dir))
 
                 index_sign_files.add(pkgs_file)
@@ -299,7 +298,7 @@ class DpkgIndexer(Indexer):
                 release.write("Label: %s\n" % arch)
 
             cmd += "PSEUDO_UNLOAD=1 %s release . >> Release" % apt_ftparchive
-
+            
             index_cmds.append(cmd)
 
             deb_dirs_found = True
@@ -571,8 +570,6 @@ class PackageManager(object, metaclass=ABCMeta):
 
             for lang in split_linguas:
                 globs += " *-locale-%s" % lang
-                for complementary_linguas in (self.d.getVar('IMAGE_LINGUAS_COMPLEMENTARY') or "").split():
-                    globs += (" " + complementary_linguas) % lang
 
         if globs is None:
             return
@@ -668,7 +665,7 @@ def create_packages_dir(d, subrepo_dir, deploydir, taskname, filterbydependencie
     pn = d.getVar("PN")
     seendirs = set()
     multilibs = {}
-
+   
     bb.utils.remove(subrepo_dir, recurse=True)
     bb.utils.mkdirhier(subrepo_dir)
 
@@ -779,8 +776,6 @@ class RpmPM(PackageManager):
         # This prevents accidental matching against libsolv's built-in policies
         if len(archs) <= 1:
             archs = archs + ["bogusarch"]
-        # This architecture needs to be upfront so that packages using it are properly prioritized
-        archs = ["sdk_provides_dummy_target"] + archs
         confdir = "%s/%s" %(self.target_rootfs, "etc/dnf/vars/")
         bb.utils.mkdirhier(confdir)
         open(confdir + "arch", 'w').write(":".join(archs))
@@ -1021,8 +1016,8 @@ class RpmPM(PackageManager):
     def load_old_install_solution(self):
         if not os.path.exists(self.solution_manifest):
             return []
-        with open(self.solution_manifest, 'r') as fd:
-            return fd.read().split()
+
+        return open(self.solution_manifest, 'r').read().split()
 
     def _script_num_prefix(self, path):
         files = os.listdir(path)

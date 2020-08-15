@@ -7,6 +7,7 @@
 #
 
 import unittest
+import bb
 import os
 import tempfile
 import subprocess

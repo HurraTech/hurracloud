@@ -18,7 +18,7 @@ import string
 import re
 import sys
 import tarfile
-import time
+from time import clock
 from collections import defaultdict
 from functools import reduce
 
@@ -723,7 +723,7 @@ def get_num_cpus(headers):
 
 def _do_parse(writer, state, filename, file):
     writer.info("parsing '%s'" % filename)
-    t1 = time.process_time()
+    t1 = clock()
     name = os.path.basename(filename)
     if name == "proc_diskstats.log":
         state.disk_stats = _parse_proc_disk_stat_log(file)
@@ -743,7 +743,7 @@ def _do_parse(writer, state, filename, file):
         state.monitor_disk = _parse_monitor_disk_log(file)
     elif not filename.endswith('.log'):
         _parse_bitbake_buildstats(writer, state, filename, file)
-    t2 = time.process_time()
+    t2 = clock()
     writer.info("  %s seconds" % str(t2-t1))
     return state
 

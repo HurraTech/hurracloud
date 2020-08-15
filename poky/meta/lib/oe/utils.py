@@ -169,7 +169,7 @@ def any_distro_features(d, features, truevalue="1", falsevalue=""):
     """
     return bb.utils.contains_any("DISTRO_FEATURES", features, truevalue, falsevalue, d)
 
-def parallel_make(d, makeinst=False):
+def parallel_make(d):
     """
     Return the integer value for the number of parallel threads to use when
     building, scraped out of PARALLEL_MAKE. If no parallelization option is
@@ -177,10 +177,7 @@ def parallel_make(d, makeinst=False):
 
     e.g. if PARALLEL_MAKE = "-j 10", this will return 10 as an integer.
     """
-    if makeinst:
-        pm = (d.getVar('PARALLEL_MAKEINST') or '').split()
-    else:
-        pm = (d.getVar('PARALLEL_MAKE') or '').split()
+    pm = (d.getVar('PARALLEL_MAKE') or '').split()
     # look for '-j' and throw other options (e.g. '-l') away
     while pm:
         opt = pm.pop(0)
@@ -195,7 +192,7 @@ def parallel_make(d, makeinst=False):
 
     return None
 
-def parallel_make_argument(d, fmt, limit=None, makeinst=False):
+def parallel_make_argument(d, fmt, limit=None):
     """
     Helper utility to construct a parallel make argument from the number of
     parallel threads specified in PARALLEL_MAKE.
@@ -208,7 +205,7 @@ def parallel_make_argument(d, fmt, limit=None, makeinst=False):
     e.g. if PARALLEL_MAKE = "-j 10", parallel_make_argument(d, "-n %d") will return
     "-n 10"
     """
-    v = parallel_make(d, makeinst)
+    v = parallel_make(d)
     if v:
         if limit:
             v = min(limit, v)
@@ -248,10 +245,9 @@ def trim_version(version, num_parts=2):
     trimmed = ".".join(parts[:num_parts])
     return trimmed
 
-def cpu_count(at_least=1):
+def cpu_count():
     import multiprocessing
-    cpus = multiprocessing.cpu_count()
-    return max(cpus, at_least)
+    return multiprocessing.cpu_count()
 
 def execute_pre_post_process(d, cmds):
     if cmds is None:
@@ -372,37 +368,6 @@ def format_pkg_list(pkg_dict, ret_format=None):
         output_str += '\n'
 
     return output_str
-
-
-# Helper function to get the host compiler version
-# Do not assume the compiler is gcc
-def get_host_compiler_version(d, taskcontextonly=False):
-    import re, subprocess
-
-    if taskcontextonly and d.getVar('BB_WORKERCONTEXT') != '1':
-        return
-
-    compiler = d.getVar("BUILD_CC")
-    # Get rid of ccache since it is not present when parsing.
-    if compiler.startswith('ccache '):
-        compiler = compiler[7:]
-    try:
-        env = os.environ.copy()
-        # datastore PATH does not contain session PATH as set by environment-setup-...
-        # this breaks the install-buildtools use-case
-        # env["PATH"] = d.getVar("PATH")
-        output = subprocess.check_output("%s --version" % compiler, \
-                    shell=True, env=env, stderr=subprocess.STDOUT).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        bb.fatal("Error running %s --version: %s" % (compiler, e.output.decode("utf-8")))
-
-    match = re.match(r".* (\d+\.\d+)\.\d+.*", output.split('\n')[0])
-    if not match:
-        bb.fatal("Can't get compiler version from %s --version output" % compiler)
-
-    version = match.group(1)
-    return compiler, version
-
 
 def host_gcc_version(d, taskcontextonly=False):
     import re, subprocess

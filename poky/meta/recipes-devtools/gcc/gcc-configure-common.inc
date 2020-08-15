@@ -17,8 +17,6 @@ GCCTHREADS ?= "posix"
 
 GCCPIE ??= ""
 
-SYMVERS_CONF ?= "--enable-symvers=gnu"
-
 EXTRA_OECONF = "\
     ${@['--enable-clocale=generic', ''][d.getVar('USE_NLS') != 'no']} \
     --with-gnu-ld \
@@ -29,11 +27,10 @@ EXTRA_OECONF = "\
     ${GCCPIE} \
     --enable-c99 \
     --enable-long-long \
-    ${SYMVERS_CONF} \
+    --enable-symvers=gnu \
     --enable-libstdcxx-pch \
     --program-prefix=${TARGET_PREFIX} \
     --without-local-prefix \
-    --disable-install-libiberty \
     ${EXTRA_OECONF_BASE} \
     ${EXTRA_OECONF_GCC_FLOAT} \
     ${EXTRA_OECONF_PATHS} \

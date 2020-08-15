@@ -154,8 +154,7 @@ def path(value, relativeto='', normalize='true', mustexist='false'):
 
     if boolean(mustexist):
         try:
-            with open(value, 'r'):
-                pass
+            open(value, 'r')
         except IOError as exc:
             if exc.errno == errno.ENOENT:
                 raise ValueError("{0}: {1}".format(value, os.strerror(errno.ENOENT)))
@@ -184,3 +183,4 @@ def qemu_use_kvm(kvm, target_arch):
         elif build_arch == target_arch:
             use_kvm = True
     return use_kvm
+

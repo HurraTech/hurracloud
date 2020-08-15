@@ -182,10 +182,8 @@ class OETestResult(_TestResult):
             (status, log) = self._getTestResultDetails(case)
 
             t = ""
-            duration = 0
             if case.id() in self.starttime and case.id() in self.endtime:
-                duration = self.endtime[case.id()] - self.starttime[case.id()]
-                t = " (" + "{0:.2f}".format(duration) + "s)"
+                t = " (" + "{0:.2f}".format(self.endtime[case.id()] - self.starttime[case.id()]) + "s)"
 
             if status not in logs:
                 logs[status] = []
@@ -193,22 +191,6 @@ class OETestResult(_TestResult):
             report = {'status': status}
             if log:
                 report['log'] = log
-            if duration:
-                report['duration'] = duration
-
-            alltags = []
-            # pull tags from the case class
-            if hasattr(case, "__oeqa_testtags"):
-                alltags.extend(getattr(case, "__oeqa_testtags"))
-            # pull tags from the method itself
-            test_name = case._testMethodName
-            if hasattr(case, test_name):
-                method = getattr(case, test_name)
-                if hasattr(method, "__oeqa_testtags"):
-                    alltags.extend(getattr(method, "__oeqa_testtags"))
-            if alltags:
-                report['oetags'] = alltags
-
             if dump_streams and case.id() in self.logged_output:
                 (stdout, stderr) = self.logged_output[case.id()]
                 report['stdout'] = stdout
@@ -337,17 +319,10 @@ class OETestResultJSONHelper(object):
             the_file.write(file_content)
 
     def dump_testresult_file(self, write_dir, configuration, result_id, test_result):
-        try:
-            import bb
-            has_bb = True
-            bb.utils.mkdirhier(write_dir)
-            lf = bb.utils.lockfile(os.path.join(write_dir, 'jsontestresult.lock'))
-        except ImportError:
-            has_bb = False
-            os.makedirs(write_dir, exist_ok=True)
+        bb.utils.mkdirhier(write_dir)
+        lf = bb.utils.lockfile(os.path.join(write_dir, 'jsontestresult.lock'))
         test_results = self._get_existing_testresults_if_available(write_dir)
         test_results[result_id] = {'configuration': configuration, 'result': test_result}
         json_testresults = json.dumps(test_results, sort_keys=True, indent=4)
         self._write_file(write_dir, self.testresult_filename, json_testresults)
-        if has_bb:
-            bb.utils.unlockfile(lf)
+        bb.utils.unlockfile(lf)

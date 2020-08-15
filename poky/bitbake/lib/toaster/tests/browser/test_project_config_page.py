@@ -7,7 +7,10 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-from django.urls import reverse
+import re
+
+from django.core.urlresolvers import reverse
+from django.utils import timezone
 from tests.browser.selenium_helpers import SeleniumTestCase
 
 from orm.models import BitbakeVersion, Release, Project, ProjectVariable
@@ -214,4 +217,3 @@ class TestProjectConfigsPage(SeleniumTestCase):
         hidden_element = self.driver.find_element_by_id('hintError-sstate_dir')
         self.assertEqual(hidden_element.is_displayed(), False,
             'sstate directory path valid but treated as invalid')
-

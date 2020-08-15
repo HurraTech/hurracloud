@@ -9,9 +9,7 @@ SRC_URI[sha256sum] = "d9c899f710c50cfdd00f5f4cdfeaef0687d8497362239bdde93bed6c90
 
 UPSTREAM_CHECK_URI = "http://www.waffle-gl.org/releases.html"
 
-inherit meson features_check lib_package bash-completion
-
-DEPENDS_append = " python3"
+inherit meson distro_features_check lib_package bash-completion
 
 # This should be overridden per-machine to reflect the capabilities of the GL
 # stack.
@@ -37,3 +35,8 @@ PACKAGECONFIG[x11-egl] = "-Dx11_egl=enabled,-Dx11_egl=disabled,virtual/${MLPREFI
 PACKAGECONFIG[surfaceless-egl] = "-Dsurfaceless_egl=enabled,-Dsurfaceless_egl=disabled,virtual/${MLPREFIX}libgl"
 
 # TODO: optionally build manpages and examples
+
+# Unset these to stop python trying to report the target Python setup
+_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"
+STAGING_INCDIR[unexport] = "1"
+STAGING_LIBDIR[unexport] = "1"

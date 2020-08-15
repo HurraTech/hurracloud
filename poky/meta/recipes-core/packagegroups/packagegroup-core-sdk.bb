@@ -16,6 +16,7 @@ RDEPENDS_packagegroup-core-sdk = "\
     coreutils \
     ccache \
     diffutils \
+    intltool \
     perl-module-re \
     perl-module-text-wrap \
     findutils \

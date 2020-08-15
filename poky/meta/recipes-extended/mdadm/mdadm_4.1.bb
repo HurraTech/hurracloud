@@ -19,8 +19,8 @@ SRC_URI = "${KERNELORG_MIRROR}/linux/utils/raid/mdadm/${BPN}-${PV}.tar.xz \
            file://0001-fix-gcc-8-format-truncation-warning.patch \
            file://debian-no-Werror.patch \
            file://0001-Revert-tests-wait-for-complete-rebuild-in-integrity-.patch \
-           file://mdadm.init \
-           file://0001-mdadm-add-option-y-for-use-syslog-to-recive-event-re.patch \
+	   file://mdadm.init \
+	   file://0001-mdadm-add-option-y-for-use-syslog-to-recive-event-re.patch \
            file://include_sysmacros.patch \
            file://0001-mdadm-skip-test-11spare-migration.patch \
            "
@@ -30,7 +30,7 @@ SRC_URI[sha256sum] = "ab7688842908d3583a704d491956f31324c3a5fc9f6a04653cb75d19f1
 
 inherit autotools-brokensep ptest systemd
 
-SYSTEMD_SERVICE_${PN} = "mdmonitor.service"
+SYSTEMD_SERVICE_${PN} = "mdmonitor.service mdmon@.service"
 SYSTEMD_AUTO_ENABLE = "disable"
 
 CFLAGS_append_toolchain-clang = " -Wno-error=address-of-packed-member"
@@ -75,8 +75,7 @@ do_compile_ptest() {
 do_install_ptest() {
 	cp -R --no-dereference --preserve=mode,links -v ${S}/tests ${D}${PTEST_PATH}/tests
 	cp ${S}/test ${D}${PTEST_PATH}
-	sed -e 's!sleep 0.*!sleep 1!g; s!/var/tmp!/mdadm-testing-dir!g' -i ${D}${PTEST_PATH}/test
-	sed -e 's!/var/tmp!/mdadm-testing-dir!g' -i ${D}${PTEST_PATH}/tests/*
+	sed -e 's!sleep 0.*!sleep 1!g; s!/var/tmp!/!g' -i ${D}${PTEST_PATH}/test
         sed -i -e '/echo -ne "$_script... "/d' \
                -e 's/echo "succeeded"/echo -e "PASS: $_script"/g' \
                -e '/save_log fail/N; /_fail=1/i\\t\t\techo -ne "FAIL: $_script"' \

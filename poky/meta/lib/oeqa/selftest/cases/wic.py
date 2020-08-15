@@ -44,24 +44,6 @@ def only_for_arch(archs, image='core-image-minimal'):
         return wrapped_f
     return wrapper
 
-def extract_files(debugfs_output):
-    """
-    extract file names from the output of debugfs -R 'ls -p',
-    which looks like this:
-
-     /2/040755/0/0/.//\n
-     /2/040755/0/0/..//\n
-     /11/040700/0/0/lost+found^M//\n
-     /12/040755/1002/1002/run//\n
-     /13/040755/1002/1002/sys//\n
-     /14/040755/1002/1002/bin//\n
-     /80/040755/1002/1002/var//\n
-     /92/040755/1002/1002/tmp//\n
-    """
-    # NOTE the occasional ^M in file names
-    return [line.split('/')[5].strip() for line in \
-            debugfs_output.strip().split('/\n')]
-
 
 class WicTestCase(OESelftestTestCase):
     """Wic test class."""
@@ -411,6 +393,24 @@ part /etc --source rootfs --ondisk mmcblk0 --fstype=ext4 --exclude-path bin/ --r
                 runCmd("dd if=%s of=%s skip=%d count=%d" %
                                            (wicimg, part_file, start, length))
 
+            def extract_files(debugfs_output):
+                """
+                extract file names from the output of debugfs -R 'ls -p',
+                which looks like this:
+
+                 /2/040755/0/0/.//\n
+                 /2/040755/0/0/..//\n
+                 /11/040700/0/0/lost+found^M//\n
+                 /12/040755/1002/1002/run//\n
+                 /13/040755/1002/1002/sys//\n
+                 /14/040755/1002/1002/bin//\n
+                 /80/040755/1002/1002/var//\n
+                 /92/040755/1002/1002/tmp//\n
+                """
+                # NOTE the occasional ^M in file names
+                return [line.split('/')[5].strip() for line in \
+                        debugfs_output.strip().split('/\n')]
+
             # Test partition 1, should contain the normal root directories, except
             # /usr.
             res = runCmd("debugfs -R 'ls -p' %s 2>/dev/null" % \
@@ -447,43 +447,6 @@ part /etc --source rootfs --ondisk mmcblk0 --fstype=ext4 --exclude-path bin/ --r
             for part in [1, 2, 3]:
                 part_file = os.path.join(self.resultdir, "selftest_img.part%d" % part)
                 os.remove(part_file)
-
-        finally:
-            os.environ['PATH'] = oldpath
-
-    def test_include_path(self):
-        """Test --include-path wks option."""
-
-        oldpath = os.environ['PATH']
-        os.environ['PATH'] = get_bb_var("PATH", "wic-tools")
-
-        try:
-            include_path = os.path.join(self.resultdir, 'test-include')
-            os.makedirs(include_path)
-            with open(os.path.join(include_path, 'test-file'), 'w') as t:
-                t.write("test\n")
-            wks_file = os.path.join(include_path, 'temp.wks')
-            with open(wks_file, 'w') as wks:
-                rootfs_dir = get_bb_var('IMAGE_ROOTFS', 'core-image-minimal')
-                wks.write("""
-part /part1 --source rootfs --ondisk mmcblk0 --fstype=ext4
-part /part2 --source rootfs --ondisk mmcblk0 --fstype=ext4 --include-path %s"""
-                          % (include_path))
-            runCmd("wic create %s -e core-image-minimal -o %s" \
-                                       % (wks_file, self.resultdir))
-
-            part1 = glob(os.path.join(self.resultdir, 'temp-*.direct.p1'))[0]
-            part2 = glob(os.path.join(self.resultdir, 'temp-*.direct.p2'))[0]
-
-            # Test partition 1, should not contain 'test-file'
-            res = runCmd("debugfs -R 'ls -p' %s 2>/dev/null" % (part1))
-            files = extract_files(res.output)
-            self.assertNotIn('test-file', files)
-
-            # Test partition 2, should not contain 'test-file'
-            res = runCmd("debugfs -R 'ls -p' %s 2>/dev/null" % (part2))
-            files = extract_files(res.output)
-            self.assertIn('test-file', files)
 
         finally:
             os.environ['PATH'] = oldpath
@@ -537,8 +500,7 @@ class Wic2(WicTestCase):
         # filter out optional variables
         wicvars = wicvars.difference(('DEPLOY_DIR_IMAGE', 'IMAGE_BOOT_FILES',
                                       'INITRD', 'INITRD_LIVE', 'ISODIR','INITRAMFS_IMAGE',
-                                      'INITRAMFS_IMAGE_BUNDLE', 'INITRAMFS_LINK_NAME',
-                                      'APPEND'))
+                                      'INITRAMFS_IMAGE_BUNDLE', 'INITRAMFS_LINK_NAME'))
         with open(path) as envfile:
             content = dict(line.split("=", 1) for line in envfile)
             # test if variables used by wic present in the .env file
@@ -904,13 +866,6 @@ class Wic2(WicTestCase):
             self.assertEqual(8, len(result.output.split('\n')))
             self.assertTrue(os.path.basename(testdir) in result.output)
 
-            # copy the file from the partition and check if it success
-            dest = '%s-cp' % testfile.name
-            runCmd("wic cp %s:1/%s %s -n %s" % (images[0],
-                    os.path.basename(testfile.name), dest, sysroot))
-            self.assertTrue(os.path.exists(dest))
-
-
     def test_wic_rm(self):
         """Test removing files and directories from the the wic image."""
         runCmd("wic create mkefidisk "
@@ -1050,16 +1005,6 @@ class Wic2(WicTestCase):
             newdirs = set(line.split()[-1] for line in result.output.split('\n') if line)
             self.assertEqual(newdirs.difference(dirs), set([os.path.basename(testfile.name)]))
 
-            # check if the file to copy is in the partition
-            result = runCmd("wic ls %s:2/etc/ -n %s" % (images[0], sysroot))
-            self.assertTrue('fstab' in [line.split()[-1] for line in result.output.split('\n') if line])
-
-            # copy file from the partition, replace the temporary file content with it and
-            # check for the file size to validate the copy
-            runCmd("wic cp %s:2/etc/fstab %s -n %s" % (images[0], testfile.name, sysroot))
-            self.assertTrue(os.stat(testfile.name).st_size > 0)
-
-
     def test_wic_rm_ext(self):
         """Test removing files from the ext partition."""
         runCmd("wic create mkefidisk "
@@ -1080,10 +1025,3 @@ class Wic2(WicTestCase):
         # check if it's removed
         result = runCmd("wic ls %s:2/etc/ -n %s" % (images[0], sysroot))
         self.assertTrue('fstab' not in [line.split()[-1] for line in result.output.split('\n') if line])
-
-        # remove non-empty directory
-        runCmd("wic rm -r %s:2/etc/ -n %s" % (images[0], sysroot))
-
-        # check if it's removed
-        result = runCmd("wic ls %s:2/ -n %s" % (images[0], sysroot))
-        self.assertTrue('etc' not in [line.split()[-1] for line in result.output.split('\n') if line])

@@ -10,6 +10,7 @@
 #
 
 import sys, os, glob, os.path, re, time
+import atexit
 import itertools
 import logging
 import multiprocessing
@@ -17,11 +18,14 @@ import sre_constants
 import threading
 from io import StringIO, UnsupportedOperation
 from contextlib import closing
+from functools import wraps
 from collections import defaultdict, namedtuple
 import bb, bb.exceptions, bb.command
 from bb import utils, data, parse, event, cache, providers, taskdata, runqueue, build
 import queue
 import signal
+import subprocess
+import errno
 import prserv.serv
 import pyinotify
 import json
@@ -1023,16 +1027,16 @@ class BBCooker:
             bb.event.fire(bb.event.FilesMatchingFound(filepattern, matches), self.data)
 
     def findProviders(self, mc=''):
-        return bb.providers.findProviders(self.databuilder.mcdata[mc], self.recipecaches[mc], self.recipecaches[mc].pkg_pn)
+        return bb.providers.findProviders(self.data, self.recipecaches[mc], self.recipecaches[mc].pkg_pn)
 
     def findBestProvider(self, pn, mc=''):
         if pn in self.recipecaches[mc].providers:
             filenames = self.recipecaches[mc].providers[pn]
-            eligible, foundUnique = bb.providers.filterProviders(filenames, pn, self.databuilder.mcdata[mc], self.recipecaches[mc])
+            eligible, foundUnique = bb.providers.filterProviders(filenames, pn, self.data, self.recipecaches[mc])
             filename = eligible[0]
             return None, None, None, filename
         elif pn in self.recipecaches[mc].pkg_pn:
-            return bb.providers.findBestProvider(pn, self.databuilder.mcdata[mc], self.recipecaches[mc], self.recipecaches[mc].pkg_pn)
+            return bb.providers.findBestProvider(pn, self.data, self.recipecaches[mc], self.recipecaches[mc].pkg_pn)
         else:
             return None, None, None, None
 
@@ -1204,7 +1208,7 @@ class BBCooker:
             for c in collection_list:
                 calc_layer_priority(c)
                 regex = self.data.getVar("BBFILE_PATTERN_%s" % c)
-                if regex is None:
+                if regex == None:
                     parselog.error("BBFILE_PATTERN_%s not defined" % c)
                     errors = True
                     continue
@@ -1310,7 +1314,7 @@ class BBCooker:
         self.parseConfiguration()
 
         # If we are told to do the None task then query the default task
-        if task is None:
+        if (task == None):
             task = self.configuration.cmd
         if not task.startswith("do_"):
             task = "do_%s" % task
@@ -1454,7 +1458,7 @@ class BBCooker:
         self.buildSetVars()
 
         # If we are told to do the None task then query the default task
-        if task is None:
+        if (task == None):
             task = self.configuration.cmd
 
         if not task.startswith("do_"):
@@ -1592,7 +1596,7 @@ class BBCooker:
             raise NothingToBuild
 
         ignore = (self.data.getVar("ASSUME_PROVIDED") or "").split()
-        for pkg in pkgs_to_build.copy():
+        for pkg in pkgs_to_build:
             if pkg in ignore:
                 parselog.warning("Explicit target \"%s\" is in ASSUME_PROVIDED, ignoring" % pkg)
             if pkg.startswith("multiconfig:"):
@@ -1665,8 +1669,6 @@ class BBCooker:
         self.command.reset()
         self.databuilder.reset()
         self.data = self.databuilder.data
-        self.parsecache_valid = False
-        self.baseconfig_valid = False
 
 
 class CookerExit(bb.event.Event):
@@ -1689,7 +1691,7 @@ class CookerCollectFiles(object):
     def calc_bbfile_priority( self, filename, matched = None ):
         for _, _, regex, pri in self.bbfile_config_priorities:
             if regex.match(filename):
-                if matched is not None:
+                if matched != None:
                     if not regex in matched:
                         matched.add(regex)
                 return pri
@@ -1951,7 +1953,6 @@ class Parser(multiprocessing.Process):
 
     def parse(self, filename, appends):
         try:
-            origfilter = bb.event.LogHandler.filter
             # Record the filename we're parsing into any events generated
             def parse_filter(self, record):
                 record.taskpid = bb.event.worker_pid
@@ -1974,8 +1975,6 @@ class Parser(multiprocessing.Process):
         # a SystemExit event for example.
         except BaseException as exc:
             return True, ParsingFailure(exc, filename)
-        finally:
-            bb.event.LogHandler.filter = origfilter
 
 class CookerParser(object):
     def __init__(self, cooker, filelist, masked):

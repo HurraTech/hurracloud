@@ -72,9 +72,6 @@ class OETestContext(object):
                 modules_required, **kwargs)
         self.suites = self.loader.discover()
 
-    def prepareSuite(self, suites, processes):
-        return suites
-
     def runTests(self, processes=None, skips=[]):
         self.runner = self.runnerClass(self, descriptions=False, verbosity=2)
 
@@ -82,9 +79,14 @@ class OETestContext(object):
         self.skipTests(skips)
 
         self._run_start_time = time.time()
-        if not processes:
+        if processes:
+            from oeqa.core.utils.concurrencytest import ConcurrentTestSuite
+
+            concurrent_suite = ConcurrentTestSuite(self.suites, processes)
+            result = self.runner.run(concurrent_suite)
+        else:
             self.runner.buffer = True
-        result = self.runner.run(self.prepareSuite(self.suites, processes))
+            result = self.runner.run(self.suites)
         self._run_end_time = time.time()
 
         return result
@@ -100,26 +102,21 @@ class OETestContextExecutor(object):
     name = 'core'
     help = 'core test component example'
     description = 'executes core test suite example'
-    datetime = time.strftime("%Y%m%d%H%M%S")
 
     default_cases = [os.path.join(os.path.abspath(os.path.dirname(__file__)),
             'cases/example')]
     default_test_data = os.path.join(default_cases[0], 'data.json')
     default_tests = None
-    default_json_result_dir = None
 
     def register_commands(self, logger, subparsers):
         self.parser = subparsers.add_parser(self.name, help=self.help,
                 description=self.description, group='components')
 
-        self.default_output_log = '%s-results-%s.log' % (self.name, self.datetime)
+        self.default_output_log = '%s-results-%s.log' % (self.name,
+                time.strftime("%Y%m%d%H%M%S"))
         self.parser.add_argument('--output-log', action='store',
                 default=self.default_output_log,
                 help="results output log, default: %s" % self.default_output_log)
-
-        self.parser.add_argument('--json-result-dir', action='store',
-                default=self.default_json_result_dir,
-                help="json result output dir, default: %s" % self.default_json_result_dir)
 
         group = self.parser.add_mutually_exclusive_group()
         group.add_argument('--run-tests', action='store', nargs='+',
@@ -183,22 +180,6 @@ class OETestContextExecutor(object):
 
         self.module_paths = args.CASES_PATHS
 
-    def _get_json_result_dir(self, args):
-        return args.json_result_dir
-
-    def _get_configuration(self):
-        td = self.tc_kwargs['init']['td']
-        configuration = {'TEST_TYPE': self.name,
-                        'MACHINE': td.get("MACHINE"),
-                        'DISTRO': td.get("DISTRO"),
-                        'IMAGE_BASENAME': td.get("IMAGE_BASENAME"),
-                        'DATETIME': td.get("DATETIME")}
-        return configuration
-
-    def _get_result_id(self, configuration):
-        return '%s_%s_%s_%s' % (configuration['TEST_TYPE'], configuration['IMAGE_BASENAME'],
-                                configuration['MACHINE'], self.datetime)
-
     def _pre_run(self):
         pass
 
@@ -217,16 +198,7 @@ class OETestContextExecutor(object):
         else:
             self._pre_run()
             rc = self.tc.runTests(**self.tc_kwargs['run'])
-
-            json_result_dir = self._get_json_result_dir(args)
-            if json_result_dir:
-                configuration = self._get_configuration()
-                rc.logDetails(json_result_dir,
-                              configuration,
-                              self._get_result_id(configuration))
-            else:
-                rc.logDetails()
-
+            rc.logDetails()
             rc.logSummary(self.name)
 
         output_link = os.path.join(os.path.dirname(args.output_log),

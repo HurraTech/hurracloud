@@ -77,17 +77,14 @@ class ProxyTestResult:
     # a very basic TestResult proxy, in order to modify add* calls
     def __init__(self, target):
         self.result = target
-        self.failed_tests = 0
 
     def _addResult(self, method, test, *args, exception = False, **kwargs):
         return method(test, *args, **kwargs)
 
     def addError(self, test, err = None, **kwargs):
-        self.failed_tests += 1
         self._addResult(self.result.addError, test, err, exception = True, **kwargs)
 
     def addFailure(self, test, err = None, **kwargs):
-        self.failed_tests += 1
         self._addResult(self.result.addFailure, test, err, exception = True, **kwargs)
 
     def addSuccess(self, test, **kwargs):
@@ -98,9 +95,6 @@ class ProxyTestResult:
 
     def addUnexpectedSuccess(self, test, **kwargs):
         self._addResult(self.result.addUnexpectedSuccess, test, **kwargs)
-
-    def wasSuccessful(self):
-        return self.failed_tests == 0
 
     def __getattr__(self, attr):
         return getattr(self.result, attr)
@@ -152,20 +146,6 @@ def outSideTestaddError(self, offset, line):
 
 subunit._OutSideTest.addError = outSideTestaddError
 
-# Like outSideTestaddError above, we need an equivalent for skips
-# happening at the setUpClass() level, otherwise we will see "UNKNOWN"
-# as a result for concurrent tests
-#
-def outSideTestaddSkip(self, offset, line):
-    """A 'skip:' directive has been read."""
-    test_name = line[offset:-1].decode('utf8')
-    self.parser._current_test = subunit.RemotedTestCase(test_name)
-    self.parser.current_test_description = test_name
-    self.parser._state = self.parser._reading_skip_details
-    self.parser._reading_skip_details.set_simple()
-    self.parser.subunitLineReceived(line)
-
-subunit._OutSideTest.addSkip = outSideTestaddSkip
 
 #
 # A dummy structure to add to io.StringIO so that the .buffer object
@@ -183,11 +163,9 @@ class dummybuf(object):
 #
 class ConcurrentTestSuite(unittest.TestSuite):
 
-    def __init__(self, suite, processes, setupfunc, removefunc):
+    def __init__(self, suite, processes):
         super(ConcurrentTestSuite, self).__init__([suite])
         self.processes = processes
-        self.setupfunc = setupfunc
-        self.removefunc = removefunc
 
     def run(self, result):
         tests, totaltests = fork_for_tests(self.processes, self)
@@ -238,6 +216,13 @@ class ConcurrentTestSuite(unittest.TestSuite):
         finally:
             queue.put(test)
 
+def removebuilddir(d):
+    delay = 5
+    while delay and os.path.exists(d + "/bitbake.lock"):
+        time.sleep(1)
+        delay = delay - 1
+    bb.utils.prunedir(d, ionice=True)
+
 def fork_for_tests(concurrency_num, suite):
     result = []
     if 'BUILDDIR' in os.environ:
@@ -264,7 +249,37 @@ def fork_for_tests(concurrency_num, suite):
                 stream = os.fdopen(c2pwrite, 'wb', 1)
                 os.close(c2pread)
 
-                (builddir, newbuilddir) = suite.setupfunc("-st-" + str(ourpid), selftestdir, process_suite)
+                # Create a new separate BUILDDIR for each group of tests
+                if 'BUILDDIR' in os.environ:
+                    builddir = os.environ['BUILDDIR']
+                    newbuilddir = builddir + "-st-" + str(ourpid)
+                    newselftestdir = newbuilddir + "/meta-selftest"
+
+                    bb.utils.mkdirhier(newbuilddir)
+                    oe.path.copytree(builddir + "/conf", newbuilddir + "/conf")
+                    oe.path.copytree(builddir + "/cache", newbuilddir + "/cache")
+                    oe.path.copytree(selftestdir, newselftestdir)
+
+                    for e in os.environ:
+                        if builddir in os.environ[e]:
+                            os.environ[e] = os.environ[e].replace(builddir, newbuilddir)
+
+                    subprocess.check_output("git init; git add *; git commit -a -m 'initial'", cwd=newselftestdir, shell=True)
+
+                    # Tried to used bitbake-layers add/remove but it requires recipe parsing and hence is too slow
+                    subprocess.check_output("sed %s/conf/bblayers.conf -i -e 's#%s#%s#g'" % (newbuilddir, selftestdir, newselftestdir), cwd=newbuilddir, shell=True)
+
+                    os.chdir(newbuilddir)
+
+                    for t in process_suite:
+                        if not hasattr(t, "tc"):
+                            continue
+                        cp = t.tc.config_paths
+                        for p in cp:
+                            if selftestdir in cp[p] and newselftestdir not in cp[p]:
+                                cp[p] = cp[p].replace(selftestdir, newselftestdir)
+                            if builddir in cp[p] and newbuilddir not in cp[p]:
+                                cp[p] = cp[p].replace(builddir, newbuilddir)
 
                 # Leave stderr and stdout open so we can see test noise
                 # Close stdin so that the child goes away if it decides to
@@ -278,11 +293,11 @@ def fork_for_tests(concurrency_num, suite):
                 # as per default in parent code
                 subunit_client.buffer = True
                 subunit_result = AutoTimingTestResultDecorator(subunit_client)
-                unittest_result = process_suite.run(ExtraResultsEncoderTestResult(subunit_result))
+                process_suite.run(ExtraResultsEncoderTestResult(subunit_result))
                 if ourpid != os.getpid():
                     os._exit(0)
-                if newbuilddir and unittest_result.wasSuccessful():
-                    suite.removefunc(newbuilddir)
+                if newbuilddir:
+                    removebuilddir(newbuilddir)
             except:
                 # Don't do anything with process children
                 if ourpid != os.getpid():
@@ -298,7 +313,7 @@ def fork_for_tests(concurrency_num, suite):
                     sys.stderr.write(traceback.format_exc())
                 finally:
                     if newbuilddir:
-                        suite.removefunc(newbuilddir)
+                        removebuilddir(newbuilddir)
                     stream.flush()
                     os._exit(1)
             stream.flush()

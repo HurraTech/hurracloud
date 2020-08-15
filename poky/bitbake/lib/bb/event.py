@@ -10,7 +10,8 @@ BitBake build tools.
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
-import sys
+import os, sys
+import warnings
 import pickle
 import logging
 import atexit
@@ -346,7 +347,7 @@ def set_UIHmask(handlerNum, level, debug_domains, mask):
 
 def getName(e):
     """Returns the name of a class or class instance"""
-    if getattr(e, "__name__", None) is None:
+    if getattr(e, "__name__", None) == None:
         return e.__class__.__name__
     else:
         return e.__name__
@@ -508,7 +509,7 @@ class NoProvider(Event):
         extra = ''
         if not self._reasons:
             if self._close_matches:
-                extra = ". Close matches:\n  %s" % '\n  '.join(sorted(set(self._close_matches)))
+                extra = ". Close matches:\n  %s" % '\n  '.join(self._close_matches)
 
         if self._dependees:
             msg = "Nothing %sPROVIDES '%s' (but %s %sDEPENDS on or otherwise requires it)%s" % (r, self._item, ", ".join(self._dependees), r, extra)

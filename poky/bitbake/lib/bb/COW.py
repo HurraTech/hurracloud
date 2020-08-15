@@ -10,6 +10,7 @@
 
 
 import copy
+import types
 ImmutableTypes = (
     bool,
     complex,

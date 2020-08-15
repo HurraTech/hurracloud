@@ -13,7 +13,7 @@ PR = "r30"
 # based on the machine architecture.
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-inherit features_check
+inherit distro_features_check
 
 # The matchbox-theme-sato requires x11 in DISTRO_FEATURES
 REQUIRED_DISTRO_FEATURES = "x11"

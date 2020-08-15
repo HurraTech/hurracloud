@@ -31,10 +31,12 @@
 
 # ../bitbake/lib/toaster/manage.py buildimport --name=test --path=`pwd` --callback="" --command=import
 
-from django.core.management.base import BaseCommand
-from orm.models import Project, Release, ProjectVariable
+from django.core.management.base import BaseCommand, CommandError
+from django.core.exceptions import ObjectDoesNotExist
+from orm.models import ProjectManager, Project, Release, ProjectVariable
 from orm.models import Layer, Layer_Version, LayerSource, ProjectLayer
 from toastergui.api import scan_layer_content
+from django.db import OperationalError
 
 import os
 import re
@@ -113,15 +115,6 @@ class Command(BaseCommand):
             '--command', dest='command', required=False,
             help='command (configure,reconfigure,import)',
             )
-
-    def get_var(self, varname):
-        value = self.vars.get(varname, '')
-        if value:
-            varrefs = re.findall('\${([^}]*)}', value)
-            for ref in varrefs:
-                if ref in self.vars:
-                    value = value.replace('${%s}' % ref, self.vars[ref])
-        return value
 
     # Extract the bb variables from a conf file
     def scan_conf(self,fn):
@@ -250,7 +243,7 @@ class Command(BaseCommand):
     # Apply table of all layer versions
     def extract_bblayers(self):
         # set up the constants
-        bblayer_str = self.get_var('BBLAYERS')
+        bblayer_str = self.vars['BBLAYERS']
         TOASTER_DIR = os.environ.get('TOASTER_DIR')
         INSTALL_CLONE_PREFIX = os.path.dirname(TOASTER_DIR) + "/"
         TOASTER_CLONE_PREFIX = TOASTER_DIR + "/_toaster_clones/"
@@ -430,7 +423,6 @@ class Command(BaseCommand):
 
     # Scan the project's conf files (if any)
     def scan_conf_variables(self,project_path):
-        self.vars['TOPDIR'] = project_path
         # scan the project's settings, add any new layers or variables
         if os.path.isfile("%s/conf/local.conf" % project_path):
             self.scan_conf("%s/conf/local.conf" % project_path)
@@ -476,6 +468,7 @@ class Command(BaseCommand):
                     release_name = 'None' if not pl.layercommit.release else pl.layercommit.release.name
                     print(" AFTER :ProjectLayer=%s,%s,%s,%s" % (pl.layercommit.layer.name,release_name,pl.layercommit.branch,pl.layercommit.commit))
 
+
     def handle(self, *args, **options):
         project_name = options['name']
         project_path = options['path']
@@ -514,7 +507,7 @@ class Command(BaseCommand):
         default_release = Release.objects.get(id=1)
 
         # SANITY: if 'reconfig' but project does not exist (deleted externally), switch to 'import'
-        if ("reconfigure" == options['command']) and project is None:
+        if ("reconfigure" == options['command']) and (None == project):
             options['command'] = 'import'
 
         # 'Configure':
@@ -560,7 +553,6 @@ class Command(BaseCommand):
             # preset the mode and default image recipe
             project.set_variable(Project.PROJECT_SPECIFIC_ISNEW,Project.PROJECT_SPECIFIC_NEW)
             project.set_variable(Project.PROJECT_SPECIFIC_DEFAULTIMAGE,"core-image-minimal")
-
             # Assert any extended/custom actions or variables for new non-Toaster projects
             if not len(self.toaster_vars):
                 pass

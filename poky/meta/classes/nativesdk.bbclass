@@ -9,7 +9,6 @@ NATIVESDKLIBC ?= "libc-glibc"
 LIBCOVERRIDE = ":${NATIVESDKLIBC}"
 CLASSOVERRIDE = "class-nativesdk"
 MACHINEOVERRIDES = ""
-MACHINE_FEATURES = ""
 
 MULTILIBS = ""
 
@@ -58,7 +57,7 @@ EXTRA_OECONF_GCC_FLOAT = ""
 
 CPPFLAGS = "${BUILDSDK_CPPFLAGS}"
 CFLAGS = "${BUILDSDK_CFLAGS}"
-CXXFLAGS = "${BUILDSDK_CXXFLAGS}"
+CXXFLAGS = "${BUILDSDK_CFLAGS}"
 LDFLAGS = "${BUILDSDK_LDFLAGS}"
 
 # Change to place files in SDKPATH
@@ -108,6 +107,7 @@ python () {
 addhandler nativesdk_virtclass_handler
 nativesdk_virtclass_handler[eventmask] = "bb.event.RecipePreFinalise"
 
+do_populate_sysroot[stamp-extra-info] = ""
 do_packagedata[stamp-extra-info] = ""
 
 USE_NLS = "${SDKUSE_NLS}"

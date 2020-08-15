@@ -7,6 +7,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
+import os
+import sys
+
 import socket
 import http.client
 import xmlrpc.client

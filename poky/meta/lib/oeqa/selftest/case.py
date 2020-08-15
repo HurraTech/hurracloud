@@ -6,6 +6,7 @@
 
 import sys
 import os
+import shutil
 import glob
 import errno
 from unittest.util import safe_repr
@@ -29,7 +30,9 @@ class OESelftestTestCase(OETestCase):
         cls.builddir = cls.tc.config_paths['builddir']
 
         cls.localconf_path = cls.tc.config_paths['localconf']
+        cls.localconf_backup = cls.tc.config_paths['localconf_class_backup']
         cls.local_bblayers_path = cls.tc.config_paths['bblayers']
+        cls.local_bblayers_backup = cls.tc.config_paths['bblayers_class_backup']
 
         cls.testinc_path = os.path.join(cls.tc.config_paths['builddir'],
                 "conf/selftest.inc")
@@ -40,7 +43,8 @@ class OESelftestTestCase(OETestCase):
 
         cls._track_for_cleanup = [
             cls.testinc_path, cls.testinc_bblayers_path,
-            cls.machineinc_path]
+            cls.machineinc_path, cls.localconf_backup,
+            cls.local_bblayers_backup]
 
         cls.add_include()
 
@@ -98,6 +102,30 @@ class OESelftestTestCase(OETestCase):
     def setUp(self):
         super(OESelftestTestCase, self).setUp()
         os.chdir(self.builddir)
+        # Check if local.conf or bblayers.conf files backup exists
+        # from a previous failed test and restore them
+        if os.path.isfile(self.localconf_backup) or os.path.isfile(
+                self.local_bblayers_backup):
+            self.logger.debug("\
+Found a local.conf and/or bblayers.conf backup from a previously aborted test.\
+Restoring these files now, but tests should be re-executed from a clean environment\
+to ensure accurate results.")
+            try:
+                shutil.copyfile(self.localconf_backup, self.localconf_path)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+            try:
+                shutil.copyfile(self.local_bblayers_backup,
+                                self.local_bblayers_path)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+        else:
+            # backup local.conf and bblayers.conf
+            shutil.copyfile(self.localconf_path, self.localconf_backup)
+            shutil.copyfile(self.local_bblayers_path, self.local_bblayers_backup)
+            self.logger.debug("Creating local.conf and bblayers.conf backups.")
         # we don't know what the previous test left around in config or inc files
         # if it failed so we need a fresh start
         try:

@@ -6,9 +6,13 @@ BUGTRACKER = "https://bugzilla.gnome.org/enter_bug.cgi?product=Gstreamer"
 SECTION = "multimedia"
 LICENSE = "LGPLv2+"
 
-DEPENDS = "glib-2.0 glib-2.0-native libcap libxml2 bison-native flex-native"
+DEPENDS = "glib-2.0 glib-2.0-native libcap libxml2 bison-native flex-native make-native"
 
-inherit meson pkgconfig gettext upstream-version-is-even gobject-introspection gtk-doc
+inherit autotools pkgconfig gettext upstream-version-is-even gobject-introspection gtk-doc ptest
+
+# This way common/m4/introspection.m4 will come first
+# (it has a custom INTROSPECTION_INIT macro, and so must be used instead of our common introspection.m4 file)
+acpaths = "-I ${S}/common/m4 -I ${S}/m4"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=6762ed442b3822387a51c92d928ead0d \
                     file://gst/gst.h;beginline=1;endline=21;md5=e059138481205ee2c6fc1c079c016d0d"
@@ -17,61 +21,71 @@ S = "${WORKDIR}/gstreamer-${PV}"
 
 SRC_URI = " \
     https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-${PV}.tar.xz \
+    file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch \
+    file://gtk-doc-tweaks.patch \
     file://0001-gst-gstpluginloader.c-when-env-var-is-set-do-not-fal.patch \
-    file://0002-meson-build-gir-even-when-cross-compiling-if-introsp.patch \
-    file://0003-meson-Add-valgrind-feature.patch \
-    file://0004-meson-Add-option-for-installed-tests.patch \
-    file://capfix.patch \
+    file://add-a-target-to-compile-tests.patch \
+    file://run-ptest \
 "
 SRC_URI[md5sum] = "0e661ed5bdf1d8996e430228d022628e"
 SRC_URI[sha256sum] = "e3f044246783fd685439647373fa13ba14f7ab0b346eadd06437092f8419e94e"
 
 PACKAGECONFIG ??= "${@bb.utils.contains('PTEST_ENABLED', '1', 'tests', '', d)} \
-                   check \
-                   debug \
-                   tools"
+                   "
 
-PACKAGECONFIG[debug] = "-Dgst_debug=true,-Dgst_debug=false"
-PACKAGECONFIG[tracer-hooks] = "-Dtracer_hooks=true,-Dtracer_hooks=false"
-PACKAGECONFIG[check] = "-Dcheck=enabled,-Dcheck=disabled"
-PACKAGECONFIG[tests] = "-Dtests=enabled -Dinstalled-tests=true,-Dtests=disabled -Dinstalled-tests=false"
-PACKAGECONFIG[valgrind] = "-Dvalgrind=enabled,-Dvalgrind=disabled,valgrind,"
-PACKAGECONFIG[unwind] = "-Dlibunwind=enabled,-Dlibunwind=disabled,libunwind"
-PACKAGECONFIG[dw] = "-Dlibdw=enabled,-Dlibdw=disabled,elfutils"
-PACKAGECONFIG[bash-completion] = "-Dbash-completion=enabled,-Dbash-completion=disabled,bash-completion"
-PACKAGECONFIG[tools] = "-Dtools=enabled,-Dtools=disabled"
-PACKAGECONFIG[setcap] = "-Dsetcap=enabled,-Dsetcap=disabled,libcap libcap-native"
+PACKAGECONFIG[debug] = "--enable-debug,--disable-debug"
+PACKAGECONFIG[tests] = "--enable-tests,--disable-tests"
+PACKAGECONFIG[valgrind] = "--enable-valgrind,--disable-valgrind,valgrind,"
+PACKAGECONFIG[gst-tracer-hooks] = "--enable-gst-tracer-hooks,--disable-gst-tracer-hooks,"
+PACKAGECONFIG[unwind] = "--with-unwind,--without-unwind,libunwind"
+PACKAGECONFIG[dw] = "--with-dw,--without-dw,elfutils"
 
-# TODO: put this in a gettext.bbclass patch
-def gettext_oemeson(d):
-    if d.getVar('USE_NLS') == 'no':
-        return '-Dnls=disabled'
-    # Remove the NLS bits if USE_NLS is no or INHIBIT_DEFAULT_DEPS is set
-    if d.getVar('INHIBIT_DEFAULT_DEPS') and not oe.utils.inherits(d, 'cross-canadian'):
-        return '-Dnls=disabled'
-    return '-Dnls=enabled'
-
-EXTRA_OEMESON += " \
-    -Dexamples=disabled \
-    -Ddbghelp=disabled \
-    ${@gettext_oemeson(d)} \
+EXTRA_OECONF = " \
+    --disable-examples \
 "
 
-GTKDOC_MESON_OPTION = "gtk_doc"
-GTKDOC_MESON_ENABLE_FLAG = "enabled"
-GTKDOC_MESON_DISABLE_FLAG = "disabled"
+CACHED_CONFIGUREVARS += "ac_cv_header_valgrind_valgrind_h=no"
 
-GIR_MESON_ENABLE_FLAG = "enabled"
-GIR_MESON_DISABLE_FLAG = "disabled"
+# musl libc generates warnings if <sys/poll.h> is included directly
+CACHED_CONFIGUREVARS += "ac_cv_header_sys_poll_h=no"
 
 PACKAGES += "${PN}-bash-completion"
 
-# Add the core element plugins to the main package
 FILES_${PN} += "${libdir}/gstreamer-1.0/*.so"
-FILES_${PN}-dev += "${libdir}/gstreamer-1.0/*.a ${libdir}/gstreamer-1.0/include"
+FILES_${PN}-dev += "${libdir}/gstreamer-1.0/*.la ${libdir}/gstreamer-1.0/*.a ${libdir}/gstreamer-1.0/include"
 FILES_${PN}-bash-completion += "${datadir}/bash-completion/completions/ ${datadir}/bash-completion/helpers/gst*"
 FILES_${PN}-dbg += "${datadir}/gdb ${datadir}/gstreamer-1.0/gdb"
 
-CVE_PRODUCT = "gstreamer"
+RDEPENDS_${PN}-ptest += "make"
 
-require gstreamer1.0-ptest.inc
+delete_pkg_m4_file() {
+        # This m4 file is out of date and is missing PKG_CONFIG_SYSROOT_PATH tweaks which we need for introspection
+        rm "${S}/common/m4/pkg.m4" || true
+        rm -f "${S}/common/m4/gtk-doc.m4"
+}
+
+do_configure[prefuncs] += "delete_pkg_m4_file"
+
+do_compile_prepend() {
+        export GIR_EXTRA_LIBS_PATH="${B}/gst/.libs:${B}/libs/gst/base/.libs"
+}
+
+do_compile_ptest() {
+        oe_runmake build-checks
+}
+
+do_install_ptest() {
+        oe_runmake -C tests/check DESTDIR=${D}${PTEST_PATH} install-ptest
+        install -m 644 ${B}/tests/check/Makefile ${D}${PTEST_PATH}
+        install -m 755 ${S}/test-driver ${D}${PTEST_PATH}
+        sed -e 's,--sysroot=${STAGING_DIR_TARGET},,g' \
+            -e 's|${DEBUG_PREFIX_MAP}||g' \
+            -e 's:${HOSTTOOLS_DIR}/::g' \
+            -e 's:${RECIPE_SYSROOT_NATIVE}::g' \
+            -e 's:${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}::g' \-e 's/^Makefile:/_Makefile:/' \
+            -e 's/^srcdir = \(.*\)/srcdir = ./' -e 's/^top_srcdir = \(.*\)/top_srcdir = ./' \
+            -e 's/^builddir = \(.*\)/builddir = ./' -e 's/^top_builddir = \(.*\)/top_builddir = ./' \
+            -i ${D}${PTEST_PATH}/Makefile
+}
+
+CVE_PRODUCT = "gstreamer"

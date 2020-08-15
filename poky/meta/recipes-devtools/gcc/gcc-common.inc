@@ -47,7 +47,6 @@ def get_gcc_multiarch_setting(bb, d):
         "i586":    "--enable-targets=all",
         "i686":    "--enable-targets=all",
         "powerpc": "--enable-targets=powerpc64",
-        "powerpc64le": "--enable-targets=powerpcle",
         "mips":    "--enable-targets=all",
         "sparc":   "--enable-targets=all",
     }

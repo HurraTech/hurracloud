@@ -9,7 +9,11 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
 
+import re
+import string
+import logging
 import bb
+import itertools
 from bb import methodpool
 from bb.parse import logger
 
@@ -89,7 +93,7 @@ class DataNode(AstNode):
         self.groupd = groupd
 
     def getFunc(self, key, data):
-        if 'flag' in self.groupd and self.groupd['flag'] is not None:
+        if 'flag' in self.groupd and self.groupd['flag'] != None:
             return data.getVarFlag(key, self.groupd['flag'], expand=False, noweakdefault=True)
         else:
             return data.getVar(key, False, noweakdefault=True, parsing=True)
@@ -102,36 +106,36 @@ class DataNode(AstNode):
             'file': self.filename,
             'line': self.lineno,
         }
-        if "exp" in groupd and groupd["exp"] is not None:
+        if "exp" in groupd and groupd["exp"] != None:
             data.setVarFlag(key, "export", 1, op = 'exported', **loginfo)
 
         op = "set"
-        if "ques" in groupd and groupd["ques"] is not None:
+        if "ques" in groupd and groupd["ques"] != None:
             val = self.getFunc(key, data)
             op = "set?"
-            if val is None:
+            if val == None:
                 val = groupd["value"]
-        elif "colon" in groupd and groupd["colon"] is not None:
+        elif "colon" in groupd and groupd["colon"] != None:
             e = data.createCopy()
             op = "immediate"
             val = e.expand(groupd["value"], key + "[:=]")
-        elif "append" in groupd and groupd["append"] is not None:
+        elif "append" in groupd and groupd["append"] != None:
             op = "append"
             val = "%s %s" % ((self.getFunc(key, data) or ""), groupd["value"])
-        elif "prepend" in groupd and groupd["prepend"] is not None:
+        elif "prepend" in groupd and groupd["prepend"] != None:
             op = "prepend"
             val = "%s %s" % (groupd["value"], (self.getFunc(key, data) or ""))
-        elif "postdot" in groupd and groupd["postdot"] is not None:
+        elif "postdot" in groupd and groupd["postdot"] != None:
             op = "postdot"
             val = "%s%s" % ((self.getFunc(key, data) or ""), groupd["value"])
-        elif "predot" in groupd and groupd["predot"] is not None:
+        elif "predot" in groupd and groupd["predot"] != None:
             op = "predot"
             val = "%s%s" % (groupd["value"], (self.getFunc(key, data) or ""))
         else:
             val = groupd["value"]
 
         flag = None
-        if 'flag' in groupd and groupd['flag'] is not None:
+        if 'flag' in groupd and groupd['flag'] != None:
             flag = groupd['flag']
         elif groupd["lazyques"]:
             flag = "_defaultval"

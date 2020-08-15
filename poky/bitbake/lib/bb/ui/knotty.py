@@ -12,6 +12,7 @@ from __future__ import division
 
 import os
 import sys
+import xmlrpc.client as xmlrpclib
 import logging
 import progressbar
 import signal
@@ -109,11 +110,12 @@ def pluralise(singular, plural, qty):
 
 
 class InteractConsoleLogFilter(logging.Filter):
-    def __init__(self, tf):
+    def __init__(self, tf, format):
         self.tf = tf
+        self.format = format
 
     def filter(self, record):
-        if record.levelno == bb.msg.BBLogFormatter.NOTE and (record.msg.startswith("Running") or record.msg.startswith("recipe ")):
+        if record.levelno == self.format.NOTE and (record.msg.startswith("Running") or record.msg.startswith("recipe ")):
             return False
         self.tf.clearFooter()
         return True
@@ -149,7 +151,7 @@ class TerminalFilter(object):
                 cr = (25, 80)
         return cr
 
-    def __init__(self, main, helper, handlers, quiet):
+    def __init__(self, main, helper, console, errconsole, format, quiet):
         self.main = main
         self.helper = helper
         self.cuu = None
@@ -179,11 +181,7 @@ class TerminalFilter(object):
             termios.tcsetattr(fd, termios.TCSADRAIN, new)
             curses.setupterm()
             if curses.tigetnum("colors") > 2:
-                for h in handlers:
-                    try:
-                        h.formatter.enable_color()
-                    except AttributeError:
-                        pass
+                format.enable_color()
             self.ed = curses.tigetstr("ed")
             if self.ed:
                 self.cuu = curses.tigetstr("cuu")
@@ -199,9 +197,10 @@ class TerminalFilter(object):
             self.interactive = False
             bb.note("Unable to use interactive mode for this terminal, using fallback")
             return
-
-        for h in handlers:
-            h.addFilter(InteractConsoleLogFilter(self))
+        if console:
+            console.addFilter(InteractConsoleLogFilter(self, format))
+        if errconsole:
+            errconsole.addFilter(InteractConsoleLogFilter(self, format))
 
         self.main_progress = None
 
@@ -364,11 +363,7 @@ def _log_settings_from_server(server, observe_only):
     if error:
         logger.error("Unable to get the value of BB_CONSOLELOG variable: %s" % error)
         raise BaseException(error)
-    logconfigfile, error = server.runCommand([cmd, "BB_LOGCONFIG"])
-    if error:
-        logger.error("Unable to get the value of BB_LOGCONFIG variable: %s" % error)
-        raise BaseException(error)
-    return includelogs, loglines, consolelogfile, logconfigfile
+    return includelogs, loglines, consolelogfile
 
 _evt_list = [ "bb.runqueue.runQueueExitWait", "bb.event.LogExecTTY", "logging.LogRecord",
               "bb.build.TaskFailed", "bb.build.TaskBase", "bb.event.ParseStarted",
@@ -385,148 +380,7 @@ def main(server, eventHandler, params, tf = TerminalFilter):
     if not params.observe_only:
         params.updateToServer(server, os.environ.copy())
 
-    includelogs, loglines, consolelogfile, logconfigfile = _log_settings_from_server(server, params.observe_only)
-
-    loglevel, _ = bb.msg.constructLogOptions()
-
-    if params.options.quiet == 0:
-        console_loglevel = loglevel
-    elif params.options.quiet > 2:
-        console_loglevel = bb.msg.BBLogFormatter.ERROR
-    else:
-        console_loglevel = bb.msg.BBLogFormatter.WARNING
-
-    logconfig = {
-        "version": 1,
-        "handlers": {
-            "BitBake.console": {
-                "class": "logging.StreamHandler",
-                "formatter": "BitBake.consoleFormatter",
-                "level": console_loglevel,
-                "stream": "ext://sys.stdout",
-                "filters": ["BitBake.stdoutFilter"],
-                ".": {
-                    "is_console": True,
-                },
-            },
-            "BitBake.errconsole": {
-                "class": "logging.StreamHandler",
-                "formatter": "BitBake.consoleFormatter",
-                "level": loglevel,
-                "stream": "ext://sys.stderr",
-                "filters": ["BitBake.stderrFilter"],
-                ".": {
-                    "is_console": True,
-                },
-            },
-            # This handler can be used if specific loggers should print on
-            # the console at a lower severity than the default. It will
-            # display any messages sent to it that are lower than then
-            # BitBake.console logging level (so as to prevent duplication of
-            # messages). Nothing is attached to this handler by default
-            "BitBake.verbconsole": {
-                "class": "logging.StreamHandler",
-                "formatter": "BitBake.consoleFormatter",
-                "level": 1,
-                "stream": "ext://sys.stdout",
-                "filters": ["BitBake.verbconsoleFilter"],
-                ".": {
-                    "is_console": True,
-                },
-            },
-        },
-        "formatters": {
-            # This format instance will get color output enabled by the
-            # terminal
-            "BitBake.consoleFormatter" : {
-                "()": "bb.msg.BBLogFormatter",
-                "format": "%(levelname)s: %(message)s"
-            },
-            # The file log requires a separate instance so that it doesn't get
-            # color enabled
-            "BitBake.logfileFormatter": {
-                "()": "bb.msg.BBLogFormatter",
-                "format": "%(levelname)s: %(message)s"
-            }
-        },
-        "filters": {
-            "BitBake.stdoutFilter": {
-                "()": "bb.msg.LogFilterLTLevel",
-                "level": "ERROR"
-            },
-            "BitBake.stderrFilter": {
-                "()": "bb.msg.LogFilterGEQLevel",
-                "level": "ERROR"
-            },
-            "BitBake.verbconsoleFilter": {
-                "()": "bb.msg.LogFilterLTLevel",
-                "level": console_loglevel
-            },
-        },
-        "loggers": {
-            "BitBake": {
-                "level": loglevel,
-                "handlers": ["BitBake.console", "BitBake.errconsole"],
-            }
-        },
-        "disable_existing_loggers": False
-    }
-
-    # Enable the console log file if enabled
-    if consolelogfile and not params.options.show_environment and not params.options.show_versions:
-        logconfig = bb.msg.mergeLoggingConfig(logconfig, {
-                "version": 1,
-                "handlers" : {
-                    "BitBake.consolelog": {
-                        "class": "logging.FileHandler",
-                        "formatter": "BitBake.logfileFormatter",
-                        "level": loglevel,
-                        "filename": consolelogfile,
-                    },
-                    # Just like verbconsole, anything sent here will go to the
-                    # log file, unless it would go to BitBake.consolelog
-                    "BitBake.verbconsolelog" : {
-                        "class": "logging.FileHandler",
-                        "formatter": "BitBake.logfileFormatter",
-                        "level": 1,
-                        "filename": consolelogfile,
-                        "filters": ["BitBake.verbconsolelogFilter"],
-                    },
-                },
-                "filters": {
-                    "BitBake.verbconsolelogFilter": {
-                        "()": "bb.msg.LogFilterLTLevel",
-                        "level": loglevel,
-                    },
-                },
-                "loggers": {
-                    "BitBake": {
-                        "handlers": ["BitBake.consolelog"],
-                    },
-
-                    # Other interesting things that we want to keep an eye on
-                    # in the log files in case someone has an issue, but not
-                    # necessarily show to the user on the console
-                    "BitBake.SigGen.HashEquiv": {
-                        "level": "VERBOSE",
-                        "handlers": ["BitBake.verbconsolelog"],
-                    },
-                    "BitBake.RunQueue.HashEquiv": {
-                        "level": "VERBOSE",
-                        "handlers": ["BitBake.verbconsolelog"],
-                    }
-                }
-            })
-
-        bb.utils.mkdirhier(os.path.dirname(consolelogfile))
-        loglink = os.path.join(os.path.dirname(consolelogfile), 'console-latest.log')
-        bb.utils.remove(loglink)
-        try:
-           os.symlink(os.path.basename(consolelogfile), loglink)
-        except OSError:
-           pass
-
-    conf = bb.msg.setLoggingConfig(logconfig, logconfigfile)
+    includelogs, loglines, consolelogfile = _log_settings_from_server(server, params.observe_only)
 
     if sys.stdin.isatty() and sys.stdout.isatty():
         log_exec_tty = True
@@ -535,9 +389,23 @@ def main(server, eventHandler, params, tf = TerminalFilter):
 
     helper = uihelper.BBUIHelper()
 
-    # Look for the specially designated handlers which need to be passed to the
-    # terminal handler
-    console_handlers = [h for h in conf.config['handlers'].values() if getattr(h, 'is_console', False)]
+    console = logging.StreamHandler(sys.stdout)
+    errconsole = logging.StreamHandler(sys.stderr)
+    format_str = "%(levelname)s: %(message)s"
+    format = bb.msg.BBLogFormatter(format_str)
+    if params.options.quiet == 0:
+        forcelevel = None
+    elif params.options.quiet > 2:
+        forcelevel = bb.msg.BBLogFormatter.ERROR
+    else:
+        forcelevel = bb.msg.BBLogFormatter.WARNING
+    bb.msg.addDefaultlogFilter(console, bb.msg.BBLogFilterStdOut, forcelevel)
+    bb.msg.addDefaultlogFilter(errconsole, bb.msg.BBLogFilterStdErr)
+    console.setFormatter(format)
+    errconsole.setFormatter(format)
+    if not bb.msg.has_console_handler(logger):
+        logger.addHandler(console)
+        logger.addHandler(errconsole)
 
     bb.utils.set_process_name("KnottyUI")
 
@@ -545,13 +413,23 @@ def main(server, eventHandler, params, tf = TerminalFilter):
         server.terminateServer()
         return
 
+    consolelog = None
+    if consolelogfile and not params.options.show_environment and not params.options.show_versions:
+        bb.utils.mkdirhier(os.path.dirname(consolelogfile))
+        conlogformat = bb.msg.BBLogFormatter(format_str)
+        consolelog = logging.FileHandler(consolelogfile)
+        bb.msg.addDefaultlogFilter(consolelog)
+        consolelog.setFormatter(conlogformat)
+        logger.addHandler(consolelog)
+        loglink = os.path.join(os.path.dirname(consolelogfile), 'console-latest.log')
+        bb.utils.remove(loglink)
+        try:
+           os.symlink(os.path.basename(consolelogfile), loglink)
+        except OSError:
+           pass
+
     llevel, debug_domains = bb.msg.constructLogOptions()
     server.runCommand(["setEventMask", server.getEventHandle(), llevel, debug_domains, _evt_list])
-
-    # The logging_tree module is *extremely* helpful in debugging logging
-    # domains. Uncomment here to dump the logging tree when bitbake starts
-    #import logging_tree
-    #logging_tree.printout()
 
     universe = False
     if not params.observe_only:
@@ -570,7 +448,7 @@ def main(server, eventHandler, params, tf = TerminalFilter):
         if error:
             logger.error("Command '%s' failed: %s" % (cmdline, error))
             return 1
-        elif not ret:
+        elif ret != True:
             logger.error("Command '%s' failed: returned %s" % (cmdline, ret))
             return 1
 
@@ -587,7 +465,7 @@ def main(server, eventHandler, params, tf = TerminalFilter):
     printinterval = 5000
     lastprint = time.time()
 
-    termfilter = tf(main, helper, console_handlers, params.options.quiet)
+    termfilter = tf(main, helper, console, errconsole, format, params.options.quiet)
     atexit.register(termfilter.finish)
 
     while True:
@@ -626,26 +504,26 @@ def main(server, eventHandler, params, tf = TerminalFilter):
             if isinstance(event, logging.LogRecord):
                 lastprint = time.time()
                 printinterval = 5000
-                if event.levelno >= bb.msg.BBLogFormatter.ERROR:
+                if event.levelno >= format.ERROR:
                     errors = errors + 1
                     return_value = 1
-                elif event.levelno == bb.msg.BBLogFormatter.WARNING:
+                elif event.levelno == format.WARNING:
                     warnings = warnings + 1
 
                 if event.taskpid != 0:
                     # For "normal" logging conditions, don't show note logs from tasks
                     # but do show them if the user has changed the default log level to
                     # include verbose/debug messages
-                    if event.levelno <= bb.msg.BBLogFormatter.NOTE and (event.levelno < llevel or (event.levelno == bb.msg.BBLogFormatter.NOTE and llevel != bb.msg.BBLogFormatter.VERBOSE)):
+                    if event.levelno <= format.NOTE and (event.levelno < llevel or (event.levelno == format.NOTE and llevel != format.VERBOSE)):
                         continue
 
                     # Prefix task messages with recipe/task
-                    if event.taskpid in helper.pidmap and event.levelno != bb.msg.BBLogFormatter.PLAIN:
+                    if event.taskpid in helper.pidmap and event.levelno != format.PLAIN:
                         taskinfo = helper.running_tasks[helper.pidmap[event.taskpid]]
                         event.msg = taskinfo['title'] + ': ' + event.msg
                 if hasattr(event, 'fn'):
                     event.msg = event.fn + ': ' + event.msg
-                logging.getLogger(event.name).handle(event)
+                logger.handle(event)
                 continue
 
             if isinstance(event, bb.build.TaskFailedSilent):
@@ -713,7 +591,6 @@ def main(server, eventHandler, params, tf = TerminalFilter):
             if isinstance(event, bb.command.CommandExit):
                 if not return_value:
                     return_value = event.exitcode
-                main.shutdown = 2
                 continue
             if isinstance(event, (bb.command.CommandCompleted, bb.cooker.CookerExit)):
                 main.shutdown = 2
@@ -871,6 +748,8 @@ def main(server, eventHandler, params, tf = TerminalFilter):
         if e.errno == errno.EPIPE:
             pass
 
-    logging.shutdown()
+    if consolelog:
+        logger.removeHandler(consolelog)
+        consolelog.close()
 
     return return_value

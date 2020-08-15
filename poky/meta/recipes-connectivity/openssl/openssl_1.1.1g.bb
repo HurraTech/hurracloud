@@ -101,9 +101,6 @@ do_configure () {
 	linux-powerpc64)
 		target=linux-ppc64
 		;;
-	linux-powerpc64le)
-		target=linux-ppc64le
-		;;
 	linux-riscv32)
 		target=linux-generic32
 		;;
@@ -121,7 +118,7 @@ do_configure () {
 	fi
 	# WARNING: do not set compiler/linker flags (-I/-D etc.) in EXTRA_OECONF, as they will fully replace the
 	# environment variables set by bitbake. Adjust the environment variables instead.
-	HASHBANGPERL="/usr/bin/env perl" PERL=perl PERL5LIB="${S}/external/perl/Text-Template-1.46/lib/" \
+	PERL5LIB="${S}/external/perl/Text-Template-1.46/lib/" \
 	perl ${S}/Configure ${EXTRA_OECONF} ${PACKAGECONFIG_CONFARGS} --prefix=$useprefix --openssldir=${libdir}/ssl-1.1 --libdir=${libdir} $target
 	perl ${B}/configdata.pm --dump
 }
@@ -191,9 +188,7 @@ PACKAGES =+ "libcrypto libssl openssl-conf ${PN}-engines ${PN}-misc"
 
 FILES_libcrypto = "${libdir}/libcrypto${SOLIBS}"
 FILES_libssl = "${libdir}/libssl${SOLIBS}"
-FILES_openssl-conf = "${sysconfdir}/ssl/openssl.cnf \
-                      ${libdir}/ssl-1.1/openssl.cnf* \
-                      "
+FILES_openssl-conf = "${sysconfdir}/ssl/openssl.cnf"
 FILES_${PN}-engines = "${libdir}/engines-1.1"
 FILES_${PN}-misc = "${libdir}/ssl-1.1/misc"
 FILES_${PN} =+ "${libdir}/ssl-1.1/*"
@@ -203,8 +198,6 @@ CONFFILES_openssl-conf = "${sysconfdir}/ssl/openssl.cnf"
 
 RRECOMMENDS_libcrypto += "openssl-conf"
 RDEPENDS_${PN}-ptest += "openssl-bin perl perl-modules bash"
-
-RDEPENDS_${PN}-bin += "openssl-conf"
 
 BBCLASSEXTEND = "native nativesdk"
 

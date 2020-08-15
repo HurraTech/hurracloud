@@ -19,7 +19,6 @@ import os
 import tempfile
 import json
 import subprocess
-import re
 
 from collections import namedtuple, OrderedDict
 from distutils.spawn import find_executable
@@ -326,80 +325,38 @@ class Disk:
                                                    self._get_part_image(pnum),
                                                    path))
 
-    def copy(self, src, dest):
+    def copy(self, src, pnum, path):
         """Copy partition image into wic image."""
-        pnum =  dest.part if isinstance(src, str) else src.part
-
         if self.partitions[pnum].fstype.startswith('ext'):
-            if isinstance(src, str):
-                cmd = "printf 'cd {}\nwrite {} {}\n' | {} -w {}".\
-                      format(os.path.dirname(dest.path), src, os.path.basename(src),
+            cmd = "printf 'cd {}\nwrite {} {}\n' | {} -w {}".\
+                      format(path, src, os.path.basename(src),
                              self.debugfs, self._get_part_image(pnum))
-            else: # copy from wic
-                # run both dump and rdump to support both files and directory
-                cmd = "printf 'cd {}\ndump /{} {}\nrdump /{} {}\n' | {} {}".\
-                      format(os.path.dirname(src.path), src.path,
-                             dest, src.path, dest, self.debugfs,
-                             self._get_part_image(pnum))
         else: # fat
-            if isinstance(src, str):
-                cmd = "{} -i {} -snop {} ::{}".format(self.mcopy,
+            cmd = "{} -i {} -snop {} ::{}".format(self.mcopy,
                                                   self._get_part_image(pnum),
-                                                  src, dest.path)
-            else:
-                cmd = "{} -i {} -snop ::{} {}".format(self.mcopy,
-                                                  self._get_part_image(pnum),
-                                                  src.path, dest)
-
+                                                  src, path)
         exec_cmd(cmd, as_shell=True)
         self._put_part_image(pnum)
 
-    def remove_ext(self, pnum, path, recursive):
-        """
-        Remove files/dirs and their contents from the partition.
-        This only applies to ext* partition.
-        """
-        abs_path = re.sub('\/\/+', '/', path)
-        cmd = "{} {} -wR 'rm \"{}\"'".format(self.debugfs,
-                                            self._get_part_image(pnum),
-                                            abs_path)
-        out = exec_cmd(cmd , as_shell=True)
-        for line in out.splitlines():
-            if line.startswith("rm:"):
-                if "file is a directory" in line:
-                    if recursive:
-                        # loop through content and delete them one by one if
-                        # flaged with -r
-                        subdirs = iter(self.dir(pnum, abs_path).splitlines())
-                        next(subdirs)
-                        for subdir in subdirs:
-                            dir = subdir.split(':')[1].split(" ", 1)[1]
-                            if not dir == "." and not dir == "..":
-                                self.remove_ext(pnum, "%s/%s" % (abs_path, dir), recursive)
-
-                    rmdir_out = exec_cmd("{} {} -wR 'rmdir \"{}\"'".format(self.debugfs,
-                                                    self._get_part_image(pnum),
-                                                    abs_path.rstrip('/'))
-                                                    , as_shell=True)
-
-                    for rmdir_line in rmdir_out.splitlines():
-                        if "directory not empty" in rmdir_line:
-                            raise WicError("Could not complete operation: \n%s \n"
-                                            "use -r to remove non-empty directory" % rmdir_line)
-                        if rmdir_line.startswith("rmdir:"):
-                            raise WicError("Could not complete operation: \n%s "
-                                            "\n%s" % (str(line), rmdir_line))
-
-                else:
-                    raise WicError("Could not complete operation: \n%s "
-                                    "\nUnable to remove %s" % (str(line), abs_path))
-
-    def remove(self, pnum, path, recursive):
+    def remove(self, pnum, path):
         """Remove files/dirs from the partition."""
         partimg = self._get_part_image(pnum)
         if self.partitions[pnum].fstype.startswith('ext'):
-            self.remove_ext(pnum, path, recursive)
-
+            cmd = "{} {} -wR 'rm {}'".format(self.debugfs,
+                                                self._get_part_image(pnum),
+                                                path)
+            out = exec_cmd(cmd , as_shell=True)
+            for line in out.splitlines():
+                if line.startswith("rm:"):
+                    if "file is a directory" in line:
+                        # Try rmdir to see if this is an empty directory. This won't delete
+                        # any non empty directory so let user know about any error that this might
+                        # generate.
+                        print(exec_cmd("{} {} -wR 'rmdir {}'".format(self.debugfs,
+                                                    self._get_part_image(pnum),
+                                                    path), as_shell=True))
+                    else:
+                        raise WicError("Could not complete operation: wic %s" % str(line))
         else: # fat
             cmd = "{} -i {} ::{}".format(self.mdel, partimg, path)
             try:
@@ -442,7 +399,7 @@ class Disk:
             outf.flush()
 
         def read_ptable(path):
-            out = exec_cmd("{} -J {}".format(self.sfdisk, path))
+            out = exec_cmd("{} -dJ {}".format(self.sfdisk, path))
             return json.loads(out)
 
         def write_ptable(parts, target):
@@ -569,15 +526,11 @@ def wic_ls(args, native_sysroot):
 
 def wic_cp(args, native_sysroot):
     """
-    Copy file or directory to/from the vfat/ext partition of
+    Copy local file or directory to the vfat partition of
     partitioned image.
     """
-    if isinstance(args.dest, str):
-        disk = Disk(args.src.image, native_sysroot)
-    else:
-        disk = Disk(args.dest.image, native_sysroot)
-    disk.copy(args.src, args.dest)
-
+    disk = Disk(args.dest.image, native_sysroot)
+    disk.copy(args.src, args.dest.part, args.dest.path)
 
 def wic_rm(args, native_sysroot):
     """
@@ -585,7 +538,7 @@ def wic_rm(args, native_sysroot):
     partitioned image.
     """
     disk = Disk(args.path.image, native_sysroot)
-    disk.remove(args.path.part, args.path.path, args.recursive_delete)
+    disk.remove(args.path.part, args.path.path)
 
 def wic_write(args, native_sysroot):
     """

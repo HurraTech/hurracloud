@@ -12,12 +12,14 @@ Handles preparation and execution of a queue of tasks
 import copy
 import os
 import sys
+import signal
 import stat
+import fcntl
 import errno
 import logging
 import re
 import bb
-from bb import msg, event
+from bb import msg, data, event
 from bb import monitordisk
 import subprocess
 import pickle
@@ -27,7 +29,6 @@ import pprint
 
 bblogger = logging.getLogger("BitBake")
 logger = logging.getLogger("BitBake.RunQueue")
-hashequiv_logger = logging.getLogger("BitBake.RunQueue.HashEquiv")
 
 __find_sha256__ = re.compile( r'(?i)(?<![a-z0-9])[a-f0-9]{64}(?![a-z0-9])' )
 
@@ -921,11 +922,9 @@ class RunQueueData:
             runq_build = {}
 
             for task in self.cooker.configuration.runall:
-                if not task.startswith("do_"):
-                    task = "do_{0}".format(task)
                 runall_tids = set()
                 for tid in list(self.runtaskentries):
-                    wanttid = "{0}:{1}".format(fn_from_tid(tid), task)
+                    wanttid = fn_from_tid(tid) + ":do_%s" % task
                     if wanttid in delcount:
                         self.runtaskentries[wanttid] = delcount[wanttid]
                     if wanttid in self.runtaskentries:
@@ -952,9 +951,7 @@ class RunQueueData:
             runq_build = {}
 
             for task in self.cooker.configuration.runonly:
-                if not task.startswith("do_"):
-                    task = "do_{0}".format(task)
-                runonly_tids = { k: v for k, v in self.runtaskentries.items() if taskname_from_tid(k) == task }
+                runonly_tids = { k: v for k, v in self.runtaskentries.items() if taskname_from_tid(k) == "do_%s" % task }
 
                 for tid in list(runonly_tids):
                     mark_active(tid,1)
@@ -1255,7 +1252,7 @@ class RunQueue:
             "fakerootdirs" : self.rqdata.dataCaches[mc].fakerootdirs,
             "fakerootnoenv" : self.rqdata.dataCaches[mc].fakerootnoenv,
             "sigdata" : bb.parse.siggen.get_taskdata(),
-            "logdefaultlevel" : bb.msg.loggerDefaultLogLevel,
+            "logdefaultdebug" : bb.msg.loggerDefaultDebugLevel,
             "logdefaultverbose" : bb.msg.loggerDefaultVerbose,
             "logdefaultverboselogs" : bb.msg.loggerVerboseLogs,
             "logdefaultdomain" : bb.msg.loggerDefaultDomains,
@@ -2059,7 +2056,7 @@ class RunQueueExecute:
         self.update_holdofftasks()
 
         if not self.sq_live and not self.sqdone and not self.sq_deferred and not self.updated_taskhash_queue and not self.holdoff_tasks:
-            hashequiv_logger.verbose("Setscene tasks completed")
+            logger.info("Setscene tasks completed")
 
             err = self.summarise_scenequeue_errors()
             if err:
@@ -2264,7 +2261,7 @@ class RunQueueExecute:
             self.updated_taskhash_queue.remove((tid, unihash))
 
             if unihash != self.rqdata.runtaskentries[tid].unihash:
-                hashequiv_logger.verbose("Task %s unihash changed to %s" % (tid, unihash))
+                logger.info("Task %s unihash changed to %s" % (tid, unihash))
                 self.rqdata.runtaskentries[tid].unihash = unihash
                 bb.parse.siggen.set_unihash(tid, unihash)
                 toprocess.add(tid)
@@ -2309,7 +2306,7 @@ class RunQueueExecute:
                 elif tid in self.scenequeue_covered or tid in self.sq_live:
                     # Already ran this setscene task or it running. Report the new taskhash
                     bb.parse.siggen.report_unihash_equiv(tid, newhash, origuni, newuni, self.rqdata.dataCaches)
-                    hashequiv_logger.verbose("Already covered setscene for %s so ignoring rehash (remap)" % (tid))
+                    logger.info("Already covered setscene for %s so ignoring rehash (remap)" % (tid))
                     remapped = True
 
                 if not remapped:
@@ -2328,7 +2325,7 @@ class RunQueueExecute:
             for mc in self.rq.fakeworker:
                 self.rq.fakeworker[mc].process.stdin.write(b"<newtaskhashes>" + pickle.dumps(bb.parse.siggen.get_taskhashes()) + b"</newtaskhashes>")
 
-            hashequiv_logger.debug(1, pprint.pformat("Tasks changed:\n%s" % (changed)))
+            logger.debug(1, pprint.pformat("Tasks changed:\n%s" % (changed)))
 
         for tid in changed:
             if tid not in self.rqdata.runq_setscene_tids:
@@ -2347,7 +2344,7 @@ class RunQueueExecute:
             # Check no tasks this covers are running
             for dep in self.sqdata.sq_covered_tasks[tid]:
                 if dep in self.runq_running and dep not in self.runq_complete:
-                    hashequiv_logger.debug(2, "Task %s is running which blocks setscene for %s from running" % (dep, tid))
+                    logger.debug(2, "Task %s is running which blocks setscene for %s from running" % (dep, tid))
                     valid = False
                     break
             if not valid:
@@ -2410,7 +2407,7 @@ class RunQueueExecute:
 
         for (tid, harddepfail, origvalid) in update_tasks:
             if tid in self.sqdata.valid and not origvalid:
-                hashequiv_logger.verbose("Setscene task %s became valid" % tid)
+                logger.info("Setscene task %s became valid" % tid)
             if harddepfail:
                 self.sq_task_failoutright(tid)
 
@@ -2958,12 +2955,7 @@ class runQueuePipe():
             while index != -1 and self.queue.startswith(b"<event>"):
                 try:
                     event = pickle.loads(self.queue[7:index])
-                except (ValueError, pickle.UnpicklingError, AttributeError, IndexError) as e:
-                    if isinstance(e, pickle.UnpicklingError) and "truncated" in str(e):
-                        # The pickled data could contain "</event>" so search for the next occurance
-                        # unpickling again, this should be the only way an unpickle error could occur
-                        index = self.queue.find(b"</event>", index + 1)
-                        continue
+                except ValueError as e:
                     bb.msg.fatal("RunQueue", "failed load pickle '%s': '%s'" % (e, self.queue[7:index]))
                 bb.event.fire_from_worker(event, self.d)
                 if isinstance(event, taskUniHashUpdate):
@@ -2975,7 +2967,7 @@ class runQueuePipe():
             while index != -1 and self.queue.startswith(b"<exitcode>"):
                 try:
                     task, status = pickle.loads(self.queue[10:index])
-                except (ValueError, pickle.UnpicklingError, AttributeError, IndexError) as e:
+                except ValueError as e:
                     bb.msg.fatal("RunQueue", "failed load pickle '%s': '%s'" % (e, self.queue[10:index]))
                 self.rqexec.runqueue_process_waitpid(task, status)
                 found = True

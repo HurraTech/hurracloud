@@ -3,7 +3,7 @@
 #
 
 from oeqa.selftest.case import OESelftestTestCase
-from oeqa.utils.commands import runCmd, bitbake, get_bb_var, get_bb_vars, create_temp_layer
+from oeqa.utils.commands import runCmd, bitbake, get_bb_var, get_bb_vars
 import os
 import oe
 import glob
@@ -157,8 +157,8 @@ class Signing(OESelftestTestCase):
             bitbake('-c clean %s' % test_recipe)
             bitbake('-c populate_lic %s' % test_recipe)
 
-            recipe_sig = glob.glob(sstatedir + '/*/*/*:ed:*_populate_lic.tgz.sig')
-            recipe_tgz = glob.glob(sstatedir + '/*/*/*:ed:*_populate_lic.tgz')
+            recipe_sig = glob.glob(sstatedir + '/*/*:ed:*_populate_lic.tgz.sig')
+            recipe_tgz = glob.glob(sstatedir + '/*/*:ed:*_populate_lic.tgz')
 
             self.assertEqual(len(recipe_sig), 1, 'Failed to find .sig file.')
             self.assertEqual(len(recipe_tgz), 1, 'Failed to find .tgz file.')
@@ -185,6 +185,8 @@ class LockedSignatures(OESelftestTestCase):
         test_recipe = 'ed'
         locked_sigs_file = 'locked-sigs.inc'
 
+        self.add_command_to_tearDown('rm -f %s' % os.path.join(self.builddir, locked_sigs_file))
+
         bitbake(test_recipe)
         # Generate locked sigs include file
         bitbake('-S none %s' % test_recipe)
@@ -196,23 +198,16 @@ class LockedSignatures(OESelftestTestCase):
         # Build a locked recipe
         bitbake(test_recipe)
 
-        templayerdir = tempfile.mkdtemp(prefix='signingqa')
-        create_temp_layer(templayerdir, 'selftestsigning')
-        runCmd('bitbake-layers add-layer %s' % templayerdir)
-
         # Make a change that should cause the locked task signature to change
         # Use uuid so hash equivalance server isn't triggered
         recipe_append_file = test_recipe + '_' + get_bb_var('PV', test_recipe) + '.bbappend'
-        recipe_append_path = os.path.join(templayerdir, 'recipes-test', test_recipe, recipe_append_file)
+        recipe_append_path = os.path.join(self.testlayer_path, 'recipes-test', test_recipe, recipe_append_file)
         feature = 'SUMMARY_${PN} = "test locked signature%s"\n' % uuid.uuid4()
 
-        os.mkdir(os.path.join(templayerdir, 'recipes-test'))
-        os.mkdir(os.path.join(templayerdir, 'recipes-test', test_recipe))
+        os.mkdir(os.path.join(self.testlayer_path, 'recipes-test', test_recipe))
         write_file(recipe_append_path, feature)
 
-        self.add_command_to_tearDown('bitbake-layers remove-layer %s' % templayerdir)
-        self.add_command_to_tearDown('rm -f %s' % os.path.join(self.builddir, locked_sigs_file))
-        self.add_command_to_tearDown('rm -rf %s' % templayerdir)
+        self.add_command_to_tearDown('rm -rf %s' % os.path.join(self.testlayer_path, 'recipes-test', test_recipe))
 
         # Build the recipe again
         ret = bitbake(test_recipe)

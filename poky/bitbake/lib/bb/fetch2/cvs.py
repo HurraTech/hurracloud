@@ -14,6 +14,7 @@ BitBake build tools.
 #
 
 import os
+import logging
 import bb
 from bb.fetch2 import FetchMethod, FetchError, MissingParameterError, logger
 from bb.fetch2 import runfetchcmd

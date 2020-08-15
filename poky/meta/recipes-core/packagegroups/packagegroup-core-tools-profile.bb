@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-PROFILE_TOOLS_X = ""
+PROFILE_TOOLS_X = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'sysprof', '', d)}"
 # sysprof doesn't support aarch64 and nios2
 PROFILE_TOOLS_X_aarch64 = ""
 PROFILE_TOOLS_X_nios2 = ""
@@ -46,7 +46,6 @@ LTTNGMODULES = "lttng-modules"
 LTTNGMODULES_arc = ""
 
 BABELTRACE = "babeltrace"
-BABELTRACE2 = "babeltrace2"
 
 # valgrind does not work on the following configurations/architectures
 
@@ -70,7 +69,6 @@ RDEPENDS_${PN} = "\
     ${LTTNGTOOLS} \
     ${LTTNGMODULES} \
     ${BABELTRACE} \
-    ${BABELTRACE2} \
     ${SYSTEMTAP} \
     ${VALGRIND} \
     "

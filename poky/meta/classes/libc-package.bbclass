@@ -248,7 +248,6 @@ python package_do_split_gconvs () {
                 "sh4":     " --uint32-align=4 --big-endian ",    \
                 "powerpc": " --uint32-align=4 --big-endian ",    \
                 "powerpc64": " --uint32-align=4 --big-endian ",  \
-                "powerpc64le": " --uint32-align=4 --little-endian ",  \
                 "mips":    " --uint32-align=4 --big-endian ",    \
                 "mipsisa32r6":    " --uint32-align=4 --big-endian ",    \
                 "mips64":  " --uint32-align=4 --big-endian ",    \
@@ -347,13 +346,14 @@ python package_do_split_gconvs () {
 
     if use_bin == "compile":
         makefile = oe.path.join(d.getVar("WORKDIR"), "locale-tree", "Makefile")
-        with open(makefile, "w") as m:
-            m.write("all: %s\n\n" % " ".join(commands.keys()))
-            total = len(commands)
-            for i, (maketarget, makerecipe) in enumerate(commands.items()):
-                m.write(maketarget + ":\n")
-                m.write("\t@echo 'Progress %d/%d'\n" % (i, total))
-                m.write("\t" + makerecipe + "\n\n")
+        m = open(makefile, "w")
+        m.write("all: %s\n\n" % " ".join(commands.keys()))
+        total = len(commands)
+        for i, cmd in enumerate(commands):
+            m.write(cmd + ":\n")
+            m.write("\t@echo 'Progress %d/%d'\n" % (i, total))
+            m.write("\t" + commands[cmd] + "\n\n")
+        m.close()
         d.setVar("EXTRA_OEMAKE", "-C %s ${PARALLEL_MAKE}" % (os.path.dirname(makefile)))
         d.setVarFlag("oe_runmake", "progress", "outof:Progress\s(\d+)/(\d+)")
         bb.note("Executing binary locale generation makefile")

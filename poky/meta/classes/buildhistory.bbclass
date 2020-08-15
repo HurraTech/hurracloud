@@ -40,7 +40,6 @@ BUILDHISTORY_SDK_FILES ?= "conf/local.conf conf/bblayers.conf conf/auto.conf con
 BUILDHISTORY_COMMIT ?= "1"
 BUILDHISTORY_COMMIT_AUTHOR ?= "buildhistory <buildhistory@${DISTRO}>"
 BUILDHISTORY_PUSH_REPO ?= ""
-BUILDHISTORY_TAG ?= "build"
 
 SSTATEPOSTINSTFUNCS_append = " buildhistory_emit_pkghistory"
 # We want to avoid influencing the signatures of sstate tasks - first the function itself:
@@ -281,7 +280,7 @@ python buildhistory_emit_pkghistory() {
             last_pkgr = lastversion.pkgr
             r = bb.utils.vercmp((pkge, pkgv, pkgr), (last_pkge, last_pkgv, last_pkgr))
             if r < 0:
-                msg = "Package version for package %s went backwards which would break package feeds (from %s:%s-%s to %s:%s-%s)" % (pkg, last_pkge, last_pkgv, last_pkgr, pkge, pkgv, pkgr)
+                msg = "Package version for package %s went backwards which would break package feeds from (%s:%s-%s to %s:%s-%s)" % (pkg, last_pkge, last_pkgv, last_pkgr, pkge, pkgv, pkgr)
                 package_qa_handle_error("version-going-backwards", msg, d)
 
         pkginfo = PackageInfo(pkg)
@@ -426,8 +425,8 @@ def buildhistory_list_installed(d, rootfs_type="image"):
     from oe.sdk import sdk_list_installed_packages
     from oe.utils import format_pkg_list
 
-    process_list = [('file', 'bh_installed_pkgs_%s.txt' % os.getpid()),\
-                    ('deps', 'bh_installed_pkgs_deps_%s.txt' % os.getpid())]
+    process_list = [('file', 'bh_installed_pkgs.txt'),\
+                    ('deps', 'bh_installed_pkgs_deps.txt')]
 
     if rootfs_type == "image":
         pkgs = image_list_installed_packages(d)
@@ -457,10 +456,9 @@ buildhistory_get_installed() {
 
 	# Get list of installed packages
 	pkgcache="$1/installed-packages.tmp"
-	cat ${WORKDIR}/bh_installed_pkgs_${PID}.txt | sort > $pkgcache && rm ${WORKDIR}/bh_installed_pkgs_${PID}.txt
+	cat ${WORKDIR}/bh_installed_pkgs.txt | sort > $pkgcache && rm ${WORKDIR}/bh_installed_pkgs.txt
 
 	cat $pkgcache | awk '{ print $1 }' > $1/installed-package-names.txt
-
 	if [ -s $pkgcache ] ; then
 		cat $pkgcache | awk '{ print $2 }' | xargs -n1 basename > $1/installed-packages.txt
 	else
@@ -469,8 +467,8 @@ buildhistory_get_installed() {
 
 	# Produce dependency graph
 	# First, quote each name to handle characters that cause issues for dot
-	sed 's:\([^| ]*\):"\1":g' ${WORKDIR}/bh_installed_pkgs_deps_${PID}.txt > $1/depends.tmp &&
-		rm ${WORKDIR}/bh_installed_pkgs_deps_${PID}.txt
+	sed 's:\([^| ]*\):"\1":g' ${WORKDIR}/bh_installed_pkgs_deps.txt > $1/depends.tmp &&
+		rm ${WORKDIR}/bh_installed_pkgs_deps.txt
 	# Remove lines with rpmlib(...) and config(...) dependencies, change the
 	# delimiter from pipe to "->", set the style for recommend lines and
 	# turn versioned dependencies into edge labels.
@@ -826,9 +824,9 @@ END
 		if [ ! -e .git ] ; then
 			git init -q
 		else
-			git tag -f ${BUILDHISTORY_TAG}-minus-3 ${BUILDHISTORY_TAG}-minus-2 > /dev/null 2>&1 || true
-			git tag -f ${BUILDHISTORY_TAG}-minus-2 ${BUILDHISTORY_TAG}-minus-1 > /dev/null 2>&1 || true
-			git tag -f ${BUILDHISTORY_TAG}-minus-1 > /dev/null 2>&1 || true
+			git tag -f build-minus-3 build-minus-2 > /dev/null 2>&1 || true
+			git tag -f build-minus-2 build-minus-1 > /dev/null 2>&1 || true
+			git tag -f build-minus-1 > /dev/null 2>&1 || true
 		fi
 
 		check_git_config

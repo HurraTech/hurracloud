@@ -15,7 +15,7 @@ from . import OETarget
 
 class OESSHTarget(OETarget):
     def __init__(self, logger, ip, server_ip, timeout=300, user='root',
-                 port=None, server_port=0, **kwargs):
+                 port=None, **kwargs):
         if not logger:
             logger = logging.getLogger('target')
             logger.setLevel(logging.INFO)
@@ -30,7 +30,6 @@ class OESSHTarget(OETarget):
         super(OESSHTarget, self).__init__(logger)
         self.ip = ip
         self.server_ip = server_ip
-        self.server_port = server_port
         self.timeout = timeout
         self.user = user
         ssh_options = [
@@ -107,16 +106,13 @@ class OESSHTarget(OETarget):
             scpCmd = self.scp + [localSrc, remotePath]
             return self._run(scpCmd, ignore_status=False)
 
-    def copyFrom(self, remoteSrc, localDst, warn_on_failure=False):
+    def copyFrom(self, remoteSrc, localDst):
         """
             Copy file from target.
         """
         remotePath = '%s@%s:%s' % (self.user, self.ip, remoteSrc)
         scpCmd = self.scp + [remotePath, localDst]
-        (status, output) = self._run(scpCmd, ignore_status=warn_on_failure)
-        if warn_on_failure and status:
-            self.logger.warning("Copy returned non-zero exit status %d:\n%s" % (status, output))
-        return (status, output)
+        return self._run(scpCmd, ignore_status=False)
 
     def copyDirTo(self, localSrc, remoteDst):
         """
@@ -250,7 +246,7 @@ def SSHCall(command, logger, timeout=None, **opts):
         "stdin": None,
         "shell": False,
         "bufsize": -1,
-        "start_new_session": True,
+        "preexec_fn": os.setsid,
     }
     options.update(opts)
     output = ''

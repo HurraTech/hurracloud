@@ -10,23 +10,20 @@ inherit pypi
 
 SRC_URI_append_class-native = " file://0001-conditionally-do-not-fetch-code-by-easy_install.patch"
 
-SRC_URI[md5sum] = "0c956eea142af9c2b02d72e3c042af30"
-SRC_URI[sha256sum] = "89c6e6011ec2f6d57d43a3f9296c4ef022c2cbf49bab26b407fe67992ae3397f"
+SRC_URI[md5sum] = "a3470ce184da33f0fa6c9f44f6221bc0"
+SRC_URI[sha256sum] = "66b86bbae7cc7ac2e867f52dc08a6bd064d938bac59dfec71b9b565dd36d6012"
 
 DEPENDS += "${PYTHON_PN}"
 
 RDEPENDS_${PN} = "\
-  ${PYTHON_PN}-2to3 \
   ${PYTHON_PN}-compile \
   ${PYTHON_PN}-compression \
   ${PYTHON_PN}-ctypes \
   ${PYTHON_PN}-distutils \
   ${PYTHON_PN}-email \
   ${PYTHON_PN}-html \
-  ${PYTHON_PN}-json \
   ${PYTHON_PN}-netserver \
   ${PYTHON_PN}-numbers \
-  ${PYTHON_PN}-pickle \
   ${PYTHON_PN}-pkgutil \
   ${PYTHON_PN}-plistlib \
   ${PYTHON_PN}-shell \

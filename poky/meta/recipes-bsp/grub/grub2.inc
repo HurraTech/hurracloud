@@ -11,8 +11,6 @@ SECTION = "bootloaders"
 LICENSE = "GPLv3"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
-CVE_PRODUCT = "grub2"
-
 SRC_URI = "${GNU_MIRROR}/grub/grub-${PV}.tar.gz \
            file://0001-Disable-mfpmath-sse-as-well-when-SSE-is-disabled.patch \
            file://autogen.sh-exclude-pc.patch \
@@ -35,7 +33,7 @@ GRUBPLATFORM_arm = "efi"
 GRUBPLATFORM_aarch64 = "efi"
 GRUBPLATFORM ??= "pc"
 
-inherit autotools gettext texinfo pkgconfig
+inherit autotools gettext texinfo
 
 EXTRA_OECONF = "--with-platform=${GRUBPLATFORM} \
                 --disable-grub-mkfont \
@@ -62,9 +60,8 @@ BUILD_LDFLAGS = ""
 export PYTHON = "python3"
 
 do_configure_prepend() {
-	cd ${S}
-	FROM_BOOTSTRAP=1 ${S}/autogen.sh
-	cd ${B}
+	( cd ${S}
+	${S}/autogen.sh )
 }
 
 RDEPENDS_${PN}_class-native = ""

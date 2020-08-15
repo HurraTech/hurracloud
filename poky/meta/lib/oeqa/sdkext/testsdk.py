@@ -25,8 +25,11 @@ class TestSDKExt(TestSDKBase):
 
         subprocesstweak.errors_have_output()
 
-        # We need the original PATH for testing the eSDK, not with our manipulations
-        os.environ['PATH'] = d.getVar("BB_ORIGENV", False).getVar("PATH")
+        # extensible sdk can be contaminated if native programs are
+        # in PATH, i.e. use perl-native instead of eSDK one.
+        paths_to_avoid = [d.getVar('STAGING_DIR'),
+                        d.getVar('BASE_WORKDIR')]
+        os.environ['PATH'] = avoid_paths_in_environ(paths_to_avoid)
 
         tcname = d.expand("${SDK_DEPLOY}/${TOOLCHAINEXT_OUTPUTNAME}.sh")
         if not os.path.exists(tcname):

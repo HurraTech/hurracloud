@@ -45,7 +45,6 @@ def ipk_write_pkg(pkg, d):
     import subprocess
     import textwrap
     import collections
-    import glob
 
     def cleanupcontrol(root):
         for p in ['CONTROL', 'DEBIAN']:
@@ -102,7 +101,8 @@ def ipk_write_pkg(pkg, d):
         bb.utils.mkdirhier(pkgoutdir)
         os.chdir(root)
         cleanupcontrol(root)
-        g = glob.glob('*')
+        from glob import glob
+        g = glob('*')
         if not g and localdata.getVar('ALLOW_EMPTY', False) != "1":
             bb.note("Not creating empty archive for %s-%s-%s" % (pkg, localdata.getVar('PKGV'), localdata.getVar('PKGR')))
             return
@@ -154,6 +154,7 @@ def ipk_write_pkg(pkg, d):
                     ctrlfile.write('%s\n' % textwrap.fill(description, width=74, initial_indent=' ', subsequent_indent=' '))
             else:
                 ctrlfile.write(c % tuple(pullData(fs, localdata)))
+        # more fields
 
         custom_fields_chunk = get_package_additional_metadata("ipk", localdata)
         if custom_fields_chunk is not None:
@@ -236,10 +237,6 @@ def ipk_write_pkg(pkg, d):
     finally:
         cleanupcontrol(root)
         bb.utils.unlockfile(lf)
-
-# Have to list any variables referenced as X_<pkg> that aren't in pkgdata here
-IPKEXTRAVARS = "PRIORITY MAINTAINER PACKAGE_ARCH HOMEPAGE"
-ipk_write_pkg[vardeps] += "${@gen_packagevar(d, 'IPKEXTRAVARS')}"
 
 # Otherwise allarch packages may change depending on override configuration
 ipk_write_pkg[vardepsexclude] = "OVERRIDES"

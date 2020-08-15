@@ -416,49 +416,6 @@ def splitdebuginfo(file, dvar, debugdir, debuglibdir, debugappend, debugsrcdir, 
 
     return (file, sources)
 
-def splitstaticdebuginfo(file, dvar, debugstaticdir, debugstaticlibdir, debugstaticappend, debugsrcdir, d):
-    # Unlike the function above, there is no way to split a static library
-    # two components.  So to get similar results we will copy the unmodified
-    # static library (containing the debug symbols) into a new directory.
-    # We will then strip (preserving symbols) the static library in the
-    # typical location.
-    #
-    # return a mapping of files:debugsources
-
-    import stat
-    import shutil
-
-    src = file[len(dvar):]
-    dest = debugstaticlibdir + os.path.dirname(src) + debugstaticdir + "/" + os.path.basename(src) + debugstaticappend
-    debugfile = dvar + dest
-    sources = []
-
-    # Copy the file...
-    bb.utils.mkdirhier(os.path.dirname(debugfile))
-    #bb.note("Copy %s -> %s" % (file, debugfile))
-
-    dvar = d.getVar('PKGD')
-
-    newmode = None
-    if not os.access(file, os.W_OK) or os.access(file, os.R_OK):
-        origmode = os.stat(file)[stat.ST_MODE]
-        newmode = origmode | stat.S_IWRITE | stat.S_IREAD
-        os.chmod(file, newmode)
-
-    # We need to extract the debug src information here...
-    if debugsrcdir:
-        sources = source_info(file, d)
-
-    bb.utils.mkdirhier(os.path.dirname(debugfile))
-
-    # Copy the unmodified item to the debug directory
-    shutil.copy2(file, debugfile)
-
-    if newmode:
-        os.chmod(file, origmode)
-
-    return (file, sources)
-
 def copydebugsources(debugsrcdir, sources, d):
     # The debug src information written out to sourcefile is further processed
     # and copied to the destination here.
@@ -869,9 +826,8 @@ python fixup_perms () {
 
     # Now we actually load from the configuration files
     for conf in get_fs_perms_list(d).split():
-        if not os.path.exists(conf):
-            continue
-        with open(conf) as f:
+        if os.path.exists(conf):
+            f = open(conf)
             for line in f:
                 if line.startswith('#'):
                     continue
@@ -892,6 +848,7 @@ python fixup_perms () {
                         fs_perms_table[entry.path] = entry
                         if entry.path in fs_link_table:
                             fs_link_table.pop(entry.path)
+            f.close()
 
     # Debug -- list out in-memory table
     #for dir in fs_perms_table:
@@ -950,7 +907,7 @@ python split_and_strip_files () {
 
     dvar = d.getVar('PKGD')
     pn = d.getVar('PN')
-    hostos = d.getVar('HOST_OS')
+    targetos = d.getVar('TARGET_OS')
 
     oldcwd = os.getcwd()
     os.chdir(dvar)
@@ -959,37 +916,25 @@ python split_and_strip_files () {
     if d.getVar('PACKAGE_DEBUG_SPLIT_STYLE') == 'debug-file-directory':
         # Single debug-file-directory style debug info
         debugappend = ".debug"
-        debugstaticappend = ""
         debugdir = ""
-        debugstaticdir = ""
         debuglibdir = "/usr/lib/debug"
-        debugstaticlibdir = "/usr/lib/debug-static"
         debugsrcdir = "/usr/src/debug"
     elif d.getVar('PACKAGE_DEBUG_SPLIT_STYLE') == 'debug-without-src':
         # Original OE-core, a.k.a. ".debug", style debug info, but without sources in /usr/src/debug
         debugappend = ""
-        debugstaticappend = ""
         debugdir = "/.debug"
-        debugstaticdir = "/.debug-static"
         debuglibdir = ""
-        debugstaticlibdir = ""
         debugsrcdir = ""
     elif d.getVar('PACKAGE_DEBUG_SPLIT_STYLE') == 'debug-with-srcpkg':
         debugappend = ""
-        debugstaticappend = ""
         debugdir = "/.debug"
-        debugstaticdir = "/.debug-static"
         debuglibdir = ""
-        debugstaticlibdir = ""
         debugsrcdir = "/usr/src/debug"
     else:
         # Original OE-core, a.k.a. ".debug", style debug info
         debugappend = ""
-        debugstaticappend = ""
         debugdir = "/.debug"
-        debugstaticdir = "/.debug-static"
         debuglibdir = ""
-        debugstaticlibdir = ""
         debugsrcdir = "/usr/src/debug"
 
     #
@@ -1010,6 +955,12 @@ python split_and_strip_files () {
         for root, dirs, files in cpath.walk(dvar):
             for f in files:
                 file = os.path.join(root, f)
+                if file.endswith(".ko") and file.find("/lib/modules/") != -1:
+                    kernmods.append(file)
+                    continue
+                if oe.package.is_static_lib(file):
+                    staticlibs.append(file)
+                    continue
 
                 # Skip debug files
                 if debugappend and file.endswith(debugappend):
@@ -1018,13 +969,6 @@ python split_and_strip_files () {
                     continue
 
                 if file in skipfiles:
-                    continue
-
-                if file.endswith(".ko") and file.find("/lib/modules/") != -1:
-                    kernmods.append(file)
-                    continue
-                if oe.package.is_static_lib(file):
-                    staticlibs.append(file)
                     continue
 
                 try:
@@ -1105,12 +1049,9 @@ python split_and_strip_files () {
     if (d.getVar('INHIBIT_PACKAGE_DEBUG_SPLIT') != '1'):
         results = oe.utils.multiprocess_launch(splitdebuginfo, list(elffiles), d, extraargs=(dvar, debugdir, debuglibdir, debugappend, debugsrcdir, d))
 
-        if debugsrcdir and not hostos.startswith("mingw"):
-            if (d.getVar('PACKAGE_DEBUG_STATIC_SPLIT') == '1'):
-                results = oe.utils.multiprocess_launch(splitstaticdebuginfo, staticlibs, d, extraargs=(dvar, debugstaticdir, debugstaticlibdir, debugstaticappend, debugsrcdir, d))
-            else:
-                for file in staticlibs:
-                    results.append( (file,source_info(file, d)) )
+        if debugsrcdir and not targetos.startswith("mingw"):
+            for file in staticlibs:
+                results.extend(source_info(file, d, fatal=False))
 
         sources = set()
         for r in results:
@@ -1179,9 +1120,6 @@ python split_and_strip_files () {
             sfiles.append((file, elf_file, strip))
         for f in kernmods:
             sfiles.append((f, 16, strip))
-        if (d.getVar('PACKAGE_STRIP_STATIC') == '1' or d.getVar('PACKAGE_DEBUG_STATIC_SPLIT') == '1'):
-            for f in staticlibs:
-                sfiles.append((f, 16, strip))
 
         oe.utils.multiprocess_launch(oe.package.runstrip, sfiles, d)
 
@@ -1249,7 +1187,7 @@ python populate_packages () {
             dir = os.sep
         for f in (files + dirs):
             path = "." + os.path.join(dir, f)
-            if "/.debug/" in path or "/.debug-static/" in path or path.endswith("/.debug"):
+            if "/.debug/" in path or path.endswith("/.debug"):
                 debug.append(path)
 
     for pkg in packages:
@@ -1325,9 +1263,8 @@ python populate_packages () {
     # Handle LICENSE_EXCLUSION
     package_list = []
     for pkg in packages:
-        licenses = d.getVar('LICENSE_EXCLUSION-' + pkg)
-        if licenses:
-            msg = "Excluding %s from packaging as it has incompatible license(s): %s" % (pkg, licenses)
+        if d.getVar('LICENSE_EXCLUSION-' + pkg):
+            msg = "%s has an incompatible license. Excluding from packaging." % pkg
             package_qa_handle_error("incompatible-license", msg, d)
         else:
             package_list.append(pkg)
@@ -1487,9 +1424,10 @@ fi
     pkgdest = d.getVar('PKGDEST')
     pkgdatadir = d.getVar('PKGDESTWORK')
 
-    data_file = pkgdatadir + d.expand("/${PN}")
-    with open(data_file, 'w') as fd:
-        fd.write("PACKAGES: %s\n" % packages)
+    data_file = pkgdatadir + d.expand("/${PN}" )
+    f = open(data_file, 'w')
+    f.write("PACKAGES: %s\n" % packages)
+    f.close()
 
     pn = d.getVar('PN')
     global_variants = (d.getVar('MULTILIB_GLOBAL_VARIANTS') or "").split()
@@ -1667,7 +1605,7 @@ python package_do_shlibs() {
     else:
         shlib_pkgs = packages.split()
 
-    hostos = d.getVar('HOST_OS')
+    targetos = d.getVar('TARGET_OS')
 
     workdir = d.getVar('WORKDIR')
 
@@ -1794,6 +1732,8 @@ python package_do_shlibs() {
     else:
         snap_symlinks = False
 
+    use_ldconfig = bb.utils.contains('DISTRO_FEATURES', 'ldconfig', True, False, d)
+
     needed = {}
 
     shlib_provider = oe.package.read_shlib_providers(d)
@@ -1818,9 +1758,9 @@ python package_do_shlibs() {
                 soname = None
                 if cpath.islink(file):
                     continue
-                if hostos == "darwin" or hostos == "darwin8":
+                if targetos == "darwin" or targetos == "darwin8":
                     darwin_so(file, needed, sonames, renames, pkgver)
-                elif hostos.startswith("mingw"):
+                elif targetos.startswith("mingw"):
                     mingw_dll(file, needed, sonames, renames, pkgver)
                 elif os.access(file, os.X_OK) or lib_re.match(file):
                     linuxlist.append(file)
@@ -1838,21 +1778,22 @@ python package_do_shlibs() {
             bb.note("Renaming %s to %s" % (old, new))
             os.rename(old, new)
             pkgfiles[pkg].remove(old)
-
+	    
         shlibs_file = os.path.join(shlibswork_dir, pkg + ".list")
         if len(sonames):
-            with open(shlibs_file, 'w') as fd:
-                for s in sonames:
-                    if s[0] in shlib_provider and s[1] in shlib_provider[s[0]]:
-                        (old_pkg, old_pkgver) = shlib_provider[s[0]][s[1]]
-                        if old_pkg != pkg:
-                            bb.warn('%s-%s was registered as shlib provider for %s, changing it to %s-%s because it was built later' % (old_pkg, old_pkgver, s[0], pkg, pkgver))
-                    bb.debug(1, 'registering %s-%s as shlib provider for %s' % (pkg, pkgver, s[0]))
-                    fd.write(s[0] + ':' + s[1] + ':' + s[2] + '\n')
-                    if s[0] not in shlib_provider:
-                        shlib_provider[s[0]] = {}
-                    shlib_provider[s[0]][s[1]] = (pkg, pkgver)
-        if needs_ldconfig:
+            fd = open(shlibs_file, 'w')
+            for s in sonames:
+                if s[0] in shlib_provider and s[1] in shlib_provider[s[0]]:
+                    (old_pkg, old_pkgver) = shlib_provider[s[0]][s[1]]
+                    if old_pkg != pkg:
+                        bb.warn('%s-%s was registered as shlib provider for %s, changing it to %s-%s because it was built later' % (old_pkg, old_pkgver, s[0], pkg, pkgver))
+                bb.debug(1, 'registering %s-%s as shlib provider for %s' % (pkg, pkgver, s[0]))
+                fd.write(s[0] + ':' + s[1] + ':' + s[2] + '\n')
+                if s[0] not in shlib_provider:
+                    shlib_provider[s[0]] = {}
+                shlib_provider[s[0]][s[1]] = (pkg, pkgver)
+            fd.close()
+        if needs_ldconfig and use_ldconfig:
             bb.debug(1, 'adding ldconfig call to postinst for %s' % pkg)
             postinst = d.getVar('pkg_postinst_%s' % pkg)
             if not postinst:
@@ -1923,10 +1864,11 @@ python package_do_shlibs() {
         deps_file = os.path.join(pkgdest, pkg + ".shlibdeps")
         if os.path.exists(deps_file):
             os.remove(deps_file)
-        if deps:
-            with open(deps_file, 'w') as fd:
-                for dep in sorted(deps):
-                    fd.write(dep + '\n')
+        if len(deps):
+            fd = open(deps_file, 'w')
+            for dep in sorted(deps):
+                fd.write(dep + '\n')
+            fd.close()
 }
 
 python package_do_pkgconfig () {
@@ -1956,8 +1898,9 @@ python package_do_pkgconfig () {
                     pkgconfig_provided[pkg].append(name)
                     if not os.access(file, os.R_OK):
                         continue
-                    with open(file, 'r') as f:
-                        lines = f.readlines()
+                    f = open(file, 'r')
+                    lines = f.readlines()
+                    f.close()
                     for l in lines:
                         m = var_re.match(l)
                         if m:
@@ -1975,9 +1918,10 @@ python package_do_pkgconfig () {
     for pkg in packages.split():
         pkgs_file = os.path.join(shlibswork_dir, pkg + ".pclist")
         if pkgconfig_provided[pkg] != []:
-            with open(pkgs_file, 'w') as f:
-                for p in pkgconfig_provided[pkg]:
-                    f.write('%s\n' % p)
+            f = open(pkgs_file, 'w')
+            for p in pkgconfig_provided[pkg]:
+                f.write('%s\n' % p)
+            f.close()
 
     # Go from least to most specific since the last one found wins
     for dir in reversed(shlibs_dirs):
@@ -1987,8 +1931,9 @@ python package_do_pkgconfig () {
             m = re.match(r'^(.*)\.pclist$', file)
             if m:
                 pkg = m.group(1)
-                with open(os.path.join(dir, file)) as fd:
-                    lines = fd.readlines()
+                fd = open(os.path.join(dir, file))
+                lines = fd.readlines()
+                fd.close()
                 pkgconfig_provided[pkg] = []
                 for l in lines:
                     pkgconfig_provided[pkg].append(l.rstrip())
@@ -2006,9 +1951,10 @@ python package_do_pkgconfig () {
                 bb.note("couldn't find pkgconfig module '%s' in any package" % n)
         deps_file = os.path.join(pkgdest, pkg + ".pcdeps")
         if len(deps):
-            with open(deps_file, 'w') as fd:
-                for dep in deps:
-                    fd.write(dep + '\n')
+            fd = open(deps_file, 'w')
+            for dep in deps:
+                fd.write(dep + '\n')
+            fd.close()
 }
 
 def read_libdep_files(d):
@@ -2019,8 +1965,9 @@ def read_libdep_files(d):
         for extension in ".shlibdeps", ".pcdeps", ".clilibdeps":
             depsfile = d.expand("${PKGDEST}/" + pkg + extension)
             if os.access(depsfile, os.R_OK):
-                with open(depsfile) as fd:
-                    lines = fd.readlines()
+                fd = open(depsfile)
+                lines = fd.readlines()
+                fd.close()
                 for l in lines:
                     l.rstrip()
                     deps = bb.utils.explode_dep_versions2(l)
@@ -2171,12 +2118,10 @@ python package_depchains() {
 # iteration, we need to list them here:
 PACKAGEVARS = "FILES RDEPENDS RRECOMMENDS SUMMARY DESCRIPTION RSUGGESTS RPROVIDES RCONFLICTS PKG ALLOW_EMPTY pkg_postinst pkg_postrm pkg_postinst_ontarget INITSCRIPT_NAME INITSCRIPT_PARAMS DEBIAN_NOAUTONAME ALTERNATIVE PKGE PKGV PKGR USERADD_PARAM GROUPADD_PARAM CONFFILES SYSTEMD_SERVICE LICENSE SECTION pkg_preinst pkg_prerm RREPLACES GROUPMEMS_PARAM SYSTEMD_AUTO_ENABLE SKIP_FILEDEPS PRIVATE_LIBS"
 
-def gen_packagevar(d, pkgvars="PACKAGEVARS"):
+def gen_packagevar(d):
     ret = []
     pkgs = (d.getVar("PACKAGES") or "").split()
-    vars = (d.getVar(pkgvars) or "").split()
-    for v in vars:
-        ret.append(v)
+    vars = (d.getVar("PACKAGEVARS") or "").split()
     for p in pkgs:
         for v in vars:
             ret.append(v + "_" + p)

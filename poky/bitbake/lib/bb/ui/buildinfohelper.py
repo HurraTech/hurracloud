@@ -935,7 +935,7 @@ class BuildInfoHelper(object):
 
             # only reset the build name if the one on the server is actually
             # a valid value for the build_name field
-            if build_name is not None:
+            if build_name != None:
                 build_info['build_name'] = build_name
                 changed = True
 
@@ -1194,7 +1194,7 @@ class BuildInfoHelper(object):
         evdata = BuildInfoHelper._get_data_from_event(event)
 
         for t in self.internal_state['targets']:
-            if t.is_image:
+            if t.is_image == True:
                 output_files = list(evdata.keys())
                 for output in output_files:
                     if t.target in output and 'rootfs' in output and not output.endswith(".manifest"):
@@ -1236,7 +1236,7 @@ class BuildInfoHelper(object):
                 task_information['outcome'] = Task.OUTCOME_PREBUILT
         else:
             task_information['task_executed'] = True
-            if 'noexec' in vars(event) and event.noexec:
+            if 'noexec' in vars(event) and event.noexec == True:
                 task_information['task_executed'] = False
                 task_information['outcome'] = Task.OUTCOME_EMPTY
                 task_information['script_type'] = Task.CODING_NA
@@ -1776,7 +1776,7 @@ class BuildInfoHelper(object):
         image_file_extensions_unique = {}
         image_fstypes = self.server.runCommand(
             ['getVariable', 'IMAGE_FSTYPES'])[0]
-        if image_fstypes is not None:
+        if image_fstypes != None:
             image_types_str = image_fstypes.strip()
             image_file_extensions = re.sub(r' {2,}', ' ', image_types_str)
             image_file_extensions_unique = set(image_file_extensions.split(' '))

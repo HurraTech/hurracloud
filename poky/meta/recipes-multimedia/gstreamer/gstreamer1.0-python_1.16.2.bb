@@ -20,9 +20,11 @@ S = "${WORKDIR}/${PNREAL}-${PV}"
 
 # gobject-introspection is mandatory and cannot be configured
 REQUIRED_DISTRO_FEATURES = "gobject-introspection-data"
-UNKNOWN_CONFIGURE_WHITELIST_append = " introspection"
+UNKNOWN_CONFIGURE_WHITELIST_append = " --enable-introspection --disable-introspection"
 
-inherit meson pkgconfig distutils3-base upstream-version-is-even gobject-introspection features_check
+inherit autotools pkgconfig distutils3-base upstream-version-is-even gobject-introspection distro_features_check
+
+EXTRA_OECONF += "--with-libpython-dir=${libdir}"
 
 do_install_append() {
 

@@ -16,8 +16,6 @@ def qemu_target_binary(data):
         target_arch = "ppc"
     elif target_arch == "powerpc64":
         target_arch = "ppc64"
-    elif target_arch == "powerpc64le":
-        target_arch = "ppc64le"
 
     return "qemu-" + target_arch
 
@@ -64,4 +62,3 @@ QEMU_EXTRAOPTIONS_ppc64e5500 = " -cpu e500mc"
 QEMU_EXTRAOPTIONS_ppce6500 = " -cpu e500mc"
 QEMU_EXTRAOPTIONS_ppc64e6500 = " -cpu e500mc"
 QEMU_EXTRAOPTIONS_ppc7400 = " -cpu 7400"
-QEMU_EXTRAOPTIONS_powerpc64le = " -cpu POWER8"

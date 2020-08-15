@@ -7,7 +7,7 @@ DEPENDS += "kern-tools-native virtual/crypt"
 
 # bzip2 applet in busybox is based on lightly-modified bzip2 source
 # the GPL is version 2 only
-LICENSE = "GPLv2 & bzip2-1.0.6"
+LICENSE = "GPLv2 & bzip2"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=de10de48642ab74318e893a61105afbb"
 
 SECTION = "base"
@@ -354,9 +354,7 @@ PTEST_BINDIR = "1"
 
 do_install_ptest () {
 	cp -r ${B}/testsuite ${D}${PTEST_PATH}/
-        # These access the internet which is not guaranteed to work on machines running the tests
-        rm -rf ${D}${PTEST_PATH}/testsuite/wget
-	sort ${B}/.config > ${D}${PTEST_PATH}/.config
+	cp ${B}/.config      ${D}${PTEST_PATH}/
 	ln -s /bin/busybox   ${D}${PTEST_PATH}/busybox
 }
 

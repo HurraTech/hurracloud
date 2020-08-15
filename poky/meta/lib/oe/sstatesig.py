@@ -104,7 +104,6 @@ class SignatureGeneratorOEBasicHashMixIn(object):
                                 "").split()
         self.unlockedrecipes = { k: "" for k in self.unlockedrecipes }
         self.buildarch = data.getVar('BUILD_ARCH')
-        self._internal = False
         pass
 
     def tasks_resolved(self, virtmap, virtpnmap, dataCache):
@@ -151,18 +150,14 @@ class SignatureGeneratorOEBasicHashMixIn(object):
                 self.extramethod[tid] = ":" + self.buildarch
 
     def get_taskhash(self, tid, deps, dataCache):
+        h = super(bb.siggen.SignatureGeneratorBasicHash, self).get_taskhash(tid, deps, dataCache)
         if tid in self.lockedhashes:
             if self.lockedhashes[tid]:
                 return self.lockedhashes[tid]
             else:
-                return super().get_taskhash(tid, deps, dataCache)
+                return h
 
-        # get_taskhash will call get_unihash internally in the parent class, we 
-        # need to disable our filter of it whilst this runs else
-        # incorrect hashes can be calculated.
-        self._internal = True
-        h = super().get_taskhash(tid, deps, dataCache)
-        self._internal = False
+        h = super(bb.siggen.SignatureGeneratorBasicHash, self).get_taskhash(tid, deps, dataCache)
 
         (mc, _, task, fn) = bb.runqueue.split_tid_mcfn(tid)
 
@@ -190,9 +185,8 @@ class SignatureGeneratorOEBasicHashMixIn(object):
                 h_locked = self.lockedsigs[recipename][task][0]
                 var = self.lockedsigs[recipename][task][1]
                 self.lockedhashes[tid] = h_locked
-                self._internal = True
-                unihash = self.get_unihash(tid)
-                self._internal = False
+                unihash = super().get_unihash(tid)
+                self.taskhash[tid] = h_locked
                 #bb.warn("Using %s %s %s" % (recipename, task, h))
 
                 if h != h_locked and h_locked != unihash:
@@ -205,13 +199,8 @@ class SignatureGeneratorOEBasicHashMixIn(object):
         #bb.warn("%s %s %s" % (recipename, task, h))
         return h
 
-    def get_stampfile_hash(self, tid):
-        if tid in self.lockedhashes and self.lockedhashes[tid]:
-            return self.lockedhashes[tid]
-        return super().get_stampfile_hash(tid)
-
     def get_unihash(self, tid):
-        if tid in self.lockedhashes and self.lockedhashes[tid] and not self._internal:
+        if tid in self.lockedhashes and self.lockedhashes[tid]:
             return self.lockedhashes[tid]
         return super().get_unihash(tid)
 
@@ -477,14 +466,11 @@ def OEOuthashBasic(path, sigfile, task, d):
     h = hashlib.sha256()
     prev_dir = os.getcwd()
     include_owners = os.environ.get('PSEUDO_DISABLED') == '0'
-    extra_content = d.getVar('HASHEQUIV_HASH_VERSION')
 
     try:
         os.chdir(path)
 
         update_hash("OEOuthashBasic\n")
-        if extra_content:
-            update_hash(extra_content + "\n")
 
         # It is only currently useful to get equivalent hashes for things that
         # can be restored from sstate. Since the sstate object is named using
