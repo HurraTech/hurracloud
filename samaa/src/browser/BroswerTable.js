@@ -393,11 +393,11 @@ class BrowserTable extends React.PureComponent {
         }}
       >
         {({ onRowsRendered, registerChild }) => (
-          <AutoSizer disableHeight>
-            {({ width }) => (
+          <AutoSizer>
+            {({ height, width }) => (
               <Table
                 className={classes.table}
-                height={550}
+                height={height}
                 width={width}
                 rowCount={rowCount}
                 ref={child => {

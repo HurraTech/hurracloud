@@ -6,7 +6,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import axios from 'axios';
-import AddIcon from '@material-ui/icons/Add';
+import CloudIcon from '@material-ui/icons/Cloud';
 import Fab from '@material-ui/core/Fab';
 import Grid from '@material-ui/core/Grid';
 import PropTypes from 'prop-types';
@@ -49,7 +49,7 @@ const styles = theme => ({
     },
 
     tableDescriptionWrapper: {
-        padding: "10px",
+        padding: "15px",
         fontSize: '11pt',
         backgroundColor: 'white',
     },
@@ -108,7 +108,7 @@ const styles = theme => ({
     },
 
     bodyCell: {
-        padding: 0
+        padding: 10
     },
 
     iconCell: {
@@ -489,20 +489,14 @@ class SettingsPage extends React.Component {
                 </Dialog>
 
                 <Grid container direction="column">
-                    <Grid container direction="row" spacing={32} xs={12} justify="space-between">
+                    <Grid container direction="row" spacing={10} xs={12} justify="space-between">
                     <Grid item xs={12}>
                             <Paper className={classes.root}>
-                                <div className={classes.fabWrapper}>
-                                <Fab aria-label="Create Index" color="secondary" className={classes.createButton} onClick={this.openAddDialog}>
-                                    <AddIcon  />
-                                </Fab>
-                                </div>
-
                                 <div className={classes.tableDescriptionWrapper}>
-                                    <Typography variant="title" className={classes.descriptionTitle}>
+                                    <Typography variant="h6">
                                     Drives & Indexes
                                     </Typography>
-                                    <Typography variant="body" align="justify" className={classes.descriptionContent}>
+                                    <Typography variant="subtitle" align="justify">
                                         Your HurraCloud device comes with internal storage. You can also connect external USB devices or connect with online cloud storage such as Google Drive, Dropbox and iCloud
                                     </Typography>
                                 </div>
@@ -576,7 +570,7 @@ class SettingsPage extends React.Component {
                                                         })()
                                                     }
                                                     </div>
-                                                    <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
+                                                    <div style={{width: "180px", float: 'left', minHeight: '1px'}}>
                                                     {!source.index && source.status == "mounted" && (
                                                         <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
                                                             <Button variant="outline"
@@ -664,6 +658,12 @@ class SettingsPage extends React.Component {
                         </Grid>
                     </Grid>
                 </Grid>
+                <div style={{marginTop:"10px"}}>
+                   <Button variant="contained" size="large" color="secondary"  style={{textDeocration: 'none'}} onClick={this.openAddDialog} >
+                      <CloudIcon className={classNames(classes.leftIcon, classes.iconSmall)} disabled={true} />
+                      Connect External Cloud Drive
+                   </Button>
+                </div>
             </div>
             );
     }

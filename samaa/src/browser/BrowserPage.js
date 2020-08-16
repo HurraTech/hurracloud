@@ -30,6 +30,7 @@ const styles = theme => ({
   },
   contentWrapper: {
     margin: '0px 0px',
+    height: "100%",
   },
   progressWrapper: {
     bottom: 0,
