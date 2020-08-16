@@ -40,10 +40,10 @@ class SearchController < ApplicationController
                       },
                       "functions": [
                           {
-                              "filter": { 
-                                "terms": { 
+                              "filter": {
+                                "terms": {
                                   "file.extension": ["pdf", "doc", "docx"]
-                                } 
+                                }
                               },
                               "weight": 30
                           }
@@ -64,14 +64,14 @@ class SearchController < ApplicationController
             };
         end
 
-        es_response = Rails.application.config.es_client.search index: "hurracloud_*", body: query   
+        es_response = Rails.application.config.es_client.search index: "hurracloud_*", body: query
         hits = es_response["hits"]["hits"]
         hits = hits.map{ |h|
             h["_source"]["path"] = h["_source"]["path"]["real"].sub("#{Settings.mounts_path}/", "")
             h
         }
-        render json: { 
-            total: es_response["hits"]["total"],
+        render json: {
+            total: es_response["hits"]["total"]["value"],
             hits: hits
         }
     end
