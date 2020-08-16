@@ -13,3 +13,6 @@
 [submodule "yocto/openembedded-core"]
 	path = yocto/openembedded-core
 	url = https://github.com/openembedded/openembedded-core.git
+[submodule "docker-openvpn"]
+	path = docker-openvpn
+	url = git@bitbucket.org:aimannajjar/docker-openvpn.git
