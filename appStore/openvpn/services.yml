@@ -9,6 +9,7 @@ services:
     ports:
      - "1194:1194/udp"
     restart: always
+    privileged: true
     volumes:
      - openvpn-data:/etc/openvpn
 
