@@ -7,11 +7,15 @@ COPY ./app-runner/package.json ./package.json
 COPY ./app-runner/client ./client
 COPY ./app-runner/server ./server
 
+RUN apk add --no-cache --virtual .gyp \
+        python \
+        make \
+        g++
+
 # Install Node.js dependencies
 RUN yarn install
 RUN yarn install_deps
 
-RUN npm i nodemon json-merge -g 
 
 # Run the container under "node" user by default
 USER node

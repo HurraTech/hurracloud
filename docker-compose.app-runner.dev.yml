@@ -1,6 +1,7 @@
 version: '2.3'
 services:
   app-runner:
+    image: aimannajjar/hurracloud:app-runner-v1
     build:
       context: .
       dockerfile: AppRunner.Dockerfile

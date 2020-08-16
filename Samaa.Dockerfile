@@ -18,4 +18,4 @@ RUN yarn install
 # Run the container under "node" user by default
 USER node
 
-CMD [ "node", "server" ]
+CMD [ "yarn", "start" ]
