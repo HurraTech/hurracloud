@@ -26,11 +26,11 @@ class GoogleDriveAccount < ApplicationRecord
     end
 
     def mount_path
-		"#{Settings.mounts_path}/#{self.normalized_name}/Google"
+		"#{Settings.mounts_path}/#{self.normalized_name}"
     end
 
     def host_mount_path
-        "#{Settings.host_mounts_path}/#{self.normalized_name}/Google"
+        "#{Settings.host_mounts_path}/#{self.normalized_name}"
     end
 
 	def is_mountable

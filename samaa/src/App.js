@@ -407,14 +407,6 @@ class App extends React.Component {
             </div>
             <div className={classes.grow} />
             <div className={classes.sectionDesktop}>
-              <IconButton color="inherit"
-                aria-owns={isMenuOpen ? 'material-appbar' : undefined}
-                aria-haspopup="true"
-                onClick={this.handleProfileMenuOpen}
-                color="inherit"
-              >
-                <SettingsIcon />
-              </IconButton>
 
               {/* <IconButton color="inherit">
                 <Badge badgeContent={4} color="secondary">
@@ -475,7 +467,19 @@ class App extends React.Component {
                   <ListItemText primary="Home" style={{color:'black'}} />
                 </ListItem>
             </Link>
+              <Link to={`/appStore/`} style={{ textDecoration: 'none' }}>
+                <ListItem button key="AppStore" selected={this.props.history.location.pathname.startsWith(`/appStore/`)}>
+                  <ListItemIcon><AppsIcon /></ListItemIcon>
+                  <ListItemText primary="App Store" style={{color:'black'}} />
+                </ListItem>
+              </Link>
             <Divider />
+              <Link to={`/search/`} style={{ textDecoration: 'none' }}>
+                <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
+                  <ListItemIcon><SearchIcon /></ListItemIcon>
+                  <ListItemText primary="Search" style={{color:'black'}} />
+                </ListItem>
+              </Link>
             <ListItem button key="Browse" selected={this.props.history.location.pathname.startsWith(`/browse/`)} onClick={this.handleBrowserClick}>
                 <ListItemIcon><BrowserIcon /></ListItemIcon>
                 <ListItemText primary="Cloud Drive" style={{color:'black'}} />
@@ -507,26 +511,13 @@ class App extends React.Component {
                   })}
                 </List>
               </Collapse>
-              <Link to={`/search/`} style={{ textDecoration: 'none' }}>
-                <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
-                  <ListItemIcon><SearchIcon /></ListItemIcon>
-                  <ListItemText primary="Search" style={{color:'black'}} />
-                </ListItem>
-              </Link>
               <Divider />
-              <Link to={`/appStore/`} style={{ textDecoration: 'none' }}>
-                <ListItem button key="AppStore" selected={this.props.history.location.pathname.startsWith(`/appStore/`)}>
-                  <ListItemIcon><AppsIcon /></ListItemIcon>
-                  <ListItemText primary="App Store" style={{color:'black'}} />
-                </ListItem>
-              </Link>
-              <Divider />
-              {/* <Link to={`/manage/`} style={{ textDecoration: 'none' }}>
+               <Link to={`/manage/`} style={{ textDecoration: 'none' }}>
                 <ListItem button key="Manage" selected={this.props.history.location.pathname.startsWith(`/manage/`)}>
                   <ListItemIcon><SettingsIcon /></ListItemIcon>
                   <ListItemText primary="Manage" style={{color:'black'}} />
                 </ListItem>
-              </Link> */}
+              </Link>
 
           </List>
         </Drawer>
