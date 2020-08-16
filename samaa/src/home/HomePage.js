@@ -12,6 +12,7 @@ import classNames from 'classnames';
 import { fade } from '@material-ui/core/styles/colorManipulator';
 import OpenIcon from '@material-ui/icons/OpenInNew'
 import Chip from '@material-ui/core/Chip';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import FaceIcon from '@material-ui/icons/Face';
 import RunningIcon from '@material-ui/icons/CheckCircle';
 import Utils from '../utils';
@@ -25,6 +26,7 @@ const styles = theme => ({
         width: 300,
         display: 'flex',
         alignItems: 'center',
+        position: 'relative',
         // cursor: 'pointer',
         backgroundColor: fade(theme.palette.common.white, 1),
         '&:hover': {
@@ -88,7 +90,24 @@ const styles = theme => ({
       appDescription: {
           paddingTop: 0,
           paddingBottom: 2
-      }
+      },
+
+    appLoading: {
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        backgroundColor: 'white',
+        opacity: '0.5',
+        top: 0,
+        left: 0,
+        paddingLeft: '130px',
+        paddingTop: '70px',
+        zIndex: 10,
+    },
+
+    progress: {
+        color: 'black'
+    }
 
 
 });
@@ -101,9 +120,22 @@ class HomePage extends React.Component {
         this.state = {
             selectedTab: 0,
             expandedApp: '',
-            apps: []
+            apps: this.props.apps || [],
         }
     }
+
+    componentDidUpdate = (prevProps, prevState, snapshot) => {
+      if (JSON.stringify(this.props.apps) != JSON.stringify(prevProps.apps)) {
+            this.setState({
+                apps: this.props.apps
+            }, () => {
+                this.forceUpdate()
+            })
+        }
+    }
+    handleChange = prop => event => {
+      this.setState({ [prop]: event.target.value });
+    };
 
     expandApp = appName => (event, expanded) => {
         this.setState({
@@ -129,10 +161,14 @@ class HomePage extends React.Component {
     };
 
     deleteApp = (app_id) => {
-        axios
-        .post(`${JAWHAR_API}/apps/${app_id}/_uninstall`)
-        .then(res => {
-            this.getApplications()
+        var currentApps = [...this.state.apps]
+        currentApps.find(a => a.app_unique_id === app_id).status = "deleting"
+        this.setState({apps: currentApps}, () => {
+          axios
+           .post(`${JAWHAR_API}/apps/${app_id}/_uninstall`)
+           .then(res => {
+               this.getApplications()
+           })
         })
     }
 
@@ -147,6 +183,10 @@ class HomePage extends React.Component {
                     {this.state.apps.map(app => {
                         return (<Grid key={app.auid} item>
                             <Card className={classes.card}>
+                                    {app.status != "started" &&
+                                        <div className ={classes.appLoading} >
+                                            <CircularProgress className={classes.progress} />
+                                        </div>}
                                     <div className={classes.cardButton}>
                                         <div className={classes.details}>
                                             <CardMedia dangerouslySetInnerHTML={{__html: app.iconSvg}} />
@@ -173,12 +213,10 @@ class HomePage extends React.Component {
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-
                                             <Button variant="contained" size="small" color="primary" component={Link} to={`/apps/${app.app_unique_id}`} style={{textDeocration: 'none'}}>
-                                                <OpenIcon className={classNames(classes.leftIcon, classes.iconSmall)} />
+                                            <OpenIcon className={classNames(classes.leftIcon, classes.iconSmall)} disabled={true} />
                                                 Open
                                             </Button>
-                                            <Button variant="contained"  size="small" color="secondary">Restart</Button>
                                             <Button variant="contained"  size="small" color="secondary" onClick={() => this.deleteApp(app.app_unique_id)} >Delete</Button>
                                         </CardActions>
                                     </div>

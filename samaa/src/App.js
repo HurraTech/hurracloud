@@ -232,21 +232,27 @@ class App extends React.Component {
   };
 
   componentDidMount() {
-    this.updateSources()
-    //TODO: Uncomment this out
-    // this.updateSourcesTimer = setInterval(()=> this.updateSources(), 1000);
+    this.refreshData()
+    this.refreshDataTimer = setInterval(()=> this.refreshData(), 1000);
   }
 
   componentWillUnmount() {
-    clearInterval(this.updateSourcesTimer)
+    clearInterval(this.refreshDataTimer)
   }
 
-  updateSources = (msg, data) => {
+  refreshData = (msg, data) => {
     axios
     .get(`${JAWHAR_API}/sources`)
     .then(res => {
         const response = res.data;
         this.setState({ sources: response })
+    });
+
+   axios
+    .get(`${JAWHAR_API}/apps`)
+    .then(res => {
+        const response = res.data;
+        this.setState({ apps: response })
     });
   }
 
@@ -523,7 +529,7 @@ class App extends React.Component {
           })}
         >
           <div className={classes.drawerHeader} />
-          <Route exact={true} path="/" render={() => (<HomePage />)}/>
+          <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} />)}/>
           <Route path="/browse/:path+" render={({match}) => (<BrowserPage path={match.params.path || ""} />)}/>
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>

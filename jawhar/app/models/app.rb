@@ -39,6 +39,7 @@ class App < ApplicationRecord
 
     def uninstall
         self.status = :deleting
+        self.save()
         Resque.enqueue(Mounter, 'delete_app', :app_id => self.id)
     end
 
