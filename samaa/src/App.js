@@ -529,7 +529,7 @@ class App extends React.Component {
           })}
         >
           <div className={classes.drawerHeader} />
-          <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} />)}/>
+          <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} sources={this.state.sources} />)}/>
           <Route path="/browse/:path+" render={({match}) => (<BrowserPage path={match.params.path || ""} />)}/>
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>

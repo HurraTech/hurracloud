@@ -468,4 +468,6 @@ BrowserTable.defaultProps = {
   rowHeight: 40,
 };
 
-export default withTheme()(withStyles(styles)(BrowserTable));
+// export default withTheme()(withStyles(styles)(BrowserTable));
+// export default withStyles(styles)(BrowserTable);
+export default withStyles(styles, { withTheme: true })(BrowserTable);
