@@ -66,6 +66,17 @@ class Index < ApplicationRecord
       filename
     end
 
+    def size
+        Rails.logger.info "Attempting to find documents size of index #{self.es_index_name}"
+        begin
+          index = Rails.application.config.es_client.indices.stats(index: self.es_index_name)
+          index["indices"][self.es_index_name]["primaries"]["store"]["size_in_bytes"]
+        rescue => exception
+        	Rails.logger.error "Failed to find documents count of index #{self.es_index_name}: #{exception}"
+            return 0
+        end
+    end
+
     def full_path
         self.source.mount_path
     end

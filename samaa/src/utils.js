@@ -17,18 +17,29 @@ export default class Utils {
       return `${bytes.toFixed(1)} ${units[u]}`;
     }
 
+    static humanFileSizeGBRaw(bytes, si) {
+      const thresh = si ? 1000 : 1024;
+      bytes /= thresh * thresh * thresh
+      return `${bytes.toFixed(1)}`;
+    }
+
+    static humanFileSizeMBRaw(bytes, si) {
+      const thresh = si ? 1000 : 1024;
+      bytes /= thresh * thresh
+      return `${bytes.toFixed(1)}`;
+    }
 
     static jsonToElement(type, obj)
     {
       let properties = Object.keys(obj)
                              .filter(k => { if (k=="style" || Array.isArray(obj[k])) return false; return true; })
                              .map(k => ({ [k]: obj[k]}) )
-                            .reduce((a, cur) => (Object.assign({}, a, cur)))                            
+                            .reduce((a, cur) => (Object.assign({}, a, cur)))
       let childrenKeys = Object.keys(obj).filter(k => (Array.isArray(obj[k])))
       if ("style" in obj)
       {
         var style = {},
-        attributes = obj["style"].split(';');    
+        attributes = obj["style"].split(';');
         for (var i = 0; i < attributes.length; i++) {
             var entry = attributes[i].split(':');
             var styleKey = (entry.splice(0,1)[0]).trim()
@@ -46,4 +57,4 @@ export default class Utils {
 
     }
   }
-  
+

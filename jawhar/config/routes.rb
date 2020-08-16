@@ -1,6 +1,7 @@
 require 'resque/server'
 
 Rails.application.routes.draw do
+  get 'stats', to: 'stats#stats', format: false
   get 'files/browse', to: 'files#browse', format: false
   get 'files/browse/:source_id', to: 'files#browse', format: false
   get 'files/browse/:source_id/*path', to: 'files#browse', format: false

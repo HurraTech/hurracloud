@@ -254,6 +254,13 @@ class App extends React.Component {
         const response = res.data;
         this.setState({ apps: response })
     });
+
+   axios
+    .get(`${JAWHAR_API}/stats`)
+    .then(res => {
+        const response = res.data;
+        this.setState({ stats: response })
+    });
   }
 
   transition = event => {
@@ -529,7 +536,7 @@ class App extends React.Component {
           })}
         >
           <div className={classes.drawerHeader} />
-          <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} sources={this.state.sources} />)}/>
+          <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} sources={this.state.sources} stats={this.state.stats} />)}/>
           <Route path="/browse/:path+" render={({match}) => (<BrowserPage path={match.params.path || ""} />)}/>
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>

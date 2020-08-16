@@ -6,7 +6,7 @@ import axios from 'axios';
 import Grid from '@material-ui/core/Grid';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import { CardActions, SvgIcon, Typography, CardHeader, Button, ButtonBase, Select, MenuItem } from '@material-ui/core'
+import { CardActions, SvgIcon, Typography, CardHeader, Button, ButtonBase, Select, MenuItem, List, ListItem } from '@material-ui/core'
 import {Link} from 'react-router-dom';
 import classNames from 'classnames';
 import { fade } from '@material-ui/core/styles/colorManipulator';
@@ -16,7 +16,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import FaceIcon from '@material-ui/icons/Face';
 import RunningIcon from '@material-ui/icons/CheckCircle';
 import Utils from '../utils';
-import {Pie} from 'react-chartjs-2';
+import {Pie, HorizontalBar} from 'react-chartjs-2';
 import { JAWHAR_API  } from '../constants';
 
 
@@ -26,6 +26,7 @@ const styles = theme => ({
       },
       card: {
         width: 300,
+        height: "100%",
         display: 'flex',
         alignItems: 'center',
         position: 'relative',
@@ -35,6 +36,10 @@ const styles = theme => ({
             backgroundColor: fade(theme.palette.common.white, 0.02),
           },
 
+      },
+
+      chartCard: {
+          height: "100%",
       },
 
       details: {
@@ -106,14 +111,31 @@ const styles = theme => ({
         zIndex: 10,
     },
 
+    indexChartTitle: {
+        fontSize: 17,
+        height: '100%',
+        color: '#5c5c5c',
+        paddingTop: "15px",
+        textAlign: "center"
+    },
+
     progress: {
         color: 'black'
     },
 
     selectDeviceGridItem: {
 		margin: 'auto'
-    }
+    },
 
+    heading: {
+        fontSize: theme.typography.pxToRem(15),
+        color: theme.palette.text.secondary,
+        width: "200px"
+    },
+
+    secondaryHeading: {
+    	fontSize: theme.typography.pxToRem(15),
+    },
 
 });
 
@@ -127,15 +149,52 @@ class HomePage extends React.Component {
             expandedApp: '',
             apps: this.props.apps || [],
             sources: this.props.sources || [],
-            capacityChartData: this.buildChartDataset(this.props.sources, "0"),
-            selectedChartSource: "0",
+            capacityChartData: this.buildChartDataset(this.props.sources, 0),
+            indexChartData: this.buildIndexChartDataset(this.props.sources),
+            selectedChartSource: 0,
+			stats : {
+				cpu_load: 1.06,
+				total_memory: 15.39,
+				free_memory: 1.602,
+				disk_stats: {
+					reads_per_second: 182.74,
+					writes_per_second: 440.24,
+					total_bytes_read: 19155925,
+					total_bytes_written: 46149551
+				}
+			}
         }
+    }
+
+    buildIndexChartDataset(sources) {
+      var indexedSources = sources.filter(s => s.index !== null);
+      var sourceNames = indexedSources.map(s => s.name)
+      var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))
+
+      console.log(indexedSources, sourceNames, indexSizes)
+      const data = {
+          labels: sourceNames,
+          datasets: [
+              {
+                        label: 'Index Size (GB)',
+                        backgroundColor: '#36A2EB',
+                        backgrounColor: '#91d3ff',
+                        borderWidth: 0,
+                        hoverBackgroundColor: '#91d3ff',
+                        data: indexSizes
+              }
+
+          ]
+
+      };
+      return data
+
     }
 
     buildChartDataset(sources, select) {
        var data = [0,0]
        if (select in sources) {
-	     data = [sources[select].used, sources[select].free]
+	     data = [Utils.humanFileSizeGBRaw(sources[select].used), Utils.humanFileSizeGBRaw(sources[select].free)]
        }
 	   return  {
           labels: [
@@ -176,6 +235,15 @@ class HomePage extends React.Component {
             this.setState({
                 sources: this.props.sources,
                 capacityChartData: this.buildChartDataset(this.props.sources, this.state.selectedChartSource),
+                indexChartData: this.buildIndexChartDataset(this.props.sources),
+            }, () => {
+                this.forceUpdate()
+            })
+        }
+
+		if (JSON.stringify(this.props.stats) != JSON.stringify(prevProps.stats)) {
+            this.setState({
+                stats: this.props.stats,
             }, () => {
                 this.forceUpdate()
             })
@@ -225,28 +293,86 @@ class HomePage extends React.Component {
         const { classes } = this.props;
 
         return (
-            <Grid container className={classes.root} spacing={2}>
+            <Grid container className={classes.root} spacing={2} alignItems="stretch">
                 <Grid item xs={12}>
                     <Typography variant="h6" className={classes.dashboardHeading}>Dashboard</Typography>
                 </Grid>
-                <Grid item xs={4}>
-                    <Card>
+                <Grid item xs={3}>
+                    <Card className={classes.chartCard}>
                       <CardContent>
                         <Grid container spacing={2}>
 				         	<Grid item xs={12}>
-                               <Typography variant="h4" className={classes.dashboardHeading}>Storage Capacity</Typography><br/>
+                               <Typography variant="h4" className={classes.dashboardHeading}>System Stats</Typography><br/>
+				         	</Grid>
+				         	<Grid item xs={12} >
+                            <List>
+                                <ListItem>
+                                    <Typography className={classes.heading}>CPU Load Average</Typography>
+                                    <Typography className={classes.secondaryHeading}>{this.state.stats["cpu_load"]}</Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <Typography className={classes.heading}>Total Memory</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["total_memory"])}</Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <Typography className={classes.heading}>Free Memory</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["free_memory"])}</Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <Typography className={classes.heading}>Storage Reads/Second</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["disk_stats"]["reads_per_second"])}/second</Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <Typography className={classes.heading}>Storage Writes/Second</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["disk_stats"]["writes_per_second"])}/second</Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <Typography className={classes.heading}>Storage Total Reads</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["disk_stats"]["total_bytes_read"])}</Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <Typography className={classes.heading}>Storage Total Writes</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["disk_stats"]["total_bytes_written"])}</Typography>
+                                </ListItem>
+                            </List>
+				         	</Grid>
+				     	</Grid>
+				    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={4}>
+                    <Card className={classes.chartCard}>
+                      <CardContent>
+                        <Grid container spacing={2}>
+				         	<Grid item xs={12}>
+                               <Typography variant="h4" className={classes.dashboardHeading}>Storage Usage</Typography><br/>
 				               <Pie data={this.state.capacityChartData} width="180" height="180"   options={{ maintainAspectRatio: false }} />
 				         	</Grid>
 				         	<Grid item xs={12} className={classes.selectDeviceGridItem}>
 							  <Select labelId="demo-simple-select-label" id="demo-simple-select" value={this.state.selectedChartSource}  onChange={(event) => this.changeChartStorage(event.target.value) }>
                       			{this.state.sources.map((source, index) => {
 									return (
-	                               	 <MenuItem value={index.toString()} >{source.name}</MenuItem>)
+	                               	 <MenuItem value={index} >{source.name}</MenuItem>)
 									})
 							    }
         					  </Select>
 				         	</Grid>
 				     	</Grid>
+				    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={5}>
+                    <Card className={classes.chartCard}>
+                      <CardContent>
+                        <Grid container spacing={2}>
+				         	<Grid item xs={12}>
+                               <Typography variant="h4" className={classes.dashboardHeading}>Index Storage Usage</Typography><br/>
+				               <HorizontalBar data={this.state.indexChartData} width="180" height="180"   options={{ maintainAspectRatio: false }} />
+				         	</Grid>
+				     	</Grid>
+				        <Grid item xs={12} className={classes.selectDeviceGridItem}>
+                            <Typography variant="subtitle" component="div" className={classes.indexChartTitle} >Storage Usage of Indices</Typography>
+                        </Grid>
 				    </CardContent>
                   </Card>
                 </Grid>
