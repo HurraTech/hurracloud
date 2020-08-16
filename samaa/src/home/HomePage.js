@@ -137,6 +137,10 @@ const styles = theme => ({
     	fontSize: theme.typography.pxToRem(15),
     },
 
+    noAppsMessage: {
+        textAlign: 'center'
+    }
+
 });
 
 
@@ -312,11 +316,11 @@ class HomePage extends React.Component {
                                 </ListItem>
                                 <ListItem>
                                     <Typography className={classes.heading}>Total Memory</Typography>
-                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["total_memory"])}</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * 1024 * 1024 * this.state.stats["total_memory"])}</Typography>
                                 </ListItem>
                                 <ListItem>
                                     <Typography className={classes.heading}>Free Memory</Typography>
-                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * this.state.stats["free_memory"])}</Typography>
+                                    <Typography className={classes.secondaryHeading}>{Utils.humanFileSize(1024 * 1024 * 1024 * this.state.stats["free_memory"])}</Typography>
                                 </ListItem>
                                 <ListItem>
                                     <Typography className={classes.heading}>Storage Reads/Second</Typography>
@@ -380,6 +384,10 @@ class HomePage extends React.Component {
                     <Grid item xs={12}>
                         <Typography variant="h6" className={classes.dashboardHeading}>Applications</Typography>
                     </Grid>
+                    { this.state.apps.length == 0 &&
+                        <Grid item xs={12}>
+                            <Typography variant="h6" component="div" className={classes.noAppsMessage}>You do not have any installed applications. Visit the App Store to install applications.</Typography>
+                        </Grid> }
                       {this.state.apps.map(app => { return (
                           <Grid key={app.auid} item>
                               <Card className={classes.card}>
@@ -392,18 +400,6 @@ class HomePage extends React.Component {
                                               <CardMedia dangerouslySetInnerHTML={{__html: app.iconSvg}} />
                                               <CardContent className={classes.content}>
                                                   <Typography variant="h6" className={classes.title}>{app.name}</Typography>
-                                                  <Chip
-                                                      label="RUNNING"
-                                                      icon={<RunningIcon fontSize="small" />}
-                                                      className={classes.chip}
-                                                      color="secondary"
-                                                  />
-
-                                                  <Chip
-                                                      label={`v${app.version}`}
-                                                      className={classes.chip}
-                                                      color="primary"
-                                                  />
 
                                               </CardContent>
                                           </div>
