@@ -20,25 +20,6 @@ import {Pie} from 'react-chartjs-2';
 import { JAWHAR_API  } from '../constants';
 
 
-const data = {
-	labels: [
-		'Used Space',
-		'Free Space',
-	],
-	datasets: [{
-		data: [300, 100],
-		backgroundColor: [
-		'#FF6384',
-		'#36A2EB',
-		],
-		hoverBackgroundColor: [
-		'#FF6384',
-		'#36A2EB',
-		]
-	}]
-};
-
-
 const styles = theme => ({
     root: {
         flexGrow: 1,
@@ -146,8 +127,41 @@ class HomePage extends React.Component {
             expandedApp: '',
             apps: this.props.apps || [],
             sources: this.props.sources || [],
+            capacityChartData: this.buildChartDataset(this.props.sources, "0"),
+            selectedChartSource: "0",
         }
     }
+
+    buildChartDataset(sources, select) {
+       var data = [0,0]
+       if (select in sources) {
+	     data = [sources[select].used, sources[select].free]
+       }
+	   return  {
+          labels: [
+         		'Used Space',
+         		'Free Space',
+          ],
+          datasets: [{
+	      	data: data,
+          	backgroundColor: [
+          	'#FF6384',
+          	'#36A2EB',
+          	],
+          	hoverBackgroundColor: [
+          	'#FF6384',
+          	'#36A2EB',
+          	]
+          }]
+         }
+    }
+
+	changeChartStorage = (selectedSource) => {
+		this.setState({
+            capacityChartData: this.buildChartDataset(this.props.sources, selectedSource),
+            selectedChartSource: selectedSource,
+		});
+	}
 
     componentDidUpdate = (prevProps, prevState, snapshot) => {
       if (JSON.stringify(this.props.apps) != JSON.stringify(prevProps.apps)) {
@@ -160,7 +174,8 @@ class HomePage extends React.Component {
 
        if (JSON.stringify(this.props.sources) != JSON.stringify(prevProps.sources)) {
             this.setState({
-                sources: this.props.sources
+                sources: this.props.sources,
+                capacityChartData: this.buildChartDataset(this.props.sources, this.state.selectedChartSource),
             }, () => {
                 this.forceUpdate()
             })
@@ -220,12 +235,13 @@ class HomePage extends React.Component {
                         <Grid container spacing={2}>
 				         	<Grid item xs={12}>
                                <Typography variant="h4" className={classes.dashboardHeading}>Storage Capacity</Typography><br/>
-				               <Pie data={data} width="250" height="250"   options={{ maintainAspectRatio: false }} />
+				               <Pie data={this.state.capacityChartData} width="180" height="180"   options={{ maintainAspectRatio: false }} />
 				         	</Grid>
 				         	<Grid item xs={12} className={classes.selectDeviceGridItem}>
-							  <Select labelId="demo-simple-select-label" id="demo-simple-select" value={10} >
-                      			{this.state.sources.map(source => { return (
-	                               	 <MenuItem value={source.id}>{source.name}</MenuItem>)
+							  <Select labelId="demo-simple-select-label" id="demo-simple-select" value={this.state.selectedChartSource}  onChange={(event) => this.changeChartStorage(event.target.value) }>
+                      			{this.state.sources.map((source, index) => {
+									return (
+	                               	 <MenuItem value={index.toString()} >{source.name}</MenuItem>)
 									})
 							    }
         					  </Select>
