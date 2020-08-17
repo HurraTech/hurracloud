@@ -41,6 +41,25 @@ class Mounter
             $hurraAgent.exec_command(::Proto::Command.new(command: "google-drive-ocamlfuse -label #{gdrive_account.source.id} -o allow_other -config #{gdrive_account.host_gdfuse_config_directory}/config #{host_mount_path}"))
             Resque.enqueue(Mounter, 'update_sources')
         when 'update_sources'
+			#### Update Internal Storage ####
+			internal_mounts = Dir.glob("#{Settings.mounts_path}/internal-*").map{ |s| File.basename(s) }
+            Rails.logger.info("Discovered the following internal mounts #{internal_mounts}")
+            drive = Drive.where(unique_id: "internal").first_or_create { |s|
+                s.unique_id = "internal"
+                s.drive_type = :internal
+            }
+            drive.save!
+			internal_mounts.each do |mount_name|
+                i = mount_name.split("-")[1].to_i
+                partition = DrivePartition.create_source(mount_name)
+                partition.drive = drive
+                partition.name = "Internal Storage #{i > 1 ? "- #{i}" : ""}".strip()
+                partition.status = :mounted
+                partition.filesystem = "ext4"
+                partition.save!
+			end
+
+            ### Update External Drives ####
             devices = { }
             `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb -e1,7`.split("\n").each do |line|
                 (dev, size, type, vendor, model) = line.split(" ", 5)
@@ -115,23 +134,6 @@ class Mounter
                 account.save!
             end
 
-			#### Update Internal Storage ####
-			internal_mounts = Dir.glob("#{Settings.mounts_path}/internal-*").map{ |s| File.basename(s) }
-            Rails.logger.info("Discovered the following internal mounts #{internal_mounts}")
-            drive = Drive.where(unique_id: "internal").first_or_create { |s|
-                s.unique_id = "internal"
-                s.drive_type = :internal
-            }
-            drive.save!
-			internal_mounts.each do |mount_name|
-                i = mount_name.split("-")[1].to_i
-                partition = DrivePartition.create_source(mount_name)
-                partition.drive = drive
-                partition.name = "Internal Storage #{i > 1 ? "- #{i}" : ""}".strip()
-                partition.status = :mounted
-                partition.filesystem = "ext4"
-                partition.save!
-			end
         when 'init_app'
             app_id = data["app_id"]
             app = App.find(app_id)
