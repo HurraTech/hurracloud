@@ -42,7 +42,7 @@ class Mounter
             Resque.enqueue(Mounter, 'update_sources')
         when 'update_sources'
             devices = { }
-            `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb -e7`.split("\n").each do |line|
+            `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb -e1,7`.split("\n").each do |line|
                 (dev, size, type, vendor, model) = line.split(" ", 5)
                 devices[dev] = { model: "#{vendor.strip()} #{model.strip()}",
                                  type: type,

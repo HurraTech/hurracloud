@@ -161,10 +161,10 @@ class HomePage extends React.Component {
 				total_memory: 15.39,
 				free_memory: 1.602,
 				disk_stats: {
-					reads_per_second: 182.74,
-					writes_per_second: 440.24,
-					total_bytes_read: 19155925,
-					total_bytes_written: 46149551
+					reads_per_second: 0,
+					writes_per_second: 0,
+					total_bytes_read: 0,
+					total_bytes_written: 0
 				}
 			}
         }
