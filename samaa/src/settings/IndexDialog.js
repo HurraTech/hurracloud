@@ -15,6 +15,8 @@ import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 const styles = {
   appBar: {
@@ -82,7 +84,6 @@ class IndexDialog extends React.Component {
         let excludes = DEFAULT_EXCLUDES_LIST.slice()
         if (this.props.partitionObject.index)
         {
-            console.log(" I am here?")
             excludes = this.props.partitionObject.index.settings &&
                           this.props.partitionObject.index.settings.excludes ?
                             this.props.partitionObject.index.settings.excludes : [""]
@@ -110,10 +111,15 @@ class IndexDialog extends React.Component {
 
   }
 
+  handleChange = (event) => {
+   this.setState({ ...this.state, [event.target.name]: event.target.checked  });
+  }
+
   handleSave = () => {
       if (this.props.onSave)
         this.props.onSave({
-            excludes: this.state.excludeList.filter(pattern => pattern.trim().length > 0)
+            excludes: this.state.excludeList.filter(pattern => pattern.trim().length > 0),
+            enableOcr: this.state.enableOcr
         })
   }
 
@@ -168,7 +174,11 @@ class IndexDialog extends React.Component {
                     >
                 {patternFields}
                 </Grid>
-                <Grid item xs="auto"></Grid>
+                <Grid item xs="12" className={classes.patternsGrid}>
+                   <FormControlLabel control={<Checkbox name="enableOcr" color='secondary' onChange={this.handleChange} />} label="Enable OCR" />
+                   <br />
+                   <Typography variant="subtitle">OCR allows you to search your PDF files that contain images with texts (e.g. scanned documents).</Typography>
+                </Grid>
             </Grid>
             <AppBar className={classes.appBarBottom}>
             <Toolbar>

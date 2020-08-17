@@ -18,9 +18,10 @@
       "index_folders" : false,
       "lang_detect" : false,
       "continue_on_error" : true,
-      "pdf_ocr" : <%=ocr%>,
+      "pdf_ocr" : <%=enableOcr%>,
       "ocr" : {
-        "language" : "eng+ara"
+        "language" : "eng+ara",
+        "enabled" : <%=enableOcr%>
       }
     },
     "elasticsearch" : {

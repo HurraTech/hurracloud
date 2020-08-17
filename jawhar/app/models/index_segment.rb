@@ -29,7 +29,7 @@ class IndexSegment < ApplicationRecord
     excludes = excludes.concat(self.index.settings['excludes'] || [])
 
     includes = includes || "null"
-    ocr = self.index.settings['ocr'] || false
+    enableOcr = self.index.settings['enableOcr'] || false
     ERB.new(FSCRAWLER_TEMPLATE).result(binding)
   end
 

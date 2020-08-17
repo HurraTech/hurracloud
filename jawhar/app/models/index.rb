@@ -115,7 +115,7 @@ class Index < ApplicationRecord
         url = "#{self.full_path}"
         excludes = self.settings['excludes'] || []
         includes = "null"
-        ocr = self.settings['ocr'] || false
+        enableOcr = self.settings['enableOr'] || false
         ERB.new(FSCRAWLER_TEMPLATE).result(binding)
     end
 

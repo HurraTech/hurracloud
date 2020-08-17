@@ -44,7 +44,7 @@ class Mounter
             devices = { }
             `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb -e1,7`.split("\n").each do |line|
                 (dev, size, type, vendor, model) = line.split(" ", 5)
-                devices[dev] = { model: "#{vendor.strip()} #{model.strip()}",
+                devices[dev] = { model: "#{(vendor || "").strip()} #{(model || "").strip()}",
                                  type: type,
                                  capacity: (size.to_i) /1024,
                                  path: dev,
