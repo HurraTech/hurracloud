@@ -173,14 +173,14 @@ class HomePage extends React.Component {
     buildIndexChartDataset(sources) {
       var indexedSources = sources.filter(s => s.index !== null);
       var sourceNames = indexedSources.map(s => s.name)
-      var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))
+      var indexSizes = indexedSources.map(s => Utils.humanFileSizeMBRaw(s.index.size))
 
       console.log(indexedSources, sourceNames, indexSizes)
       const data = {
           labels: sourceNames,
           datasets: [
               {
-                        label: 'Index Size (GB)',
+                        label: 'Index Size (MB)',
                         backgroundColor: '#36A2EB',
                         backgrounColor: '#91d3ff',
                         borderWidth: 0,
