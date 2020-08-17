@@ -52,6 +52,7 @@ class Mounter
                 res = $hurraAgent.exec_command(::Proto::Command.new(command: "blkid #{dev} | grep -o 'PTUUID=\".[^\"]*\"' | cut -d '\"' -f 2"))
                 devices[dev][:uuid] = res.message.chomp()
                 res = $hurraAgent.exec_command(::Proto::Command.new(command: "blkid #{dev}[1-9]*"))
+                Rails.logger.info("BLKID full output is #{res.message}")
                 output_lines = res.message.split("\n")
                 output_lines.pop() # last line is exit status
                 output_lines.each_with_index do |line|
