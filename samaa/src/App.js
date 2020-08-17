@@ -91,6 +91,9 @@ const styles = theme => ({
     display: 'none',
     [theme.breakpoints.up('sm')]: {
       display: 'block',
+      fontFamily: 'Ubuntu',
+      textTransform: 'lowercase',
+      letterSpacing: '2px',
     },
   },
   search: {
@@ -152,6 +155,10 @@ const styles = theme => ({
     padding: '0 8px',
     ...theme.mixins.toolbar,
     justifyContent: 'flex-end',
+  },
+
+  toolbar: {
+    backgroundColor: '#792333'
   },
 
   hide: {
@@ -375,7 +382,7 @@ class App extends React.Component {
             [classes.appBarShift]: open,
           })}
         >
-          <Toolbar>
+          <Toolbar className={classes.toolbar}>
             <IconButton
               className={classes.menuButton}
               color="inherit"
@@ -384,13 +391,14 @@ class App extends React.Component {
             >
               <MenuIcon />
             </IconButton>
+            <div class="hurralogo" />
             <Typography
               className={classes.title}
               variant="h6"
               color="inherit"
               noWrap
             >
-              HurraCloud
+              Hurra Cloud
             </Typography>
             <div className={classes.search}>
               <div className={classes.searchIcon}>

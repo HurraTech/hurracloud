@@ -28,6 +28,7 @@ config/settings/*.local.yml
 config/environments/*.local.yml
 
 
+
 # Dependencies
 node_modules/
 
@@ -62,3 +63,5 @@ yarn-error.log*
 
 # Misc
 .DS_Store
+mounts
+data
