@@ -56,6 +56,7 @@ class Mounter
                 output_lines = res.message.split("\n")
                 output_lines.each_with_index do |line|
 					Rails.logger.info("BLKID output is #{line}")
+                    next if not line.start_with?("/dev") # skip "exit status" line
                     (path, attributes) = line.split(": ",2)
                     next if Settings.skip_partitions.include?(path)
                     partition = { path: path}
