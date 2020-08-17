@@ -1,0 +1,43 @@
+version: '2.4'
+services:
+  samba:
+    image: dperson/samba
+    environment:
+      TZ: 'EST5EDT'
+    ports:
+      - "137:137/udp"
+      - "138:138/udp"
+      - "139:139/tcp"
+      - "445:445/tcp"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - type: bind
+        source: ${PWD}/mounts
+        target: /mount
+        bind:
+          propagation: shared
+    command: '-u "aiman;Ytz8fJaaxqhdQkpAMnGLOyOkix1" -s "drives;/mount;yes;no;no;aiman;aiman,aiman" -w "HURRA"'
+
+   webdav:
+     image: aimannajjar/hurracloud:webdav 
+     build:
+       context: .
+       dockerfile: WebDAV.Dockerfile      
+     restart: always
+     ports:
+       - "80:80"
+     environment:
+       AUTH_TYPE: Digest
+       USERNAME: aiman
+       PASSWORD: Ytz8fJaaxqhdQkpAMnGLOyOkix1
+     volumes:
+       - type: bind
+         source: ${PWD}/mounts
+         target: /var/lib/dav/data
+         bind:
+           propagation: shared
