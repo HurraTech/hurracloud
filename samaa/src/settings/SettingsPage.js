@@ -547,7 +547,7 @@ class SettingsPage extends React.Component {
                                                 <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
                                                     { (() => {
 														console.log("SOURCE ",source)
-                                                        if (source.status == "mounted")
+                                                        if (source.status == "mounted" && source.sourcable.drive_type != "internal")
                                                             return <Tooltip title="Unmounting the drive will make it inaccessible.">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source)} }>
                                                                             {source.sourcable_type == "DrivePartition" && <UnmountIcon className={classes.leftIcon}></UnmountIcon>}
@@ -573,7 +573,7 @@ class SettingsPage extends React.Component {
                                                                             {source.sourcable_type == "DrivePartition" ? "Mount" : "Reconnect"}
                                                                         </Button></span>
                                                                     </Tooltip>
-                                                        else
+                                                        else if (source.sourcable.drive_type != "internal")
                                                             return <CircularProgress className={classes.progress} size={20} />
                                                         })()
                                                     }

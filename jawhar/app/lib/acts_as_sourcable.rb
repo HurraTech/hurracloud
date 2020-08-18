@@ -1,18 +1,18 @@
 module ActsAsSourcable
 
     extend ActiveSupport::Concern
-  
+
     included do
     end
-  
+
     module ClassMethods
       def acts_as_sourcable
         has_one :source, :as => :sourcable, :autosave => true, :dependent => :destroy
       end
 
       def create_source(unique_id)
-        source = Source.where(unique_id: unique_id).first_or_create{ |source| 
-          source.unique_id = unique_id        
+        source = Source.where(unique_id: unique_id).first_or_create{ |source|
+          source.unique_id = unique_id
         }
         Rails.logger.info("Source for #{unique_id} is Source ID # #{source.id}")
         klass = Object.const_get(name)
@@ -25,7 +25,7 @@ module ActsAsSourcable
         end
         sourcableObject
       end
-  
+
     end
 
     def metadata=(value)
@@ -51,7 +51,7 @@ module ActsAsSourcable
     def used
       source.used
     end
-        
+
     def status=(value)
       source.status=value
     end
@@ -59,7 +59,7 @@ module ActsAsSourcable
     def status
       source.status
     end
-        
+
     def name=(value)
       source.name=value
     end
@@ -68,13 +68,19 @@ module ActsAsSourcable
       source.name
     end
 
-    def free=(value)
-      source.free=value
-    end
-
-    def free
-      source.free
+    def update_stats
+      Rails.logger.info("UPDATING STATS OF #{self.source}")
+      if self.source.status == "mounted"
+          stats = `df #{self.source.mount_path} --output=used,avail | tail -n +2`.split(" ")
+          Rails.logger.info("STATS IS #{stats}")
+          self.source.used = stats[0].to_i * 1024
+          self.source.free = stats[1].to_i * 1024
+          self.size = (stats[0].to_i + stats[1].to_i) * 1024
+          self.source.save!
+          return
+      end
+      Rails.logger.info("Not really #{self.source.status}")
     end
 
   end
-  
+

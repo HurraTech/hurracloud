@@ -3,6 +3,10 @@ class DrivePartition < ApplicationRecord
   acts_as_sourcable
   belongs_to :drive
 
+  def free
+    0
+  end
+
   def mount()
     self.status = :mounting
     self.save()

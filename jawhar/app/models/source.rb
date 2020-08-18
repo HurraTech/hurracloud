@@ -51,6 +51,15 @@ class Source < ApplicationRecord
         }
     end
 
+    def free
+      self.sourcable.update_stats
+      self[:free]
+    end
+
+    def used
+      self.sourcable.update_stats
+      self[:used]
+    end
 
     def unmount()
         self.status = :unmounting

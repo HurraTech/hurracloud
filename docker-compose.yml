@@ -35,7 +35,6 @@ services:
     - SKIP_PARTITIONS="" # comma-separated list
     - SAMAA_ROOT_URL=http://${HOSTNAME:-localhost}:3000
     - HOST_APP_STORE_PATH=${PWD}/appStore
-   # - HOST_UID=1000
     networks:
       - hurracloud
     privileged: true
@@ -51,8 +50,6 @@ services:
       - ./apps:/usr/src/samaa/src/apps
     environment:
       - NODE_ENV=production
-      - REACT_APP_JAWHAR_API=http://${HOSTNAME:-localhost}:5000
-      - REACT_APP_APP_RUNNER_HOSTNAME=http://${HOSTNAME:-localhost}
     restart: always
     ports:
       - 3000:3000

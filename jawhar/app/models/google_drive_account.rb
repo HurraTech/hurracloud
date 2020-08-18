@@ -8,7 +8,6 @@ class GoogleDriveAccount < ApplicationRecord
     GDFUSE_STATE_TEMPLATE  = IO.read(File.join(Rails.root, 'app', 'gdfuse_state_template.erb'))
     GDFUSE_CONFIG_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'gdfuse_config_template.erb'))
 
-
     def update_usage
         quota = client.get_about(fields: 'storageQuota').storage_quota
         self.source.size = quota.limit.to_i

@@ -353,8 +353,8 @@ class HomePage extends React.Component {
 				               <Pie data={this.state.capacityChartData} width="180" height="180"   options={{ maintainAspectRatio: false }} />
 				         	</Grid>
 				         	<Grid item xs={12} className={classes.selectDeviceGridItem}>
-							  <Select labelId="demo-simple-select-label" id="demo-simple-select" value={this.state.selectedChartSource}  onChange={(event) => this.changeChartStorage(event.target.value) }>
-                      			{this.state.sources.map((source, index) => {
+							  <Select value={this.state.selectedChartSource}  onChange={(event) => this.changeChartStorage(event.target.value) }>
+                      			{this.state.sources.filter(s => s.status == "mounted").map((source, index) => {
 									return (
 	                               	 <MenuItem value={index} >{source.name}</MenuItem>)
 									})
