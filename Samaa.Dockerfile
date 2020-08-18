@@ -16,7 +16,7 @@ COPY ./samaa /usr/src/samaa
 RUN yarn install
 
 # Run the container under "node" user by default
-USER node
+USER root
 
 ENV YARN_CACHE_FOLDER=/dev/shm/yarn_cache
 
