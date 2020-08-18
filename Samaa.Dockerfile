@@ -18,4 +18,6 @@ RUN yarn install
 # Run the container under "node" user by default
 USER node
 
-CMD [ "yarn", "start" ]
+ENV YARN_CACHE_FOLDER=/dev/shm/yarn_cache
+
+CMD [ "yarn", "start", "--production" ]
