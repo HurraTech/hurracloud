@@ -33,16 +33,16 @@ body {
   /*  Icons                */
 
   .hurralogo {
-    background-image: url('/icons/logo.svg');
-    display: inline-block;
-    background-size: contain;
-    background-position: 50%;
-    background-repeat: no-repeat;
-    font-size: 125px;
-    width: 35px;
-    height: 35px;
-    margin-right:5px;
+      background-image: url(/icons/logo.svg);
+      display: inline-block;
+      background-size: contain;
+      background-position: 65%;
+      background-repeat: no-repeat;
+      font-size: 125px;
+      width: 100%;
+      height: 50px;
   }
+
 
   .google-drive-icon:before {
     content: '\00a0';

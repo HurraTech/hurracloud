@@ -218,7 +218,7 @@ class App extends React.Component {
   state = {
     anchorEl: null,
     mobileMoreAnchorEl: null,
-    open: false,
+    open: true,
     searchQuery: '',
     currentPage: 0,
     sources: [],
@@ -391,7 +391,6 @@ class App extends React.Component {
             >
               <MenuIcon />
             </IconButton>
-            <div class="hurralogo" />
             <Typography
               className={classes.title}
               variant="h6"
@@ -458,6 +457,7 @@ class App extends React.Component {
           }}
         >
           <div className={classes.drawerHeader}>
+            <div class="hurralogo" />
             <IconButton onClick={this.handleDrawerClose}>
               {theme.direction === 'ltr' ? (
                 <ChevronLeftIcon />
