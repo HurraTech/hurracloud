@@ -175,7 +175,6 @@ class HomePage extends React.Component {
       var sourceNames = indexedSources.map(s => s.name)
       var indexSizes = indexedSources.map(s => Utils.humanFileSizeMBRaw(s.index.size))
 
-      console.log(indexedSources, sourceNames, indexSizes)
       const data = {
           labels: sourceNames,
           datasets: [
@@ -196,27 +195,41 @@ class HomePage extends React.Component {
     }
 
     buildChartDataset(sources, select) {
-       var data = [0,0]
-       if (select in sources) {
-	     data = [Utils.humanFileSizeGBRaw(sources[select].used), Utils.humanFileSizeGBRaw(sources[select].free)]
-       }
-	   return  {
+	    var dataset =  {
           labels: [
-         		'Used Space',
-         		'Free Space',
+         		'Data (GB)',
+         		'Free Space (GB)',
           ],
           datasets: [{
-	      	data: data,
+	      	data: [0,0],
           	backgroundColor: [
           	'#FF6384',
           	'#36A2EB',
+            '#792333'
           	],
           	hoverBackgroundColor: [
           	'#FF6384',
           	'#36A2EB',
+            '#792333'
           	]
           }]
          }
+
+        if (select in sources) {
+	      dataset.datasets[0].data = [Utils.humanFileSizeGBRaw(sources[select].used), Utils.humanFileSizeGBRaw(sources[select].free)]
+          if (sources[select].sourcable.drive_type == "internal")
+          {
+             var indexedSources = sources.filter(s => s.index !== null);
+             var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))
+             var totalIndexSize = indexSizes.reduce((a,b) => parseInt(a)+ parseInt(b))
+              console.log("~~~ INDEX SIZES", indexSizes)
+             console.log("TOTAL ", totalIndexSize)
+             dataset.labels.push("Indices Data (GB)")
+             dataset.datasets[0].data.push(totalIndexSize)
+           }
+        }
+
+        return dataset
     }
 
 	changeChartStorage = (selectedSource) => {
