@@ -1,3 +1,9 @@
+FROM go as build
+
+WORKDIR /
+RUN go get -u github.com/ddollar/forego
+RUN go build github.com/ddollar/forego
+
 FROM nginx:1.17.8
 LABEL maintainer="Jason Wilder mail@jasonwilder.com"
 
@@ -15,7 +21,8 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
  && sed -i 's/worker_processes  1/worker_processes  auto/' /etc/nginx/nginx.conf
 
 # Install Forego
-ADD https://github.com/jwilder/forego/releases/download/v0.16.1/forego /usr/local/bin/forego
+#ADD https://github.com/jwilder/forego/releases/download/v0.16.1/forego /usr/local/bin/forego
+COPY --from=build /forego /usr/local/bin/forego
 RUN chmod u+x /usr/local/bin/forego
 
 ENV DOCKER_GEN_VERSION 0.7.4
