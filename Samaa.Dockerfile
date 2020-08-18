@@ -1,8 +1,8 @@
 FROM node:11.6.0-alpine as build
 WORKDIR /usr/src/samaa
-RUN yarn upgrade caniuse-lite browserslist
 COPY ./samaa/package.json .
 COPY ./samaa/yarn.lock .
+RUN yarn upgrade caniuse-lite browserslist
 RUN yarn install --production
 COPY ./samaa .
 RUN yarn build
