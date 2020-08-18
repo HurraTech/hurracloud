@@ -1,4 +1,4 @@
-FROM go as build
+FROM golang as build
 
 WORKDIR /
 RUN go get -u github.com/ddollar/forego
