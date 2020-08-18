@@ -321,6 +321,14 @@ class SettingsPage extends React.Component {
     }
 
 
+	componentDidMount () {
+        $(document).ready(function() {
+            $(".meter > span").each(function() {
+                $(this).css("max-width", "1000px")
+            })
+        });
+	}
+
     /* ---------- Update Sources --------- */
     componentDidUpdate = (prevProps, prevState, snapshot) => {
         if (JSON.stringify(this.props.sources) != JSON.stringify(prevProps.sources)) {
