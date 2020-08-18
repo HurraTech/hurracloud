@@ -1,4 +1,3 @@
-export const JAWHAR_API = process.env.REACT_APP_JAWHAR_API
-export const APP_RUNNER_HOSTNAME = process.env.REACT_APP_APP_RUNNER_HOSTNAME
-console.log("JAWHAR API ", process.env);
+export const JAWHAR_API = "http://" + window.location.hostname + ":5000"
+export const APP_RUNNER_HOSTNAME = window.location.hostname
 
