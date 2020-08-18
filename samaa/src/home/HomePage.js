@@ -153,9 +153,9 @@ class HomePage extends React.Component {
             expandedApp: '',
             apps: this.props.apps || [],
             sources: this.props.sources || [],
-            capacityChartData: this.buildChartDataset(this.props.sources, 0),
+            capacityChartData: this.buildChartDataset(this.props.sources),
             indexChartData: this.buildIndexChartDataset(this.props.sources),
-            selectedChartSource: 0,
+            selectedChartSource: null,
 			stats : {
 				cpu_load: 1.06,
 				total_memory: 15.39,
@@ -194,7 +194,7 @@ class HomePage extends React.Component {
 
     }
 
-    buildChartDataset(sources, select) {
+    buildChartDataset(sources, select=null) {
 	    var dataset =  {
           labels: [
          		'Data (GB)',
@@ -214,19 +214,23 @@ class HomePage extends React.Component {
           	]
           }]
          }
-
-        if (select in sources) {
-	      dataset.datasets[0].data = [Utils.humanFileSizeGBRaw(sources[select].used), Utils.humanFileSizeGBRaw(sources[select].free)]
-          if (sources[select].sourcable.drive_type == "internal")
-          {
-             var indexedSources = sources.filter(s => s.index !== null);
-             var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))
-             var totalIndexSize = indexSizes.reduce((a,b) => parseInt(a)+ parseInt(b))
-              console.log("~~~ INDEX SIZES", indexSizes)
-             console.log("TOTAL ", totalIndexSize)
-             dataset.labels.push("Indices Data (GB)")
-             dataset.datasets[0].data.push(totalIndexSize)
-           }
+        let source = sources[0]
+        if (select != null) {
+            source = sources.filter(s => s.id == select)
+            if (source.length > 0) source = source[0]
+        }
+        if (source !== null && source != undefined) {
+	       dataset.datasets[0].data = [Utils.humanFileSizeGBRaw(source.used), Utils.humanFileSizeGBRaw(source.free)]
+           if (source.sourcable.drive_type == "internal")
+           {
+              var indexedSources = sources.filter(s => s.index !== null);
+              var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))
+              var totalIndexSize = indexSizes.reduce((a,b) => parseInt(a)+ parseInt(b))
+               console.log("~~~ INDEX SIZES", indexSizes)
+              console.log("TOTAL ", totalIndexSize)
+              dataset.labels.push("Indices Data (GB)")
+              dataset.datasets[0].data.push(totalIndexSize)
+            }
         }
 
         return dataset
@@ -249,10 +253,15 @@ class HomePage extends React.Component {
         }
 
        if (JSON.stringify(this.props.sources) != JSON.stringify(prevProps.sources)) {
+           // figure out default selected source id
+           let selectedChartSource = this.state.selectedChartSource
+           if (this.state.selectedChartSource == null)
+               selectedChartSource = this.props.sources[0].id
             this.setState({
                 sources: this.props.sources,
-                capacityChartData: this.buildChartDataset(this.props.sources, this.state.selectedChartSource),
+                capacityChartData: this.buildChartDataset(this.props.sources, selectedChartSource),
                 indexChartData: this.buildIndexChartDataset(this.props.sources),
+                selectedChartSource: selectedChartSource,
             }, () => {
                 this.forceUpdate()
             })
@@ -369,7 +378,7 @@ class HomePage extends React.Component {
 							  <Select value={this.state.selectedChartSource}  onChange={(event) => this.changeChartStorage(event.target.value) }>
                       			{this.state.sources.filter(s => s.status == "mounted").map((source, index) => {
 									return (
-	                               	 <MenuItem value={index} >{source.name}</MenuItem>)
+	                               	 <MenuItem value={source.id} >{source.name}</MenuItem>)
 									})
 							    }
         					  </Select>
