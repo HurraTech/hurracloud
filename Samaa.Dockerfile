@@ -11,4 +11,4 @@ FROM node:11.6.0-alpine
 WORKDIR /usr/src/samaa
 RUN npm install serve
 COPY --from=build /usr/src/samaa/build .
-CMD [ "./node_modules/serve/bin/serve.js",  "-p",  "3000" ]
+CMD [ "./node_modules/serve/bin/serve.js",  "-p",  "3000", "-s" ]
