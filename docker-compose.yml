@@ -6,7 +6,8 @@ services:
     - jawhar
     command: ./bin/start_zahif.sh
     environment:
-    - RAILS_ENV=indexer
+    - RAILS_RESQUE_ENV=indexer
+    - RAILS_ENV=production
     networks:
       - hurracloud
     restart: always
@@ -35,6 +36,7 @@ services:
     - SKIP_PARTITIONS="" # comma-separated list
     - SAMAA_ROOT_URL=http://${HOSTNAME:-localhost}:3000
     - HOST_APP_STORE_PATH=${PWD}/appStore
+    - RAILS_ENV=production
     networks:
       - hurracloud
     privileged: true
