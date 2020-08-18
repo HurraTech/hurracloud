@@ -8,3 +8,6 @@ docker buildx build -f Samaa.Dockerfile --platform linux/arm64,linux/amd64 -t ai
 
 echo "Building Syncthing"
 docker buildx build -f ./docker-syncthing/Dockerfile --platform linux/arm64,linux/amd64 -t aimannajjar/hurracloud:syncthing ./docker-syncthing --push
+
+echo "Building Nginx"
+docker buildx build -f ./nginx-proxy/Dockerfile --platform linux/arm64,linux/amd64 -t aimannajjar/hurracloud:nginx-proxy ./nginx-proxy --push
