@@ -10,6 +10,5 @@ RUN yarn build
 FROM node:11.6.0-alpine
 WORKDIR /usr/src/samaa
 COPY --from=build /usr/src/samaa/build .
-
-USER root
-CMD [ "yarn", "start", "--production" ]
+RUN npm install serve
+CMD [ "./node_modules/serve/bin/serve.js",  "-p",  "3000" ]
