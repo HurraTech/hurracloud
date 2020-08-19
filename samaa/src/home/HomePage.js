@@ -225,7 +225,7 @@ class HomePage extends React.Component {
            {
               var indexedSources = sources.filter(s => s.index !== null);
               var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))
-              var totalIndexSize = indexSizes.reduce((a,b) => parseInt(a)+ parseInt(b))
+              var totalIndexSize = indexSizes.reduce((a,b) => parseInt(a)+ parseInt(b), 0)
                console.log("~~~ INDEX SIZES", indexSizes)
               console.log("TOTAL ", totalIndexSize)
               dataset.labels.push("Indices Data (GB)")
