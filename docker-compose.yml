@@ -35,6 +35,7 @@ services:
     - HOST_MOUNTS_PATH=${PWD}/mounts
     - SKIP_PARTITIONS="" # comma-separated list
     - SAMAA_ROOT_URL=http://${HOSTNAME:-localhost}:3000
+    - HOSTNAME=${HOSTNAME:-localhost}
     - HOST_APP_STORE_PATH=${PWD}/appStore
     - RAILS_ENV=production
     networks:

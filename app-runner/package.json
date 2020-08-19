@@ -12,7 +12,7 @@
     "install_client_deps": "cd client && yarn install",
     "install_server_deps": "cd server && yarn install",
     "install_deps": "concurrently \"yarn install_client_deps\" \"yarn install_server_deps\"",
-    "startRunner": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
+    "startRunner": "concurrently --kill-others-on-fail \"yarn server\" \"HOSTNAME=$HOSTNAME yarn client\""
   }
 
 }

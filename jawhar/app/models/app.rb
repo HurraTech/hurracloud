@@ -85,6 +85,7 @@ class App < ApplicationRecord
         port_number = self.deployment_port
         proxy_port_number = self.proxy_port
         host_app_path = self.host_app_path
+        hostname = Settings.hostname
         ERB.new(compose_tpl).result(binding)
     end
 

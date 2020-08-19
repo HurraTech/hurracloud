@@ -8,7 +8,9 @@ services:
   zahif:
     volumes:
       - ./jawhar:/usr/share/hurracloud/jawhar
-    command: sh -c "bundle install && ./bin/start_zahif.sh"
+    # command: sh -c "bundle install && ./bin/start_zahif.sh"
+    environment:
+    - RAILS_ENV=development
 
   jawhar:
     build:
@@ -18,7 +20,9 @@ services:
       - ./jawhar:/usr/share/hurracloud/jawhar
     ports:
       - 5000:3000
-    command: sh -c "bundle update google-protobuf && bundle install && ./bin/start_jawhar.sh"
+    command: sh -c "bundle install && ./bin/start_jawhar.sh"
+    environment:
+    - RAILS_ENV=development
 
   samaa:
     build:

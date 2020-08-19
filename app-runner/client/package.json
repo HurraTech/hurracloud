@@ -14,7 +14,7 @@
   },
   "proxy": "http://localhost:5000/",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts start --public $HOSTNAME",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
