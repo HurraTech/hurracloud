@@ -70,10 +70,7 @@ module ActsAsSourcable
 
     def update_stats
       Rails.logger.info(self.source.sourcable_type)
-      if self.source.status == "mounted"
-          if self.source.sourcable_type == "GoogleDriveAccount" && ((DateTime.now.to_time - self.source.updated_at.to_time) / 60) < 5
-            return # don't update GoogleDriveAccounts more than once every 5 minutes
-          end
+      if self.source.status == "mounted" && ((DateTime.now.to_time - self.source.updated_at.to_time) / 60) > 5
           Rails.logger.info("UPDATING STATS OF #{self.source}")
           stats = `df #{self.source.mount_path} --output=used,avail | tail -n +2`.split(" ")
           Rails.logger.info("STATS IS #{stats}")
@@ -82,9 +79,7 @@ module ActsAsSourcable
           self.size = (stats[0].to_i + stats[1].to_i) * 1024
           self.source.updated_at = DateTime.now()
           self.source.save!
-          return
       end
     end
-
-  end
+end
 
