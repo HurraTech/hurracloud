@@ -240,7 +240,7 @@ class App extends React.Component {
 
   componentDidMount() {
     this.refreshData()
-    this.refreshDataTimer = setInterval(()=> this.refreshData(), 1000);
+    this.refreshDataTimer = setInterval(()=> this.refreshData(), 2500);
   }
 
   componentWillUnmount() {
@@ -248,26 +248,38 @@ class App extends React.Component {
   }
 
   refreshData = (msg, data) => {
-    axios
-    .get(`${JAWHAR_API}/sources`)
-    .then(res => {
-        const response = res.data;
-        this.setState({ sources: response })
-    });
+    if (! this.state.pendingSourcesRequest)
+    {
+       this.setState({pendingSourcesRequest: true})
+       axios
+       .get(`${JAWHAR_API}/sources`)
+       .then(res => {
+           const response = res.data;
+           this.setState({ sources: response, pendingSourcesRequest: false  })
+       });
+    }
 
-   axios
-    .get(`${JAWHAR_API}/apps`)
-    .then(res => {
-        const response = res.data;
-        this.setState({ apps: response })
-    });
+   if (! this.state.pendingAppsRequest)
+   {
+      this.setState({pendingAppsRequest: true})
+      axios
+       .get(`${JAWHAR_API}/apps`)
+       .then(res => {
+           const response = res.data;
+           this.setState({ apps: response, pendingAppsRequest: false })
+       });
+   }
 
-   axios
-    .get(`${JAWHAR_API}/stats`)
-    .then(res => {
-        const response = res.data;
-        this.setState({ stats: response })
-    });
+   if (! this.state.pendingStatsRequest)
+   {
+      this.setState({pendingStatsRequest: true})
+      axios
+       .get(`${JAWHAR_API}/stats`)
+       .then(res => {
+           const response = res.data;
+           this.setState({ stats: response, pendingStatsRequest: false })
+       });
+    }
   }
 
   transition = event => {
