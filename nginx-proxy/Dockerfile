@@ -7,29 +7,7 @@ RUN go build github.com/ddollar/forego
 
 
 # docker-gen amd64
-FROM alpine:latest as dockergen-amd64
-LABEL maintainer="Jason Wilder <mail@jasonwilder.com>"
-
-RUN apk -U add openssl
-
-ENV VERSION 0.7.4
-ENV DOWNLOAD_URL https://github.com/jwilder/docker-gen/releases/download/$VERSION/docker-gen-alpine-linux-amd64-$VERSION.tar.gz
-RUN wget -qO- $DOWNLOAD_URL | tar xvz -C /usr/local/bin
-
-# docker-gen arm64
-FROM alpine:latest as dockergen-armd64
-LABEL maintainer="Jason Wilder <mail@jasonwilder.com>"
-
-RUN apk -U add openssl
-
-ENV VERSION 0.7.4
-ENV DOWNLOAD_URL https://github.com/jwilder/docker-gen/releases/download/$VERSION/docker-gen-alpine-linux-armhf-$VERSION.tar.gz
-RUN wget -qO- $DOWNLOAD_URL | tar xvz -C /usr/local/bin
-
-#### Image
-FROM nginx:1.17.8
-LABEL maintainer="Jason Wilder mail@jasonwilder.com"
-
+FROM nginx:1.17.8 as dockergen-amd64
 # Install wget and install/updates certificates
 RUN apt-get update \
  && apt-get install -y -q --no-install-recommends \
@@ -37,7 +15,25 @@ RUN apt-get update \
     wget \
  && apt-get clean \
  && rm -r /var/lib/apt/lists/*
+ENV VERSION 0.7.4
+ENV DOWNLOAD_URL https://github.com/jwilder/docker-gen/releases/download/$VERSION/docker-gen-alpine-linux-amd64-$VERSION.tar.gz
+RUN wget -qO- $DOWNLOAD_URL | tar xvz -C /usr/local/bin
 
+# docker-gen arm64
+FROM nginx:1.17.8 as dockergen-arm64
+# Install wget and install/updates certificates
+RUN apt-get update \
+ && apt-get install -y -q --no-install-recommends \
+    ca-certificates \
+    wget \
+ && apt-get clean \
+ && rm -r /var/lib/apt/lists/*
+ENV VERSION 0.7.4
+ENV DOWNLOAD_URL https://github.com/jwilder/docker-gen/releases/download/$VERSION/docker-gen-alpine-linux-armhf-$VERSION.tar.gz
+RUN wget -qO- $DOWNLOAD_URL | tar xvz -C /usr/local/bin
+
+#### Image
+FROM dockergen-$TARGETARCH
 
 # Configure Nginx and apply fix for very long server names
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
@@ -47,9 +43,6 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
 COPY --from=build /forego /usr/local/bin/forego
 RUN chmod u+x /usr/local/bin/forego
 
-ENV DOCKER_GEN_VERSION 0.7.4
-
-COPY --from dockergen-${TARGETARCH} /usr/local/bin/docker-gen /usr/local/bin/
 COPY network_internal.conf /etc/nginx/
 
 COPY . /app/
