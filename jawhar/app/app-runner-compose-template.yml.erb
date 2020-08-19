@@ -16,7 +16,7 @@ services:
       - NODE_ENV=development
       - REACT_APP_AUID=<%=app_unique_id%>
       - REACT_APP_PROXY_PORT=<%=proxy_port_number%>
-      - HOSTNAME=<%=hostname%>
+      - HURRA_HOSTNAME=<%=hostname%>
     command: sh -c "yarn install_deps && yarn startRunner"
 
   nginx-proxy:
