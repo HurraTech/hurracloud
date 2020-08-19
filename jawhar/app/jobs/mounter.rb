@@ -237,11 +237,6 @@ class Mounter
             partition.deviceFile = p[:path]
             partition.status = p[:status]
             partition.filesystem = p["TYPE"]
-            if p[:size]
-                partition.size = p[:size]
-                partition.used = p[:used]
-                partition.free = p[:free]
-            end
             partition.metadata = p
 
             Rails.logger.info("Saving partition #{partition}: #{partition.name}, whose sources is #{partition.source}")
