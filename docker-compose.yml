@@ -7,6 +7,8 @@ services:
     command: ./bin/start_zahif.sh
     environment:
     - RAILS_RESQUE_ENV=indexer
+    - RAILS_ENV=production
+    - SECRET_KEY_BASE=40dec136b707f2a4f7913637c3c5f4dde158a814765969a2bf800911d2227a93ea3697d511075a008131239c1296dae1eb4ed54d19ecf2c4162f7f04265bf539
     networks:
       - hurracloud
     restart: always
@@ -37,6 +39,7 @@ services:
     - HURRA_HOSTNAME=${HURRA_HOSTNAME:-localhost}
     - HOST_APP_STORE_PATH=${PWD}/appStore
     - RAILS_ENV=production
+    - SECRET_KEY_BASE=40dec136b707f2a4f7913637c3c5f4dde158a814765969a2bf800911d2227a93ea3697d511075a008131239c1296dae1eb4ed54d19ecf2c4162f7f04265bf539
     networks:
       - hurracloud
     privileged: true
