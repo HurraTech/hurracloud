@@ -89,6 +89,7 @@ services:
       - redis-data:/data
     networks:
       - hurracloud
+    restart: "always"
 
 volumes:
   es-data:
