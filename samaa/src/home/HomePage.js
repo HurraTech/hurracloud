@@ -226,8 +226,6 @@ class HomePage extends React.Component {
               var indexedSources = sources.filter(s => s.index !== null);
               var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))
               var totalIndexSize = indexSizes.reduce((a,b) => parseInt(a)+ parseInt(b), 0)
-               console.log("~~~ INDEX SIZES", indexSizes)
-              console.log("TOTAL ", totalIndexSize)
               dataset.labels.push("Indices Data (GB)")
               dataset.datasets[0].data.push(totalIndexSize)
             }
@@ -255,8 +253,9 @@ class HomePage extends React.Component {
        if (JSON.stringify(this.props.sources) != JSON.stringify(prevProps.sources)) {
            // figure out default selected source id
            let selectedChartSource = this.state.selectedChartSource
-           if (this.state.selectedChartSource == null)
+           if (this.state.selectedChartSource == null) {
                selectedChartSource = this.props.sources[0].id
+		   }
             this.setState({
                 sources: this.props.sources,
                 capacityChartData: this.buildChartDataset(this.props.sources, selectedChartSource),
@@ -290,7 +289,9 @@ class HomePage extends React.Component {
     };
 
     componentDidMount = () => {
-        this.getApplications()
+         if (this.state.selectedChartSource == null && this.props.sources.length > 0) {
+             this.setState({selectedChartSource: this.props.sources[0].id})
+		 }
     }
 
     getApplications = () => {
