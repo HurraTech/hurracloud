@@ -6,7 +6,7 @@
 	url = https://github.com/openembedded/meta-openembedded.git
 [submodule "yocto/meta-raspberrypi"]
 	path = yocto/meta-raspberrypi
-	url = git://git.yoctoproject.org/meta-raspberrypi
+	url = git@bitbucket.org:aimannajjar/meta-raspberrypi.git
 [submodule "yocto/meta-virtualization"]
 	path = yocto/meta-virtualization
 	url = git://git.yoctoproject.org/meta-virtualization
