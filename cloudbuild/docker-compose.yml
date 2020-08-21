@@ -20,10 +20,17 @@ services:
     entrypoint: /bin/sh -c
     command: 
       - |
+        cat creds.json | docker login -u _json_key --password-stdin https://gcr.io
         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         docker context create build
         docker buildx create --use --name build build
-        docker buildx build --platform linux/amd64,linux/arm64 -f '$DOCKER_FILE' -t '$IMAGE' . --push
+        docker buildx build . \
+            --platform linux/amd64,linux/arm64 \
+            -f '$DOCKER_FILE' \
+            -t '$IMAGE' \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --cache-from \
+            --push
     privileged: true
     depends_on: 
       - docker
@@ -36,29 +43,10 @@ services:
       - DOCKER_HOST=tcp://docker:2376
       - DOCKER_CLI_EXPERIMENTAL=enabled
       - DOCKER_TLS_VERIFY=1
+      - BUILDKIT_INLINE_CACHE=1
     networks:
       - docker-in-docker-network
 
-  docker-push:
-    image: gcr.io/hurrabuild/docker-buildx
-    working_dir: /project
-    entrypoint: /bin/sh -c
-    command: 
-      - |
-        cat creds.json | docker login -u _json_key --password-stdin https://gcr.io
-        docker push '$IMAGE'
-    privileged: true
-    depends_on: 
-      - docker
-    volumes:
-      - docker-certs-client:/certs/client:ro
-      - ../:/project
-    environment:
-      - DOCKER_CERT_PATH=/certs/client
-      - DOCKER_HOST=tcp://docker:2376
-      - DOCKER_TLS_VERIFY=1
-    networks:
-      - docker-in-docker-network
 volumes:
   docker-certs-ca:
   docker-certs-client:
