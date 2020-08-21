@@ -22,7 +22,7 @@ services:
       - |
         docker context create build
         docker buildx create --use --name build build
-        docker build -f '$DOCKER_FILE' -t '$IMAGE' . --push
+        docker buildx build --platform linux/amd64,linux/arm64 -f '$DOCKER_FILE' -t '$IMAGE' . --push
     privileged: true
     depends_on: 
       - docker
