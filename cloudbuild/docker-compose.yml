@@ -16,7 +16,7 @@ services:
   docker-build:
     image: docker:18.09.9
     working_dir: /project
-    command: build -t '$IMAGE' .
+    command: build -f '$DOCKER_FILE' -t '$IMAGE' .
     privileged: true
     depends_on: 
       - docker
@@ -26,6 +26,7 @@ services:
     environment:
       - DOCKER_TLS_CERTDIR=/certs
       - DOCKER_BUILDKIT=1
+      - DOCKER_HOST=tcp://docker:2376
     networks:
       - docker-in-docker-network
 
