@@ -14,14 +14,13 @@ steps:
   # run docker daemon
   - name: 'docker/compose:1.24.1'
     args: ['-f', 'cloudbuild/docker-compose.yml', 'up', '-d', 'docker']
-    env:
-    - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
   
   # build image
   - name: 'docker/compose:1.24.1'
     args: ['-f', 'cloudbuild/docker-compose.yml', 'up', 'docker-build']
     env:
     - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
+    - 'DOCKER_FILE=Jawhar.Dockerfile'
   
   # docker auth and push to gcr
   - name: 'docker/compose:1.24.1'
