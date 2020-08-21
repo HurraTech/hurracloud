@@ -22,10 +22,4 @@ steps:
     - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
     - 'DOCKER_FILE=Jawhar.Dockerfile'
   
-  # docker auth and push to gcr
-  - name: 'docker/compose:1.24.1'
-    args: ['-f', 'cloudbuild/docker-compose.yml', 'up', 'docker-push']
-    env:
-    - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
-
 timeout: 600s
