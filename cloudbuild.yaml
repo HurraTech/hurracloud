@@ -1,0 +1,4 @@
+steps:
+- name: 'docker'
+  args: ['build', '-f', 'Jawhar.Dockerfile', '-t', 'aimannajjar/hurracloud:$COMMIT_SHA', '.']
+images: ['gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA']
