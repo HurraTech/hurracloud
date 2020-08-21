@@ -13,7 +13,7 @@ steps:
   
   # run docker daemon
   - name: 'docker/compose:1.24.1'
-    args: ['-f', 'cloudbuild/docker-compose.yml', 'up', '-d', 'docker', '.']
+    args: ['-f', 'cloudbuild/docker-compose.yml', 'up', '-d', 'docker']
     env:
     - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
   
