@@ -1,0 +1,32 @@
+# cloud-build.yaml
+steps:
+  # decrypt gcloud json secret
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+    - kms
+    - decrypt
+    - --ciphertext-file=hurra-build/creds.json.enc
+    - --plaintext-file=creds.json
+    - --location=global
+    - --keyring=cloudbuild
+    - --key=cloudbuild
+  
+  # run docker daemon
+  - name: 'docker/compose:1.24.1'
+    args: ['-f', 'cloudbuild/docker-compose.yml', 'up', '-d', 'docker']
+    env:
+    - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
+  
+  # build image
+  - name: 'docker/compose:1.24.1'
+    args: ['-f', 'cloudbuild/docker-compose.yml', 'up', 'docker-build']
+    env:
+    - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
+  
+  # docker auth and push to gcr
+  - name: 'docker/compose:1.24.1'
+    args: ['-f', 'cloudbuild/docker-compose.yml', 'up', 'docker-push']
+    env:
+    - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
+
+timeout: 600s

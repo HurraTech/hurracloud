@@ -1,0 +1,54 @@
+version: '3.7'
+services:
+  docker:
+    image: "docker:18.09.9-dind"
+    privileged: true
+    volumes:
+      - docker-certs-client:/certs/client
+      - docker-certs-ca:/certs/ca
+    expose:
+      - 2376
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    networks:
+      - docker-in-docker-network
+  docker-build:
+    image: docker:18.09.9
+    working_dir: /project
+    command: build -t '$IMAGE'
+    privileged: true
+    depends_on: 
+      - docker
+    volumes:
+      - docker-certs-client:/certs/client:ro
+      - ../../:/project
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_BUILDKIT=1
+    networks:
+      - docker-in-docker-network
+  docker-push:
+    image: docker:18.09.9
+    working_dir: /project
+    entrypoint: /bin/sh -c
+    command: 
+      - |
+        cat creds.json | docker login -u _json_key --password-stdin https://gcr.io
+        docker push '$IMAGE'
+    privileged: true
+    depends_on: 
+      - docker
+    volumes:
+      - docker-certs-client:/certs/client:ro
+      - ../:/project
+    environment:
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_TLS_VERIFY=1
+    networks:
+      - docker-in-docker-network
+volumes:
+  docker-certs-ca:
+  docker-certs-client:
+networks:
+  docker-in-docker-network:
