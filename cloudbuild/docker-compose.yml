@@ -12,21 +12,23 @@ services:
       - DOCKER_TLS_CERTDIR=/certs
     networks:
       - docker-in-docker-network
+
   docker-build:
     image: docker:18.09.9
     working_dir: /project
-    command: build -t '$IMAGE'
+    command: build -t '$IMAGE' .
     privileged: true
     depends_on: 
       - docker
     volumes:
       - docker-certs-client:/certs/client:ro
-      - ../../:/project
+      - ../:/project
     environment:
       - DOCKER_TLS_CERTDIR=/certs
       - DOCKER_BUILDKIT=1
     networks:
       - docker-in-docker-network
+
   docker-push:
     image: docker:18.09.9
     working_dir: /project
