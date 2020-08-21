@@ -22,4 +22,4 @@ steps:
     - 'IMAGE=gcr.io/$PROJECT_ID/jawhar:$COMMIT_SHA'
     - 'DOCKER_FILE=Jawhar.Dockerfile'
   
-timeout: 1800s
+timeout: 7200s

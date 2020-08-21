@@ -1,0 +1,28 @@
+#cloud-config
+
+users:
+- name: aimannajjar
+  uid: 2000
+  shell: /bin/bash
+  home: /home/aimannajjar
+
+# runcmd: # for some reson, runcmd not working on gcp
+bootcmd:
+- [ sh, -c, echo "========= Starting build =========" ]
+- apt-get update
+- apt-get install -y gawk wget git-core diffstat unzip texinfo gcc-multilib build-essential chrpath socat libsdl1.2-dev xterm
+- mkdir -p /mnt/hurracloud && chown aimannajjar:aimannajjar /mnt/hurracloud && cd /mnt/hurracloud
+- sudo -u aimannajjar bash -c 'curl http://metadata.google.internal/0.1/meta-data/attributes/bitbucket-key -o /home/aimannajjar/.ssh/id_rsa && chmod 600 /home/aimannajjar/.ssh/id_rsa && echo >> /home/aimannajjar/.ssh/id_rsa'
+- sudo -u aimannajjar bash -c "echo 'bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqTKl/VqLat/MaB33pZy0y3rJZtnqwR2qOOvbwKZYKiEO1O6VqNEBxKvJJelCq0dTXWT5pbO2gDXC6h6QDXCaHo6pOHGPUy+YBaGQRGuSusMEASYiWunYN0vCAI8QaXnWMXNMdFP3jHAJH0eDsoiGnLPBlBp4TNm6rYI74nMzgz3B9IikW4WVK+dc8KZJZWYjAuORU3jc1c/NPskD2ASinf8v3xnfXeukU0sJ5N6m5E8VLjObPEO+mN2t/FZTMZLiFqPWc/ALSqnMnnhwrNi2rbfg/rd/IpL8Le3pSBne8+seeFVBoGqzHM9yXw==' > /home/aimannajjar/.ssh/known_hosts" 
+- sudo -u aimannajjar bash -c 'git clone --recursive -j8  git@bitbucket.org:aimannajjar/hurracloud.git'
+# - sudo -u aimannajjar bash -c 'cd /mnt/hurracloud/hurracloud/yocto && source poky/oe-init-build-env build-rpi3 && bitbake core-image-base'
+
+  # bootcmd:
+  # - apt-get update
+  # - apt-get install -y gawk wget git-core diffstat unzip texinfo gcc-multilib build-essential chrpath socat libsdl1.2-dev xterm
+  # - mkdir -p /mnt/hurracloud && chown aimannajjar:aimannajjar /mnt/hurracloud && cd /mnt/hurracloud
+  # 
+  # - mkfs.ext4 /dev/nvme0n1 && mount /dev/nvme0n1 /mnt/hurracloud
+  # - sudo -u aimannajjar bash -c 'curl http://metadata.google.internal/0.1/meta-data/attributes/bitbucket-key -o /home/aimannajjar/.ssh/id_rsa && chmod 600 /home/aimannajjar/.ssh/id_rsa && echo >> /home/aimannajjar/.ssh/id_rsa'
+  # - sudo -u aimannajjar bash -c 'git clone --recursive  git@bitbucket.org:aimannajjar/hurracloud.git'
+  # - [ sh, -c, echo "========= Starting build =========" ]
