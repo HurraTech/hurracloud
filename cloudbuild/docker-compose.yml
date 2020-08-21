@@ -1,7 +1,8 @@
 version: '3.7'
 services:
   docker:
-    image: "docker:18.09.9-dind"
+    image: "docker:dind"
+    command: ["--experimental"]
     privileged: true
     volumes:
       - docker-certs-client:/certs/client
@@ -14,9 +15,14 @@ services:
       - docker-in-docker-network
 
   docker-build:
-    image: docker:18.09.9
+    image: gcr.io/hurrabuild/docker-buildx
     working_dir: /project
-    command: build -f '$DOCKER_FILE' -t '$IMAGE' .
+    entrypoint: /bin/sh -c
+    command: 
+      - |
+        docker context create build
+        docker buildx create --use --name build build
+        docker build -f '$DOCKER_FILE' -t '$IMAGE' . --push
     privileged: true
     depends_on: 
       - docker
@@ -24,14 +30,16 @@ services:
       - docker-certs-client:/certs/client:ro
       - ../:/project
     environment:
-      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_CERT_PATH=/certs/client
       - DOCKER_BUILDKIT=1
       - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CLI_EXPERIMENTAL=enabled
+      - DOCKER_TLS_VERIFY=1
     networks:
       - docker-in-docker-network
 
   docker-push:
-    image: docker:18.09.9
+    image: gcr.io/hurrabuild/docker-buildx
     working_dir: /project
     entrypoint: /bin/sh -c
     command: 
