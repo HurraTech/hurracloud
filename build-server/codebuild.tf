@@ -11,6 +11,7 @@ locals {
     "samaa" : {
       "dockerfile" : "Samaa.Dockerfile",
       "context" : ""
+      "base_stage" : "build"
     },
     "app-runner" : {
       "dockerfile" : "AppRunner.Dockerfile",
@@ -36,6 +37,7 @@ resource "google_cloudbuild_trigger" "hurra-build" {
     _DOCKER_FILE = each.value.dockerfile
     _CONTEXT     = each.value.context
     _APP_NAME    = each.key
+    _BASE_STAGE  = lookup(each.value, "base_stage" , "")
   }
 
   filename = "cloudbuild/cloudbuild.yaml"
