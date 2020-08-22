@@ -8,18 +8,18 @@ locals {
     "jawhar" : {
       "dockerfile" : "Jawhar.Dockerfile",
       "context" : ""
-      "included_files" : ["jawhar/**"]
+      "included_files" : ["jawhar/**", "Jawhar.Dockerfile"]
     },
     "samaa" : {
       "dockerfile" : "Samaa.Dockerfile",
       "context" : ""
       "base_stage" : "build"
-      "included_files" : ["samaa/**"]
+      "included_files" : ["samaa/**", "Samaa.Dockerfile"]
     },
     "app-runner" : {
       "dockerfile" : "AppRunner.Dockerfile",
       "context" : ""
-      "included_files" : ["app-runner/**"]
+      "included_files" : ["app-runner/**", "AppRunner.Dockerfile"]
     },
     "syncthing" : {
       "dockerfile" : "Dockerfile",
