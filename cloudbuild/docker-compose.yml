@@ -20,7 +20,6 @@ services:
     entrypoint: /bin/sh -c
     command: 
       - |
-        set -x
         echo "Waiting for Docker-in-Docker ceritifcates"
         while [ ! -f  /certs/client/ca.pem  ]; do sleep 2; done
         echo 
@@ -35,7 +34,7 @@ services:
         cat creds.json | docker login -u _json_key --password-stdin https://gcr.io
         echo
         echo
-        if [ !-z '$BASE_STAGE' ]; then
+        if [ ! -z '$BASE_STAGE' ]; then
           echo "------------------------------------------"
           echo "Building base stage"
           docker buildx build . \

@@ -1,4 +1,4 @@
-FROM node:11.6.0-alpine as build
+FROM --platform=$BUILDPLATFORM node:11.6.0-alpine as build
 WORKDIR /usr/src/samaa
 COPY ./samaa/package.json .
 COPY ./samaa/package-lock.json .
