@@ -17,7 +17,7 @@ services:
       - REACT_APP_AUID=<%=app_unique_id%>
       - REACT_APP_PROXY_PORT=<%=proxy_port_number%>
       - HURRA_HOSTNAME=<%=hostname%>
-    command: sh -c "npm install_deps && npm startRunner"
+    command: sh -c "npm run-script install_deps && npm run-script startRunner"
 
   nginx-proxy:
     image: aimannajjar/hurracloud:nginx-proxy

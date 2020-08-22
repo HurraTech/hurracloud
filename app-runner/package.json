@@ -7,12 +7,12 @@
   },
 
   "scripts": {
-    "client": "cd client && HURRA_HOSTNAME=$HURRA_HOSTNAME npm env && npm start",
-    "server": "cd server && npm server",
+    "client": "cd client && HURRA_HOSTNAME=$HURRA_HOSTNAME npm run-script start",
+    "server": "cd server && npm run-script server",
     "install_client_deps": "cd client && npm install",
     "install_server_deps": "cd server && npm install",
-    "install_deps": "concurrently \"npm install_client_deps\" \"npm install_server_deps\"",
-    "startRunner": "echo \"HURRA=$HURRA_HOSTNAME\" && concurrently --kill-others-on-fail \"npm server\" \"HURRA_HOSTNAME=$HURRA_HOSTNAME npm client\""
+    "install_deps": "concurrently \"npm run-script install_client_deps\" \"npm run-script install_server_deps\"",
+    "startRunner": "echo \"HURRA=$HURRA_HOSTNAME\" && concurrently --kill-others-on-fail \"npm run-script server\" \"HURRA_HOSTNAME=$HURRA_HOSTNAME npm run-script client\""
   }
 
 }
