@@ -1,4 +1,4 @@
-provider "google" {  }
+provider "google" {}
 
 resource "google_compute_instance" "hurra-build" {
   boot_disk {
@@ -11,10 +11,10 @@ resource "google_compute_instance" "hurra-build" {
       type  = "pd-ssd"
     }
 
-    mode   = "READ_WRITE"
+    mode = "READ_WRITE"
   }
 
-  machine_type        = "c2-standard-8"
+  machine_type = "c2-standard-8"
 
 
   metadata = {
@@ -41,8 +41,10 @@ resource "google_compute_instance" "hurra-build" {
   }
 
   service_account {
-    email  = "356836837404-compute@developer.gserviceaccount.com"
-    scopes = ["https://www.googleapis.com/auth/monitoring.write", "https://www.googleapis.com/auth/servicecontrol", "https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/devstorage.read_write", "https://www.googleapis.com/auth/service.management.readonly", "https://www.googleapis.com/auth/trace.append"]
+    email = "356836837404-compute@developer.gserviceaccount.com"
+    scopes = [
+      "https://www.googleapis.com/auth/cloud-platform",
+    ]
   }
 
   shielded_instance_config {
@@ -68,11 +70,11 @@ resource "google_storage_bucket" "hurrabuild-build" {
 # resource "google_storage_bucket_acl" "hurrabuild-build" {
 #   bucket = "hurrabuild-build"
 # }
-# 
-# 
+#
+#
 # resource "google_storage_bucket_iam_policy" "hurrabuild-build" {
 #   bucket = "b/hurrabuild-build"
-# 
+#
 #   policy_data = <<POLICY
 # {
 #   "bindings": [
@@ -93,7 +95,7 @@ resource "google_storage_bucket" "hurrabuild-build" {
 # }
 # POLICY
 # }
-# 
+#
 # resource "google_storage_default_object_acl" "hurrabuild-build" {
 #   bucket      = "hurrabuild-build"
 #   role_entity = ["OWNER:project-editors-356836837404", "OWNER:project-owners-356836837404", "READER:project-viewers-356836837404"]
