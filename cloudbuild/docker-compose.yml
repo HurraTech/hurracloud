@@ -29,7 +29,7 @@ services:
             -f '$DOCKER_FILE' \
             -t '$IMAGE' \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --cache-from \
+            --cache-from '$IMAGE' \
             --push
     privileged: true
     depends_on: 
