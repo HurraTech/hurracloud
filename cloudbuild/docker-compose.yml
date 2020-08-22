@@ -40,8 +40,8 @@ services:
           docker buildx build . \
               --target '$BASE_STAGE' \
               --platform linux/amd64,linux/arm64 \
-              --f '$DOCKER_FILE' \
-              --t '$CACHE_IMAGE:$BASE_STAGE' \
+              -f '$DOCKER_FILE' \
+              -t '$CACHE_IMAGE:$BASE_STAGE' \
               --build-arg BUILDKIT_INLINE_CACHE=1 \
               --cache-from '$IMAGE:$BASE_STAGE' \
               --push
