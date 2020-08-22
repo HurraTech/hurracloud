@@ -1,0 +1,20 @@
+[Unit]
+Description=hurracloud
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+
+# Remove old containers, images and volumes
+ExecStartPre=/bin/sh -c 'ls /lib/hurra/*.tar | xargs -I{} docker load -i {}'
+ExecStartPre=/usr/bin/docker-compose -f /etc/hurra/services.yml down
+
+# Compose up
+ExecStart=/usr/bin/docker-compose -f /etc/hurra/services.yml up
+
+# Compose down, remove containers and volumes
+ExecStop=/usr/bin/docker-compose -f /etc/hurra/services.yml down
+
+[Install]
+WantedBy=multi-user.target
