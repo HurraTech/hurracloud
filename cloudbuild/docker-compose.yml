@@ -33,7 +33,7 @@ services:
               --t '$CACHE_IMAGE:$BASE_STAGE' \
               --build-arg BUILDKIT_INLINE_CACHE=1 \
               --cache-from '$IMAGE:$BASE_STAGE' 
-          $BASE_CACHE="--cache-from=$IMAGE:$BASE_STAGE --build-arg BASE_IMAGE=$IMAGE:$BASE_STAGE"
+          $BASE_CACHE="--cache-from=$IMAGE:$BASE_STAGE"
         fi
 
         docker buildx build . \
