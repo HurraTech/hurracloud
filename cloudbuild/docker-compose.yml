@@ -20,12 +20,24 @@ services:
     entrypoint: /bin/sh -c
     command: 
       - |
+        set -x
+        echo "Waiting for Docker-in-Docker ceritifcates"
         while [ ! -f  /certs/client/ca.pem  ]; do sleep 2; done
+        echo 
+        echo
+        echo "Setup multi-arch builder"
         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         docker context create build
         docker buildx create --use --name build build
+        echo
+        echo
+        echo "Login into Docker Registry"
         cat creds.json | docker login -u _json_key --password-stdin https://gcr.io
+        echo
+        echo
         if [ !-z '$BASE_STAGE' ]; then
+          echo "------------------------------------------"
+          echo "Building base stage"
           docker buildx build . \
               --target '$BASE_STAGE' \
               --platform linux/amd64,linux/arm64 \
@@ -35,8 +47,12 @@ services:
               --cache-from '$IMAGE:$BASE_STAGE' \
               --push
           $BASE_CACHE="--cache-from=$IMAGE:$BASE_STAGE"
+          echo
+          echo
         fi
 
+        echo "------------------------------------------"
+        echo "Building docker image"
         docker buildx build . \
             --platform linux/amd64,linux/arm64 \
             -f '$DOCKER_FILE' \
@@ -44,6 +60,11 @@ services:
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from '$IMAGE' $BASE_CACHE \
             --push
+        EXIT_STATUS=$$?
+
+        echo "-----------------------------"
+        echo "Completed with exit status $$EXIT_STATUS"
+        exit $$EXIT_STATUS
     privileged: true
     depends_on: 
       - docker
