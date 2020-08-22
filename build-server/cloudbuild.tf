@@ -19,6 +19,7 @@ locals {
     "app-runner" : {
       "dockerfile" : "AppRunner.Dockerfile",
       "context" : ""
+      "base_stage" : "build"
       "included_files" : ["app-runner/**", "AppRunner.Dockerfile"]
     },
     "syncthing" : {
