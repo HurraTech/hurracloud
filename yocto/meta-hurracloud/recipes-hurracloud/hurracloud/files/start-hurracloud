@@ -1,5 +1,0 @@
-#!/bin/sh
-
-ifconfig wlan0 up
-ifup wlan0
-
