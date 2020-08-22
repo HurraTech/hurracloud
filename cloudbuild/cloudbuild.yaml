@@ -24,8 +24,11 @@ steps:
     - 'IMAGE=gcr.io/$PROJECT_ID/$_APP_NAME'
     - 'DOCKER_FILE=$_DOCKER_FILE'
     - 'CONTEXT=$_CONTEXT'
+    - 'BASE_STAGE=$_BASE_STAGE'
     waitFor: ['daemon']
-
+substitutions:
+    _BASE_STAGE: ""
 options:
     machineType: "N1_HIGHCPU_32"
+    substitution_option: 'ALLOW_LOOSE'
 timeout: 7200s
