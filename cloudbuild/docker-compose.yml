@@ -36,7 +36,7 @@ services:
       - docker
     volumes:
       - docker-certs-client:/certs/client:ro
-      - ../:/project
+      - ../${CONTEXT:-}:/project
     environment:
       - DOCKER_CERT_PATH=/certs/client
       - DOCKER_BUILDKIT=1

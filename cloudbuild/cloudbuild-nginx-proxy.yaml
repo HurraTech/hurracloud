@@ -20,6 +20,7 @@ steps:
     args: ['-f', 'cloudbuild/docker-compose.yml', 'up', 'docker-build']
     env:
     - 'IMAGE=gcr.io/$PROJECT_ID/nginx-proxy:$COMMIT_SHA'
-    - 'DOCKER_FILE=nginx-proxy/Dockerfile'
+    - 'DOCKER_FILE=Dockerfile'
+    - 'CONTEXT=nginx-proxy'
   
 timeout: 7200s
