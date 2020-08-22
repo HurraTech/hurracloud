@@ -1,26 +1,23 @@
-'use strict';
+"use strict";
 
-var _express = require('express');
+var _express = _interopRequireDefault(require("express"));
 
-var _express2 = _interopRequireDefault(_express);
+var _app = _interopRequireDefault(require("./HurraApp/app"));
+
+var _sqlite = _interopRequireDefault(require("sqlite3"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var bodyParser = require('body-parser');
-var hurraApp = require('./HurraApp/app');
-var app = (0, _express2.default)();
-var port = process.env.PORT || 5000;
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+var args = process.argv.slice(2);
+const db = new _sqlite.default.Database('/var/hurradb/sqlite3.db');
+const server = (0, _express.default)();
+const port = process.env.PORT || 5000;
+server.use(_express.default.json());
+let app = new _app.default(server, db);
+app.start();
 
-app.get('/api/hello', function (req, res) {
-  res.send({ expressHurra: hurraApp.main() });
-});
-app.post('/api/world', function (req, res) {
-  console.log(req.body);
-  res.send('I received your POST request. This is what you sent me: ' + req.body.post);
-});
-
-app.listen(port, function () {
-  return console.log('Listening on port ' + port);
-});
+if (args[0] == "init") {
+  app.init();
+} else {
+  server.listen(port, () => console.log(`Listening on port ${port}`));
+}
