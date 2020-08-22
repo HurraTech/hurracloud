@@ -7,12 +7,12 @@
   },
 
   "scripts": {
-    "client": "cd client && yarn start",
-    "server": "cd server && yarn server",
-    "install_client_deps": "cd client && yarn install",
-    "install_server_deps": "cd server && yarn install",
-    "install_deps": "concurrently \"yarn install_client_deps\" \"yarn install_server_deps\"",
-    "startRunner": "concurrently --kill-others-on-fail \"yarn server\" \"HURRA_HOSTNAME=$HURRA_HOSTNAME yarn client\""
+    "client": "cd client && HURRA_HOSTNAME=$HURRA_HOSTNAME npm env && npm start",
+    "server": "cd server && npm server",
+    "install_client_deps": "cd client && npm install",
+    "install_server_deps": "cd server && npm install",
+    "install_deps": "concurrently \"npm install_client_deps\" \"npm install_server_deps\"",
+    "startRunner": "echo \"HURRA=$HURRA_HOSTNAME\" && concurrently --kill-others-on-fail \"npm server\" \"HURRA_HOSTNAME=$HURRA_HOSTNAME npm client\""
   }
 
 }

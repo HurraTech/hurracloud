@@ -33,7 +33,7 @@ services:
     user: root
     volumes:
       - ./samaa:/usr/src/samaa
-    command: sh -c "yarn install && yarn start"    
+    command: sh -c "npm install && npm start"    
     ports:
       - 3000:3000
     networks:

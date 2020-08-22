@@ -13,11 +13,11 @@ RUN apk add --no-cache --virtual .gyp \
         g++
 
 # Install Node.js dependencies
-RUN yarn install
-RUN yarn install_deps
+RUN npm install
+RUN npm install_deps
 
 
 # Run the container under "node" user by default
 USER node
 
-CMD [ "yarn", "startRunner" ]
+CMD [ "npm", "startRunner" ]

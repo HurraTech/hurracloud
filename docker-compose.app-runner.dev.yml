@@ -17,7 +17,7 @@ services:
       - app-network
     environment:
       - NODE_ENV=development
-    command: sh -c "yarn install && yarn startRunner"    
+    command: sh -c "npm install && npm startRunner"    
 
 networks:
   app-network: {}
