@@ -29,6 +29,6 @@ steps:
 substitutions:
     _BASE_STAGE: ""
 options:
-    machineType: "N1_HIGHCPU_32"
     substitution_option: 'ALLOW_LOOSE'
+    #    machineType: "N1_HIGHCPU_32"
 timeout: 7200s
