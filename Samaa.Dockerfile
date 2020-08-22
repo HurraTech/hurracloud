@@ -4,7 +4,7 @@ COPY ./samaa/package.json .
 COPY ./samaa/package-lock.json .
 RUN npm install --production
 COPY ./samaa .
-RUN npm build
+RUN npm run-script build
 RUN npm upgrade caniuse-lite browserslist
 
 FROM node:11.6.0-alpine

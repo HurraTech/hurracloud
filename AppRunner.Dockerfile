@@ -13,7 +13,7 @@ RUN apk add --no-cache --virtual .gyp \
         g++
 
 # Install Node.js dependencies
-RUN npm run-script install
+RUN npm install
 RUN npm run-script install_deps
 
 
