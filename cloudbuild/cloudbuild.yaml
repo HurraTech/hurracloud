@@ -6,7 +6,7 @@ steps:
     - kms
     - decrypt
     - --ciphertext-file=cloudbuild/creds.json.enc
-    - --plaintext-file=.$_CONTEXT/creds.json
+    - --plaintext-file=./$_CONTEXT/creds.json
     - --location=global
     - --keyring=cloudbuild
     - --key=cloudbuild
@@ -14,14 +14,18 @@ steps:
   # run docker daemon
   - name: 'docker/compose:1.24.1'
     args: ['-f', 'cloudbuild/docker-compose.yml', 'up', '-d', 'docker']
+    id: daemon
   
   # build image
   - name: 'docker/compose:1.24.1'
+    id: build
     args: ['-f', 'cloudbuild/docker-compose.yml', 'up', 'docker-build']
     env:
     - 'IMAGE=gcr.io/$PROJECT_ID/$_APP_NAME'
     - 'DOCKER_FILE=$_DOCKER_FILE'
     - 'CONTEXT=$_CONTEXT'
+    waitFor: ['daemon']
+
 options:
     machineType: "N1_HIGHCPU_32"
 timeout: 7200s
