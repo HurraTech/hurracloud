@@ -68,10 +68,9 @@ module ActsAsSourcable
       source.name
     end
 
-    def update_stats
+    def update_stats(force: false)
       Rails.logger.info(self.source.sourcable_type)
-      if self.source.status == "mounted" && ((DateTime.now.to_time - self.source.updated_at.to_time) / 60) > 5
-          Rails.logger.info("UPDATING STATS OF #{self.source}")
+      if self.source.status == "mounted" && ((((DateTime.now.to_time - self.source.updated_at.to_time) / 60) > 5) || force)
           stats = `df #{self.source.mount_path} --output=used,avail | tail -n +2`.split(" ")
           Rails.logger.info("STATS IS #{stats}")
           self.source.used = stats[0].to_i * 1024

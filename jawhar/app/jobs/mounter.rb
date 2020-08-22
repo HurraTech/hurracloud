@@ -57,6 +57,7 @@ class Mounter
                 partition.status = :mounted
                 partition.filesystem = "ext4"
                 partition.save!
+                partition.update_stats(force: true)
 			end
 
             ### Update External Drives ####
@@ -114,7 +115,7 @@ class Mounter
                 }
                 Mounter.update_drive(drive, device)
                 drive.save!
-                Rails.logger.info("(n) Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
+                Rails.logger.info("Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
             end
             Rails.logger.info("Attached Devs #{attached_devs}")
             Drive.where.not(unique_id: attached_devs, drive_type: :internal).each do |d|
@@ -241,6 +242,7 @@ class Mounter
 
             Rails.logger.info("Saving partition #{partition}: #{partition.name}, whose sources is #{partition.source}")
             partition.save!
+            partition.update_stats(force: true)
 
         end
     end
