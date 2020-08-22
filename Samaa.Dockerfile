@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:11.6.0-alpine as build
+FROM --platform=$BUILDPLATFORM node:14.8.0-alpine as build
 WORKDIR /usr/src/samaa
 COPY ./samaa/package.json .
 COPY ./samaa/package-lock.json .
@@ -7,7 +7,7 @@ COPY ./samaa .
 RUN npm run-script build
 RUN npm upgrade caniuse-lite browserslist
 
-FROM node:11.6.0-alpine
+FROM node:14.8.0-alpine
 WORKDIR /usr/src/samaa
 RUN npm install serve
 COPY --from=build /usr/src/samaa/build .
