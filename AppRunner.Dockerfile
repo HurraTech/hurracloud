@@ -32,9 +32,10 @@ RUN cd ./server && npm run-script build && npm upgrade caniuse-lite browserslist
 
 ######### RUN-TIME IMAGE ##############
 FROM node:14.8.0-alpine
+RUN npm install -g serve concurrently
+
 USER node
 WORKDIR /home/node/app-runner
-RUN npm install -g serve concurrently
 COPY --from=build /home/node/app-runner/client/build ./client  
 COPY --from=build /home/node/app-runner/server/build ./server
 
