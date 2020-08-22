@@ -20,10 +20,10 @@ services:
     entrypoint: /bin/sh -c
     command: 
       - |
-        cat creds.json | docker login -u _json_key --password-stdin https://gcr.io
         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         docker context create build
         docker buildx create --use --name build build
+        cat creds.json | docker login -u _json_key --password-stdin https://gcr.io
         docker buildx build . \
             --platform linux/amd64,linux/arm64 \
             -f '$DOCKER_FILE' \

@@ -1,5 +1,5 @@
 #!/bin/bash
-
+sudo date
 gcloud compute scp hurra-build:/mnt/hurracloud/hurracloud/yocto/build-rpi3/tmp/deploy/images/raspberrypi4-64/core-image-base-raspberrypi4-64.rpi-sdimg ./ --project hurrabuild --zone us-east1-b
 
 sudo dd if=./core-image-base-raspberrypi4-64.rpi-sdimg of=/dev/sda
