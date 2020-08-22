@@ -16,9 +16,9 @@ RUN npm upgrade caniuse-lite browserslist
 
 ############# RUN-TIME ################
 FROM node:14.8.0-alpine
+RUN npm install serve -g
+
 USER node
 WORKDIR /home/node/samaa
-
-RUN npm install serve -g
-COPY --from=build /home/node/samaa/build .
+COPY --chown=node:node --from=build /home/node/samaa/build .
 CMD [ "serve",  "-p",  "3000", "-s" ]
