@@ -6,7 +6,7 @@ steps:
     - kms
     - decrypt
     - --ciphertext-file=cloudbuild/creds.json.enc
-    - --plaintext-file=$_CONTEXT/creds.json
+    - --plaintext-file=.$_CONTEXT/creds.json
     - --location=global
     - --keyring=cloudbuild
     - --key=cloudbuild
