@@ -1,7 +1,7 @@
 FROM node:11.6.0-alpine as build
 WORKDIR /usr/src/samaa
 COPY ./samaa/package.json .
-COPY ./samaa/package.lock .
+COPY ./samaa/package-lock.json .
 RUN npm install --production
 COPY ./samaa .
 RUN npm build
