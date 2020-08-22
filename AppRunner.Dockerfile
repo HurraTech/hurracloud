@@ -37,6 +37,6 @@ RUN npm install -g serve concurrently
 USER node
 WORKDIR /home/node/app-runner
 COPY --from=build /home/node/app-runner/client/build ./client  
-COPY --from=build /home/node/app-runner/server/build ./server
+COPY --from=build /home/node/app-runner/server/dist ./server
 
-CMD ["concurrently", "--kill-others-on-fail", "./node_modules/serve/bin/serve.js -p 3000 -s", "cd client && HURRA_HOSTNAME=$HURRA_HOSTNAME npm run-script start"]
+CMD ["concurrently", "--kill-others-on-fail", "cd server && node server.js HurraServer.js", "cd client && HURRA_HOSTNAME=$HURRA_HOSTNAME serve -p 3000"]
