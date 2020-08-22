@@ -19,7 +19,7 @@ steps:
   - name: 'docker/compose:1.24.1'
     args: ['-f', 'cloudbuild/docker-compose.yml', 'up', 'docker-build']
     env:
-    - 'IMAGE=gcr.io/$PROJECT_ID/$_APP_NAME
+    - 'IMAGE=gcr.io/$PROJECT_ID/$_APP_NAME'
     - 'DOCKER_FILE=$_DOCKER_FILE'
     - 'CONTEXT=$_CONTEXT'
   
