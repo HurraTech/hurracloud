@@ -23,7 +23,7 @@ services:
           propagation: shared
     command: '-u "aiman;Ytz8fJaaxqhdQkpAMnGLOyOkix1" -s "drives;/mount;yes;no;no;aiman;aiman,aiman" -w "HURRA"'
 
-   webdav:
+  webdav:
      image: aimannajjar/hurracloud:webdav 
      build:
        context: .
