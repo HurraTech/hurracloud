@@ -13,5 +13,5 @@ else
 fi
 
 
-HURRA_HOSTNAME=$(hostname -A | cut -d " " -f 1) ARCH=$ARCH docker-compose -f docker-compose.yml pull
-HURRA_HOSTNAME=$(hostname -A | cut -d " " -f 1) ARCH=$ARCH docker-compose -f docker-compose.yml up -d
+HURRA_HOSTNAME=$(hostname -a | cut -d " " -f 1) ARCH=$ARCH docker-compose -f docker-compose.yml pull
+HURRA_HOSTNAME=$(hostname -a | cut -d " " -f 1) ARCH=$ARCH docker-compose -f docker-compose.yml up -d
