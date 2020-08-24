@@ -4,6 +4,7 @@ LICENSE = "CLOSED"
 
 SRC_URI += " \
     git://git@bitbucket.org/aimannajjar/deploy.git;protocol=ssh \
+    file://hurracloud.service \
 "
 
 SRCREV = "${AUTOREV}"
