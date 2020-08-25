@@ -7,7 +7,6 @@ After=docker.service
 Restart=always
 
 # Start
-ExecStartPre=/bin/hurra-update-images
 ExecStart=/usr/bin/docker-compose -f /etc/hurra/services.yml up
 ExecStartPost=docker system prune -f
 

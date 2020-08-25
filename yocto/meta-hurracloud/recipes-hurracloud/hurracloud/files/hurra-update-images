@@ -2,12 +2,12 @@
 
 until $(docker ps 1> /dev/null 2>&1); do echo "Waiting for Docker to start."; sleep 2; done
 
-IMAGES=`ls /lib/hurra/*.gz`
+IMAGES=`ls /lib/hurra/*`
 for IMAGE in $IMAGES; do
-    IMAGE_NAME=$(echo "$IMAGE" | awk -F/ "{print \$NF}" | cut -d . -f1)
+    IMAGE_NAME=$(echo "$IMAGE" | awk -F/ "{print \$NF}")
     echo "Loading image $IMAGE_NAME ($IMAGE)"
     if [ "$(docker images | grep $IMAGE_NAME)" = "" ]; then
-       gunzip -c $IMAGE | docker load
+       docker load -i $IMAGE
     else
        echo "Image is already loaded, skipping."
     fi
