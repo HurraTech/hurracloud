@@ -58,8 +58,7 @@ services:
             -t '$IMAGE' \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from '$IMAGE' $$BASE_CACHE \
-            --push \
-            --squash
+            --push
         EXIT_STATUS=$$?
 
         echo "-----------------------------"
