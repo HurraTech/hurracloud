@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 sudo date
-sudo bmaptool copy ./core-image-base-raspberrypi4-64.rpi-sdimg /dev/sda 
+sudo bmaptool copy ./core-image-base-raspberrypi4-64.sdimg /dev/sda 
