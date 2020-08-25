@@ -9,7 +9,7 @@ COPY jawhar/Gemfile.lock .
 RUN bundle config --global frozen 1 \
  && bundle install --without development test -j4 --retry 3 \
  && rm -rf /usr/local/bundle/cache/*.gem \
- && find /usr/local/bundle/gems/ -name "*.c" -delete
+ && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
 
 COPY ./jawhar/ ./
