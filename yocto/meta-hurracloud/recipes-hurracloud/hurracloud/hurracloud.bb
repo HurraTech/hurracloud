@@ -6,6 +6,7 @@ SRC_URI += " \
     git://git@bitbucket.org/aimannajjar/deploy.git;protocol=ssh \
     file://hurracloud.service \
     file://hurra-update-images \
+    file://docker-config.json \
 "
 
 SRCREV = "${AUTOREV}"
@@ -42,11 +43,12 @@ do_compile() {
 }
 
 do_install() {
-    install -d ${D}${sysconfdir}/hurra ${D}${base_libdir}/hurra ${D}${base_bindir} ${D}${systemd_unitdir}/system
+    install -d ${D}${sysconfdir}/hurra ${D}${sysconfdir}/docker ${D}${base_libdir}/hurra ${D}${base_bindir} ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/git/docker-compose.yml ${D}${sysconfdir}/hurra/services.yml 
     install -m 0644 ${WORKDIR}/hurracloud.service ${D}${systemd_unitdir}/system
     install -m 0755 ${WORKDIR}/hurra-update-images ${D}${base_bindir}
     install -m 0644 ${WORKDIR}/images/*.gz ${D}${base_libdir}/hurra
+    install -m 0644 ${WORKDIR}/docker-config.json ${D}${sysconfdir}/docker/daemon.json
 }
 
 # pkg_postinst_ontarget_${PN}() {
@@ -60,4 +62,5 @@ FILES_${PN} += " \
     ${systemd_unitdir}/system/hurracloud.service \
     ${base_libdir}/hurra \
 	${base_bindir}/hurra-update-images \
+    ${sysconfdir}/docker/daemon.json \
 "
