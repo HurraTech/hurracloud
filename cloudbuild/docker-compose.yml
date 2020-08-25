@@ -45,7 +45,7 @@ services:
               --build-arg BUILDKIT_INLINE_CACHE=1 \
               --cache-from '$IMAGE:$BASE_STAGE' \
               --push
-          $BASE_CACHE="--cache-from=$IMAGE:$BASE_STAGE"
+          BASE_CACHE="--cache-from=$IMAGE:$BASE_STAGE"
           echo
           echo
         fi
@@ -57,7 +57,7 @@ services:
             -f '$DOCKER_FILE' \
             -t '$IMAGE' \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --cache-from '$IMAGE' $BASE_CACHE \
+            --cache-from '$IMAGE' $$BASE_CACHE \
             --push \
             --squash
         EXIT_STATUS=$$?
