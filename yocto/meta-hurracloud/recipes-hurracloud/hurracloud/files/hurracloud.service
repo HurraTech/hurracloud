@@ -7,11 +7,10 @@ After=docker.service
 Restart=always
 
 # Start
-ExecStart=/usr/bin/docker-compose -f /etc/hurra/services.yml up
-ExecStartPost=docker system prune -f
+ExecStart=/bin/hurra-start
 
 # Stop
-ExecStop=/usr/bin/docker-compose -f /etc/hurra/services.yml down
+ExecStop=/bin/hurra-stop
 
 [Install]
 WantedBy=multi-user.target

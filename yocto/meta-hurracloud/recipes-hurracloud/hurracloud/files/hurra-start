@@ -1,0 +1,17 @@
+#!/bin/sh
+# Requirements
+# 1. https://github.com/astrada/google-drive-ocamlfuse (see https://github.com/astrada/google-drive-ocamlfuse/issues/571#issuecomment-533380311)
+# 2. ntfs-3d
+# 3. hurra-agent
+mkdir -p /data/mounts/internal-1
+
+export MACHINE_TYPE=`uname -m`
+if [ ${MACHINE_TYPE} == 'x86_64'  ]; then
+    ARCH="amd64"
+else
+    ARCH="arm64"
+fi
+
+HOSTNAME=$(sh -c 'hostname -a || hostname' 2>/dev/null)
+
+ROOT="" HURRA_HOSTNAME=$HOSTNAME ARCH=$ARCH docker-compose -f /services.yml up -d
