@@ -8,6 +8,7 @@ locals {
     "jawhar" : {
       "dockerfile" : "Jawhar.Dockerfile",
       "context" : ""
+      "base_stage" : "build"
       "included_files" : ["jawhar/**", "Jawhar.Dockerfile"]
     },
     "samaa" : {

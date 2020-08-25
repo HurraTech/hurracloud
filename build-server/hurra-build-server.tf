@@ -7,7 +7,7 @@ resource "google_compute_instance" "hurra-build" {
 
     initialize_params {
       image = "ubuntu-2004-focal-v20200810"
-      size  = "100"
+      size  = "200"
       type  = "pd-ssd"
     }
 
