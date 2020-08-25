@@ -5,6 +5,7 @@ LICENSE = "CLOSED"
 SRC_URI += " \
     git://git@bitbucket.org/aimannajjar/deploy.git;protocol=ssh \
     file://hurracloud.service \
+    file://hurra-update-images \
 "
 
 SRCREV = "${AUTOREV}"
@@ -15,6 +16,7 @@ inherit systemd
 require hurracloud_${MACHINE}.inc
 
 RPROVIDES_${PN} = "hurracloud"
+RDEPENDS_${PN} = "docker-ce"
 
 S = "${WORKDIR}"
 
@@ -32,22 +34,30 @@ do_compile() {
 	export ARCH=${HURRA_TARGETARCH}
     IMAGES=`/usr/local/bin/docker-compose -f ${WORKDIR}/git/docker-compose.yml config | grep 'image:' | awk '{print $2}' | xargs echo`
     for IMAGE in $IMAGES; do
-        IMG_FILENAME=$(echo "$IMAGE" | awk -F/ '{print $NF}' | cut -d : -f1).tar
+        IMG_FILENAME=$(echo "$IMAGE" | awk -F/ '{print $NF}' | cut -d : -f1).tar.gz
         echo "Downloading image $IMAGE to ${WORKDIR}/images/$IMG_FILENAME";
         /usr/bin/docker pull $IMAGE
-        /usr/bin/docker save -o ${WORKDIR}/images/$IMG_FILENAME $IMAGE
+        /usr/bin/docker save $IMAGE | gzip > ${WORKDIR}/images/$IMG_FILENAME 
     done
 }
 
 do_install() {
-    install -d ${D}${sysconfdir}/hurra ${D}${base_libdir}/hurra ${D}${systemd_unitdir}/system
+    install -d ${D}${sysconfdir}/hurra ${D}${base_libdir}/hurra ${D}${base_bindir} ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/git/docker-compose.yml ${D}${sysconfdir}/hurra/services.yml 
     install -m 0644 ${WORKDIR}/hurracloud.service ${D}${systemd_unitdir}/system
-    install -m 0644 ${WORKDIR}/images/*.tar ${D}${base_libdir}/hurra
+    install -m 0755 ${WORKDIR}/hurra-update-images ${D}${base_bindir}
+    install -m 0644 ${WORKDIR}/images/*.gz ${D}${base_libdir}/hurra
 }
+
+# pkg_postinst_ontarget_${PN}() {
+# #!/bin/sh -e
+# until $(docker ps 1> /dev/null 2>&1); do echo "Waiting for Docker to start."; sleep 2; done
+# ls $D${base_libdir}/hurra/*.gz | xargs -I{} sh -c 'gunzip -c {} | docker load'
+# }
 
 FILES_${PN} += " \
     ${sysconfdir}/hurra/services.yml \
     ${systemd_unitdir}/system/hurracloud.service \
     ${base_libdir}/hurra \
+	${base_bindir}/hurra-update-images \
 "

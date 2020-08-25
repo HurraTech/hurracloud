@@ -6,14 +6,12 @@ After=docker.service
 [Service]
 Restart=always
 
-# Remove old containers, images and volumes
-ExecStartPre=/bin/sh -c 'ls /lib/hurra/*.tar | xargs -I{} docker load -i {}'
-ExecStartPre=/usr/bin/docker-compose -f /etc/hurra/services.yml down
-
-# Compose up
+# Start
+ExecStartPre=/bin/hurra-update-images
 ExecStart=/usr/bin/docker-compose -f /etc/hurra/services.yml up
+ExecStartPost=docker system prune -f
 
-# Compose down, remove containers and volumes
+# Stop
 ExecStop=/usr/bin/docker-compose -f /etc/hurra/services.yml down
 
 [Install]
