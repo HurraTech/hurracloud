@@ -1,6 +1,6 @@
 [Unit]
 Description=Hurra Agent
-After=network.target
+After=docker.service
 
 [Service]
 Type=simple
