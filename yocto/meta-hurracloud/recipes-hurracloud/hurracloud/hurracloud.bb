@@ -31,7 +31,7 @@ INHIBIT_PACKAGE_STRIP = "1"
 
 do_compile() { 
     # Reset local docker and pull latest images to it
-    sudo systemctl stop docker && sudo rm -rf /var/lib/docker && install -d ${D}{localstatedir}/lib/docker && sudo systemctl start docker
+    sudo systemctl stop docker && sudo rm -rf /var/lib/docker && install -d ${D}${localstatedir}/lib/docker && sudo systemctl start docker
     until $(/usr/bin/docker ps 1> /dev/null 2>&1); do echo "Waiting for Docker to start."; sleep 2; done
 	
     export ARCH=${HURRA_TARGETARCH}
