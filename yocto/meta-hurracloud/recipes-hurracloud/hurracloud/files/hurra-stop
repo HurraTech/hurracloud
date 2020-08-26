@@ -6,6 +6,4 @@ else
     ARCH="arm64"
 fi
 
-HOSTNAME=$(sh -c 'hostname -a || hostname' 2>/dev/null)
-
-ROOT="" HURRA_HOSTNAME=$HOSTNAME ARCH=$ARCH docker-compose -f /services.yml stop
+ROOT="" ARCH=$ARCH docker-compose -f /services.yml stop

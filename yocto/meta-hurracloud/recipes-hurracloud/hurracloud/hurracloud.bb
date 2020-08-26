@@ -7,6 +7,7 @@ SRC_URI += " \
     file://hurracloud.service \
     file://hurra-start \
     file://hurra-stop \
+    file://avahi-daemon.conf \
 "
 
 SRCREV = "${AUTOREV}"
