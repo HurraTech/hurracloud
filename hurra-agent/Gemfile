@@ -1,2 +1,0 @@
-gem "protobuf"
-gem "rake"
