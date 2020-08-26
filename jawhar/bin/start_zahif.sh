@@ -1,7 +1,10 @@
 #!/bin/bash
+## Wait for ES
+echo "Waiting for Elasticsearch"
+until curl --fail -s -o /dev/null http://elasticsearch:9200; do echo "Wating for Elasticsearch"; sleep 2; done
 
 ## Startup Zahif Indexer
-echo "Starting up Zahif Batch Indexer" 
+echo "Starting up Zahif Batch Indexer"
 PIDFILE=/var/resque.pid BACKGROUND=yes QUEUE=indexer rake resque:work
 status=$?
 if [ $status -ne 0 ]; then
@@ -9,7 +12,7 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
-echo "Starting up Zahif Single File Indexer" 
+echo "Starting up Zahif Single File Indexer"
 PIDFILE=/var/resque-single.pid BACKGROUND=yes QUEUE=single_file_indexer rake resque:work
 status=$?
 if [ $status -ne 0 ]; then
