@@ -46,7 +46,7 @@ do_compile() {
 
 do_install() {
     install -d ${D}${base_bindir} ${D}${systemd_unitdir}/system install ${D}${localstatedir}/lib
-    install -m 0644 ${WORKDIR}/git/docker-compose.yml ${D}services.yml 
+    install -m 0644 ${WORKDIR}/git/docker-compose.yml ${D}/services.yml 
     install -m 0644 ${WORKDIR}/hurracloud.service ${D}${systemd_unitdir}/system
     install -m 0755 ${WORKDIR}/hurra-start ${D}${base_bindir}
     install -m 0755 ${WORKDIR}/hurra-stop ${D}${base_bindir}
