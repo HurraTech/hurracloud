@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM ruby:2.5-slim-stretch as build
+FROM ruby:2.5-slim-stretch as build
 
 RUN apt-get update && \
     apt-get install -y build-essential libmagic-dev sqlite3 libsqlite3-dev
