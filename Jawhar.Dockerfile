@@ -1,7 +1,7 @@
 FROM ruby:2.5-slim-stretch as build
 
 RUN apt-get update && \
-    apt-get install -y build-essential libmagic-dev sqlite3 libsqlite3-dev
+    apt-get install -y build-essential libmagic-dev sqlite3 libsqlite3-dev pkg-config 
 
 WORKDIR /app
 COPY jawhar/Gemfile .
