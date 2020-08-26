@@ -39,26 +39,17 @@ do_compile() {
     for IMAGE in $IMAGES; do
         IMG_FILENAME=$(echo "$IMAGE" | awk -F/ '{print $NF}' | cut -d : -f1)
         echo "Downloading image $IMAGE to ${WORKDIR}/images/$IMG_FILENAME";
-        /usr/bin/docker pull $IMAGE
+        /usr/bin/docker pull --platform=$ARCH $IMAGE
     done
     sudo systemctl stop docker
 }
 
 do_install() {
-    install -d ${D}${base_bindir} ${D}${sysconfdir}/hurra ${D}${sysconfdir}/docker ${D}${systemd_unitdir}/system install ${D}${localstatedir}/lib
-    install -m 0644 ${WORKDIR}/git/docker-compose.yml ${D}${sysconfdir}/hurra/services.yml 
+    install -d ${D}${base_bindir} ${D}${systemd_unitdir}/system install ${D}${localstatedir}/lib
+    install -m 0644 ${WORKDIR}/git/docker-compose.yml ${D}services.yml 
     install -m 0644 ${WORKDIR}/hurracloud.service ${D}${systemd_unitdir}/system
     install -m 0755 ${WORKDIR}/hurra-start ${D}${base_bindir}
     install -m 0755 ${WORKDIR}/hurra-stop ${D}${base_bindir}
-    
-    # Download docker images (host's docker daemon must use ${D}${localstatedir}/lib/docker as data path)
-    /usr/bin/gcloud kms decrypt --ciphertext-file=${WORKDIR}/git/gcr-creds.json.enc --plaintext-file=gcr-creds.json \
-       --location=global \
-       --keyring=cloudbuild \
-       --key=cloudbuild
-    cat gcr-creds.json | /usr/bin/docker login -u _json_key --password-stdin https://gcr.io
-
-    # Package local docker 
     sudo tar -cf ${D}${localstatedir}/lib/docker.tar -C /var/lib/ docker
 }
 
@@ -68,7 +59,7 @@ cd $D${localstatedir}/lib && tar -xf docker.tar && rm docker.tar
 }
 
 FILES_${PN} += " \
-    ${sysconfdir}/hurra/services.yml \
+    /services.yml \
     ${systemd_unitdir}/system/hurracloud.service \
     ${base_bindir} \
     ${localstatedir}/docker.tar \

@@ -4,6 +4,7 @@
 # 2. ntfs-3d
 # 3. hurra-agent
 mkdir -p /data/mounts/internal-1
+mkdir -p /data/es && chown 1000:1000 /data/es
 
 export MACHINE_TYPE=`uname -m`
 if [ ${MACHINE_TYPE} == 'x86_64'  ]; then
