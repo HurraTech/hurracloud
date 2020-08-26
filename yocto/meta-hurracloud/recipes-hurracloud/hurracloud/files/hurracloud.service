@@ -1,15 +1,12 @@
 [Unit]
-Description=hurracloud
 Requires=docker.service
 After=docker.service
 
 [Service]
-Restart=always
-
-# Start
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/
 ExecStart=/bin/hurra-start
-
-# Stop
 ExecStop=/bin/hurra-stop
 
 [Install]
