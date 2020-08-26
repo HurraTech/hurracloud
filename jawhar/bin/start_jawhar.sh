@@ -1,4 +1,7 @@
 #!/bin/bash
+## Wait for ES
+echo "Waiting for Elasticsearch"
+until curl --fail -s -o /dev/null http://elasticsearch:9200; do echo "Wating for Elasticsearch"; sleep 2; done
 
 ## Deploy Database migrations
 echo "Deploy Database"

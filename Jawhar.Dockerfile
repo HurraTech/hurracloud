@@ -20,7 +20,7 @@ FROM ruby:2.5-slim-stretch
 
 RUN mkdir -p /usr/share/man/man && mkdir -p /usr/share/man/man1
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y openjdk-8-jre tesseract-ocr \
+    apt-get install --no-install-recommends -y openjdk-8-jre tesseract-ocr curl \
                                                usbutils inotify-tools udev libmagic-dev \
                                                ntfs-3g cron pkg-config sysstat sqlite3 && \
     rm -rf /var/lib/apt/lists/*
