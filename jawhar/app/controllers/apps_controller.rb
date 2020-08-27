@@ -3,7 +3,7 @@ require 'xmlsimple'
 class AppsController < ApiController
     def app_store
       apps = []
-      Dir.glob("#{Rails.root}/appStore-temp/**/metadata.yml") do |metadata_file|
+      Dir.glob("#{Rails.root}/app-store/**/metadata.yml") do |metadata_file|
         app_metadata = YAML.load_file(metadata_file)
         app_metadata["auid"] =  File.basename((File.expand_path("..", metadata_file)))
         svg = (IO.read("#{File.expand_path("..", metadata_file)}/icon.svg"))

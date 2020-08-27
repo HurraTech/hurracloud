@@ -18,7 +18,6 @@ class App < ApplicationRecord
         end
 
         #TODO: TEMP LOGIC UNTIL APP STORE SERVICE IS READY
-        # FileUtils.cp_r("/app/jawhar/appStore-temp/#{self.app_unique_id}", "#{self.app_path}/CONTENT")
         if !File.symlink?("#{self.app_path}/CONTENT") #check if already exists
             FileUtils.ln_s("#{Settings.host_app_store_path}/#{self.app_unique_id}", "#{self.app_path}/CONTENT")
         end
