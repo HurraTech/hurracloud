@@ -6,7 +6,7 @@ services:
   
   zahif:
     volumes:
-      - ./jawhar:/usr/share/hurracloud/jawhar
+      - ./jawhar:/app
     # command: sh -c "bundle install && ./bin/start_zahif.sh"
     environment:
     - RAILS_ENV=development
@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: Jawhar.Dockerfile
     volumes:
-      - ./jawhar:/usr/share/hurracloud/jawhar
+      - ./jawhar:/app
     ports:
       - 5000:3000
     command: sh -c "bundle install && ./bin/start_jawhar.sh"

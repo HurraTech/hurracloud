@@ -67,7 +67,7 @@ if [ $status -ne 0 ]; then
 fi
 
 echo "Setup cron schedule"
-echo "*/5 * * * * PWD=/usr/share/hurracloud/jawhar BUNDLE_APP_CONFIG=/usr/local/bundle GEM_HOME=/usr/local/bundle BUNDLE_PATH=/usr/local/bundle PATH=\"/usr/local/bundle/bin:/usr/local/bundle/gems/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\" sh -c 'cd /usr/share/hurracloud/jawhar && rake zahif:spawn_scanners' >> /var/log/cron 2>&1" > ~/cron
+echo "*/5 * * * * PWD=/app BUNDLE_APP_CONFIG=/usr/local/bundle GEM_HOME=/usr/local/bundle BUNDLE_PATH=/usr/local/bundle PATH=\"/usr/local/bundle/bin:/usr/local/bundle/gems/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\" sh -c 'cd /app && rake zahif:spawn_scanners' >> /var/log/cron 2>&1" > ~/cron
 crontab ~/cron
 service cron start
 

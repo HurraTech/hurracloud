@@ -2,7 +2,7 @@ require 'resque-retry'
 
 class Scanner
     @queue = :scanners
-    
+
     def self.perform(job)
       Rails.logger.info("Got a #{job} job.")
       begin
@@ -13,10 +13,10 @@ class Scanner
                     Rails.logger.info("Skipping device #{device} because it either has no index or its indexing has not completed yet")
                     next
                 end
-                Rails.logger.info("Spawning scanner for #{device.source.index.es_index_name} ?")        
-                index = device.source.index        
-                fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{index.name}"
-                fscrawler_index_dir = "#{fscrawler_config_dir}/#{index.crawler_job_name}"   
+                Rails.logger.info("Spawning scanner for #{device.source.index.es_index_name} ?")
+                index = device.source.index
+                fscrawler_config_dir = "/app/zahif/indices/#{index.name}"
+                fscrawler_index_dir = "#{fscrawler_config_dir}/#{index.crawler_job_name}"
                 self.setup_scanner(index, fscrawler_config_dir, fscrawler_index_dir)
                 pid_file = "/var/run/#{index.crawler_job_name}.pid"
                 if FileTest.exists?(pid_file)
@@ -24,7 +24,7 @@ class Scanner
                     current_pid = File.read(pid_file).to_i
                     Rails.logger.info("Checking if PID #{current_pid} is alive")
                     begin
-                        Process.getpgid( current_pid )     
+                        Process.getpgid( current_pid )
                         Rails.logger.info("Scanner already is running. Skip")
                         next
                     rescue
@@ -52,6 +52,6 @@ class Scanner
         Rails.logger.info("Copying from '#{fscrawler_config_dir}/#{index.index_segments.first.crawler_job_name}/_status.json' to '#{fscrawler_index_dir}/")
         FileUtils.cp("#{fscrawler_config_dir}/#{index.index_segments.first.crawler_job_name}/_status.json", "#{fscrawler_index_dir}/")
         Rails.logger.info("Completed")
-    end    
-    
+    end
+
   end

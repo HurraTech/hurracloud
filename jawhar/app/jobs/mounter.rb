@@ -19,7 +19,7 @@ class Mounter
             cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path})"
             result = $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
 			Rails.logger.info("HURRAGE AGENT RESP #{result.inspect}")
-            `touch /usr/share/hurracloud/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
+            `touch /app/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
             Resque.enqueue(Mounter, 'update_sources')
         when 'unmount_source'
             source_id = data["source_id"]

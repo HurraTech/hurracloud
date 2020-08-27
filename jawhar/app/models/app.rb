@@ -18,12 +18,12 @@ class App < ApplicationRecord
         end
 
         #TODO: TEMP LOGIC UNTIL APP STORE SERVICE IS READY
-        # FileUtils.cp_r("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}", "#{self.app_path}/CONTENT")
+        # FileUtils.cp_r("/app/jawhar/appStore-temp/#{self.app_unique_id}", "#{self.app_path}/CONTENT")
         if !File.symlink?("#{self.app_path}/CONTENT") #check if already exists
             FileUtils.ln_s("#{Settings.host_app_store_path}/#{self.app_unique_id}", "#{self.app_path}/CONTENT")
         end
-        svg = (IO.read("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}/icon.svg"))
-        metadata = YAML.load_file("/usr/share/hurracloud/jawhar/appStore-temp/#{self.app_unique_id}/metadata.yml")
+        svg = (IO.read("/app/app-store/#{self.app_unique_id}/icon.svg"))
+        metadata = YAML.load_file("/app/app-store/#{self.app_unique_id}/metadata.yml")
         self.iconSvg = svg.sub("<svg ", "<svg class=\"appIcon\" ");
         self.description = metadata["description"]
         self.name = metadata["name"]

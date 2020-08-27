@@ -1,6 +1,6 @@
 ./bin/files_monitor.sh &> log/files_monitor.log &
 PID=$!
-inotifywait -m /usr/share/hurracloud/mounts -e attrib --format "%e %w%f" | while read action path file; do
+inotifywait -m /app/mounts -e attrib --format "%e %w%f" | while read action path file; do
     echo "${action}: ${path}${file}"
     echo "Start new Files Monitor"
     ./bin/files_monitor.sh &> log/files_monitor.log &

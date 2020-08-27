@@ -12,10 +12,10 @@ inline_files: # files that can be returned as "inline" content-disposition for v
     - text/css
     - text/csv
     - text/plain    
-mounts_path: /usr/share/hurracloud/mounts
-gdfuse_path: /usr/share/hurracloud/jawhar/gdfuse
-fscrawler_root_path: /usr/share/hurracloud/zahif/indices 
-apps_path: /usr/share/hurracloud/jawhar/apps
+mounts_path: /app/mounts
+gdfuse_path: /app/gdfuse
+fscrawler_root_path: /app/indices 
+apps_path: /app/apps
 supported_fs_types:
  - iso9660
  - vfat

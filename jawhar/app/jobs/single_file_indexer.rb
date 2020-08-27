@@ -9,23 +9,23 @@ class SingleFileIndexer
 
     FSCRAWLER_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_template.json.erb'))
     FSCRAWLER_LOG4J_TEMPLATE = IO.read(File.join(Rails.root, 'app', 'fscrawler_log4j.xml.erb'))
-  
+
     def self.perform(job, params)
         file = params["file"]
         job_name = SecureRandom.hex[0..8]
         parent_path = "/#{file.scan(/[^\/]*/).reject { |i| i.empty? }[0..-2].join("/")}/"
-        parsed_path = file.sub("/usr/share/hurracloud/mounts/", "").scan(/[^\/]*/).reject { |i| i.empty? }
+        parsed_path = file.sub("/app/mounts/", "").scan(/[^\/]*/).reject { |i| i.empty? }
         source_id = parsed_path[0]
         filename = parsed_path.last
         source = Source.where(id: source_id).first()
-        if !source.index 
+        if !source.index
             Rails.logger.info("Skipping #{file} as this source is not indexed")
             return
         end
         index = source.index
 
         Rails.logger.info "Starting index process for #{file}"
-        fscrawler_root_config = "/usr/share/hurracloud/zahif/indices/singles"
+        fscrawler_root_config = "/app/indices/singles"
         fscrawler_config_dir = "#{fscrawler_root_config}/#{job_name}"
         FileUtils.mkdir_p fscrawler_config_dir
         Rails.logger.info "Created  #{fscrawler_config_dir}"
@@ -50,10 +50,10 @@ class SingleFileIndexer
         ocr = enable_ocr
         ERB.new(FSCRAWLER_TEMPLATE).result(binding)
       end
-        
+
       def self.fscrawler_log4j_config
         log_file = Rails.root.join('log', "zahif/singles.log")
         ERB.new(FSCRAWLER_LOG4J_TEMPLATE).result(binding)
       end
-    
+
   end

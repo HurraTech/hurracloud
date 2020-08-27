@@ -32,7 +32,7 @@ class Index < ApplicationRecord
                 Rails.logger.info("Failed to kill process")
             end
         end
-        fscrawler_config_dir = "/usr/share/hurracloud/zahif/indices/#{self.name}"
+        fscrawler_config_dir = "/app/indices/#{self.name}"
         FileUtils.rm_rf("#{Rails.root.join('log', "zahif/#{self.name}")}")
         FileUtils.rm_rf(fscrawler_config_dir)
     end
