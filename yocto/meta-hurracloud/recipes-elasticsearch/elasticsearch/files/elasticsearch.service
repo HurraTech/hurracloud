@@ -9,14 +9,14 @@ Type=notify
 RuntimeDirectory=elasticsearch
 PrivateTmp=true
 Environment=ES_HOME=/usr/share/elasticsearch
-Environment=ES_PATH_CONF=${path.conf}
+Environment=ES_PATH_CONF=/usr/share/elasticsearch/config
 Environment=PID_DIR=/var/run/elasticsearch
 Environment=ES_SD_NOTIFY=true
-Environment=ES_JAVA_OPTS="-Xms1g -Xmx1g"
 EnvironmentFile=-${path.env}
-
+Restart=on-failure
+RestartSec=5
 WorkingDirectory=/usr/share/elasticsearch
-
+TimeoutSec=180
 User=elasticsearch
 Group=elasticsearch
 
