@@ -11,13 +11,13 @@ SRCREV = "${AUTOREV}"
 
 PV = "1.0"
 
-inherit go
+inherit go systemd
 
 RPROVIDES_${PN} = "hurra-agent"
 
 S = "${WORKDIR}/git"
 
-SYSTEMD_AUTO_ENABLE = "enable"
+SYSTEMD_AUTO_ENABLE_${PN} = "enable"
 SYSTEMD_SERVICE_${PN} = "hurra-agent.service"
 
 GO_IMPORT = "hurra-agent"

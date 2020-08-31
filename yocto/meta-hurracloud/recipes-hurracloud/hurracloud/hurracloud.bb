@@ -21,7 +21,7 @@ RDEPENDS_${PN} = "docker-ce"
 
 S = "${WORKDIR}"
 
-SYSTEMD_AUTO_ENABLE = "enable"
+SYSTEMD_AUTO_ENABLE_${PN} = "enable"
 SYSTEMD_SERVICE_${PN} = "hurracloud.service"
 
 INSANE_SKIP_${PN} = "ldflags"

@@ -1,13 +1,13 @@
 [Unit]
-Description=Hurra Agent
+Requires=docker.service
 After=docker.service
 
 [Service]
 Type=simple
-RemainAfterExit=true
 WorkingDirectory=/
 ExecStart=/bin/hurra-agent
 Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
