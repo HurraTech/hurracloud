@@ -17,21 +17,20 @@ PV = "1.0"
 inherit systemd
 
 RPROVIDES_${PN} = "elasticsearch"
-INSANE_SKIP_${PN} = "ldflags"
-INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-INHIBIT_PACKAGE_STRIP = "1"
 
 S = "${WORKDIR}"
 
 # SYSTEMD_AUTO_ENABLE_${PN} = "enable"
 # SYSTEMD_SERVICE_${PN} = "hurracloud.service"
-
+PRIVATE_LIBS_${PN} = "\
+    libstdc++.so \
+    libgcc_s.so \
+"
 do_install() {
-    install -d ${D}/opt
-    mv ${S}/elasticsearch-7.9.0 ${D}/opt/elasticsearch
-    chown -Rv 1000:1000 ${D}/opt/elasticsearch 
+    install -d ${D}/usr/share/elasticsearch
+    cp -r ${S}/elasticsearch-7.9.0 /usr/share/elasticsearch
+    install serviceFile ymlCOnfigFile systemdEntrypoint
 }
-
 
 FILES_${PN} += " \
     /opt/elasticsearch \
