@@ -1,6 +1,6 @@
 require 'elasticsearch'
 
-Rails.application.config.es_client = Elasticsearch::Client.new host: 'elasticsearch:9200'
+Rails.application.config.es_client = Elasticsearch::Client.new host: ENV['ES_ENDPOINT']
 
 Rails.application.config.es_client.indices.put_template(name: "defaults", body:
                                 {
