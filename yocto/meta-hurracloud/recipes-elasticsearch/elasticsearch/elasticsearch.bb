@@ -9,6 +9,7 @@ SRC_URI += " \
     file://elasticsearch.service \
     file://systemd-entrypoint \
     file://elasticsearch.yml \
+    file://log4j2.properties \
 "
 
 SRC_URI[sha256sum] = "d061434bc51ffadfbe4699314c0d1576a38021a609cd9be2f388ba60fe7d96f6"
@@ -38,7 +39,7 @@ PRIVATE_LIBS_${PN} = "\
 
 pkg_postinst_ontarget_${PN} () {
     mkdir -p /data/es
-    chown elasticsearch:elasticsearch /data/es
+    chown -R elasticsearch:elasticsearch /data/es
 }
 
 do_install() {
@@ -47,12 +48,11 @@ do_install() {
     install -m 0644 ${WORKDIR}/elasticsearch.service ${D}${systemd_unitdir}/system
     install -m 0755 ${WORKDIR}/systemd-entrypoint ${D}/usr/share/elasticsearch/bin
     install -m 0644 ${WORKDIR}/elasticsearch.yml ${D}/usr/share/elasticsearch/config/elasticsearch.yml
+    install -m 0644 ${WORKDIR}/log4j2.properties ${D}/usr/share/elasticsearch/config/log4j2.properties
     chown -R elasticsearch ${D}/usr/share/elasticsearch
-    chown -R elasticsearch ${D}/var/log/elasticsearch
 }
 
 FILES_${PN} += " \
     /usr/share/elasticsearch \
     ${systemd_unitdir}/system \
-    /var/log/elasticsearch \
 "
