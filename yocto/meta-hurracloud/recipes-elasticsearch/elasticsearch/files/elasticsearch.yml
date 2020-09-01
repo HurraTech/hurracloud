@@ -6,4 +6,4 @@ http.cors.enabled: true
 cluster.routing.allocation.disk.threshold_enabled: false
 http.cors.allow-origin: "*"
 path.data: /data/es/data
-path.logs: /var/log/elasticsearch
+path.logs: /data/es/logs
