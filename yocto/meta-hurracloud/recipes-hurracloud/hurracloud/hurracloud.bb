@@ -58,6 +58,12 @@ pkg_postinst_${PN}() {
 cd $D${localstatedir}/lib && tar -xf docker.tar && rm docker.tar
 }
 
+pkg_postinst_ontarget_${PN} () {
+    mkdir -p /data/redis
+    chown -R redis:redis /data/redis
+}
+
+
 FILES_${PN} += " \
     /services.yml \
     ${systemd_unitdir}/system/hurracloud.service \
