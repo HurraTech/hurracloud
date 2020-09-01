@@ -11,7 +11,7 @@ SRC_URI += " \
     file://elasticsearch.yml \
 "
 
-SRC_URI[sha256sum] = "fe2a1b4714e553e198e03047c974b06a356f1948d69edde9bc0a4c277399737e"
+SRC_URI[sha256sum] = "d061434bc51ffadfbe4699314c0d1576a38021a609cd9be2f388ba60fe7d96f6"
 
 SRCREV = "${AUTOREV}"
 
@@ -54,5 +54,5 @@ do_install() {
 FILES_${PN} += " \
     /usr/share/elasticsearch \
     ${systemd_unitdir}/system \
-    /var/log/elasticsearch
+    /var/log/elasticsearch \
 "
