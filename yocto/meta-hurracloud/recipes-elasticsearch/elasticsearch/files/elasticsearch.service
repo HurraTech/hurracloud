@@ -11,7 +11,6 @@ PrivateTmp=true
 Environment=ES_HOME=/usr/share/elasticsearch
 Environment=ES_PATH_CONF=/usr/share/elasticsearch/config
 Environment=PID_DIR=/var/run/elasticsearch
-EnvironmentFile=-${path.env}
 Restart=on-failure
 RestartSec=5
 WorkingDirectory=/usr/share/elasticsearch
