@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Wait for ES
 echo "Waiting for Elasticsearch"
-until curl --fail -s -o /dev/null http://elasticsearch:9200; do echo "Wating for Elasticsearch"; sleep 2; done
+until curl --fail -s -o /dev/null http://${ES_ENDPOINT}; do echo "Wating for Elasticsearch"; sleep 2; done
 
 ## Startup Zahif Indexer
 echo "Starting up Zahif Batch Indexer"
