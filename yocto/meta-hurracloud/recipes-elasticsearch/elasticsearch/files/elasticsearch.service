@@ -5,18 +5,16 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-Type=notify
+Type=simple
 RuntimeDirectory=elasticsearch
 PrivateTmp=true
 Environment=ES_HOME=/usr/share/elasticsearch
 Environment=ES_PATH_CONF=/usr/share/elasticsearch/config
 Environment=PID_DIR=/var/run/elasticsearch
-Environment=ES_SD_NOTIFY=true
-EnvironmentFile=-${path.env}
 Restart=on-failure
 RestartSec=5
 WorkingDirectory=/usr/share/elasticsearch
-TimeoutSec=180
+TimeoutStartSec=300
 User=elasticsearch
 Group=elasticsearch
 
@@ -57,9 +55,6 @@ SendSIGKILL=no
 
 # When a JVM receives a SIGTERM signal it exits with code 143
 SuccessExitStatus=143
-
-# Allow a slow startup before the systemd notifier module kicks in to extend the timeout
-TimeoutStartSec=75
 
 [Install]
 WantedBy=multi-user.target

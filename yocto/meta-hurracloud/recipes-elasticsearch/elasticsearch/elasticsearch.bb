@@ -5,7 +5,7 @@ LICENSE = "CLOSED"
 require elasticsearch_${MACHINE}.inc
 
 SRC_URI += " \
-    https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.9.0-linux-${ES_TARGETARCH}.tar.gz \
+    https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-7.9.0-linux-${ES_TARGETARCH}.tar.gz \
     file://elasticsearch.service \
     file://systemd-entrypoint \
     file://elasticsearch.yml \
@@ -54,4 +54,5 @@ do_install() {
 FILES_${PN} += " \
     /usr/share/elasticsearch \
     ${systemd_unitdir}/system \
+    /var/log/elasticsearch
 "
