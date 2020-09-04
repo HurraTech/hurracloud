@@ -17,7 +17,7 @@ inherit systemd
 require hurracloud_${MACHINE}.inc
 
 RPROVIDES_${PN} = "hurracloud"
-RDEPENDS_${PN} = "docker-ce"
+RDEPENDS_${PN} = "docker-ce redis elasticsearch ruby"
 
 S = "${WORKDIR}"
 
