@@ -19,8 +19,11 @@ RUN rm -rf app/assets lib/assets vendor/assets app/helpers app/views/application
 FROM ruby:2.7.0-slim-buster
 
 RUN mkdir -p /usr/share/man/man && mkdir -p /usr/share/man/man1
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y openjdk-8-jre tesseract-ocr curl \
+RUN apt-get update && apt-get install -y wget software-properties-common gnupg2 && \
+	wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - && \
+	add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ && \
+	apt-get update && \
+    apt-get install --no-install-recommends -y adoptopenjdk-8-hotspot tesseract-ocr curl \
                                                usbutils inotify-tools udev libmagic-dev \
                                                ntfs-3g cron pkg-config sysstat sqlite3 && \
     rm -rf /var/lib/apt/lists/*
