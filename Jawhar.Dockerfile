@@ -1,4 +1,4 @@
-FROM ruby:2.5-slim-stretch as build
+FROM ruby:2.7.0-slim-buster as build
 
 RUN apt-get update && \
     apt-get install -y build-essential libmagic-dev sqlite3 libsqlite3-dev pkg-config 
@@ -16,7 +16,7 @@ COPY ./jawhar/ ./
 RUN rm -rf app/assets lib/assets vendor/assets app/helpers app/views/application.hmtl.erb
 
 ### Runtime Image ###
-FROM ruby:2.5-slim-stretch
+FROM ruby:2.7.0-slim-buster
 
 RUN mkdir -p /usr/share/man/man && mkdir -p /usr/share/man/man1
 RUN apt-get update && \
