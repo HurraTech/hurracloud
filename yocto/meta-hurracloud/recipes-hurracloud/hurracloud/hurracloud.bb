@@ -4,13 +4,18 @@ LICENSE = "CLOSED"
 
 SRC_URI += " \
     git://git@bitbucket.org/aimannajjar/deploy.git;protocol=ssh \
+    http://deb.debian.org/debian/pool/main/libf/libffi/libffi6_3.2.1-9_${HURRA_TARGETARCH}.deb;name=libffi6 \
+    http://deb.debian.org/debian/pool/main/f/file/libmagic1_5.35-4+deb10u1_${HURRA_TARGETARCH}.deb;name=libmagic1 \
+    http://deb.debian.org/debian/pool/main/s/sqlite3/libsqlite3-0_3.27.2-3_${HURRA_TARGETARCH}.deb;name=libsqlite3-0 \
     file://hurracloud.service \
     file://hurra-start \
     file://hurra-stop \
 "
 
 SRCREV = "${AUTOREV}"
-
+SRC_URI[libffi6.sha256sum] = "c5f7f4158dc6821bf37dd44ce0fe4399b5798d4ae7e821ad85b63059a2b31c0f"
+SRC_URI[libmagic1.sha256sum] = "25a5001e173bfed25cfa95d9a03c0d3bc2eeae68f1fad49eb17a0ce12c1cd3fb"
+SRC_URI[libsqlite3-0.sha256sum] = "dc640195d3a2958f04f78b3bc8835ea0ca0105c12c179571555616b3b4e4a59f"
 PV = "1.0"
 
 inherit systemd
@@ -32,6 +37,9 @@ INHIBIT_PACKAGE_STRIP = "1"
 IMAGES = "jawhar=gcr.io/hurrabuild/jawhar:latest samaa=gcr.io/hurrabuild/samaa:latest"
 IMAGE_ARTIFACTS_jawhar = "/usr/local/bundle/.:/opt/hurracloud/gems /app/.:/opt/hurracloud/jawhar"
 IMAGE_ARTIFACTS_samaa = "/home/node/samaa/.:/opt/hurracloud/samaa"
+
+ARCH_DIR_x86-64 = "x86-64-linux-gnu"
+ARCH_DIR_aarch64 = "aarch64-linux-gnu"
 
 python do_compile() {
     import subprocess
@@ -60,6 +68,13 @@ do_install() {
     install -m 0755 ${WORKDIR}/hurra-start ${D}${base_bindir}
     install -m 0755 ${WORKDIR}/hurra-stop ${D}${base_bindir}
     cp -R ${WORKDIR}/opt/hurracloud ${D}/opt/hurracloud
+
+    # install required libraries
+    install -m 0755 -d ${D}${libdir}
+    install -d ${D}${includedir}
+    oe_soinstall ${S}/usr/lib/${ARCH_DIR}/libffi.so.6.0.4 ${D}${libdir}
+    oe_soinstall ${S}/usr/lib/${ARCH_DIR}/libmagic.so.1.0.0 ${D}${libdir}
+    oe_soinstall ${S}/usr/lib/${ARCH_DIR}/libsqlite3.so.0.8.6 ${D}${libdir}
 }
 
 pkg_postinst_ontarget_${PN} () {
@@ -74,4 +89,5 @@ FILES_${PN} += " \
     ${base_bindir} \
     ${localstatedir}/docker.tar \
     /opt/hurracloud \
+    ${libdir} \
 "
