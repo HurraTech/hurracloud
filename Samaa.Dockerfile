@@ -1,6 +1,6 @@
 ############ BUILD STAGE ###############
 FROM --platform=$BUILDPLATFORM node:14.8.0-alpine as build
-USER node
+
 WORKDIR /home/node/samaa
 
 # Install deps
@@ -15,10 +15,6 @@ RUN npm upgrade caniuse-lite browserslist
 
 
 ############# RUN-TIME ################
-FROM node:14.8.0-alpine
-RUN npm install serve -g
-
-USER node
-WORKDIR /home/node/samaa
-COPY --chown=node:node --from=build /home/node/samaa/build .
-CMD [ "serve",  "-p",  "3000", "-s" ]
+FROM nginx:1.16-alpine
+WORKDIR /usr/share/nginx/html
+COPY --from=build /home/node/samaa/build .
