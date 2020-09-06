@@ -19,7 +19,6 @@ services:
     - HOST_APPS_PATH=${ROOT:-.}/data/apps
     - HOST_MOUNTS_PATH=${ROOT:-.}/data/mounts
     - SKIP_PARTITIONS="" # comma-separated list
-    - SAMAA_ROOT_URL=http://${HURRA_HOSTNAME:-localhost}:3000
     - HURRA_HOSTNAME=${HURRA_HOSTNAME:-localhost}
     - HOST_APP_STORE_PATH=${ROOT:-.}/data/app-store
     - ES_ENDPOINT=elasticsearch:9200

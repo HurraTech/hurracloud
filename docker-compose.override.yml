@@ -4,38 +4,25 @@ services:
     ports:
       - 9200:9200
   
-  zahif:
-    volumes:
-      - ./jawhar:/app
-    # command: sh -c "bundle install && ./bin/start_zahif.sh"
-    environment:
-    - RAILS_ENV=development
-
   jawhar:
     build:
       context: .
       dockerfile: Jawhar.Dockerfile
     volumes:
       - ./jawhar:/app
-    ports:
-      - 5000:3000
-    command: sh -c "bundle install && ./bin/start_jawhar.sh"
+    command: sh -c "bundle install --with development && ./bin/start_jawhar.sh"
     environment:
     - RAILS_ENV=development
 
   samaa:
-    build:
-      context: .
-      dockerfile: Samaa.Dockerfile
-      args:
-        - BUILD_DEV=1
-    user: root
+    image: node:14.8.0-alpine
+    working_dir: /home/node
     volumes:
-      - ./samaa:/usr/src/samaa
-    command: sh -c "npm install && npm run-script start"
-    ports:
-      - 3000:3000
+      - ./samaa:/home/node/
+    command: npm run-script start
+    stdin_open: true
     networks:
       - hurracloud
     environment:
       - NODE_ENV=development
+      - PORT=80
