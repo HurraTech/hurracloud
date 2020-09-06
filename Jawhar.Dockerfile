@@ -14,6 +14,7 @@ RUN bundle config --global frozen 1 \
 
 COPY ./jawhar/ ./
 RUN rm -rf app/assets lib/assets vendor/assets app/helpers app/views/application.hmtl.erb
+RUN bundle config set without 'development test'
 
 ### Runtime Image ###
 FROM ruby:2.7.0-slim-buster
