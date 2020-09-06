@@ -1,1 +1,85 @@
-deploy/docker-compose.yml
+version: '2.4'
+services:
+  jawhar:
+    image: gcr.io/hurrabuild/jawhar:latest
+    volumes:
+      - ${ROOT:-.}/data/indices:/app/indices
+      - ${ROOT:-.}/data/db:/app/data
+      - ${ROOT:-.}/data/logs:/app/log
+      - ${ROOT:-.}/data/gdfuse:/app/gdfuse
+      - ${ROOT:-.}/data/apps:/app/apps
+      - /dev/bus/usb:/dev/bus/usb
+      - type: bind
+        source: ${ROOT:-.}/data/mounts
+        target: /app/mounts
+        bind:
+          propagation: shared
+    environment:
+    - HOST_GDFUSE_PATH=${ROOT:-.}/data/gdfuse
+    - HOST_APPS_PATH=${ROOT:-.}/data/apps
+    - HOST_MOUNTS_PATH=${ROOT:-.}/data/mounts
+    - SKIP_PARTITIONS="" # comma-separated list
+    - SAMAA_ROOT_URL=http://${HURRA_HOSTNAME:-localhost}:3000
+    - HURRA_HOSTNAME=${HURRA_HOSTNAME:-localhost}
+    - HOST_APP_STORE_PATH=${ROOT:-.}/data/app-store
+    - ES_ENDPOINT=elasticsearch:9200
+    - REDIS=redis:6379
+    - RAILS_ENV=production
+    - SECRET_KEY_BASE=40dec136b707f2a4f7913637c3c5f4dde158a814765969a2bf800911d2227a93ea3697d511075a008131239c1296dae1eb4ed54d19ecf2c4162f7f04265bf539
+    networks:
+      - hurracloud
+    privileged: true
+    restart: "unless-stopped"
+
+  samaa:
+    image: gcr.io/hurrabuild/samaa:latest
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    volumes:
+      - ./yocto/meta-hurracloud/recipes-hurracloud/hurracloud/files/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - hurracloud
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.9.0-${ARCH:-amd64}
+    container_name: elasticsearch
+    environment:
+      - cluster.name=hurracloud
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - network.host=0.0.0.0
+      - http.cors.enabled=true
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - "http.cors.allow-origin=*"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es:/usr/share/elasticsearch/data
+    networks:
+      - hurracloud
+    restart: unless-stopped
+
+  redis:
+    image: redis:5.0.3-alpine
+    ports:
+      - 6379
+    volumes:
+      - redis:/data
+    networks:
+      - hurracloud
+    restart: unless-stopped
+
+volumes:
+  es:
+  redis:
+
+networks:
+  hurracloud:
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+
