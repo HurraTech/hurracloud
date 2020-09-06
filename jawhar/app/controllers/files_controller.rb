@@ -45,12 +45,4 @@ class FilesController < ApplicationController
         Rails.logger.info("Real source id: #{source_id}")
         render json: source.sourcable.browse(params[:path])
     end
-
-    private
-    def allow_iframe_cors
-        response.headers['Access-Control-Allow-Origin'] = Settings.samaa_root_url
-        response.headers['Access-Control-Allow-Methods'] = 'GET'
-        response.headers.except! 'X-Frame-Options'
-    end
-
 end

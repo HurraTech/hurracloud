@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Wait for ES
 echo "Waiting for Elasticsearch"
-until curl --fail -s -o /dev/null http://${ES_ENDPOINT}; do echo "Wating for Elasticsearch"; sleep 2; done
+until curl --fail -s -o /dev/null http://${ES_ENDPOINT}; do echo "Waiting for Elasticsearch"; sleep 2; done
 
 ## Deploy Database migrations
 echo "Deploy Database"
@@ -70,6 +70,34 @@ echo "Setup cron schedule"
 echo "*/5 * * * * PWD=/app BUNDLE_APP_CONFIG=/usr/local/bundle GEM_HOME=/usr/local/bundle BUNDLE_PATH=/usr/local/bundle PATH=\"/usr/local/bundle/bin:/usr/local/bundle/gems/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\" sh -c 'cd /app && rake zahif:spawn_scanners' >> /var/log/cron 2>&1" > ~/cron
 crontab ~/cron
 service cron start
+
+
+## Startup Zahif Indexer
+echo "Starting up Zahif Batch Indexer"
+PIDFILE=/var/resque.pid BACKGROUND=yes QUEUE=indexer RAILS_RESQUE_ENV=indexer rake resque:work
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start Zahif Indexer: $status"
+  exit $status
+fi
+
+echo "Starting up Zahif Single File Indexer"
+PIDFILE=/var/resque-single.pid BACKGROUND=yes QUEUE=single_file_indexer rake resque:work
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start Zahif Single File Indexer: $status"
+  exit $status
+fi
+
+## Startup Zahif Manager
+echo "Starting up Zahif Manager"
+QUEUE=manager-$(hostname) rake resque:work
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start Zahif manager: $status"
+  exit $status
+fi
+
 
 echo "Done. Monitoring processes "
 
