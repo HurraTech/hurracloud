@@ -5,7 +5,7 @@ After=docker.service
 [Service]
 Type=simple
 WorkingDirectory=/
-ExecStart=/bin/hurra-agent
+ExecStart=/bin/hurracloud-agent
 Restart=on-failure
 RestartSec=5
 

@@ -8,6 +8,7 @@ SRC_URI += " \
     http://deb.debian.org/debian/pool/main/f/file/libmagic1_5.35-4+deb10u1_${HURRA_TARGETARCH}.deb;name=libmagic1 \
     http://deb.debian.org/debian/pool/main/s/sqlite3/libsqlite3-0_3.27.2-3_${HURRA_TARGETARCH}.deb;name=libsqlite3-0 \
     file://hurracloud.service \
+    file://hurracloud-jawhar.service \
     file://hurra-start \
     file://hurra-stop \
 "
@@ -27,12 +28,11 @@ RDEPENDS_${PN} = "docker-ce redis elasticsearch ruby"
 S = "${WORKDIR}"
 
 SYSTEMD_AUTO_ENABLE_${PN} = "enable"
-SYSTEMD_SERVICE_${PN} = "hurracloud.service"
+SYSTEMD_SERVICE_${PN} = "hurracloud-jawhar.service"
 
 INSANE_SKIP_${PN} = "ldflags staticdev file-rdeps"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_PACKAGE_STRIP = "1"
-
 
 IMAGES = "jawhar=gcr.io/hurrabuild/jawhar:latest samaa=gcr.io/hurrabuild/samaa:latest"
 IMAGE_ARTIFACTS_jawhar = "/usr/local/bundle/.:/opt/hurracloud/gems /app/.:/opt/hurracloud/jawhar"
@@ -64,7 +64,7 @@ python do_compile() {
 
 do_install() {
     install -d ${D}${base_bindir} ${D}${systemd_unitdir}/system install ${D}${localstatedir}/lib ${D}${sysconfdir}/avahi ${D}/opt
-    install -m 0644 ${WORKDIR}/hurracloud.service ${D}${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/hurracloud-jawhar.service ${D}${systemd_unitdir}/system
     install -m 0755 ${WORKDIR}/hurra-start ${D}${base_bindir}
     install -m 0755 ${WORKDIR}/hurra-stop ${D}${base_bindir}
     cp -R ${WORKDIR}/opt/hurracloud ${D}/opt/hurracloud
@@ -85,7 +85,7 @@ pkg_postinst_ontarget_${PN} () {
 
 FILES_${PN} += " \
     /services.yml \
-    ${systemd_unitdir}/system/hurracloud.service \
+    ${systemd_unitdir}/system/hurracloud-jawhar.service \
     ${base_bindir} \
     ${localstatedir}/docker.tar \
     /opt/hurracloud \
