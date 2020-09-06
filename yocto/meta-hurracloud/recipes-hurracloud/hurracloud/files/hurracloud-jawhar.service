@@ -8,6 +8,7 @@ ExecStart=/bin/sh -c 'SECRET_KEY_BASE=$(head /dev/urandom | tr -dc A-Za-z0-9 | d
 Environment=BUNDLE_USER_HOME=/opt/hurracloud/gems
 Environment=GEM_PATH=/opt/hurracloud/gems
 Environment=RAILS_ENV=production
+Environment=ES_ENDPOINT=127.0.0.1:9200
 Restart=on-failure
 RestartSec=5
 WorkingDirectory=/opt/hurracloud/jawhar
