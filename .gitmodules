@@ -25,6 +25,6 @@
 [submodule "yocto/meta-mender"]
 	path = yocto/meta-mender
 	url = https://github.com/mendersoftware/meta-mender
-[submodule "hurra-agent"]
-	path = hurra-agent
-	url = git@bitbucket.org:aimannajjar/hurra-agent.git
+[submodule "hurracloud-agent"]
+	path = hurracloud-agent
+	url = git@bitbucket.org:aimannajjar/hurracloud-agent.git
