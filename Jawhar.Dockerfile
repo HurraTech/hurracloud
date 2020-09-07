@@ -33,4 +33,4 @@ WORKDIR /app
 COPY --from=build /usr/local/bundle/ /usr/local/bundle/
 COPY --from=build /app .
 
-CMD ./bin/start_jawhar.sh
+CMD ["/bin/sh", "-c" , "BACKGROUND=yes QUEUE=* rake resque:work && rails server -e production"]
