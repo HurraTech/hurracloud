@@ -240,7 +240,7 @@ class App extends React.Component {
 
   componentDidMount() {
     this.refreshData()
-    // this.refreshDataTimer = setInterval(()=> this.refreshData(), 2500);
+    this.refreshDataTimer = setInterval(()=> this.refreshData(), 2500);
   }
 
   componentWillUnmount() {
