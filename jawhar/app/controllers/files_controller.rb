@@ -1,6 +1,5 @@
 require 'ruby-filemagic'
 class FilesController < ApplicationController
-    after_action :allow_iframe_cors
 
     def proxy
         source_id = params[:path].split("-")[0]
