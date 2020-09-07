@@ -7,9 +7,12 @@ services:
   jawhar:
     volumes:
       - ./jawhar:/app
-    command: sh -c "bundle install --with development && ./bin/start_jawhar.sh"
+    command: sh -c "bundle install --with development && rails s -b '0.0.0.0' -p 5000"
     environment:
     - RAILS_ENV=development
+    stdin_open: true
+    ports:
+    - 5000:5000
 
   samaa:
     image: node:14.8.0-alpine

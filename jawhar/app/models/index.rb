@@ -116,6 +116,7 @@ class Index < ApplicationRecord
         excludes = self.settings['excludes'] || []
         includes = "null"
         enableOcr = self.settings['enableOr'] || false
+        es_endpoint = Settings.es_endpoint
         ERB.new(FSCRAWLER_TEMPLATE).result(binding)
     end
 
