@@ -8,9 +8,8 @@ class DrivePartition < ApplicationRecord
   end
 
   def mount()
-    # self.status = :mounting
-    # self.save()
-    Rails.logger.info("Calling Moutner.mount_partition")
+    self.status = :mounting
+    self.save()
     Mounter.mount_partition :partition_id => self.id
   end
 
