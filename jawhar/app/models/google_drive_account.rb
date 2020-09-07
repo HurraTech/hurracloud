@@ -89,7 +89,7 @@ class GoogleDriveAccount < ApplicationRecord
     def mount
         self.status = :mounting
         self.save()
-        Resque.enqueue(Mounter, 'mount_gdrive_account', :gdrive_account_id => self.id)
+        Mounter.mount_gdrive_account(:gdrive_account_id => self.id)
     end
 
     def unmount

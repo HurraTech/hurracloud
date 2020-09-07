@@ -33,39 +33,39 @@ class App < ApplicationRecord
         ####
         self.status = :installed
         self.save()
-        Resque.enqueue(Mounter, 'init_app', :app_id => self.id)
+        Mounter.init_app(:app_id => self.id)
     end
 
     def uninstall
         self.status = :deleting
         self.save()
-        Resque.enqueue(Mounter, 'delete_app', :app_id => self.id)
+        Mounter.delete_app(:app_id => self.id)
     end
 
     def exec(container, cmd, env)
         cmd = AppCommand.new(:command => cmd, :container => container, :environment => env, :status => :pending)
         cmd.app = self
         cmd.save()
-        Resque.enqueue(Mounter, 'exec_app', :cmd_id => cmd.id)
+        Mounter.exec_app(:cmd_id => cmd.id)
         cmd
     end
 
     def restart_container(container)
-        Resque.enqueue(Mounter, 'restart_container', :container => container, :app_id => self.id)
+        Mounter.restart_container(:container => container, :app_id => self.id)
     end
 
     def stop_container(container)
-        Resque.enqueue(Mounter, 'stop_container', :container => container, :app_id => self.id)
+        Mounter.stop_container(:container => container, :app_id => self.id)
     end
 
     def start_container(container)
-        Resque.enqueue(Mounter, 'start_container', :container => container, :app_id => self.id)
+        Mounter.start_container(:container => container, :app_id => self.id)
     end
 
     def startApp
         self.status = :starting
         self.save()
-        Resque.enqueue(Mounter, 'start_app', :app_id => self.id)
+        Mounter.start_app(:app_id => self.id)
     end
 
     def app_path

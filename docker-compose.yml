@@ -6,24 +6,24 @@ services:
       context: .
       dockerfile: Jawhar.Dockerfile    
     volumes:
-      - ${ROOT:-.}/data/indices:/app/indices
-      - ${ROOT:-.}/data/db:/app/data
-      - ${ROOT:-.}/data/logs:/app/log
-      - ${ROOT:-.}/data/gdfuse:/app/gdfuse
-      - ${ROOT:-.}/data/apps:/app/apps
+      - ${PWD}/data/indices:/app/indices
+      - ${PWD}/data/db:/app/data
+      - ${PWD}/data/logs:/app/log
+      - ${PWD}/data/gdfuse:/app/gdfuse
+      - ${PWD}/data/apps:/app/apps
       - /dev/bus/usb:/dev/bus/usb
       - type: bind
-        source: ${ROOT:-.}/data/mounts
+        source: ${PWD}/data/mounts
         target: /app/mounts
         bind:
           propagation: shared
     environment:
-    - HOST_GDFUSE_PATH=${ROOT:-.}/data/gdfuse
-    - HOST_APPS_PATH=${ROOT:-.}/data/apps
-    - HOST_MOUNTS_PATH=${ROOT:-.}/data/mounts
+    - HOST_GDFUSE_PATH=${PWD}/data/gdfuse
+    - HOST_APPS_PATH=${PWD}/data/apps
+    - HOST_MOUNTS_PATH=${PWD}/data/mounts
     - SKIP_PARTITIONS="" # comma-separated list
     - HURRA_HOSTNAME=${HURRA_HOSTNAME:-localhost}
-    - HOST_APP_STORE_PATH=${ROOT:-.}/data/app-store
+    - HOST_APP_STORE_PATH=${PWD}/data/app-store
     - ES_ENDPOINT=elasticsearch:9200
     - REDIS=redis:6379
     - RAILS_ENV=production

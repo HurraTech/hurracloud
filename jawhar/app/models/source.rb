@@ -64,7 +64,7 @@ class Source < ApplicationRecord
     def unmount()
         self.status = :unmounting
         self.save()
-        Resque.enqueue(Mounter, 'unmount_source', :source_id => self.id)
+        Mounter.unmount_source(:source_id => self.id)
     end
 
 

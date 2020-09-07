@@ -8,9 +8,10 @@ class DrivePartition < ApplicationRecord
   end
 
   def mount()
-    self.status = :mounting
-    self.save()
-    Resque.enqueue(Mounter, 'mount_partition', :partition_id => self.id)
+    # self.status = :mounting
+    # self.save()
+    Rails.logger.info("Calling Moutner.mount_partition")
+    Mounter.mount_partition :partition_id => self.id
   end
 
   def normalized_name()
