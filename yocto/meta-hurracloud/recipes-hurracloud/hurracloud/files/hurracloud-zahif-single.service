@@ -10,6 +10,7 @@ Environment=BUNDLE_USER_HOME=/opt/hurracloud/gems
 Environment=GEM_PATH=/opt/hurracloud/gems
 Environment=RAILS_ENV=production
 Environment=ES_ENDPOINT=127.0.0.1:9200
+Environment=SKIP_PARTITIONS=/dev/mmcblk0
 Environment=QUEUE=indexer
 Restart=on-failure
 RestartSec=5

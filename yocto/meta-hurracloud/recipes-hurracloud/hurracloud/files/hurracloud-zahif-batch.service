@@ -11,6 +11,7 @@ Environment=GEM_PATH=/opt/hurracloud/gems
 Environment=RAILS_ENV=production
 Environment=ES_ENDPOINT=127.0.0.1:9200
 Environment=QUEUE=single_file_indexer
+Environment=SKIP_PARTITIONS=/dev/mmcblk0
 Restart=on-failure
 RestartSec=5
 WorkingDirectory=/opt/hurracloud/jawhar
