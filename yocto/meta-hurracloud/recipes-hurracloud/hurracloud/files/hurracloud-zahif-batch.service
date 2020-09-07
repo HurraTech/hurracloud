@@ -1,0 +1,20 @@
+[Unit]
+Description=Zahif Single indexer is process single-file index requests (e.g. update existing indices when a file changes)
+Requires=elasticsearch.service
+After=elasticsearch.service
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'SECRET_KEY_BASE=$(head /dev/urandom | tr -dc A-Za-z0-9 | dd bs=128 count=1 2>/dev/null) rake resque:work'
+Environment=BUNDLE_USER_HOME=/opt/hurracloud/gems
+Environment=GEM_PATH=/opt/hurracloud/gems
+Environment=RAILS_ENV=production
+Environment=ES_ENDPOINT=127.0.0.1:9200
+Environment=QUEUE=single_file_indexer
+Restart=on-failure
+RestartSec=5
+WorkingDirectory=/opt/hurracloud/jawhar
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

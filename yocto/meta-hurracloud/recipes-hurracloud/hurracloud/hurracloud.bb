@@ -7,6 +7,9 @@ SRC_URI += " \
     http://deb.debian.org/debian/pool/main/f/file/libmagic1_5.35-4+deb10u1_${HURRA_TARGETARCH}.deb;name=libmagic1 \
     http://deb.debian.org/debian/pool/main/s/sqlite3/libsqlite3-0_3.27.2-3_${HURRA_TARGETARCH}.deb;name=libsqlite3-0 \
     file://hurracloud-jawhar.service \
+    file://hurracloud-zahif-batch.service \
+    file://hurracloud-zahif-single.service \
+    file://hurracloud-zahif-manager.service \
 "
 
 SRC_URI[libffi6.sha256sum] = "c5f7f4158dc6821bf37dd44ce0fe4399b5798d4ae7e821ad85b63059a2b31c0f"
@@ -23,7 +26,7 @@ RDEPENDS_${PN} = "docker-ce redis elasticsearch ruby nginx"
 S = "${WORKDIR}"
 
 SYSTEMD_AUTO_ENABLE_${PN} = "enable"
-SYSTEMD_SERVICE_${PN} = "hurracloud-jawhar.service"
+SYSTEMD_SERVICE_${PN} = "hurracloud-jawhar.service hurracloud-zahif-batch.service hurracloud-zahif-single.service hurracloud-zahif-manager.service"
 
 INSANE_SKIP_${PN} = "ldflags staticdev file-rdeps"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
@@ -31,7 +34,7 @@ INHIBIT_PACKAGE_STRIP = "1"
 
 IMAGES = "jawhar=gcr.io/hurrabuild/jawhar:latest samaa=gcr.io/hurrabuild/samaa:latest"
 IMAGE_ARTIFACTS_jawhar = "/usr/local/bundle/.:/opt/hurracloud/gems /app/.:/opt/hurracloud/jawhar"
-IMAGE_ARTIFACTS_samaa = "/home/node/samaa/.:/opt/hurracloud/samaa"
+IMAGE_ARTIFACTS_samaa = "/opt/hurracloud/samaa/.:/opt/hurracloud/samaa"
 
 ARCH_DIR_x86-64 = "x86-64-linux-gnu"
 ARCH_DIR_aarch64 = "aarch64-linux-gnu"
@@ -60,6 +63,9 @@ python do_compile() {
 do_install() {
     install -d ${D}${base_bindir} ${D}${systemd_unitdir}/system install ${D}${localstatedir}/lib ${D}${sysconfdir}/avahi ${D}/opt
     install -m 0644 ${WORKDIR}/hurracloud-jawhar.service ${D}${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/hurracloud-zahif-batch.service ${D}${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/hurracloud-zahif-single.service ${D}${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/hurracloud-zahif-manager.service ${D}${systemd_unitdir}/system
     cp -R ${WORKDIR}/opt/hurracloud ${D}/opt/hurracloud
 
     # install required libraries
@@ -79,6 +85,9 @@ pkg_postinst_ontarget_${PN} () {
 FILES_${PN} += " \
     /services.yml \
     ${systemd_unitdir}/system/hurracloud-jawhar.service \
+    ${systemd_unitdir}/system/hurracloud-zahif-batch.service \
+    ${systemd_unitdir}/system/hurracloud-zahif-single.service \
+    ${systemd_unitdir}/system/hurracloud-zahif-manager.service \
     ${base_bindir} \
     ${localstatedir}/docker.tar \
     /opt/hurracloud \
