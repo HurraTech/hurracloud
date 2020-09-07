@@ -16,5 +16,6 @@ RUN npm upgrade caniuse-lite browserslist
 
 ############# RUN-TIME ################
 FROM nginx:1.16-alpine
-WORKDIR /usr/share/nginx/html
+WORKDIR /opt/hurracloud/samaa
 COPY --from=build /home/node/samaa/build .
+COPY yocto/meta-hurracloud/recipes-hurracloud/hurracloud/files/nginx.conf /etc/nginx/nginx.conf

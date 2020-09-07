@@ -5,9 +5,6 @@ services:
       - 9200:9200
   
   jawhar:
-    build:
-      context: .
-      dockerfile: Jawhar.Dockerfile
     volumes:
       - ./jawhar:/app
     command: sh -c "bundle install --with development && ./bin/start_jawhar.sh"

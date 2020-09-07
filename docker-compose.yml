@@ -2,6 +2,9 @@ version: '2.4'
 services:
   jawhar:
     image: gcr.io/hurrabuild/jawhar:latest
+    build:
+      context: .
+      dockerfile: Jawhar.Dockerfile    
     volumes:
       - ${ROOT:-.}/data/indices:/app/indices
       - ${ROOT:-.}/data/db:/app/data
@@ -24,6 +27,7 @@ services:
     - ES_ENDPOINT=elasticsearch:9200
     - REDIS=redis:6379
     - RAILS_ENV=production
+    - HURRA_AGENT_SERVER=172.18.0.1
     - SECRET_KEY_BASE=40dec136b707f2a4f7913637c3c5f4dde158a814765969a2bf800911d2227a93ea3697d511075a008131239c1296dae1eb4ed54d19ecf2c4162f7f04265bf539
     networks:
       - hurracloud
@@ -32,6 +36,9 @@ services:
 
   samaa:
     image: gcr.io/hurrabuild/samaa:latest
+    build:
+      context: .
+      dockerfile: Samaa.Dockerfile    
     restart: unless-stopped
     ports:
       - 8080:80

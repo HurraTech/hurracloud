@@ -16,9 +16,6 @@
 [submodule "docker-openvpn"]
 	path = docker-openvpn
 	url = git@bitbucket.org:aimannajjar/docker-openvpn.git
-[submodule "deploy"]
-	path = deploy
-	url = git@bitbucket.org:aimannajjar/deploy.git
 [submodule "yocto/meta-mender-community"]
 	path = yocto/meta-mender-community
 	url = https://github.com/mendersoftware/meta-mender-community
