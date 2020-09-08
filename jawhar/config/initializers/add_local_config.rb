@@ -8,5 +8,5 @@ Settings.add_source!({redis: ENV['REDIS'] || "127.0.0.1:6379"})
 Settings.add_source!({hurra_agent_server: ENV['HURRA_AGENT_SERVER'] || "127.0.0.1" })
 Settings.add_source!({hurra_agent_port: ENV['HURRA_AGENT_PORT']  || 10000 })
 Settings.add_source!({es_endpoint: ENV['ES_ENDPOINT'] || "127.0.0.1:9200" })
-
+Settings.add_source!({java_home: ENV['JAVA_HOME'] })
 Settings.reload!

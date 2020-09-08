@@ -10,6 +10,7 @@ Environment=GEM_PATH=/opt/hurracloud/gems
 Environment=RAILS_ENV=production
 Environment=ES_ENDPOINT=127.0.0.1:9200
 Environment=SKIP_PARTITIONS=/dev/mmcblk0
+Environment=JAVA_HOME=/usr/share/elasticsearch/jdk
 Restart=on-failure
 RestartSec=5
 WorkingDirectory=/opt/hurracloud/jawhar

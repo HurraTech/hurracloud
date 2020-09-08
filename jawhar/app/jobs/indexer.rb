@@ -95,7 +95,7 @@ class Indexer
             index_segment.current_status = :indexing
             index_segment.last_run_started_at = Time.now
             index_segment.save()
-            pid = Process.spawn({"JAVA_HOME" => "/usr/lib/jvm/java-8-openjdk-amd64/jre/",
+            pid = Process.spawn({"JAVA_HOME" => Settings.java_home,
                     "FS_JAVA_OPTS" => "-Xmx512m -Xms512m -Dlog4j.configurationFile=#{fscrawler_index_dir}/log4j.xml"},
                     'bin/fscrawler', "segment_#{index_segment_id}", '--loop', '1', '--config_dir', fscrawler_config_dir)
 
