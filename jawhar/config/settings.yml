@@ -12,10 +12,10 @@ inline_files: # files that can be returned as "inline" content-disposition for v
     - text/css
     - text/csv
     - text/plain    
-mounts_path: /app/mounts
-gdfuse_path: /app/gdfuse
-fscrawler_root_path: /app/indices 
-apps_path: /app/apps
+mounts_path: /data/mounts
+gdfuse_path: /data/gdfuse
+fscrawler_root_path: /data/indices 
+apps_path: /data/apps
 supported_fs_types:
  - iso9660
  - vfat

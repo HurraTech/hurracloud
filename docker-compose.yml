@@ -6,15 +6,11 @@ services:
       context: .
       dockerfile: Jawhar.Dockerfile    
     volumes:
-      - ${PWD}/data/indices:/app/indices
-      - ${PWD}/data/db:/app/data
-      - ${PWD}/data/logs:/app/log
-      - ${PWD}/data/gdfuse:/app/gdfuse
-      - ${PWD}/data/apps:/app/apps
+      - ${PWD}/data:/data
       - /dev/bus/usb:/dev/bus/usb
       - type: bind
         source: ${PWD}/data/mounts
-        target: /app/mounts
+        target: /data/mounts
         bind:
           propagation: shared
     environment:
@@ -43,7 +39,7 @@ services:
     ports:
       - 8080:80
     volumes:
-      - ./yocto/meta-hurracloud/recipes-hurracloud/hurracloud/files/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf
     networks:
       - hurracloud
 

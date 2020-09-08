@@ -7,18 +7,18 @@ class Mounter
     $hurraAgent = ::Proto::HurraAgent::Stub.new("#{Settings.hurra_agent_server}:#{Settings.hurra_agent_port}}", :this_channel_is_insecure)
 
     def self.mount_partition(data = {})
-        Rails.logger.info("HERLLLLLLLLL@@@LLLLLLLLLLLLLLLLLLLLLLO ???!!!! ")
+        Rails.logger.debug("In mount_partition #{data}")
         partition_id = data[:partition_id]
         partition = DrivePartition.find_by(id: partition_id) or return
         dev_path = partition.deviceFile
         mount_path = partition.source.mount_path
         host_mount_path = partition.source.host_mount_path
         FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
-        Rails.logger.info "Mounting (!) #{dev_path} #{host_mount_path}"
+        Rails.logger.info "Mounting (!) #{dev_path} (mount_path=#{mount_path}, host_mount_path=#{host_mount_path})"
         cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path})"
         result = $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
         Rails.logger.info("HURRAGE AGENT RESP #{result.inspect}")
-        `touch /app/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
+        `touch /data/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
         Mounter.update_sources
     end
 
