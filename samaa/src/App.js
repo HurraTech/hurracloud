@@ -50,6 +50,7 @@ import blackThemeFile from './themes/black';
 import HomePage from './home/HomePage';
 import AppLoader from './appLoader/AppLoader';
 import { JAWHAR_API, JAWHAR_NEW_API  } from './constants';
+import FilePreview from './components/FilePreview';
 
 const jss = create({
   ...jssPreset(),
@@ -507,15 +508,15 @@ class App extends React.Component {
               </ListItem>
               <Collapse in={this.state.browserListOpen} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                  {this.state.sources.filter(s => s.status == "mounted").map(source => {
-                    let icon_class = "fab fa-usb"
-                    if (source.sourcable_type == "DrivePartition")
-                      icon_class = "fas fa-database"
+                  {this.state.sources.filter(s => s.Status == "mounted").map(source => {
+                    let icon_class = "fas fa-database"
+                    if (source.IsRemovable)
+                      icon_class = "fab fa-usb"
                     // else if (source.source_type == "internal")
                     //   icon_class = "fab fa-hdd"
                     // return source.drive_partitions.filter(p => p.status == "mounted").map(partition => {
                         return <Link
-                        to={`/browse/${source.sourcable.normalized_name}/`}
+                        to={`/browse/sources/${source.Type}/${source.ID}/`}
                         style={{ textDecoration: 'none', color:'black' }}
                         >
                             <ListItem button className={classes.nested}>
@@ -524,7 +525,7 @@ class App extends React.Component {
                                       style={{ marginRight: '0.5em', width:'10px', }}
                                       />
                                       </div>
-                            <ListItemText inset primary={source.name} className={classes.sourceNameText} />
+                            <ListItemText inset primary={source.Caption} className={classes.sourceNameText} />
                           </ListItem>
                           </Link>
                     // })
@@ -548,7 +549,15 @@ class App extends React.Component {
         >
           <div className={classes.drawerHeader} />
           <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} sources={this.state.sources} stats={this.state.stats} />)}/>
-          <Route path="/browse/:path+" render={({match}) => (<BrowserPage path={match.params.path || ""} />)}/>
+          <Route path="/browse/:path+/" render={({match}) => (<BrowserPage path={match.params.path + "/" || ""} />)}/>
+          <Route path="/preview/:path+" render={({match}) => (
+            <FilePreview
+              open={true}
+              onCloseClick={() => this.props.history.goBack()}
+              file={match.params.path}
+            />
+          )}/>
+
           <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>
           <Route path="/appStore" render={() => (<AppStorePage sources={this.state.sources} />)}/>

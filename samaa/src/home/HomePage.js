@@ -171,9 +171,9 @@ class HomePage extends React.Component {
     }
 
     buildIndexChartDataset(sources) {
-      var indexedSources = sources.filter(s => s.index !== null);
-      var sourceNames = indexedSources.map(s => s.name)
-      var indexSizes = indexedSources.map(s => Utils.humanFileSizeMBRaw(s.index.size))
+      var indexedSources = sources.filter(s => s.Index !== null);
+      var sourceNames = indexedSources.map(s => s.Name)
+      var indexSizes = indexedSources.map(s => Utils.humanFileSizeMBRaw(s.Index.SizeBytes))
 
       const data = {
           labels: sourceNames,
@@ -221,7 +221,7 @@ class HomePage extends React.Component {
         }
         if (source !== null && source != undefined) {
 	       dataset.datasets[0].data = [Utils.humanFileSizeGBRaw(source.used), Utils.humanFileSizeGBRaw(source.free)]
-           if (source.sourcable.drive_type == "internal")
+           if (source.Type == "internal")
            {
               var indexedSources = sources.filter(s => s.index !== null);
               var indexSizes = indexedSources.map(s => Utils.humanFileSizeGBRaw(s.index.size))

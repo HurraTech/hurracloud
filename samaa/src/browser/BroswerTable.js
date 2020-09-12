@@ -143,7 +143,7 @@ class BrowserTable extends React.PureComponent {
             style={{
               textDecoration: 'none',
               height: rowHeight,
-              color: cellData.name == '..' ? '#960000' : 'black',
+              color: cellData.Name == '..' ? '#960000' : 'black',
             }}
             href={cellData.open_link ? cellData.open_link : ""}
             target="_new"
@@ -151,10 +151,10 @@ class BrowserTable extends React.PureComponent {
 
           >
             <span
-              className={`fiv-sqo fiv-icon-blank fiv-icon-${cellData.type}`}
+              className={`fiv-sqo fiv-icon-blank fiv-icon-${cellData.IsDir ? "folder" : cellData.Extension}`}
               style={{ marginRight: '0.5em' }}
             >
-              {cellData.name == '..' && (
+              {cellData.Name == '..' && (
                 <i
                   className="fas fa-arrow-left fa-xs"
                   style={{
@@ -166,12 +166,12 @@ class BrowserTable extends React.PureComponent {
                 />
               )}
             </span>
-            {cellData.name == '..' ? 'Back' : cellData.name}
+            {cellData.Name == '..' ? 'Back' : cellData.Name}
           </TableCell>
         );
       }
       case 'downloadButton': {
-        if (cellData.type == 'folder' || cellData.type.indexOf('source_') == 0)
+        if (cellData.isDir)
           return (
             <TableCell
               style={{ height: rowHeight }}
@@ -192,7 +192,7 @@ class BrowserTable extends React.PureComponent {
             padding="none"
           >
             <Tooltip title="Donwload File">
-              <IconButton href={`${JAWHAR_API}/files/download/${cellData.path}` } >
+              <IconButton href={`${JAWHAR_API}/files/download/${cellData.Path}` } >
                 <DownloadIcon color="inherit" color="primary" />
               </IconButton>
             </Tooltip>
@@ -233,8 +233,8 @@ class BrowserTable extends React.PureComponent {
             padding="none"
             align="right"
           >
-            {cellData.type.indexOf('source_') != 0 &&
-              Utils.humanFileSize(cellData.filesize)}
+            {cellData.IsDir === false &&
+              Utils.humanFileSize(cellData.SizeBytes)}
           </TableCell>
         );
       }

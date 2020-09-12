@@ -31,6 +31,7 @@ class Source < ApplicationRecord
 
     def browse(requested_path=nil)
         path = "#{self.mount_path}/#{requested_path}"
+        Rails.logger.info("Browsinert #{path}")
         {
           contents: Dir.entries(path).map {|i|
             if self.sourcable.respond_to?(:file_to_json)

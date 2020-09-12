@@ -7,7 +7,7 @@ import FilePreview from '../components/FilePreview';
 import BrowserTable from './BroswerTable';
 import ProgressIndicator from '../components/ProgressIndicator';
 import { withRouter } from 'react-router-dom'
-import { JAWHAR_API  } from '../constants';
+import { JAWHAR_API, JAWHAR_NEW_API  } from '../constants';
 
 const styles = theme => ({
   paper: {
@@ -109,16 +109,16 @@ class BrowserPage extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index].internal_name;
-    const type = this.state.items[index].type;
-    let requestedPath = `${type != 'folder' ? '_open_/' :''}${this.state.path}/${path}`;
+    const is_dir = this.state.items[index].IsDir;
+    const path = is_dir ? "/browse" + this.state.items[index].Path : "/preview" + this.state.items[index].Path
     if (path == "..")
     {
       // Going one level up
-      requestedPath = this.state.path.substring(0, this.state.path.lastIndexOf("/"))
+      console.log("GOing level up from ", this.state.path)
+      path = this.state.path.substring(0, this.state.path.lastIndexOf("/"))
     }
-    console.log(`Clicked on ${path} of type ${type}`)
-    this.props.history.push({ pathname: `/browse/${requestedPath}`});
+    console.log(`Clicked on ${path}`)
+    this.props.history.push({ pathname: path});
   };
 
   openFile() {
@@ -157,24 +157,25 @@ class BrowserPage extends React.Component {
   }
 
   browse() {
-    console.log("Making request to ", this.state.path)
-    if (this.state.path.startsWith("_open_/")) {
+    console.log("Making request to ", JAWHAR_NEW_API, this.state.path)
+    if (this.state.path.startsWith("preview/")) {
       return this.openFile()
     }
     return new Promise((resolve, reject) => {
       this.setState({isAjaxInProgress: true}, () => {
-        axios.get(`${JAWHAR_API}/files/browse/${this.state.path}`).then(res => {
+        console.log("Making request to ", JAWHAR_NEW_API, this.state.path)
+        axios.get(`${JAWHAR_NEW_API}/${this.state.path}`).then(res => {
           const response = res.data;
           console.log("Response", response)
           this.setState(
             {
-              items: response.contents,
+              items: response.content,
               isInlineViewerOpen: false,
               isPreviewOpen: false,
               isAjaxInProgress: false
             },
             () => {
-              resolve(response.contents);
+              resolve(response.content);
             },
           );
         });

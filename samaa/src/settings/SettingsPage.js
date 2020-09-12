@@ -39,7 +39,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
 import TextField from '@material-ui/core/TextField';
-import { JAWHAR_API  } from '../constants';
+import { JAWHAR_API, JAWHAR_NEW_API } from '../constants';
 
 const styles = theme => ({
     root: {
@@ -185,10 +185,10 @@ class SettingsPage extends React.Component {
 
     handleMountClick(source) {
         var currentSources = [...this.state.sources]
-        let source_id = source.id
-        currentSources.find(s => s.id === source_id).status = "mounting"
+        let source_id = source.ID
+        currentSources.find(s => s.ID === source_id).Status = "mounting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`${JAWHAR_API}/sources/${source_id}/_mount`)
+            axios.post(`${JAWHAR_NEW_API}/sources/${source.Type}/${source_id}/mount`)
         })
     }
 
@@ -260,12 +260,12 @@ class SettingsPage extends React.Component {
             this.setState({ unmountAlertOpen: true, selectedSource: source });
         }
         else {
-            this.doUnmountParition(source.id)
+            this.doUnmountParition(source.Type, source.ID)
         }
     }
 
     confirmUnmountAlert = () => {
-        this.doUnmountParition(this.state.selectedSource.id)
+        this.doUnmountParition(this.state.selectedSource.ID)
         this.setState({ unmountAlertOpen: false });
     }
 
@@ -273,12 +273,12 @@ class SettingsPage extends React.Component {
         this.setState({ unmountAlertOpen: false });
     }
 
-    doUnmountParition(source_id)
+    doUnmountParition(source_type, source_id)
     {
         var currentSources = [...this.state.sources]
-        currentSources.find(s => s.id === source_id).status = "unmounting"
+        currentSources.find(s => s.ID === source_id).Status = "unmounting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`${JAWHAR_API}/sources/${source_id}/_unmount`)
+            axios.post(`${JAWHAR_NEW_API}/sources/${source_type}/${source_id}/unmount`)
         })
 
     }
@@ -564,7 +564,7 @@ class SettingsPage extends React.Component {
 
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (!source.Status == "unmounted")
+                                                        else if (source.Status == "unmountable")
                                                             return <Tooltip title={source.Filesystem != "" ? `This partition's filesystem ${source.Filesystem} is not supported` :
 																						"Partition is not formatted or could not determine filesystem" }><span>
                                                                         <Button variant="outline" disabled="true" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
