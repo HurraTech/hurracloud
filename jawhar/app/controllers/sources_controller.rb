@@ -1,6 +1,7 @@
 class SourcesController < ApiController
 
     def index
+        Mounter.update_sources
         @sources = Source.where.not(status: :unavailable).all()
         respond_with @sources
     end

@@ -22,6 +22,13 @@ class Source < ApplicationRecord
         "#{Settings.host_mounts_path}/#{self.sourcable.normalized_name}"
     end
 
+    def device_file
+        if self.sourcable.respond_to?(:device_file)
+           return self.sourcable.device_file
+        end
+    end
+
+
     def browse(requested_path=nil)
         path = "#{self.mount_path}/#{requested_path}"
         {

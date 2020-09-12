@@ -14,6 +14,9 @@ module Proto
       self.unmarshal_class_method = :decode
       self.service_name = 'proto.HurraAgent'
 
+      rpc :MountDrive, Proto::MountDriveRequest, Proto::MountDriveResponse
+      rpc :UnmountDrive, Proto::UnmountDriveRequest, Proto::UnmountDriveResponse
+      rpc :GetDrives, Proto::GetDrivesRequest, Proto::GetDrivesResponse
       rpc :ExecCommand, Proto::Command, Proto::Result
     end
 

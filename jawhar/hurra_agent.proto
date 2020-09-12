@@ -9,6 +9,12 @@ package proto;
 
 service HurraAgent {
     rpc ExecCommand(Command) returns (Result) {}
+    rpc MountDrive(Drive) returns (MountDriveResult) {}
+}
+
+message MountDriveResult {
+	repeated string errors = 1;
+	bool success = 2;
 }
 
 message Result {
@@ -16,7 +22,12 @@ message Result {
   string message = 2;
 }
 
+message Drive {
+	string deviceFile = 1;
+	string mountPoint = 2;
+}
+
 message Command {
-  string command = 3;
+  string command = 1;
 }
 

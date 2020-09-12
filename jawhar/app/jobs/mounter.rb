@@ -1,10 +1,9 @@
 require 'sys/filesystem'
-require 'hurra_agent_services_pb'
 include Sys
 
 class Mounter
     @queue = :mounter
-    $hurraAgent = ::Proto::HurraAgent::Stub.new("#{Settings.hurra_agent_server}:#{Settings.hurra_agent_port}}", :this_channel_is_insecure)
+    $hurraAgent = Rails.application.config.hurracloud_agent
 
     def self.mount_partition(data = {})
         Rails.logger.debug("In mount_partition #{data}")
@@ -13,20 +12,15 @@ class Mounter
         dev_path = partition.deviceFile
         mount_path = partition.source.mount_path
         host_mount_path = partition.source.host_mount_path
-        FileUtils.mkdir_p(mount_path) unless File.directory?(mount_path)
-        Rails.logger.info "Mounting (!) #{dev_path} (mount_path=#{mount_path}, host_mount_path=#{host_mount_path})"
-        cmd = "(mount -t ntfs-3g #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path} -o umask=000) || (mount #{dev_path} #{host_mount_path})"
-        result = $hurraAgent.exec_command(::Proto::Command.new(command: cmd))
-        Rails.logger.info("HURRAGE AGENT RESP #{result.inspect}")
-        `touch /data/mounts` ## triggers re-creating new mounts_monitor (see mounts_monitor.sh)
+        result = $hurraAgent.mount_drive(::Proto::MountDriveRequest.new(device_file: dev_path, mount_point: host_mount_path))
         Mounter.update_sources
     end
 
     def self.unmount_source(data = {})
         source_id = data[:source_id]
         source = Source.find_by(id: source_id) or return
-        mount_path = source.host_mount_path
-        $hurraAgent.exec_command(::Proto::Command.new(command: "umount #{mount_path}"))
+                mount_path = source.host_mount_path
+        $hurraAgent.unmount_drive(::Proto::UnmountDriveRequest.new(device_file: source.device_file))
         Mounter.update_sources
     end
 
@@ -65,69 +59,102 @@ class Mounter
             partition.update_stats(force: true)
         end
 
-        ### Update External Drives ####
-        devices = { }
-        `lsblk -o NAME,SIZE,TRAN,VENDOR,MODEL -dpnlb -e1,7`.split("\n").each do |line|
-            (dev, size, type, vendor, model) = line.split(" ", 5)
-            devices[dev] = { model: "#{(vendor || "").strip()} #{(model || "").strip()}",
-                             type: type,
-                             capacity: (size.to_i) /1024,
-                             path: dev,
-                             partitions: [] }
-            res = $hurraAgent.exec_command(::Proto::Command.new(command: "blkid #{dev} | grep -o 'PTUUID=\".[^\"]*\"' | cut -d '\"' -f 2"))
-            devices[dev][:uuid] = res.message.chomp()
-            res = $hurraAgent.exec_command(::Proto::Command.new(command: "blkid #{dev}*"))
-            Rails.logger.info("BLKID full output is #{res.message}")
-            output_lines = res.message.split("\n")
-            output_lines.each_with_index do |line|
-                Rails.logger.info("BLKID output is #{line}")
-                next if not line.start_with?("/dev") # skip "exit status" line
-                (path, attributes) = line.split(": ",2)
-                next if Settings.skip_partitions.include?(path)
-                partition = { path: path}
-                re = /(([^=]*)="([^"]*)")\s*/m
-                attributes.scan(re) do |match|
-                    key = match[1]
-                    value = match[2]
-                    partition[key] = value
-                end
-                partition["NUMBER"] = path[dev.length()..-1]
-
-                if !partition.key?("LABEL")
-                    partition["LABEL"] = partition.key?("PARTLABEL") ? partition["PARTLABEL"] : "#{devices[dev][:model]} ##{partition["NUMBER"]}"
-                end
-
-                mount = Filesystem.mounts.select{ |d| d.name == path }[0]
-                Rails.logger.info "Found mount #{mount.name}" if mount
-                if mount
-                    fs = Filesystem.stat(mount.mount_point)
-                    partition[:size] = fs.blocks  * fs.block_size / 1024
-                    partition[:free] = fs.blocks_available  * fs.block_size / 1024
-                    partition[:used] = partition[:size] - partition[:free]
-                    partition[:status] = :mounted
+        ### Update Drives ####
+        devices = []
+        res = $hurraAgent.get_drives(::Proto::GetDrivesRequest.new())    
+        Rails.logger.info("Agent this response: #{res}")         
+        res.drives.each do |d|
+            Rails.logger.info("Agent returned this drive: #{d}")
+            drive = Drive.where(unique_id: d.serial_number).first_or_create { |s|
+                s.unique_id = d.serial_number
+            }
+            drive.capacity = d.size_bytes
+            drive.drive_type = d.type
+            devices.append(drive.unique_id)
+            drive.save!
+            d.partitions.each do |p|
+                partition = DrivePartition.create_source("#{d.serial_number}-#{p.name}")
+                partition.drive = drive
+                if p.label != ""
+                    partition.name = p.label
                 else
-                    partition[:status] = :unmounted
+                    partition.name = p.name
                 end
-
-                devices[dev][:partitions] << partition
+                partition.filesystem = p.filesystem
+                partition.size = p.size_bytes
+                if p.mount_point != ""
+                    partition.status = :mounted
+                else
+                    partition.status = :unmounted
+                end
+                if p.available_bytes
+                    # partition.free = p.available_bytes
+                end
+                partition.save!
             end
         end
-        attached_devs = devices.map{ |dev_id,device| device[:uuid] }
-        devices.each do |dev_id, device|
 
-            drive = Drive.where(unique_id: device[:uuid]).first_or_create { |s|
-                s.unique_id = device[:uuid]
-            }
-            Mounter.update_drive(drive, device)
-            drive.save!
-            Rails.logger.info("Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
-        end
-        Rails.logger.info("Attached Devs #{attached_devs}")
-        Drive.where.not(unique_id: attached_devs, drive_type: :internal).each do |d|
+        # Did any drives disappear from our last state?
+        Drive.where.not(unique_id: devices, drive_type: :internal).each do |d|
           d.drive_partitions.each { |d| d.source.status = :unavailable; d.save! }
           d.status = :detached
           d.save!
         end
+
+
+        #     devices[dev][:uuid] = res.message.chomp()
+        #     res = $hurraAgent.exec_command(::Proto::Command.new(command: "blkid #{dev}*"))
+        #     Rails.logger.info("BLKID full output is #{res.message}")
+        #     output_lines = res.message.split("\n")
+        #     output_lines.each_with_index do |line|
+        #         Rails.logger.info("BLKID output is #{line}")
+        #         next if not line.start_with?("/dev") # skip "exit status" line
+        #         (path, attributes) = line.split(": ",2)
+        #         next if Settings.skip_partitions.include?(path)
+        #         partition = { path: path}
+        #         re = /(([^=]*)="([^"]*)")\s*/m
+        #         attributes.scan(re) do |match|
+        #             key = match[1]
+        #             value = match[2]
+        #             partition[key] = value
+        #         end
+        #         partition["NUMBER"] = path[dev.length()..-1]
+
+        #         if !partition.key?("LABEL")
+        #             partition["LABEL"] = partition.key?("PARTLABEL") ? partition["PARTLABEL"] : "#{devices[dev][:model]} ##{partition["NUMBER"]}"
+        #         end
+
+        #         mount = Filesystem.mounts.select{ |d| d.name == path }[0]
+        #         Rails.logger.info "Found mount #{mount.name}" if mount
+        #         if mount
+        #             fs = Filesystem.stat(mount.mount_point)
+        #             partition[:size] = fs.blocks  * fs.block_size / 1024
+        #             partition[:free] = fs.blocks_available  * fs.block_size / 1024
+        #             partition[:used] = partition[:size] - partition[:free]
+        #             partition[:status] = :mounted
+        #         else
+        #             partition[:status] = :unmounted
+        #         end
+
+        #         devices[dev][:partitions] << partition
+        #     end
+        # end
+        # attached_devs = devices.map{ |dev_id,device| device[:uuid] }
+        # devices.each do |dev_id, device|
+
+        #     drive = Drive.where(unique_id: device[:uuid]).first_or_create { |s|
+        #         s.unique_id = device[:uuid]
+        #     }
+        #     Mounter.update_drive(drive, device)
+        #     drive.save!
+        #     Rails.logger.info("Discovered the following device; JSON: #{JSON.pretty_generate(drive.as_json)}")
+        # end
+        # Rails.logger.info("Attached Devs #{attached_devs}")
+        # Drive.where.not(unique_id: attached_devs, drive_type: :internal).each do |d|
+        #   d.drive_partitions.each { |d| d.source.status = :unavailable; d.save! }
+        #   d.status = :detached
+        #   d.save!
+        # end
 
         ### Update Google Drive Mounts statuses
         GoogleDriveAccount.all().each do |account|

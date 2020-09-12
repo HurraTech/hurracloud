@@ -522,64 +522,64 @@ class SettingsPage extends React.Component {
                                     <TableBody>
                                         {sources.map(source => {
                                             let icon_class = "fas fa-hdd"
-                                            if (source.sourcable == "DrivePartition" && source.sourcable.drive_type == "usb")
+                                            if (source.Drive.IsRemovable)
                                                 icon_class = "fas fa-usb"
                                             // else if (source.source_type == "internal")
                                             //     icon_class = "fab fa-hdd"
                                             let indexingProgress = source.index && source.index.progress < 100 ? ` - ${source.index.progress}%` : ''
                                             return (
-                                            <TableRow key={source.id} className={classes.sourceRow}>
+                                            <TableRow key={source.ID} className={classes.sourceRow}>
                                                 <TableCell scope="row" className={classes.iconCell}>
                                                     <div style={{float:'left'}}>
                                                         <span className={`${icon_class}`} style={{ marginRight: '0.5em' }} />
                                                     </div>
                                                 </TableCell>
                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.nameCell)}>
-                                                    {source.name}
+                                                    {source.Caption}
                                                 </TableCell>
                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.capacityCell)}>
-                                                {source.status == "mounted" && Utils.humanFileSize(source.size)}
+                                                {source.Status == "mounted" && Utils.humanFileSize(source.SizeBytes)}
                                                 </TableCell>
                                                 <TableCell scope="row" className={classNames(classes.bodyCell, classes.availableCell)}>
-                                                {source.status == "mounted" && Utils.humanFileSize(source.free)}
+                                                {source.Status == "mounted" && Utils.humanFileSize(source.AvailableBytes)}
                                                 </TableCell>
                                                 <TableCell align="left"  className={classNames(classes.bodyCell, classes.actionsCell)}>
                                                 <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
                                                     { (() => {
 														console.log("SOURCE ",source)
-                                                        if (source.status == "mounted" && source.sourcable.drive_type != "internal")
+                                                        if (source.Status == "mounted")
                                                             return <Tooltip title="Unmounting the drive will make it inaccessible.">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source)} }>
-                                                                            {source.sourcable_type == "DrivePartition" && <UnmountIcon className={classes.leftIcon}></UnmountIcon>}
-                                                                            {source.sourcable_type == "GoogleDriveAccount" && <DisconnectIcon className={classes.leftIcon}></DisconnectIcon>}
-                                                                            {source.sourcable_type == "DrivePartition" ? "Eject" : "Disconnect"}
+                                                                            {source.Drive.DriveType != "CloudDrive" && <UnmountIcon className={classes.leftIcon}></UnmountIcon>}
+                                                                            {source.Drive.DriveType == "GoogleDriveAccount" && <DisconnectIcon className={classes.leftIcon}></DisconnectIcon>}
+                                                                            {source.Drive.DriveType != "CloudDrive" ? "Eject" : "Disconnect"}
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (source.sourcable.is_mountable && source.status == "unmounted")
+                                                        else if (source.Status == "unmounted")
                                                             return <Tooltip title="Mounting a drive partition allows you to browse its contents via the browser and the mobile and desktop apps">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
-                                                                            {source.sourcable_type == "DrivePartition" && <MountIcon className={classes.leftIcon}></MountIcon>}
-                                                                            {source.sourcable_type == "GoogleDriveAccount" && <ReconnectIcon className={classes.leftIcon}></ReconnectIcon>}
-                                                                            {source.sourcable_type == "DrivePartition" ? "Mount" : "Reconnect"}
+                                                                            {source.Drive.DriveType != "CloudDrive" && <MountIcon className={classes.leftIcon}></MountIcon>}
+                                                                            {source.Drive.DriveType == "GoogleDriveAccount" && <ReconnectIcon className={classes.leftIcon}></ReconnectIcon>}
+                                                                            {source.Drive.DriveType != "CloudDrive" ? "Mount" : "Reconnect"}
 
                                                                         </Button>
                                                                     </Tooltip>
-                                                        else if (!source.sourcable.is_mountable && source.status == "unmounted")
-                                                            return <Tooltip title={"TYPE" in source.metadata ? `This partition's filesystem ${source.metadata.TYPE} is not supported` :
+                                                        else if (!source.Status == "unmounted")
+                                                            return <Tooltip title={source.Filesystem != "" ? `This partition's filesystem ${source.Filesystem} is not supported` :
 																						"Partition is not formatted or could not determine filesystem" }><span>
                                                                         <Button variant="outline" disabled="true" color="primary" size="small" onClick={() => {this.handleMountClick(source)} }>
-                                                                            {source.sourcable_type == "DrivePartition" && <MountIcon className={classes.leftIcon}></MountIcon>}
-                                                                            {source.sourcable_type == "GoogleDriveAccount" && <ReconnectIcon className={classes.leftIcon}></ReconnectIcon>}
-                                                                            {source.sourcable_type == "DrivePartition" ? "Mount" : "Reconnect"}
+                                                                            {source.Drive.DriveType != "CloudDrive" && <MountIcon className={classes.leftIcon}></MountIcon>}
+                                                                            {source.Drive.DriveType == "GoogleDriveAccount" && <ReconnectIcon className={classes.leftIcon}></ReconnectIcon>}
+                                                                            {source.Drive.DriveType != "CloudDrive" ? "Mount" : "Reconnect"}
                                                                         </Button></span>
                                                                     </Tooltip>
-                                                        else if (source.sourcable.drive_type != "internal")
+                                                        else if (source.Drive.DriveType != "internal")
                                                             return <CircularProgress className={classes.progress} size={20} />
                                                         })()
                                                     }
                                                     </div>
                                                     <div style={{width: "180px", float: 'left', minHeight: '1px'}}>
-                                                    {!source.index && source.status == "mounted" && (
+                                                    {!source.index && source.Status == "mounted" && (
                                                         <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
                                                             <Button variant="outline"
                                                                     color="primary" size="small"

@@ -49,7 +49,7 @@ import {
 import blackThemeFile from './themes/black';
 import HomePage from './home/HomePage';
 import AppLoader from './appLoader/AppLoader';
-import { JAWHAR_API  } from './constants';
+import { JAWHAR_API, JAWHAR_NEW_API  } from './constants';
 
 const jss = create({
   ...jssPreset(),
@@ -252,7 +252,7 @@ class App extends React.Component {
     {
        this.setState({pendingSourcesRequest: true})
        axios
-       .get(`${JAWHAR_API}/sources`)
+       .get(`${JAWHAR_NEW_API}/sources`)
        .then(res => {
            const response = res.data;
            this.setState({ sources: response, pendingSourcesRequest: false  })
