@@ -76,9 +76,21 @@ services:
       - hurracloud
     restart: unless-stopped
 
+  sonic:
+    image: valeriansaliou/sonic:v1.3.0
+    restart: unless-stopped
+    ports:
+      - 1491:1491
+    volumes:
+      - sonic:/var/lib/sonic/store/
+      - ./sonic.cfg:/etc/sonic.cfg
+    networks:
+      - hurracloud
+
 volumes:
   es:
   redis:
+  sonic:
 
 networks:
   hurracloud:

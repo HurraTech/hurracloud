@@ -194,17 +194,17 @@ class SettingsPage extends React.Component {
 
     handlePauseClick(source) {
         var currentSources = [...this.state.sources]
-        currentSources.find(s => s.id === source.id).index.status = "pausing"
+        currentSources.find(s => s.ID === source.ID).IndexStatus = "pausing"
         this.setState({sources: currentSources}, () => {
-            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_pause`)
+            axios.post(`${JAWHAR_NEW_API}/sources/${source.Type}/${source.ID}/pauseIndex`)
         })
     }
 
     handleResumeClick(source) {
         var currentSources = [...this.state.sources]
-        currentSources.find(s => s.id === source.id).index.status = "resuming"
+        currentSources.find(s => s.ID === source.ID).IndexStatus = "resuming"
         this.setState({sources: currentSources}, () => {
-            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_resume`)
+            axios.post(`${JAWHAR_NEW_API}/sources/${source.Type}/${source.ID}/resumeIndex`)
         })
     }
 
@@ -215,11 +215,10 @@ class SettingsPage extends React.Component {
 
     doCancelIndex(source) {
         var currentSources = [...this.state.sources]
-        currentSources.find(s => s.id === source.id).index.status = "cancelling"
+        currentSources.find(s => s.ID === source.ID).IndexStatus = "deleting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_cancel`)
+            axios.delete(`${JAWHAR_NEW_API}/sources/${source.Type}/${source.ID}/index`)
         })
-
     }
 
     confirmCancelAlert = () => {
@@ -238,11 +237,10 @@ class SettingsPage extends React.Component {
 
     doDeleteIndex(source) {
         var currentSources = [...this.state.sources]
-        currentSources.find(s => s.id === source.id).index.status = "deleting"
+        currentSources.find(s => s.ID === source.ID).IndexStatus = "deleting"
         this.setState({sources: currentSources}, () => {
-            axios.get(`${JAWHAR_API}/indices/${source.index.id}/_delete`)
+            axios.delete(`${JAWHAR_NEW_API}/sources/${source.Type}/${source.ID}/index`)
         })
-
     }
 
     confirmDeleteAlert = () => {
@@ -256,7 +254,7 @@ class SettingsPage extends React.Component {
 
     /* --------- Unmount Source ----------- */
     handleUnmountClick(source) {
-        if (source.index && source.index.status == "indexing") {
+        if (source.IndexStatus == "creating") {
             this.setState({ unmountAlertOpen: true, selectedSource: source });
         }
         else {
@@ -304,20 +302,22 @@ class SettingsPage extends React.Component {
 
     onIndexDialogSave = (settings) => {
         const data = {
-            index: {
-                source_id: this.state.selectedSource.id,
-                settings: settings
-            }
+            excludes: settings.excludes
         }
         console.log("Calling create index with data", data)
-        axios
-        .post(`${JAWHAR_API}/indices/`, data)
-        .then(res => {
-            this.setState({
-                indexDialogOpen: false,
-                selectedSource: {}
+        var currentSources = [...this.state.sources]
+        currentSources.find(s => s.ID === this.state.selectedSource.ID).IndexStatus = "creating"
+        this.setState({sources: currentSources}, () => {
+            axios
+            .post(`${JAWHAR_NEW_API}/sources/${this.state.selectedSource.Type}/${this.state.selectedSource.ID}/index`, data)
+            .then(res => {
+                this.setState({
+                    indexDialogOpen: false,
+                    selectedSource: {}
+                })
             })
         })
+
     }
 
 
@@ -437,7 +437,7 @@ class SettingsPage extends React.Component {
                     cancelButton="Cancel"
                     okButton="Yes"
                     title="Are you sure you want to cancel index creation?"
-                    message="You will be able to tempoarirly pause index creation after the index has been initialized."
+                    message="This will delete any index data that have been created so far. You can choose to pause indexing instead to keep index data."
                     onCancel={this.cancelCancelAlert}
                     onOk={this.confirmCancelAlert}
                 />
@@ -526,7 +526,7 @@ class SettingsPage extends React.Component {
                                                 icon_class = "fas fa-usb"
                                             // else if (source.source_type == "internal")
                                             //     icon_class = "fab fa-hdd"
-                                            let indexingProgress = source.index && source.index.progress < 100 ? ` - ${source.index.progress}%` : ''
+                                            let indexingProgress = source.IndexStatus == "creating" && source.IndexProgress < 100 ? ` - ${source.IndexProgress}%` : ''
                                             return (
                                             <TableRow key={source.ID} className={classes.sourceRow}>
                                                 <TableCell scope="row" className={classes.iconCell}>
@@ -546,7 +546,6 @@ class SettingsPage extends React.Component {
                                                 <TableCell align="left"  className={classNames(classes.bodyCell, classes.actionsCell)}>
                                                 <div style={{width: "150px", float: 'left', minHeight: '1px'}}>
                                                     { (() => {
-														console.log("SOURCE ",source)
                                                         if (source.Status == "mounted")
                                                             return <Tooltip title="Unmounting the drive will make it inaccessible.">
                                                                         <Button variant="outline" color="primary" size="small" onClick={() => {this.handleUnmountClick(source)} }>
@@ -579,7 +578,7 @@ class SettingsPage extends React.Component {
                                                     }
                                                     </div>
                                                     <div style={{width: "180px", float: 'left', minHeight: '1px'}}>
-                                                    {!source.index && source.Status == "mounted" && (
+                                                    {source.IndexStatus == "" && source.Status == "mounted" && (
                                                         <Tooltip title="Indexing a drive partitions allows your to search your files and their contents in blazing speed">
                                                             <Button variant="outline"
                                                                     color="primary" size="small"
@@ -589,8 +588,38 @@ class SettingsPage extends React.Component {
                                                             </Button>
                                                         </Tooltip>)
                                                     }
-                                                    {source.index && (source.index.status == "init" || source.index.status == "scheduled") && (
-                                                        <Tooltip title="You can cancel index creation while it's being intialized or scheduled. You will have the opportuinity to temporarily pause after intialization has completed">
+                                                    {source.index && source.IndexStatus === "deleting"  && (
+                                                        <CircularProgress className={classes.progress} size={20} />
+                                                    )}
+
+                                                    {source.IndexStatus === "creating" && (
+                                                    <Button variant="outline"
+                                                        color="primary" size="small"
+                                                        onClick={() => { this.handlePauseClick(source)}}>
+                                                        <PauseIcon className={classes.leftIcon}></PauseIcon>Pause
+                                                    </Button>)}
+
+                                                    {source.IndexStatus === "paused" && (
+                                                    <Button variant="outline"
+                                                        color="primary" size="small"
+                                                        onClick={() => { this.handleResumeClick(source)}}>
+                                                        <ResumeIcon className={classes.leftIcon}></ResumeIcon>Resume
+                                                    </Button>)}
+
+                                                    {(source.IndexStatus === "resuming" || source.IndexStatus === "pausing")  && (
+                                                        <CircularProgress className={classes.progress} size={20} />
+                                                    )}
+                                                    </div>
+                                                    <div style={{width: "180px", float: 'left', clear: 'right', minHeight: '1px'}}>
+                                                    {(source.IndexStatus === "paused" || source.IndexStatus === "created") && (
+                                                        <Button variant="outline"
+                                                            color="primary" size="small"
+                                                            onClick={() => { this.handleDeleteIndexClick(source)}}>
+                                                            <DeleteIcon className={classes.leftIcon}></DeleteIcon>Delete Index
+                                                        </Button>
+                                                    )}
+                                                    {source.IndexStatus == "creating" && (
+                                                        <Tooltip title="Cancelling indexing will stop indexing and delete any index data (this will NOT delete your files)">
                                                             <Button variant="outline"
                                                                     color="primary" size="small"
                                                                     onClick={() => { this.handleCancelClick(source) }}>
@@ -598,65 +627,35 @@ class SettingsPage extends React.Component {
                                                                 Cancel
                                                             </Button>
                                                         </Tooltip>)
-                                                    }
-                                                    {source.index && source.index.status === "cancelling"  && (
-                                                        <CircularProgress className={classes.progress} size={20} />
-                                                    )}
-
-                                                    {source.index && source.status == "mounted" && source.index.status === "indexing" && (
-                                                    <Button variant="outline"
-                                                        color="primary" size="small"
-                                                        onClick={() => { this.handlePauseClick(source)}}>
-                                                        <PauseIcon className={classes.leftIcon}></PauseIcon>Pause
-                                                    </Button>)}
-
-                                                    {source.index && source.status == "mounted" && source.index.status === "paused" && (
-                                                    <Button variant="outline"
-                                                        color="primary" size="small"
-                                                        onClick={() => { this.handleResumeClick(source)}}>
-                                                        <ResumeIcon className={classes.leftIcon}></ResumeIcon>Resume
-                                                    </Button>)}
-
-                                                    {source.index && (source.index.status === "resuming" || source.index.status === "pausing")  && (
-                                                        <CircularProgress className={classes.progress} size={20} />
-                                                    )}
-                                                    </div>
-                                                    <div style={{width: "180px", float: 'left', clear: 'right', minHeight: '1px'}}>
-                                                    {source.index && (source.index.status === "paused" || source.index.status === "completed") && (
-                                                        <Button variant="outline"
-                                                            color="primary" size="small"
-                                                            onClick={() => { this.handleDeleteIndexClick(source)}}>
-                                                            <DeleteIcon className={classes.leftIcon}></DeleteIcon>Delete Index
-                                                        </Button>
-                                                    )}
-                                                    {source.index && source.index.status === "deleting"  && (
+                                                    }                                                    
+                                                    {source.IndexStatus === "deleting"  && (
                                                         <CircularProgress className={classes.progress} size={20} />
                                                     )}
 
                                                     </div>
 
                                                 </TableCell>
-                                                {source.index && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
-                                                    <div className="indexingDone" style={{display: source.index.status == "completed" ? "block" : "none" }}>
+                                                {source.IndexStatus != "" && <><TableCell align="left" className={classNames(classes.bodyCell,classes.indexCell)}>
+                                                    <div className="indexingDone" style={{display: source.IndexStatus == "created" ? "block" : "none" }}>
                                                         <i style={{fontSize: 16, color: 'green'}} class="fas fa-check-circle"></i>
                                                     </div>
-                                                    <div className="indexingDone" style={{display: ["paused", "pausing", "resuming"].includes(source.index.status) ? "block" : "none" }}>
+                                                    <div className="indexingDone" style={{display: ["paused", "pausing", "resuming"].includes(source.IndexStatus) ? "block" : "none" }}>
                                                         <i style={{fontSize: 17, color: '#F86395'}} class="fas fa-pause-circle"></i>
                                                     </div>
-                                                    <div className="indexingDone" style={{display: ["scheduled", "deleting"].includes(source.index.status) ? "block" : "none" }}>
+                                                    <div className="indexingDone" style={{display: ["deleting"].includes(source.IndexStatus) ? "block" : "none" }}>
                                                         <i style={{fontSize: 16, color: 'orange'}} class="fas fa-clock"></i>
                                                     </div>
 
-                                                    { (source.index.status == "init" || source.index.status == "indexing") && source.index.progress < 100 && (<div className="meter orange">
-                                                                                                <span style={{width: `${source.index.progress}%` }} />
+                                                    { (source.IndexStatus == "init" || source.IndexStatus == "creating") && source.IndexProgress < 100 && (<div className="meter orange">
+                                                                                                <span style={{width: `${source.IndexProgress}%` }} />
                                                                                             </div>)}
-                                                    {source.index.status == "scheduled" && "Scheduled" }
-                                                    {source.index.status == "init" && "Initializing index (scanning files)" }
-                                                    {!["init", "scheduled", "cancelling", "deleting"].includes(source.index.status) && `${source.index.indexed_count} document(s) ${indexingProgress}`}
+                                                    {source.IndexStatus == "scheduled" && "Scheduled" }
+                                                    {source.IndexStatus == "init" && "Initializing index (scanning files)" }
+                                                    {![ "scheduled", "cancelling", "deleting"].includes(source.IndexStatus) && `${source.IndexIndexedDocuments} document(s) ${indexingProgress}`}
 
                                                 </TableCell>
                                                 </>}
-                                                {!source.index && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
+                                                {source.IndexStatus == "" && <TableCell className={classNames(classes.bodyCell,classes.indexCell)}>Not indexed</TableCell>}
                                             </TableRow>)
 
                                         })}
