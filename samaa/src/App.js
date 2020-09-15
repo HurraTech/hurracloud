@@ -51,6 +51,7 @@ import HomePage from './home/HomePage';
 import AppLoader from './appLoader/AppLoader';
 import { JAWHAR_API, JAWHAR_NEW_API  } from './constants';
 import FilePreview from './components/FilePreview';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const jss = create({
   ...jssPreset(),
@@ -319,8 +320,10 @@ class App extends React.Component {
 
   firstSearchLink = () => {
     let searchable = this.state.sources.filter(s => s.Status == "mounted" && s.IndexStatus != "")
-    console.log("Returning ", `/search/${searchable[0].Type}/${searchable[0].ID}`)
-    return `/search/${searchable[0].Type}/${searchable[0].ID}`
+    if (searchable.length > 0)
+      return `/search/${searchable[0].Type}/${searchable[0].ID}`
+    else
+      return false
   }
 
   handleProfileMenuOpen = event => {
@@ -514,12 +517,22 @@ class App extends React.Component {
                 </ListItem>
               </Link>
             <Divider />
-              <Link to={`${this.firstSearchLink()}`} style={{ textDecoration: 'none' }}>
+            { this.firstSearchLink() ? (<Link to={`${this.firstSearchLink()}`} style={{ textDecoration: 'none' }}>
                 <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
                   <ListItemIcon><SearchIcon /></ListItemIcon>
                   <ListItemText primary="Search" style={{color:'black'}} />
                 </ListItem>
-              </Link>
+              </Link>) : (<Link to={`${this.firstSearchLink()}`}  className="disabledCursor" onClick={ (event) => event.preventDefault()} style={{ textDecoration: 'none' }}>
+                <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
+                  <ListItemIcon>
+                    <SearchIcon />
+                  </ListItemIcon>
+                  <Tooltip title="You don't have any mounted storage with indices. Please either create indices to search or mount storages that you have already indexed.">
+                    <ListItemText primary="Search" style={{color:'black'}} />
+                  </Tooltip>
+                </ListItem>
+              </Link>)
+            }
             <ListItem button key="Browse" selected={this.props.history.location.pathname.startsWith(`/browse/`)} onClick={this.handleBrowserClick}>
                 <ListItemIcon><BrowserIcon /></ListItemIcon>
                 <ListItemText primary="Cloud Drive" style={{color:'black'}} />
