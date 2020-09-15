@@ -116,10 +116,13 @@ class Content extends React.Component {
     // );
   };
 
-  componentDidMount() {
-    console.log("Component update")
-    const query = QueryString.parse(this.props.location.search)
-    this.searchWrapper(query.q, this.search);
+  componentDidUpdate(prevProps) {
+    if (this.props.location !== prevProps.location) {
+      console.log("parsing ", this.props.location)
+      const query = QueryString.parse(this.props.location.search)
+      console.log("New quey", query.q)
+      this.searchWrapper(query.q, this.search);
+    }
   }
 
   handlePreviewCloseClick() {

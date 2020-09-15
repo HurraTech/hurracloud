@@ -304,7 +304,8 @@ class App extends React.Component {
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
       this.props.history.push({
-        pathname: `/search/?q=${event.target.value}`
+        pathname: `/search`,
+        search: `q=${event.target.value}`,
       });
     }
   };
