@@ -110,7 +110,7 @@ class BrowserPage extends React.Component {
 
   handleFilenameClick = index => {
     const is_dir = this.state.items[index].IsDir;
-    const path = is_dir ? "/browse" + this.state.items[index].Path : "/preview" + this.state.items[index].Path
+    const path = is_dir ? "/browse" + this.state.items[index].Path : "/browse/preview" + this.state.items[index].Path
     if (path == "..")
     {
       // Going one level up
@@ -118,49 +118,16 @@ class BrowserPage extends React.Component {
       path = this.state.path.substring(0, this.state.path.lastIndexOf("/"))
     }
     console.log(`Clicked on ${path}`)
+
     this.props.history.push({ pathname: path});
   };
 
-  openFile() {
-    return new Promise((resolve, reject) => {
-      // if (this.state.requestedItem.openLink != null)
-      // {
-      //     window.open(this.state.requestedItem.openLink, "_blank")
-      //     return;
-      // }
-
-      this.setState({isAjaxInProgress: true}, () => {
-        axios
-        .get(`${JAWHAR_API}/files/is_viewable/${this.state.path.replace('_open_/', '')}`)
-        .then(res => {
-          this.setState({ isAjaxInProgress: false }, () => {
-            const isViewable = res.data.is_viewable;
-            if (isViewable) {
-              this.setState({
-                openedFile: this.state.path.replace('_open_/', ''),
-                isInlineViewerOpen: true,
-                isPreviewOpen: false,
-              });
-            } else {
-              window.location = `${JAWHAR_API}/files/download/${this.state.path.replace('_open_/', '')}`;
-              let path = `/browse/${this.state.path.substring(0, this.state.path.lastIndexOf("/")).replace("_open_/", "")}`
-              this.props.history.push({ pathname: path});
-            }
-          });
-        });
-      })
-    })
-  }
 
   componentDidMount() {
     this.browse();
   }
 
   browse() {
-    console.log("Making request to ", JAWHAR_NEW_API, this.state.path)
-    if (this.state.path.startsWith("preview/")) {
-      return this.openFile()
-    }
     return new Promise((resolve, reject) => {
       this.setState({isAjaxInProgress: true}, () => {
         console.log("Making request to ", JAWHAR_NEW_API, this.state.path)

@@ -10,15 +10,25 @@ import SearchResultsTable from './SearchResultsTable';
 import ProgressIndicator from '../components/ProgressIndicator';
 import QueryString from 'query-string';
 import { JAWHAR_API, JAWHAR_NEW_API  } from '../constants';
+import {FormControl, InputLabel, Input, FormHelperText} from '@material-ui/core';
+import { Typography, Select, MenuItem, List, ListItem } from '@material-ui/core'
 
 const SIZE = 30;
 
 const styles = theme => ({
+  filterPaper: {
+    padding: "10px"
+  },
+
+  heading: {
+    fontSize: theme.typography.pxToRem(18),
+    color: theme.palette.text.secondary,
+    width: "80px"
+  },
+
   paper: {
     maxWidth: '100%',
     margin: 'auto',
-    overflow: 'hidden',
-    height: "85vh"
   },
   searchBar: {
     borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
@@ -34,7 +44,7 @@ const styles = theme => ({
   },
   contentWrapper: {
     margin: '0px 0px',
-    height: "100vh",
+    height: "80vh",
     flex: 1,
   },
 });
@@ -42,7 +52,6 @@ const styles = theme => ({
 class Content extends React.Component {
   constructor(props) {
     super(props);
-    const query = QueryString.parse(this.props.location.search)
 
     this.state = {
       error: null,
@@ -55,7 +64,6 @@ class Content extends React.Component {
       previewedTitle: '',
       isAjaxInProgress: false,
       items: [],
-      q: query.q,
       totalResults: 1000,
     };
   }
@@ -87,41 +95,16 @@ class Content extends React.Component {
 
   handleFilenameClick = index => {
     const path = this.state.items[index].Path;
-    this.props.history.push({ pathname: `/search/preview${path}`, search: this.props.location.search});
-    // this.setState(
-    //   {
-    //     isAjaxInProgress: true,
-    //     isInlineViewerOpen: false,
-    //     isPreviewOpen: false,
-    //     openedFile: '',
-    //   },
-    //   () => {
-    //     axios
-    //       .get(`${JAWHAR_NEW_API}/${path}`)
-    //       .then(res => {
-    //         this.setState({ isAjaxInProgress: false }, () => {
-    //           const isViewable = res.data.is_viewable;
-    //           if (isViewable) {
-    //             this.setState({
-    //               openedFile: path,
-    //               isInlineViewerOpen: true,
-    //               isPreviewOpen: false,
-    //             });
-    //           } else {
-    //             window.location = `${JAWHAR_API}/files/download/${path}`;
-    //           }
-    //         });
-    //       });
-    //   },
-    // );
+    this.props.history.push({ pathname: `/search/${this.props.selectSourceType}/${this.props.selectSourceID}/preview${path}`, search: this.props.location.search});
   };
 
+
   componentDidUpdate(prevProps) {
-    if (this.props.location !== prevProps.location) {
-      console.log("parsing ", this.props.location)
-      const query = QueryString.parse(this.props.location.search)
-      console.log("New quey", query.q)
-      this.searchWrapper(query.q, this.search);
+    const prevQuery = this.query(prevProps);
+    const newQuery = this.query()
+
+    if (prevQuery  !== newQuery || this.props.selectSourceType !== prevProps.selectSourceType || this.props.selectSourceID !== prevProps.selectSourceID ) {
+      this.searchWrapper(newQuery, this.search);
     }
   }
 
@@ -164,24 +147,52 @@ class Content extends React.Component {
   }
 
   search(from = 0, to = SIZE) {
-    const query = this.state.q || '*';
-    return new Promise((resolve, reject) => {
-      axios
-        .post(`${JAWHAR_NEW_API}/sources/partition/5/search?q=${query}&from=${from}&to=${to}`)
-        .then(res => {
-          const response = res.data;
-          this.setState(
-            {
-              totalResults: Math.min(1000, response.length),
-              items: this.state.items.concat(response),
-              isAjaxInProgress: false,
-            },
-            () => {
-              resolve(response);
-            },
-          );
-        });
-    });
+    const query = this.query();
+    if (query) {
+      return new Promise((resolve, reject) => {
+        axios
+          .post(`${JAWHAR_NEW_API}/sources/${this.props.selectSourceType}/${this.props.selectSourceID}/search?q=${query}&from=${from}&to=${to}`)
+          .then(res => {
+            const response = res.data;
+            this.setState(
+              {
+                totalResults: Math.min(1000, response.length),
+                items: this.state.items.concat(response),
+                isAjaxInProgress: false,
+              },
+              () => {
+                resolve(response);
+              },
+            );
+          });
+      });
+    } else {
+      return new Promise((resolve, reject) => {
+        console.log("Empty Query")
+        this.setState(
+          {
+            totalResults: 0,
+            items: [],
+            emptyQuery: true,
+            isAjaxInProgress: false,
+          },
+          () => {
+            resolve([]);
+          },
+        );
+      })
+    }
+  }
+
+  query(fromProps) {
+    const props = fromProps || this.props
+    const parsedQuery = QueryString.parse(props.location.search)
+    return parsedQuery.q
+  }
+
+  source(fromProps) {
+    const props = fromProps || this.props
+    return `${this.props.selectSourceType}-${this.props.selectSourceID}`
   }
 
   render() {
@@ -189,18 +200,26 @@ class Content extends React.Component {
 
     const { items } = this.state;
     return (
-      <span><Paper className={classes.paper}>
-        <QuickPreview
-          open={this.state.isPreviewOpen}
-          onCloseClick={this.handlePreviewCloseClick.bind(this)}
-          content={this.state.previewedContent}
-          title={`Preview (${this.state.previewedTitle})`}
-        />
-        <FilePreview
-          open={this.state.isInlineViewerOpen}
-          onCloseClick={this.handlePreviewCloseClick.bind(this)}
-          file={this.state.openedFile}
-        />
+      <span>
+        <Paper className={classes.filterPaper}>
+          <ListItem>
+              <Typography className={classes.heading}> Index</Typography>
+              <Select value={this.source()} onChange={(event) => {
+                    console.log("Changed source", event.target.value)
+                    let c = event.target.value.split("-")
+                    let sourceType = c[0]
+                    let sourceID = c[1]
+                    this.props.history.push({ pathname: `/search/${sourceType}/${sourceID}`, search: this.props.location.search});
+              }}>
+                {this.props.sources.filter(s => s.Status == "mounted" && s.IndexStatus != "").map((source, index) => {
+                  return (
+                    <MenuItem value={`${source.Type}-${source.ID}`} >{source.Caption}</MenuItem>)
+                  })}
+              </Select>
+          </ListItem>
+        </Paper>
+        <br/>
+        <Paper className={classes.paper}>
         <div className={classes.contentWrapper} >
           <SearchResultsTable
             rowCount={this.state.totalResults}
@@ -209,7 +228,7 @@ class Content extends React.Component {
             onFilenameClick={this.handleFilenameClick}
             classes={classes.table}
             onLoadMore={this.onLoadMore.bind(this)}
-            query={this.state.q}
+            query={this.query()}
             columns={[
               {
                 width: 40,

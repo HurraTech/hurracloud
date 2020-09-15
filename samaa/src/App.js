@@ -224,6 +224,7 @@ class App extends React.Component {
     currentPage: 0,
     sources: [],
     browserListOpen: true,
+    appReady: false,
   };
 
   handleDrawerOpen = () => {
@@ -256,7 +257,7 @@ class App extends React.Component {
        .get(`${JAWHAR_NEW_API}/sources`)
        .then(res => {
            const response = res.data;
-           this.setState({ sources: response, pendingSourcesRequest: false  })
+           this.setState({ appReady: true, sources: response, pendingSourcesRequest: false  })
        });
     }
 
@@ -303,12 +304,24 @@ class App extends React.Component {
 
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
-      this.props.history.push({
-        pathname: `/search`,
-        search: `q=${event.target.value}`,
-      });
+      let searchable = this.state.sources.filter(s => s.Status == "mounted" && s.IndexStatus != "")
+
+      if (searchable.length > 0) {
+        this.props.history.push({
+          pathname: `/search/${searchable[0].Type}/${searchable[0].ID}`,
+          search: `q=${event.target.value}`,
+        });
+      } else {
+        alert("No mounted indices")
+      }
     }
   };
+
+  firstSearchLink = () => {
+    let searchable = this.state.sources.filter(s => s.Status == "mounted" && s.IndexStatus != "")
+    console.log("Returning ", `/search/${searchable[0].Type}/${searchable[0].ID}`)
+    return `/search/${searchable[0].Type}/${searchable[0].ID}`
+  }
 
   handleProfileMenuOpen = event => {
     this.setState({ anchorEl: event.currentTarget });
@@ -333,6 +346,11 @@ class App extends React.Component {
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
     const blackTheme = createMuiTheme(blackThemeFile);
+
+    if (!this.state.appReady) {
+      return <div />
+    }
+
     const renderMenu = (
       <Menu
         anchorEl={anchorEl}
@@ -496,7 +514,7 @@ class App extends React.Component {
                 </ListItem>
               </Link>
             <Divider />
-              <Link to={`/search/`} style={{ textDecoration: 'none' }}>
+              <Link to={`${this.firstSearchLink()}`} style={{ textDecoration: 'none' }}>
                 <ListItem button key="Search" selected={this.props.history.location.pathname.startsWith(`/search/`)}>
                   <ListItemIcon><SearchIcon /></ListItemIcon>
                   <ListItemText primary="Search" style={{color:'black'}} />
@@ -551,7 +569,12 @@ class App extends React.Component {
           <div className={classes.drawerHeader} />
           <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} sources={this.state.sources} stats={this.state.stats} />)}/>
           <Route path="/browse/:path+/" render={({match}) => (<BrowserPage path={match.params.path + "/" || ""} />)}/>
-          <Route path="/preview/:path+" render={({match}) => (
+          <Route path="/search/:sourceType/:sourceID/:action?" render={ ({match}) =>
+                    (<SearchPage sources={this.state.sources}
+                                 selectSourceType={match.params.sourceType}
+                                 selectSourceID={match.params.sourceID} />) } />
+
+          <Route path="/search/:sourceType/:sourceID/preview/:path+" render={({match}) => (
             <FilePreview
               open={true}
               onCloseClick={() => this.props.history.goBack()}
@@ -559,8 +582,7 @@ class App extends React.Component {
             />
           )}/>
 
-          <Route path="/search/:action?" component={SearchPage} />
-          <Route path="/search/preview/:path" render={({match}) => (
+          <Route path="/browse/preview/:path+" render={({match}) => (
             <FilePreview
               open={true}
               onCloseClick={() => this.props.history.goBack()}
