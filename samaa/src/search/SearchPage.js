@@ -87,7 +87,7 @@ class Content extends React.Component {
 
   handleFilenameClick = index => {
     const path = this.state.items[index].Path;
-    this.props.history.push({ pathname: `/preview${path}`});
+    this.props.history.push({ pathname: `/search/preview${path}`, search: this.props.location.search});
     // this.setState(
     //   {
     //     isAjaxInProgress: true,

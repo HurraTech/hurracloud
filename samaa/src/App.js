@@ -559,7 +559,15 @@ class App extends React.Component {
             />
           )}/>
 
-          <Route path="/search" component={SearchPage} />
+          <Route path="/search/:action?" component={SearchPage} />
+          <Route path="/search/preview/:path" render={({match}) => (
+            <FilePreview
+              open={true}
+              onCloseClick={() => this.props.history.goBack()}
+              file={match.params.path}
+            />
+          )}/>
+
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>
           <Route path="/appStore" render={() => (<AppStorePage sources={this.state.sources} />)}/>
           <Route path="/apps/:auid+" render={({match}) => (<AppLoader auid={match.params.auid} />)}/>
