@@ -145,14 +145,14 @@ class SearchResultsTable extends React.PureComponent {
           >
             <span
               className={`fiv-sqo fiv-icon-blank fiv-icon-${
-                cellData._source.file.extension
+                cellData.Extension
               }`}
               style={{ marginRight: '0.5em' }}
             />
             <Highlighter
               searchWords={this.state.searchTerms}
               autoEscape
-              textToHighlight={cellData._source.path.substring(cellData._source.path.indexOf('/')+1)}
+              textToHighlight={cellData.Path.substring(cellData.Path.indexOf('/')+1)}
             />
           </TableCell>
         );
@@ -171,7 +171,7 @@ class SearchResultsTable extends React.PureComponent {
             <Tooltip title="Donwload File">
               <IconButton
                 href={`${JAWHAR_API}/files/download/${
-                  cellData._source.path
+                  cellData.Path
                 }`}
               >
                 <DownloadIcon color="inherit" color="primary" />
@@ -194,7 +194,7 @@ class SearchResultsTable extends React.PureComponent {
             <Tooltip title="Open in New Window">
               <IconButton
                 href={`${JAWHAR_API}/files/view/${
-                  cellData._source.path
+                  cellData.Path
                 }`}
                 target="_blank"
               >
@@ -205,9 +205,9 @@ class SearchResultsTable extends React.PureComponent {
         );
       }
       case 'previewButton': {
-        const isPreviewAvailable =
-          (cellData.highlight && cellData.highlight.content) ||
-          (cellData._source.content && cellData._source.content.trim() != '');
+        const isPreviewAvailable = false;
+          // (cellData.highlight && cellData.highlight.content) ||
+          // (cellData._source.content && cellData._source.content.trim() != '');
 
         return (
           <TableCell
@@ -252,7 +252,7 @@ class SearchResultsTable extends React.PureComponent {
             padding="none"
             align="right"
           >
-            {Utils.humanFileSize(cellData._source.file.filesize)}
+            {Utils.humanFileSize(cellData.SizeBytes)}
           </TableCell>
         );
       }
@@ -269,7 +269,7 @@ class SearchResultsTable extends React.PureComponent {
             align="right"
           >
             <Moment format="YYYY/MM/DD hh:mm a ">
-              {cellData._source.file.created}
+              {cellData.LastModified}
             </Moment>
           </TableCell>
         );

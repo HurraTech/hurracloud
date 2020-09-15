@@ -2,13 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
+import { withRouter } from 'react-router-dom'
 import axios from 'axios';
 import QuickPreview from '../components/QuickPreview';
 import FilePreview from '../components/FilePreview';
 import SearchResultsTable from './SearchResultsTable';
 import ProgressIndicator from '../components/ProgressIndicator';
 import QueryString from 'query-string';
-import { JAWHAR_API  } from '../constants';
+import { JAWHAR_API, JAWHAR_NEW_API  } from '../constants';
 
 const SIZE = 30;
 
@@ -41,6 +42,8 @@ const styles = theme => ({
 class Content extends React.Component {
   constructor(props) {
     super(props);
+    const query = QueryString.parse(this.props.location.search)
+
     this.state = {
       error: null,
       isInstantSearchEnabled: false,
@@ -52,7 +55,7 @@ class Content extends React.Component {
       previewedTitle: '',
       isAjaxInProgress: false,
       items: [],
-      q: props.searchTerms,
+      q: query.q,
       totalResults: 1000,
     };
   }
@@ -83,39 +86,40 @@ class Content extends React.Component {
   };
 
   handleFilenameClick = index => {
-    const path = this.state.items[index]._source.path;
-    this.setState(
-      {
-        isAjaxInProgress: true,
-        isInlineViewerOpen: false,
-        isPreviewOpen: false,
-        openedFile: '',
-      },
-      () => {
-        axios
-          .get(`${JAWHAR_API}/files/is_viewable/${path}`)
-          .then(res => {
-            this.setState({ isAjaxInProgress: false }, () => {
-              const isViewable = res.data.is_viewable;
-              if (isViewable) {
-                this.setState({
-                  openedFile: path,
-                  isInlineViewerOpen: true,
-                  isPreviewOpen: false,
-                });
-              } else {
-                window.location = `${JAWHAR_API}/files/download/${path}`;
-              }
-            });
-          });
-      },
-    );
+    const path = this.state.items[index].Path;
+    this.props.history.push({ pathname: `/preview${path}`});
+    // this.setState(
+    //   {
+    //     isAjaxInProgress: true,
+    //     isInlineViewerOpen: false,
+    //     isPreviewOpen: false,
+    //     openedFile: '',
+    //   },
+    //   () => {
+    //     axios
+    //       .get(`${JAWHAR_NEW_API}/${path}`)
+    //       .then(res => {
+    //         this.setState({ isAjaxInProgress: false }, () => {
+    //           const isViewable = res.data.is_viewable;
+    //           if (isViewable) {
+    //             this.setState({
+    //               openedFile: path,
+    //               isInlineViewerOpen: true,
+    //               isPreviewOpen: false,
+    //             });
+    //           } else {
+    //             window.location = `${JAWHAR_API}/files/download/${path}`;
+    //           }
+    //         });
+    //       });
+    //   },
+    // );
   };
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.searchTerms != this.props.searchTerms) {
-      this.searchWrapper(this.props.searchTerms, this.search);
-    }
+  componentDidMount() {
+    console.log("Component update")
+    const query = QueryString.parse(this.props.location.search)
+    this.searchWrapper(query.q, this.search);
   }
 
   handlePreviewCloseClick() {
@@ -157,20 +161,20 @@ class Content extends React.Component {
   }
 
   search(from = 0, to = SIZE) {
-    const query = this.state.q || '';
+    const query = this.state.q || '*';
     return new Promise((resolve, reject) => {
       axios
-        .get(`${JAWHAR_API}/search?q=${query}&from=${from}&to=${to}`)
+        .post(`${JAWHAR_NEW_API}/sources/partition/5/search?q=${query}&from=${from}&to=${to}`)
         .then(res => {
           const response = res.data;
           this.setState(
             {
-              totalResults: Math.min(1000, response.total),
-              items: this.state.items.concat(response.hits),
+              totalResults: Math.min(1000, response.length),
+              items: this.state.items.concat(response),
               isAjaxInProgress: false,
             },
             () => {
-              resolve(response.hits);
+              resolve(response);
             },
           );
         });
@@ -334,4 +338,4 @@ const deepDiffMapper = (function() {
   };
 })();
 
-export default withStyles(styles)(Content);
+export default withRouter(withStyles(styles)(Content));

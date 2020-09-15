@@ -114,7 +114,7 @@ class BrowserPage extends React.Component {
     if (path == "..")
     {
       // Going one level up
-      console.log("GOing level up from ", this.state.path)
+      console.log("Going level up from ", this.state.path)
       path = this.state.path.substring(0, this.state.path.lastIndexOf("/"))
     }
     console.log(`Clicked on ${path}`)

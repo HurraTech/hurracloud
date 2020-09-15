@@ -304,7 +304,7 @@ class App extends React.Component {
   onSearchBarKeyPress = event => {
     if (event.key === 'Enter') {
       this.props.history.push({
-        pathname: `/search/${event.target.value}`
+        pathname: `/search/?q=${event.target.value}`
       });
     }
   };
@@ -558,7 +558,7 @@ class App extends React.Component {
             />
           )}/>
 
-          <Route path="/search/:terms?" render={({match}) => (<SearchPage searchTerms={match.params.terms || ""} />)}/>
+          <Route path="/search" component={SearchPage} />
           <Route path="/manage" render={() => (<SettingsPage sources={this.state.sources} />)}/>
           <Route path="/appStore" render={() => (<AppStorePage sources={this.state.sources} />)}/>
           <Route path="/apps/:auid+" render={({match}) => (<AppLoader auid={match.params.auid} />)}/>
