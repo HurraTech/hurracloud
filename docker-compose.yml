@@ -1,41 +1,41 @@
 version: '2.4'
 services:
-  jawhar:
-    image: gcr.io/hurrabuild/jawhar:latest
-    build:
-      context: .
-      dockerfile: Jawhar.Dockerfile    
-    volumes:
-      - ${PWD}/data:/data
-      - /dev/bus/usb:/dev/bus/usb
-      - type: bind
-        source: ${PWD}/data/mounts
-        target: /data/mounts
-        bind:
-          propagation: shared
-    environment:
-    - HOST_GDFUSE_PATH=${PWD}/data/gdfuse
-    - HOST_APPS_PATH=${PWD}/data/apps
-    - HOST_MOUNTS_PATH=${PWD}/data/mounts
-    - SKIP_PARTITIONS="" # comma-separated list
-    - HURRA_HOSTNAME=${HURRA_HOSTNAME:-localhost}
-    - HOST_APP_STORE_PATH=${PWD}/data/app-store
-    - ES_ENDPOINT=elasticsearch:9200
-    - REDIS=redis:6379
-    - RAILS_ENV=production
-    - HURRA_AGENT_SERVER=172.18.0.1
-    - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
-    - SECRET_KEY_BASE=40dec136b707f2a4f7913637c3c5f4dde158a814765969a2bf800911d2227a93ea3697d511075a008131239c1296dae1eb4ed54d19ecf2c4162f7f04265bf539
-    networks:
-      - hurracloud
-    privileged: true
-    restart: "unless-stopped"
+  # jawhar:
+  #   image: gcr.io/hurrabuild/jawhar:latest
+  #   build:
+  #     context: .
+  #     dockerfile: Jawhar.Dockerfile
+  #   volumes:
+  #     - ${PWD}/data:/data
+  #     - /dev/bus/usb:/dev/bus/usb
+  #     - type: bind
+  #       source: ${PWD}/data/mounts
+  #       target: /data/mounts
+  #       bind:
+  #         propagation: shared
+  #   environment:
+  #   - HOST_GDFUSE_PATH=${PWD}/data/gdfuse
+  #   - HOST_APPS_PATH=${PWD}/data/apps
+  #   - HOST_MOUNTS_PATH=${PWD}/data/mounts
+  #   - SKIP_PARTITIONS="" # comma-separated list
+  #   - HURRA_HOSTNAME=${HURRA_HOSTNAME:-localhost}
+  #   - HOST_APP_STORE_PATH=${PWD}/data/app-store
+  #   - ES_ENDPOINT=elasticsearch:9200
+  #   - REDIS=redis:6379
+  #   - RAILS_ENV=production
+  #   - HURRA_AGENT_SERVER=172.18.0.1
+  #   - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+  #   - SECRET_KEY_BASE=40dec136b707f2a4f7913637c3c5f4dde158a814765969a2bf800911d2227a93ea3697d511075a008131239c1296dae1eb4ed54d19ecf2c4162f7f04265bf539
+  #   networks:
+  #     - hurracloud
+  #   privileged: true
+  #   restart: "unless-stopped"
 
   samaa:
     image: gcr.io/hurrabuild/samaa:latest
     build:
       context: .
-      dockerfile: Samaa.Dockerfile    
+      dockerfile: Samaa.Dockerfile
     restart: unless-stopped
     ports:
       - 8080:80
@@ -44,37 +44,37 @@ services:
     networks:
       - hurracloud
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.9.0-${ARCH:-amd64}
-    container_name: elasticsearch
-    environment:
-      - cluster.name=hurracloud
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - network.host=0.0.0.0
-      - http.cors.enabled=true
-      - cluster.routing.allocation.disk.threshold_enabled=false
-      - "http.cors.allow-origin=*"
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - es:/usr/share/elasticsearch/data
-    networks:
-      - hurracloud
-    restart: unless-stopped
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.9.0-${ARCH:-amd64}
+  #   container_name: elasticsearch
+  #   environment:
+  #     - cluster.name=hurracloud
+  #     - bootstrap.memory_lock=true
+  #     - discovery.type=single-node
+  #     - network.host=0.0.0.0
+  #     - http.cors.enabled=true
+  #     - cluster.routing.allocation.disk.threshold_enabled=false
+  #     - "http.cors.allow-origin=*"
+  #     - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - es:/usr/share/elasticsearch/data
+  #   networks:
+  #     - hurracloud
+  #   restart: unless-stopped
 
-  redis:
-    image: redis:5.0.3-alpine
-    ports:
-      - 6379
-    volumes:
-      - redis:/data
-    networks:
-      - hurracloud
-    restart: unless-stopped
+  # redis:
+  #   image: redis:5.0.3-alpine
+  #   ports:
+  #     - 6379
+  #   volumes:
+  #     - redis:/data
+  #   networks:
+  #     - hurracloud
+  #   restart: unless-stopped
 
   sonic:
     image: valeriansaliou/sonic:v1.3.0
@@ -88,8 +88,8 @@ services:
       - hurracloud
 
 volumes:
-  es:
-  redis:
+  # es:
+  # redis:
   sonic:
 
 networks:

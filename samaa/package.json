@@ -5,6 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^4.5.0",
     "@material-ui/icons": "^4.4.3",
+    "@material-ui/lab": "^4.0.0-alpha.56",
     "axios": "^0.18.1",
     "chart.js": "^2.9.3",
     "http-proxy-middleware": "^1.0.5",

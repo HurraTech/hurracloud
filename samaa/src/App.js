@@ -581,7 +581,12 @@ class App extends React.Component {
         >
           <div className={classes.drawerHeader} />
           <Route exact={true} path="/" render={() => (<HomePage apps={this.state.apps} sources={this.state.sources} stats={this.state.stats} />)}/>
-          <Route path="/browse/:path+/" render={({match}) => (<BrowserPage path={match.params.path + "/" || ""} />)}/>
+          <Route path="/(browse|browse/preview)/sources/:sourceType/:sourceID/:path*" render={({match}) =>
+                    (<BrowserPage sourceType={match.params.sourceType}
+                                  sourceID={match.params.sourceID}
+                                  source={this.state.sources.filter(s => s.Type == match.params.sourceType && s.ID == match.params.sourceID)[0]}
+                                  path={`sources/${match.params.sourceType}/${match.params.sourceID}/${match.params.path || ""}/`} />)}/>
+
           <Route path="/search/:sourceType/:sourceID/:action?" render={ ({match}) =>
                     (<SearchPage sources={this.state.sources}
                                  selectSourceType={match.params.sourceType}

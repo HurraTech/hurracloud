@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
+import Alert  from '@material-ui/lab/Alert';
 import axios from 'axios';
 import FilePreview from '../components/FilePreview';
 import BrowserTable from './BroswerTable';
@@ -18,6 +19,9 @@ const styles = theme => ({
   },
   searchBar: {
     borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+  },
+  error: {
+    marginBottom: "5px",
   },
   searchInput: {
     fontSize: theme.typography.fontSize,
@@ -42,7 +46,7 @@ class BrowserPage extends React.Component {
     super(props);
     console.log("Initial path is ", props.path)
     this.state = {
-      error: null,
+      error: "",
       isInstantSearchEnabled: false,
       isPreviewOpen: false,
       isLoaded: false,
@@ -73,7 +77,7 @@ class BrowserPage extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.path !== prevProps.path) {
+    if (this.props.path !== prevProps.path && !window.location.pathname.startsWith("/browse/preview")) {
       this.setState({
         path: this.props.path
       }, () => {
@@ -145,6 +149,26 @@ class BrowserPage extends React.Component {
               resolve(response.content);
             },
           );
+        }).catch((error) => {
+          var msg = ""
+          var additionalInfo = ""
+          var partitionName = this.props.source.Caption
+          var path = this.state.path.replace(`sources/${this.props.sourceType}/${this.props.sourceID}`, partitionName)
+          if (error.response && error.response.status == 401) {
+            msg = ": Access Denied"
+            additionalInfo = " - make sure files in the partition are readable"
+          }
+          this.setState(
+            {
+              items: [],
+              error: `<strong>Could not view requested ${path} ${msg}</strong>${additionalInfo}`,
+              isInlineViewerOpen: false,
+              isPreviewOpen: false,
+              isAjaxInProgress: false
+            },
+            () => {
+              resolve([]);
+            })
         });
       })
     });
@@ -154,12 +178,9 @@ class BrowserPage extends React.Component {
     const { classes } = this.props;
     const { items } = this.state;
     return (<span>
+        {this.state.error != "" &&
+          <Alert severity="error" className={classes.error}> <div dangerouslySetInnerHTML={{__html: this.state.error}} /></Alert>}
       <Paper className={classes.paper}>
-        <FilePreview
-          open={this.state.isInlineViewerOpen}
-          onCloseClick={this.handlePreviewCloseClick.bind(this)}
-          file={this.state.openedFile}
-        />
         <div className={classes.contentWrapper}>
           <BrowserTable
             rowCount={this.state.items.length}
