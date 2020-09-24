@@ -5,6 +5,11 @@ require 'google/protobuf'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("hurra_agent.proto", :syntax => :proto3) do
+    add_message "proto.LoadImageRequest" do
+      optional :URL, :string, 1
+    end
+    add_message "proto.LoadImageResponse" do
+    end
     add_message "proto.MountDriveResponse" do
       repeated :errors, :string, 1
       optional :is_successful, :bool, 2
@@ -56,6 +61,8 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
 end
 
 module Proto
+  LoadImageRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.LoadImageRequest").msgclass
+  LoadImageResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.LoadImageResponse").msgclass
   MountDriveResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.MountDriveResponse").msgclass
   MountDriveRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.MountDriveRequest").msgclass
   UnmountDriveRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.UnmountDriveRequest").msgclass

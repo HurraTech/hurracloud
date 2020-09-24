@@ -17,6 +17,7 @@ module Proto
       rpc :MountDrive, Proto::MountDriveRequest, Proto::MountDriveResponse
       rpc :UnmountDrive, Proto::UnmountDriveRequest, Proto::UnmountDriveResponse
       rpc :GetDrives, Proto::GetDrivesRequest, Proto::GetDrivesResponse
+      rpc :LoadImage, Proto::LoadImageRequest, Proto::LoadImageResponse
       rpc :ExecCommand, Proto::Command, Proto::Result
     end
 
