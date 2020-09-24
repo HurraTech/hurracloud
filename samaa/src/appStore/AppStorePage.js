@@ -23,7 +23,7 @@ import AppBar from '@material-ui/core/AppBar';
 import SearchIcon from '@material-ui/icons/Search';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import { JAWHAR_API  } from '../constants';
+import { JAWHAR_NEW_API  } from '../constants';
 import Utils from '../utils';
 
 const styles = theme => ({
@@ -187,7 +187,7 @@ class AppStorePage extends React.Component {
 
     getStoreApplications = () => {
         axios
-        .get(`${JAWHAR_API}/apps/store`)
+        .get(`${JAWHAR_NEW_API}/apps/store`)
         .then(res => {
             const response = res.data;
             this.setState({ apps: response })
@@ -203,7 +203,7 @@ class AppStorePage extends React.Component {
 
     installApp = app_id => () => {
         axios
-        .post(`${JAWHAR_API}/apps/${app_id}/_install`)
+        .post(`${JAWHAR_NEW_API}/apps/${app_id}`)
         .then(res => {
             this.getStoreApplications()
         })
@@ -241,14 +241,14 @@ class AppStorePage extends React.Component {
                {this.state.apps.map(app => {
                  // let icon = Utils.jsonToElement("svg", app.icon)
                  return (
-                    <ExpansionPanel expanded={expandedApp === app.auid} onChange={this.expandApp(app.auid)}>
+                    <ExpansionPanel expanded={expandedApp === app.ID} onChange={this.expandApp(app.ID)}>
                         <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                             <List>
                                 <ListItem>
-                                  <CardMedia dangerouslySetInnerHTML={{__html: app.icon}}>
+                                  <CardMedia dangerouslySetInnerHTML={{__html: app.Icon}}>
                                   </CardMedia>
-                                    <ListItemText primary={app.name}
-                                            secondary={app.description}
+                                    <ListItemText primary={app.Name}
+                                            secondary={app.Description}
                                     />
                                 </ListItem>
                             </List>
@@ -256,18 +256,18 @@ class AppStorePage extends React.Component {
                         <ExpansionPanelDetails>
                             <List dense={true}>
                                 <ListItem>
-                                {app.long_description}
+                                {app.LongDescription}
                                 </ListItem>
                                 <ListItem>
                                     <Typography className={classes.heading}>Publisher</Typography>
-                                    <Typography className={classes.secondaryHeading}>{app.publisher}</Typography>
+                                    <Typography className={classes.secondaryHeading}>{app.Publisher}</Typography>
                                 </ListItem>
                                 <ListItem>
                                     <Typography className={classes.heading}>Version</Typography>
-                                    <Typography className={classes.secondaryHeading}>{app.version}</Typography>
+                                    <Typography className={classes.secondaryHeading}>{app.Version}</Typography>
                                 </ListItem>
                                 <ListItem>
-                                   <Button variant="contained" size="small" color="primary" onClick={this.installApp(app.auid)} >
+                                   <Button variant="contained" size="small" color="primary" onClick={this.installApp(app.ID)} >
                                        <GetAppIcon className={classNames(classes.leftIcon, classes.iconSmall)} />
                                        Install
                                    </Button>
