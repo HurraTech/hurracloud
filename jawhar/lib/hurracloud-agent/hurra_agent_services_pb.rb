@@ -23,6 +23,8 @@ module Proto
       rpc :KillContainer, Proto::KillContainerRequest, Proto::KillContainerResponse
       rpc :RunContainerSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
       rpc :StopContainerSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
+      rpc :StartContainerInSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
+      rpc :StopContainerInSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
       rpc :RemoveContainerSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
       rpc :ExecInContainerSpec, Proto::ExecInContainerSpecRequest, Proto::ExecInContainerSpecResponse
       rpc :ExecCommand, Proto::Command, Proto::Result

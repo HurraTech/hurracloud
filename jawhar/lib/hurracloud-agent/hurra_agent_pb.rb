@@ -10,6 +10,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :image, :string, 2
       optional :port_mapping_source, :uint32, 3
       optional :port_mapping_target, :uint32, 4
+      optional :env, :string, 5
     end
     add_message "proto.RunContainerResponse" do
     end
@@ -22,6 +23,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :name, :string, 1
       optional :context, :string, 2
       optional :spec, :string, 3
+      optional :container_name, :string, 4
     end
     add_message "proto.ContainerSpecResponse" do
     end
@@ -31,8 +33,11 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :spec, :string, 3
       optional :container_name, :string, 4
       optional :cmd, :string, 5
+      optional :args, :string, 6
+      optional :env, :string, 7
     end
     add_message "proto.ExecInContainerSpecResponse" do
+      optional :output, :string, 1
     end
     add_message "proto.LoadImageRequest" do
       optional :URL, :string, 1

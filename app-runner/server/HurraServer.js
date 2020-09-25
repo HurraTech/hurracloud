@@ -8,10 +8,10 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`${JAWHAR_API}/apps/${auid}`)
+      .get(`${JAWHAR_API}/apps/${auid}/state`)
       .then(res => {
-        console.log("RESULT OF STATE IS", res.data.state)
-          resolve(res.data.state)
+        console.log("RESULT OF STATE IS", res.data.State)
+          resolve(res.data.State)
       })
 
 
@@ -23,11 +23,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .put(`${JAWHAR_API}/apps/${auid}`, {
-        app: {
-          state: state
-        }
-      })
+      .post(`${JAWHAR_API}/apps/${auid}/state`, state)
       .then(res => {
           resolve(res.data.state)
       })
@@ -39,11 +35,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .patch(`${JAWHAR_API}/apps/${auid}`, {
-        app: {
-          state: state
-        }
-      })
+      .patch(`${JAWHAR_API}/apps/${auid}`, state)
       .then(res => {
           resolve(res.data.state)
       })
@@ -139,7 +131,7 @@ export default class HurraServer {
     let auid = process.env.REACT_APP_AUID
     return new Promise((resolve, reject) => {
       axios
-      .get(`${JAWHAR_API}/apps/${auid}/app_commands/${cmd_id}`)
+      .get(`${JAWHAR_API}/commands/${cmd_id}`)
       .then((statusRes) => {
         console.log(`Command ${cmd_id} Status`, statusRes.data.status);
         resolve(statusRes.data)
