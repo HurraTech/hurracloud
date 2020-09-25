@@ -1,19 +1,8 @@
-FROM lsiobase/alpine:3.12 as buildstage
+ARG GOVERSION=latest
+FROM golang:$GOVERSION AS builder
 
-# build variables
-ARG SYNCTHING_RELEASE
+WORKDIR /src
 
-RUN \
- echo "**** install build packages ****" && \
- apk add --no-cache \
-	curl \
-	g++ \
-	gcc \
-	git \
-	go \
-	tar
-
-RUN \
 echo "**** fetch source code ****" && \
  if [ -z ${SYNCTHING_RELEASE+x} ]; then \
 	SYNCTHING_RELEASE=$(curl -sX GET "https://api.github.com/repos/syncthing/syncthing/releases/latest" \
@@ -27,36 +16,27 @@ echo "**** fetch source code ****" && \
  tar xf \
  /tmp/syncthing-src.tar.gz -C \
 	/tmp/sync --strip-components=1 && \
- echo "**** compile syncthing  ****" && \
- cd /tmp/sync && \
- rm -f go.sum && \
- go clean -modcache && \
- CGO_ENABLED=0 go run build.go \
-	-no-upgrade \
-	-version=${SYNCTHING_RELEASE} \
-	build syncthing
 
-############## runtime stage ##############
-FROM lsiobase/alpine:3.12
+ENV CGO_ENABLED=0
+ENV BUILD_HOST=syncthing.net
+ENV BUILD_USER=docker
+RUN rm -f syncthing && go run build.go -no-upgrade build syncthing
 
-# set version label
-ARG BUILD_DATE
-ARG VERSION
-LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
-LABEL maintainer="thelamer"
+FROM alpine
 
-# environment settings
-ENV HOME="/config"
+EXPOSE 8384 22000 21027/udp
 
-RUN \
- echo "**** create var lib folder ****" && \
- install -d -o abc -g abc \
-	/var/lib/syncthing
+VOLUME ["/var/syncthing"]
 
-# copy files from build stage and local files
-COPY --from=buildstage /tmp/sync/syncthing /usr/bin/
-COPY root/ /
+RUN apk add --no-cache ca-certificates su-exec tzdata
 
-# ports and volumes
-EXPOSE 8384 22000 21027/UDP
-VOLUME /config
+COPY --from=builder /src/syncthing /bin/syncthing
+COPY --from=builder /src/script/docker-entrypoint.sh /bin/entrypoint.sh
+
+ENV PUID=1000 PGID=1000 HOME=/var/syncthing
+
+HEALTHCHECK --interval=1m --timeout=10s \
+  CMD nc -z 127.0.0.1 8384 || exit 1
+
+ENV STGUIADDRESS=0.0.0.0:8384
+ENTRYPOINT ["/bin/entrypoint.sh", "/bin/syncthing", "-home", "/var/syncthing/config"]

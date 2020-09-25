@@ -18,6 +18,11 @@ module Proto
       rpc :UnmountDrive, Proto::UnmountDriveRequest, Proto::UnmountDriveResponse
       rpc :GetDrives, Proto::GetDrivesRequest, Proto::GetDrivesResponse
       rpc :LoadImage, Proto::LoadImageRequest, Proto::LoadImageResponse
+      rpc :UnloadImage, Proto::UnloadImageRequest, Proto::UnloadImageResponse
+      rpc :RunContainers, Proto::ContainersRequest, Proto::ContainersResponse
+      rpc :StopContainers, Proto::ContainersRequest, Proto::ContainersResponse
+      rpc :RemoveContainers, Proto::ContainersRequest, Proto::ContainersResponse
+      rpc :ExecInContainer, Proto::ExecInContainerRequest, Proto::ExecInContainerResponse
       rpc :ExecCommand, Proto::Command, Proto::Result
     end
 

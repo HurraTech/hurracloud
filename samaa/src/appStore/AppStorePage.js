@@ -267,7 +267,7 @@ class AppStorePage extends React.Component {
                                     <Typography className={classes.secondaryHeading}>{app.Version}</Typography>
                                 </ListItem>
                                 <ListItem>
-                                   <Button variant="contained" size="small" color="primary" onClick={this.installApp(app.ID)} >
+                                   <Button variant="contained" size="small" color="primary" onClick={this.installApp(app.UniqueID)} >
                                        <GetAppIcon className={classNames(classes.leftIcon, classes.iconSmall)} />
                                        Install
                                    </Button>

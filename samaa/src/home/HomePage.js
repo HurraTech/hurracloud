@@ -17,7 +17,7 @@ import FaceIcon from '@material-ui/icons/Face';
 import RunningIcon from '@material-ui/icons/CheckCircle';
 import Utils from '../utils';
 import {Pie, HorizontalBar} from 'react-chartjs-2';
-import { JAWHAR_API  } from '../constants';
+import { JAWHAR_NEW_API  } from '../constants';
 
 
 const styles = theme => ({
@@ -296,7 +296,7 @@ class HomePage extends React.Component {
 
     getApplications = () => {
         axios
-        .get(`${JAWHAR_API}/apps`)
+        .get(`${JAWHAR_NEW_API}/apps`)
         .then(res => {
             const response = res.data;
             this.setState({ apps: response })
@@ -305,10 +305,10 @@ class HomePage extends React.Component {
 
     deleteApp = (app_id) => {
         var currentApps = [...this.state.apps]
-        currentApps.find(a => a.app_unique_id === app_id).status = "deleting"
+        currentApps.find(a => a.UniqueID === app_id).status = "deleting"
         this.setState({apps: currentApps}, () => {
           axios
-           .post(`${JAWHAR_API}/apps/${app_id}/_uninstall`)
+           .delete(`${JAWHAR_NEW_API}/apps/${app_id}`)
            .then(res => {
                this.getApplications()
            })
@@ -414,29 +414,29 @@ class HomePage extends React.Component {
                       {this.state.apps.map(app => { return (
                           <Grid key={app.auid} item>
                               <Card className={classes.card}>
-                                      {app.status != "started" &&
+                                      {app.Status != "installed" &&
                                           <div className ={classes.appLoading} >
                                               <CircularProgress className={classes.progress} />
                                           </div>}
                                       <div className={classes.cardButton}>
                                           <div className={classes.details}>
-                                              <CardMedia dangerouslySetInnerHTML={{__html: app.iconSvg}} />
+                                              <CardMedia dangerouslySetInnerHTML={{__html: app.Icon}} />
                                               <CardContent className={classes.content}>
-                                                  <Typography variant="h6" className={classes.title}>{app.name}</Typography>
+                                                  <Typography variant="h6" className={classes.title}>{app.Name}</Typography>
 
                                               </CardContent>
                                           </div>
                                           <CardContent className={classes.appDescription} >
                                               <Typography variant="subtitle2" color="textSecondary">
-                                                  {app.description}
+                                                  {app.Description}
                                               </Typography>
                                           </CardContent>
                                           <CardActions>
-                                              <Button variant="contained" size="small" color="primary" component={Link} to={`/apps/${app.app_unique_id}`} style={{textDeocration: 'none'}}>
+                                              <Button variant="contained" size="small" color="primary" component={Link} to={`/apps/${app.UniqueID}`} style={{textDeocration: 'none'}}>
                                               <OpenIcon className={classNames(classes.leftIcon, classes.iconSmall)} disabled={true} />
                                                   Open
                                               </Button>
-                                              <Button variant="contained"  size="small" color="secondary" onClick={() => this.deleteApp(app.app_unique_id)} >Delete</Button>
+                                              <Button variant="contained"  size="small" color="secondary" onClick={() => this.deleteApp(app.UniqueID)} >Delete</Button>
                                           </CardActions>
                                       </div>
                               </Card>

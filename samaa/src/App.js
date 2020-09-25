@@ -266,7 +266,7 @@ class App extends React.Component {
    {
       this.setState({pendingAppsRequest: true})
       axios
-       .get(`${JAWHAR_API}/apps`)
+       .get(`${JAWHAR_NEW_API}/apps`)
        .then(res => {
            const response = res.data;
            this.setState({ apps: response, pendingAppsRequest: false })
