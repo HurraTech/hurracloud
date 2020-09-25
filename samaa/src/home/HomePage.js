@@ -412,7 +412,7 @@ class HomePage extends React.Component {
                             <Typography variant="h6" component="div" className={classes.noAppsMessage}>You do not have any installed applications. Visit the App Store to install applications.</Typography>
                         </Grid> }
                       {this.state.apps.map(app => { return (
-                          <Grid key={app.auid} item>
+                          <Grid key={app.UniqueID} item>
                               <Card className={classes.card}>
                                       {app.Status != "installed" &&
                                           <div className ={classes.appLoading} >

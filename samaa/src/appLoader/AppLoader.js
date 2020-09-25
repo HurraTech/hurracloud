@@ -15,7 +15,7 @@ import Chip from '@material-ui/core/Chip';
 import FaceIcon from '@material-ui/icons/Face';
 import RunningIcon from '@material-ui/icons/CheckCircle';
 import Iframe from 'react-iframe';
-import { JAWHAR_API, APP_RUNNER_HOSTNAME } from '../constants';
+import { JAWHAR_NEW_API, APP_RUNNER_HOSTNAME } from '../constants';
 
 const styles = theme => ({
     root: {
@@ -107,10 +107,11 @@ class AppLoader extends React.Component {
 
     componentDidMount = () => {
       axios
-      .get(`${JAWHAR_API}/apps/${this.state.auid}`)
+      .get(`${JAWHAR_NEW_API}/apps/${this.state.auid}`)
       .then(res => {
+          console.log("APP PORT IS ", res)
           const response = res.data;
-          this.setState({ port: response.deployment_port })
+          this.setState({ port: response.UIPort })
       })
 
     }

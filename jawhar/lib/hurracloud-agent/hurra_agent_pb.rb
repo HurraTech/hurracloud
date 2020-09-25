@@ -5,21 +5,34 @@ require 'google/protobuf'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("hurra_agent.proto", :syntax => :proto3) do
-    add_message "proto.ContainersRequest" do
+    add_message "proto.RunContainerRequest" do
+      optional :name, :string, 1
+      optional :image, :string, 2
+      optional :port_mapping_source, :uint32, 3
+      optional :port_mapping_target, :uint32, 4
+    end
+    add_message "proto.RunContainerResponse" do
+    end
+    add_message "proto.KillContainerRequest" do
+      optional :name, :string, 1
+    end
+    add_message "proto.KillContainerResponse" do
+    end
+    add_message "proto.ContainerSpecRequest" do
       optional :name, :string, 1
       optional :context, :string, 2
       optional :spec, :string, 3
     end
-    add_message "proto.ContainersResponse" do
+    add_message "proto.ContainerSpecResponse" do
     end
-    add_message "proto.ExecInContainerRequest" do
+    add_message "proto.ExecInContainerSpecRequest" do
       optional :name, :string, 1
       optional :context, :string, 2
       optional :spec, :string, 3
       optional :container_name, :string, 4
       optional :cmd, :string, 5
     end
-    add_message "proto.ExecInContainerResponse" do
+    add_message "proto.ExecInContainerSpecResponse" do
     end
     add_message "proto.LoadImageRequest" do
       optional :URL, :string, 1
@@ -82,10 +95,14 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
 end
 
 module Proto
-  ContainersRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainersRequest").msgclass
-  ContainersResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainersResponse").msgclass
-  ExecInContainerRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ExecInContainerRequest").msgclass
-  ExecInContainerResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ExecInContainerResponse").msgclass
+  RunContainerRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.RunContainerRequest").msgclass
+  RunContainerResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.RunContainerResponse").msgclass
+  KillContainerRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.KillContainerRequest").msgclass
+  KillContainerResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.KillContainerResponse").msgclass
+  ContainerSpecRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainerSpecRequest").msgclass
+  ContainerSpecResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainerSpecResponse").msgclass
+  ExecInContainerSpecRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ExecInContainerSpecRequest").msgclass
+  ExecInContainerSpecResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ExecInContainerSpecResponse").msgclass
   LoadImageRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.LoadImageRequest").msgclass
   LoadImageResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.LoadImageResponse").msgclass
   UnloadImageRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.UnloadImageRequest").msgclass
