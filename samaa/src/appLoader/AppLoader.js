@@ -105,24 +105,13 @@ class AppLoader extends React.Component {
         }
     }
 
-    componentDidMount = () => {
-      axios
-      .get(`${JAWHAR_NEW_API}/apps/${this.state.auid}`)
-      .then(res => {
-          console.log("APP PORT IS ", res)
-          const response = res.data;
-          this.setState({ port: response.UIPort })
-      })
-
-    }
-
 
     /* ---------- Render --------- */
     render() {
         const { classes } = this.props;
         return (
             <Iframe
-            url={`${APP_RUNNER_HOSTNAME}:${this.state.port}`}
+            url={`${JAWHAR_NEW_API}/apps/${this.state.auid}/webapp/`}
             width="100%"
             height="100vh"
             display="initial"

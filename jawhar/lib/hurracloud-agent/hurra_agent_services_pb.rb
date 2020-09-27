@@ -26,6 +26,7 @@ module Proto
       rpc :StartContainerInSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
       rpc :StopContainerInSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
       rpc :RemoveContainerSpec, Proto::ContainerSpecRequest, Proto::ContainerSpecResponse
+      rpc :GetContainerPortBindingInSpec, Proto::ContainerPortBindingInSpecRequest, Proto::ContainerPortBindingInSpecResponse
       rpc :ExecInContainerSpec, Proto::ExecInContainerSpecRequest, Proto::ExecInContainerSpecResponse
       rpc :ExecCommand, Proto::Command, Proto::Result
     end

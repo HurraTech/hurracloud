@@ -27,6 +27,16 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_message "proto.ContainerSpecResponse" do
     end
+    add_message "proto.ContainerPortBindingInSpecRequest" do
+      optional :name, :string, 1
+      optional :context, :string, 2
+      optional :spec, :string, 3
+      optional :container_name, :string, 4
+      optional :container_port, :uint32, 5
+    end
+    add_message "proto.ContainerPortBindingInSpecResponse" do
+      optional :port_binding, :uint32, 1
+    end
     add_message "proto.ExecInContainerSpecRequest" do
       optional :name, :string, 1
       optional :context, :string, 2
@@ -106,6 +116,8 @@ module Proto
   KillContainerResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.KillContainerResponse").msgclass
   ContainerSpecRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainerSpecRequest").msgclass
   ContainerSpecResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainerSpecResponse").msgclass
+  ContainerPortBindingInSpecRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainerPortBindingInSpecRequest").msgclass
+  ContainerPortBindingInSpecResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ContainerPortBindingInSpecResponse").msgclass
   ExecInContainerSpecRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ExecInContainerSpecRequest").msgclass
   ExecInContainerSpecResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.ExecInContainerSpecResponse").msgclass
   LoadImageRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("proto.LoadImageRequest").msgclass
