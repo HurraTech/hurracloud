@@ -37,3 +37,6 @@
 [submodule "src/souq"]
 	path = src/souq
 	url = git@bitbucket.org:aimannajjar/souq.git
+[submodule "src/hagent"]
+	path = src/hagent
+	url = git@bitbucket.org:aimannajjar/hagent.git
