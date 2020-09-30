@@ -1,0 +1,15 @@
+[Unit]
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/
+ExecStart=/bin/jawhar
+Environment=SOUQ_API=https://souq.hurracloud.io
+Environment=SOUQ_AUTH=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
