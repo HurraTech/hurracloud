@@ -34,3 +34,6 @@
 [submodule "src/zahif"]
 	path = src/zahif
 	url = git@bitbucket.org:aimannajjar/zahif.git
+[submodule "src/souq"]
+	path = src/souq
+	url = git@bitbucket.org:aimannajjar/souq.git
