@@ -1,3 +1,0 @@
-development: redis:6379
-indexer: redis:6379
-production: redis:6379

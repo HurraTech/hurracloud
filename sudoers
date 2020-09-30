@@ -1,1 +1,0 @@
-%hurra ALL=(root) NOPASSWD:/bin/mount,/bin/umount,/usr/local/bin/google-drive-ocamlfuse,/usr/bin/docker-compose
