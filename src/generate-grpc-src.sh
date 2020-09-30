@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 1- Agent Protocol
-cd agent
+# 1- HAgent Protocol
+cd hagent
 protoc -I . hurra_agent.proto --go_out=plugins=grpc:./proto
 protoc -I . hurra_agent.proto --go_out=plugins=grpc:../jawhar/internal/agent/proto
 
