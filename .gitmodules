@@ -22,9 +22,6 @@
 [submodule "yocto/meta-mender"]
 	path = yocto/meta-mender
 	url = https://github.com/mendersoftware/meta-mender
-[submodule "src/agent"]
-	path = src/agent
-	url = git@bitbucket.org:aimannajjar/agent.git
 [submodule "src/samaa"]
 	path = src/samaa
 	url = git@bitbucket.org:aimannajjar/samaa.git
