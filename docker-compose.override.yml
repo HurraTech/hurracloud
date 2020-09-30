@@ -4,7 +4,7 @@ services:
     image: node:14.8.0-alpine
     working_dir: /home/node
     volumes:
-      - ./samaa:/home/node/
+      - ./src/samaa:/home/node/
     command: npm run-script start
     stdin_open: true
     networks:
