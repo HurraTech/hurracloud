@@ -11,6 +11,7 @@ Environment=SOUQ_AUTH=true
 Environment=DB=/data/jawhar.db
 Environment=MOUNT_POINTS_ROOT=/data/mounts
 Environment=CONTAINERS_ROOT=/data
+Environment=INTERNAL_STORAGE=/data/storage
 Restart=on-failure
 RestartSec=5
 
