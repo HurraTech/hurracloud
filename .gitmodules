@@ -37,3 +37,6 @@
 [submodule "src/hagent"]
 	path = src/hagent
 	url = git@bitbucket.org:aimannajjar/hagent.git
+[submodule "yocto/meta-rust"]
+	path = yocto/meta-rust
+	url = https://github.com/meta-rust/meta-rust.git

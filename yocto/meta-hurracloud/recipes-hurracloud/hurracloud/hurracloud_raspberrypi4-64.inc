@@ -1,1 +1,0 @@
-HURRA_TARGETARCH = "arm64"

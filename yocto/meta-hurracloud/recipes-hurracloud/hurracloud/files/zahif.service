@@ -1,0 +1,14 @@
+[Unit]
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/
+ExecStart=/bin/zahif
+Environment=METADATA_DIR=/data/zahif
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -3,8 +3,8 @@ DESCRIPTION = "Recipe created by bitbake-layers"
 LICENSE = "CLOSED"
 
 SRC_URI += " \
-    git://git@bitbucket.org/aimannajjar/jawhar.git;protocol=ssh \
-    file://jawhar.service \
+    git://git@bitbucket.org/aimannajjar/zahif.git;protocol=ssh \
+    file://zahif.service \
 "
 
 SRCREV = "${AUTOREV}"
@@ -13,26 +13,24 @@ PV = "1.0"
 
 inherit go systemd
 
-RPROVIDES_${PN} = "jawhar"
-RDEPENDS_${PN} = "hagent zahif"
+RPROVIDES_${PN} = "zahif"
 
 S = "${WORKDIR}/git"
 B = "${WORKDIR}/build"
 
 SYSTEMD_AUTO_ENABLE_${PN} = "enable"
-SYSTEMD_SERVICE_${PN} = "jawhar.service"
+SYSTEMD_SERVICE_${PN} = "zahif.service"
 
-GO_IMPORT = "jawhar"
+GO_IMPORT = "zahif"
 
 do_compile() {
-  sudo rm -rf ${B}/pkg # thanks to go weird cache permissions 
-  cd ${S}/src/jawhar && go build cmd/jawhar/jawhar.go
+  cd ${S}/src/zahif && go build cmd/zahif/zahif.go
 }
 
 do_install() {
     install -d ${D}${base_bindir} ${D}${systemd_unitdir}/system
-    install -m 0644 ${WORKDIR}/jawhar.service ${D}${systemd_unitdir}/system
-    install -m 0755 ${S}/src/jawhar/jawhar ${D}${base_bindir}/jawhar
+    install -m 0644 ${WORKDIR}/zahif.service ${D}${systemd_unitdir}/system
+    install -m 0755 ${S}/src/zahif/zahif ${D}${base_bindir}/zahif
 }
 
 FILES_${PN} += " \

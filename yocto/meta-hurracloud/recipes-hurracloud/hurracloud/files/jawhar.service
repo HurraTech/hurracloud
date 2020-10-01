@@ -8,6 +8,9 @@ WorkingDirectory=/
 ExecStart=/bin/jawhar
 Environment=SOUQ_API=https://souq.hurracloud.io
 Environment=SOUQ_AUTH=true
+Environment=DB=/data/jawhar.db
+Environment=MOUNT_POINTS_ROOT=/data/mounts
+Environment=CONTAINERS_ROOT=/data
 Restart=on-failure
 RestartSec=5
 
