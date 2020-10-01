@@ -5,7 +5,7 @@ After=docker.service
 [Service]
 Type=simple
 WorkingDirectory=/
-ExecStart=/bin/hagent
+ExecStart=/bin/hagent --tmp_dir=/data/hagent/tmp
 Restart=on-failure
 RestartSec=5
 
