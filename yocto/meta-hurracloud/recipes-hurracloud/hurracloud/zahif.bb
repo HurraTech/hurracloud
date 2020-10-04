@@ -14,6 +14,7 @@ PV = "1.0"
 inherit go systemd
 
 RPROVIDES_${PN} = "zahif"
+DEPENDS = "leveldb"
 
 S = "${WORKDIR}/git"
 B = "${WORKDIR}/build"
