@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   samaa:
-    image: node:14.8.0-alpine
+    image: node:14.8.0
     working_dir: /home/node
     volumes:
       - ./src/samaa:/home/node/
