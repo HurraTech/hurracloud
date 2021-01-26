@@ -26,9 +26,9 @@
     fragment@0 {
         target-path = "/";
         __overlay__ {
-            model = "Raspberry Pi with Gumstix Geppetto Expansion - HurraCloud v0.3";
+            model = "Raspberry Pi with Gumstix Geppetto Expansion - HurraCloud v0.4";
             autobsp_overlay {
-                model = "Gumstix Geppetto HurraCloud v0.3";
+                model = "Gumstix Geppetto HurraCloud v0.4";
                 status = "okay";
             };
 
@@ -50,10 +50,10 @@
 
                 };
             };
-            gpio_header_943261 {
+            gpio_header_943533 {
                 status = "okay";
                 pinctrl-names = "default";
-                pinctrl-0 = <&gpio_header_943261_default>;
+                pinctrl-0 = <&gpio_header_943533_default>;
                 type = "gpio_header";
                 
                     gpio_0 {
@@ -346,7 +346,16 @@
     fragment@7 {
         target = <&gpio>;
         __overlay__ {
-            gpio_header_943261_default: pinmux_gpio_header_943261_default {
+            leds_default: pinmux_leds_default {
+                brcm,pins = <
+                    23 /* gpio23.gpio23 */
+                >;
+            brcm,function = <  1  >;
+            brcm,pull = < 1 >;
+
+            };
+
+            gpio_header_943533_default: pinmux_gpio_header_943533_default {
                 brcm,pins = <
                     16 /* gpio16.gpio16 */
                     9 /* gpio9.gpio9 */
@@ -390,15 +399,6 @@
                     15 /* gpio15.rxd0 */
                 >;
             brcm,function = <  4   4  >;
-            };
-
-            leds_default: pinmux_leds_default {
-                brcm,pins = <
-                    23 /* gpio23.gpio23 */
-                >;
-            brcm,function = <  1  >;
-            brcm,pull = < 1 >;
-
             };
 
         };

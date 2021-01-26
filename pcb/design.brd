@@ -2391,6 +2391,26 @@ package type ST</description>
 <hole x="0.00000000" y="0.90000000" drill="0.80000000"/>
 <hole x="0.00000000" y="-0.90000000" drill="0.80000000"/>
 </package>
+<package name="EVQ">
+<wire x1="-2.50000000" y1="2.50000000" x2="-2.30000000" y2="2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="-1.40000000" y1="2.50000000" x2="1.40000000" y2="2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="2.30000000" y1="2.50000000" x2="2.50000000" y2="2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="2.50000000" y1="2.50000000" x2="2.50000000" y2="0.70000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="2.50000000" y1="-0.70000000" x2="2.50000000" y2="-2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="2.50000000" y1="-2.50000000" x2="2.30000000" y2="-2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="1.40000000" y1="-2.50000000" x2="-1.40000000" y2="-2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="-2.30000000" y1="-2.50000000" x2="-2.50000000" y2="-2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="-2.50000000" y1="-2.50000000" x2="-2.50000000" y2="-0.70000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="-2.50000000" y1="0.70000000" x2="-2.50000000" y2="2.50000000" width="0.12700000" layer="21" style="continuous" curve="0.00000000" cap="round"/> 
+<smd name="A@1" x="-1.85000000" y="2.20000000" dx="1.00000000" dy="0.60000000" layer="1" roundness="0" rot="R90" stop="yes" thermals="yes" cream="yes"/> 
+<smd name="B@1" x="1.85000000" y="2.20000000" dx="1.00000000" dy="0.60000000" layer="1" roundness="0" rot="R90" stop="yes" thermals="yes" cream="yes"/> 
+<smd name="B@2" x="1.85000000" y="-2.20000000" dx="1.00000000" dy="0.60000000" layer="1" roundness="0" rot="R90" stop="yes" thermals="yes" cream="yes"/> 
+<smd name="A@2" x="-1.85000000" y="-2.20000000" dx="1.00000000" dy="0.60000000" layer="1" roundness="0" rot="R90" stop="yes" thermals="yes" cream="yes"/> 
+<smd name="G@1" x="-2.52500000" y="0.00000000" dx="1.00000000" dy="0.45000000" layer="1" roundness="0" rot="R90" stop="yes" thermals="yes" cream="yes"/> 
+<smd name="G@2" x="2.52500000" y="0.00000000" dx="1.00000000" dy="0.45000000" layer="1" roundness="0" rot="R90" stop="yes" thermals="yes" cream="yes"/> 
+<rectangle x1="-2.50000000" y1="-2.50000000" x2="2.50000000" y2="2.50000000" layer="39"/> 
+<text x="1.27000000" y="3.81000000" size="0.66040000" layer="21" font="vector" ratio="8" rot="R180" align="bottom-left" distance="50" >&gt;NAME</text>
+</package>
 </packages>
 <symbols>
 </symbols>
@@ -3373,7 +3393,7 @@ design rules under a new name.</description>
 <attribute name="DM"  value="0" x="40.80000000" y="26.35000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="40.80000000" y="26.35000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 </element>
-<element name="IC6" library="qualified_1" package="QFN32" value="FT232RQ" x="37.8" y="26.85" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="NAME"  x="34.25000000" y="29.35000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
+<element name="IC6" library="qualified_1" package="QFN32" value="FT232RQ-REEL" x="37.8" y="26.85" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="NAME"  x="34.25000000" y="29.35000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="SHEETNO"  value="4" x="37.80000000" y="26.85000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DX"  value="61.700" x="37.80000000" y="26.85000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DY"  value="13.850" x="37.80000000" y="26.85000000" size="1.77800000" layer="27" display="off"/> 
@@ -3385,7 +3405,7 @@ design rules under a new name.</description>
 <attribute name="OC_NEWARK"  value="91K9919" x="37.80000000" y="26.85000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="HEIGHT"  value="0.9" x="37.80000000" y="26.85000000" size="1.77800000" layer="27" display="off"/> 
 </element>
-<element name="IC3" library="qualified_1" package="SC70-5" value="SN74LVC1G126DCKR" x="38.5" y="27.35" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="NAME"  x="40.45000000" y="27.80000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
+<element name="IC3" library="qualified_1" package="SC70-5" value="SN74LV1T126DCKR" x="38.5" y="27.35" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="NAME"  x="40.45000000" y="27.80000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="SHEETNO"  value="4" x="38.50000000" y="27.35000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DX"  value="58.050" x="38.50000000" y="27.35000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DY"  value="17.100" x="38.50000000" y="27.35000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
@@ -3393,7 +3413,7 @@ design rules under a new name.</description>
 <attribute name="DM"  value="0" x="38.50000000" y="27.35000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="HEIGHT"  value="1.1" x="38.50000000" y="27.35000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 </element>
-<element name="C81" library="qualified_1" package="0603" value="GRM185R60J475ME15D" x="41.2" y="28.9" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="NAME"  x="42.20000000" y="29.22500000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
+<element name="C81" library="qualified_1" package="0603" value="CGB3B1X5R1A475K055AC" x="41.2" y="28.9" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="NAME"  x="42.20000000" y="29.22500000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="SHEETNO"  value="4" x="41.20000000" y="28.90000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="DX"  value="66.900" x="41.20000000" y="28.90000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="DY"  value="11.100" x="41.20000000" y="28.90000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
@@ -3401,7 +3421,7 @@ design rules under a new name.</description>
 <attribute name="DM"  value="0" x="41.20000000" y="28.90000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="HEIGHT"  value="0.5" x="41.20000000" y="28.90000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 </element>
-<element name="FB10" library="qualified_1" package="0402" value="BKP1005HM121-T" x="41.15" y="29.15" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="NAME"  x="42.50000000" y="30.20000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
+<element name="FB10" library="qualified_1" package="0402" value="BLM15PX121SN1D" x="41.15" y="29.15" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="NAME"  x="42.50000000" y="30.20000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="SHEETNO"  value="2" x="41.15000000" y="29.15000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DX"  value="56.400" x="41.15000000" y="29.15000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="28.200" x="41.15000000" y="29.15000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -3420,25 +3440,25 @@ design rules under a new name.</description>
 <element name="R18" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0805" value="CR0805-J/-000ELF" x="93.4" y="67.4" locked="no" populate="yes" smashed="no" rot="MR90"> <attribute name="HEIGHT"  value="0.51" x="93.40000000" y="67.40000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 </element>
 <element name="U17" library="qualified_1" package="8SO_POWERPAD" value="TPS5450QDDARQ1" x="89" y="63.3" locked="no" populate="yes" smashed="no" rot="MR90"> </element>
-<element name="C262" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="1206" value="GRM31CR61H106KA12L" x="89.05" y="68.4" locked="no" populate="yes" smashed="no" rot="MR0"> <attribute name="HEIGHT"  value="0.51" x="89.05000000" y="68.40000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="C262" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="1206" value="CL31A106KBHNNNE" x="89.05" y="68.4" locked="no" populate="yes" smashed="no" rot="MR0"> <attribute name="HEIGHT"  value="0.51" x="89.05000000" y="68.40000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 </element>
 <element name="C255" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0603" value="C0603C103K5RACTU" x="85.15" y="67.6" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.5" x="85.15000000" y="67.60000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="NAME"  x="83.65000000" y="67.45000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="86.37000000" y="69.16000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="C315" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="C0603X5R1A103K030BA" x="92.5" y="62.45" locked="no" populate="yes" smashed="no" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="92.50000000" y="62.45000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="C315" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="GRM033R61C103KA12D" x="92.5" y="62.45" locked="no" populate="yes" smashed="no" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="92.50000000" y="62.45000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 </element>
-<element name="L14" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="3232DZ" value="IHLP3232DZER100M01" x="89" y="72.5" locked="no" populate="yes" smashed="no" rot="R180"> <attribute name="DX"  value="76.000" x="89.00000000" y="96.15000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="L14" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="3232DZ" value="IHLP3232DZER100M11" x="89" y="72.5" locked="no" populate="yes" smashed="no" rot="R180"> <attribute name="DX"  value="76.000" x="89.00000000" y="96.15000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DY"  value="17.000" x="89.00000000" y="96.15000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DM"  value="0" x="89.00000000" y="96.15000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="SHEETNO"  value="1" x="89.00000000" y="96.15000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DR"  value="180.000" x="89.00000000" y="96.15000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 </element>
-<element name="C316" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="C0603X5R1A103K030BA" x="84" y="60.5" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="84.00000000" y="60.50000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="C316" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="GRM033R61C103KA12D" x="84" y="60.5" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="84.00000000" y="60.50000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="NAME"  x="83.65000000" y="59.80000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="82.93000000" y="61.49000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="R59" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="CRCW0201100KFNED" x="85.5" y="61.65" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="-20.800" x="97.10000000" y="76.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="R59" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="RC0201FR-07100KL" x="85.5" y="61.65" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="-20.800" x="97.10000000" y="76.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="8.200" x="97.10000000" y="76.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DM"  value="0" x="97.10000000" y="76.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="SHEETNO"  value="9" x="97.10000000" y="76.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -3481,7 +3501,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="92.50000000" y="80.45000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="89.58000000" y="78.99000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="C92" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0805" value="CL21A226MQCLQNC" x="86.7" y="80.7" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="SHEETNO"  value="1" x="86.70000000" y="80.70000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="C92" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0805" value="22uF" x="86.7" y="80.7" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="SHEETNO"  value="1" x="86.70000000" y="80.70000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="DX"  value="71.300" x="86.70000000" y="80.70000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="DY"  value="21.800" x="86.70000000" y="80.70000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="DR"  value="270.000" x="86.70000000" y="80.70000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
@@ -3490,7 +3510,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="87.70000000" y="82.30000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="85.29000000" y="82.35000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="IC4" library="qualified_1" package="PQFP16" value="TPS62111RSAR" x="89.3" y="84.8" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="1" x="89.30000000" y="84.80000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="IC4" library="qualified_1" package="PQFP16" value="TPS62111RSAT" x="89.3" y="84.8" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="1" x="89.30000000" y="84.80000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DX"  value="74.800" x="89.30000000" y="84.80000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="22.000" x="89.30000000" y="84.80000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DR"  value="180.000" x="89.30000000" y="84.80000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -3502,7 +3522,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="89.90000000" y="87.10000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="84.66000000" y="87.03000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="R19" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0402" value="RC0402JR-7D0RL" x="85.8" y="84.25" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="1" x="85.80000000" y="84.25000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="R19" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0402" value="RC1005J000CS" x="85.8" y="84.25" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="1" x="85.80000000" y="84.25000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DX"  value="72.800" x="85.80000000" y="84.25000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="18.400" x="85.80000000" y="84.25000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DR"  value="270.000" x="85.80000000" y="84.25000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -3520,19 +3540,19 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="85.65000000" y="81.45000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="87.69000000" y="80.63000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="C93" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0201" value="UMK063CG100DTHF" x="85.8" y="83.35" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="85.80000000" y="83.35000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="C93" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0201" value="UMK063CG100DTF" x="85.8" y="83.35" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="85.80000000" y="83.35000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="NAME"  x="86.40000000" y="82.25000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="85.10000000" y="84.25000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="R20" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0201" value="RMCF0201FT1M00" x="85.8" y="85.15" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="85.80000000" y="85.15000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="R20" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0201" value="1M0" x="85.8" y="85.15" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="85.80000000" y="85.15000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="NAME"  x="86.50000000" y="85.65000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="86.50000000" y="84.25000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="C87" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0402" value="GRM155R61A105KE01D" x="92.1" y="82" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="0.35" x="92.10000000" y="82.00000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
+<element name="C87" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0402" value="CL05A105KO5NNNC" x="92.1" y="82" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="0.35" x="92.10000000" y="82.00000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="NAME"  x="91.50000000" y="81.00000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="93.17000000" y="81.01000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="R21" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0201" value="ERJ-1GE0R00C" x="85.25" y="80.6" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="85.25000000" y="80.60000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="R21" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" package="0201" value="RC0201JR-070RL" x="85.25" y="80.6" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="85.25000000" y="80.60000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="NAME"  x="84.95000000" y="79.85000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="84.35000000" y="81.30000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
@@ -3545,11 +3565,11 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="17.95000000" y="72.63000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="18.65000000" y="71.25000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="R25" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0201" value="RC0603F331CS" x="5.93" y="66.64" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.25" x="5.93000000" y="66.64000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="R25" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0201" value="ERJ-1GEJ331C" x="5.93" y="66.64" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.25" x="5.93000000" y="66.64000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="NAME"  x="5.62000000" y="67.44000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="6.83000000" y="67.34000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="R24" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0201" value="RC0603F331CS" x="5.93" y="76.25" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="5.93000000" y="76.25000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="R24" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0201" value="ERJ-1GEJ331C" x="5.93" y="76.25" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="5.93000000" y="76.25000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="NAME"  x="6.29000000" y="75.48000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="5.03000000" y="75.55000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
@@ -3581,17 +3601,17 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="11.05000000" y="71.05000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="9.80000000" y="71.25000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="C64" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0603" value="C1608X5R0J106M080AB" x="9.45" y="70.8" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.5" x="12.25000000" y="70.80000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="C64" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0603" value="C1608X5R1A106M080AC" x="9.45" y="70.8" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.5" x="12.25000000" y="70.80000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="NAME"  x="8.50000000" y="72.40000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="10.67000000" y="72.36000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="C65" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0402" value="GRM155R61A105KE01D" x="21.1" y="75.9" locked="no" populate="yes" smashed="no" rot="MR0"> <attribute name="HEIGHT"  value="0.35" x="24.40000000" y="73.10000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="C65" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0402" value="CL05A105KO5NNNC" x="21.1" y="75.9" locked="no" populate="yes" smashed="no" rot="MR0"> <attribute name="HEIGHT"  value="0.35" x="24.40000000" y="73.10000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 </element>
 <element name="C66" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0201" value="GRM033R60J104KE19D" x="21.8" y="78.85" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="0.25" x="24.60000000" y="76.25000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="NAME"  x="22.30000000" y="78.70000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="22.70000000" y="78.15000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="FB9" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0402" value="BKP1005HM121-T" x="11.7" y="71.15" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.35" x="3.00000000" y="71.15000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="FB9" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" package="0402" value="BLM15PX121SN1D" x="11.7" y="71.15" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.35" x="3.00000000" y="71.15000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="NAME"  x="11.40000000" y="72.40000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="10.63000000" y="70.16000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
@@ -3634,7 +3654,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="93.95000000" y="49.45000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="93.86000000" y="48.13000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="R28" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="97.19" y="47.13" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="97.19000000" y="47.13000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="R28" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="97.19" y="47.13" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="97.19000000" y="47.13000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="NAME"  x="97.48000000" y="47.88000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="96.29000000" y="47.83000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
@@ -3653,7 +3673,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="88.45000000" y="49.45000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="88.36000000" y="48.13000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="R30" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="91.69" y="47.13" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="91.69000000" y="47.13000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="R30" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="91.69" y="47.13" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="91.69000000" y="47.13000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="NAME"  x="91.98000000" y="47.88000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="90.79000000" y="47.83000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
@@ -3674,14 +3694,14 @@ design rules under a new name.</description>
 </element>
 <element name="J3" library="qualified_1" package="USB_MICRO_B" value="10118192-0001LF" x="119.5" y="44.25" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="NAME"  x="116.19000000" y="48.34000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="C89" library="qualified_1" package="0603" value="GRM185R60J475ME15D" x="114.85" y="44.225" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="NAME"  x="114.60000000" y="45.92500000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
+<element name="C89" library="qualified_1" package="0603" value="CGB3B1X5R1A475K055AC" x="114.85" y="44.225" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="NAME"  x="114.60000000" y="45.92500000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="HEIGHT"  value="0.5" x="114.85000000" y="44.22500000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 </element>
-<element name="R31" library="qualified_1" package="0201" value="ERJ-1GE0R00C" x="114.05" y="42.6" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="0.25" x="114.05000000" y="42.60000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
+<element name="R31" library="qualified_1" package="0201" value="RC0201JR-070RL" x="114.05" y="42.6" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="0.25" x="114.05000000" y="42.60000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="NAME"  x="113.70000000" y="41.80000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="114.95000000" y="41.90000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="U14" library="qualified_1" package="47151-001" value="685 119 134 923" x="110.1" y="59" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="6.2" x="110.10000000" y="59.00000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
+<element name="U14" library="qualified_1" package="47151-001" value="685119134923" x="110.1" y="59" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="6.2" x="110.10000000" y="59.00000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="NAME"  x="106.79000000" y="51.59000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 </element>
 <element name="C271" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" package="0201" value="GRM033R60J104KE19D" x="105.65" y="65" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="DX"  value="30.550" x="120.60000000" y="57.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
@@ -3709,7 +3729,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="112.05000000" y="57.60000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="110.38000000" y="57.61000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="C257" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" package="0201" value="C0603X5R1A103K030BA" x="103.15" y="64.15" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DM"  value="0" x="103.15000000" y="64.15000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="C257" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" package="0201" value="GRM033R61C103KA12D" x="103.15" y="64.15" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DM"  value="0" x="103.15000000" y="64.15000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="SHEETNO"  value="6" x="103.15000000" y="64.15000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DR"  value="0.000" x="103.15000000" y="64.15000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="103.15000000" y="64.15000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -3718,7 +3738,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="103.85000000" y="64.65000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="103.85000000" y="63.25000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="C261" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" package="0201" value="C0603X5R1A103K030BA" x="103.1" y="57.45" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DM"  value="0" x="103.10000000" y="57.45000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="C261" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" package="0201" value="GRM033R61C103KA12D" x="103.1" y="57.45" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DM"  value="0" x="103.10000000" y="57.45000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="SHEETNO"  value="6" x="103.10000000" y="57.45000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DR"  value="0.000" x="103.10000000" y="57.45000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="103.10000000" y="57.45000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -3779,7 +3799,7 @@ design rules under a new name.</description>
 <element name="U19" library="qualified_1" package="UQFN-10" value="TS3A5223RSWR" x="37.95" y="42.1" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="NAME"  x="38.84000000" y="40.92000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="36.27000000" y="43.20000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="R39" library="qualified_1@eagle_src_repo_83354d0c2c11c8ce792d5cc032a7091e5ff73f00" package="0201" value="ERJ-1GE0R00C" x="36.15" y="42.1" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.25" x="36.15000000" y="42.10000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="R39" library="qualified_1@eagle_src_repo_83354d0c2c11c8ce792d5cc032a7091e5ff73f00" package="0201" value="RC0201JR-070RL" x="36.15" y="42.1" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.25" x="36.15000000" y="42.10000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="NAME"  x="36.85000000" y="41.60000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="36.85000000" y="43.00000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
@@ -3807,15 +3827,15 @@ design rules under a new name.</description>
 </element>
 <element name="IC5" library="qualified_1" package="TSSOP8" value="CAT24C256YI-GT3" x="55.8" y="80" locked="no" populate="yes" smashed="no" rot="MR270"> <attribute name="HEIGHT"  value="1" x="46.40000000" y="85.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 </element>
-<element name="R52" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="CRCW0201100KFNED" x="60.5" y="79.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="70.45000000" y="79.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="R52" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="RC0201FR-07100KL" x="60.5" y="79.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="70.45000000" y="79.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="NAME"  x="61.25000000" y="79.85000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="61.20000000" y="78.60000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="R53" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="CRCW0201100KFNED" x="60.5" y="80.3" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="65.50000000" y="86.90000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="R53" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="RC0201FR-07100KL" x="60.5" y="80.3" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="65.50000000" y="86.90000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="NAME"  x="61.25000000" y="80.60000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="61.20000000" y="79.40000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="R54" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="CRCW0201100KFNED" x="60.5" y="81.1" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="68.85000000" y="84.90000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="R54" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="RC0201FR-07100KL" x="60.5" y="81.1" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="68.85000000" y="84.90000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="NAME"  x="61.25000000" y="81.45000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="61.20000000" y="80.20000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
@@ -3831,7 +3851,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="50.20000000" y="79.40000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="51.70000000" y="78.80000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="R44" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="ERJ-1GE0R00C" x="43.4" y="81" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.25" x="43.40000000" y="81.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="R44" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="RC0201JR-070RL" x="43.4" y="81" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.25" x="43.40000000" y="81.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="NAME"  x="43.70000000" y="80.25000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="44.30000000" y="81.70000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
@@ -3839,11 +3859,11 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="42.85000000" y="80.25000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="43.45000000" y="81.70000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="R49" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="ERJ-1GE0R00C" x="35.5" y="82.5" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="35.50000000" y="82.50000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="R49" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="RC0201JR-070RL" x="35.5" y="82.5" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="35.50000000" y="82.50000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="NAME"  x="35.75000000" y="81.70000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="34.60000000" y="81.80000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="R50" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="ERJ-1GE0R00C" x="41.6" y="80.7" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="41.60000000" y="80.70000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="R50" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" package="0201" value="RC0201JR-070RL" x="41.6" y="80.7" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="41.60000000" y="80.70000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="NAME"  x="41.30000000" y="79.90000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="40.70000000" y="81.40000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
@@ -3883,7 +3903,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="98.34000000" y="30.43000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="102.48000000" y="30.48000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="C285" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0201" value="UMK063CG100DTHF" x="101.5" y="31.2" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.25" x="114.50000000" y="50.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="C285" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0201" value="UMK063CG100DTF" x="101.5" y="31.2" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.25" x="114.50000000" y="50.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="NAME"  x="101.15000000" y="31.85000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="102.40000000" y="31.90000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
@@ -3919,11 +3939,11 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="102.20000000" y="22.30000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="103.50000000" y="23.60000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="C45" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="C1608X5R0J106M080AB" x="108.1" y="21.25" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.5" x="108.10000000" y="-54.50000000" size="1.77800000" layer="27" display="off"/> 
+<element name="C45" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="C1608X5R1A106M080AC" x="108.1" y="21.25" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.5" x="108.10000000" y="-54.50000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="NAME"  x="109.75000000" y="20.80000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="106.54000000" y="20.03000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="C46" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="C1608X5R0J106M080AB" x="112.5" y="34.95" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.5" x="107.10000000" y="-44.25000000" size="1.77800000" layer="27" display="off"/> 
+<element name="C46" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="C1608X5R1A106M080AC" x="112.5" y="34.95" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.5" x="107.10000000" y="-44.25000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="NAME"  x="110.90000000" y="35.75000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="110.94000000" y="33.73000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
@@ -3967,11 +3987,11 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="110.00000000" y="32.70000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="111.40000000" y="32.70000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="C282" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="EMK107ABJ475KA-T" x="108.25" y="33.4" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.5" x="108.25000000" y="33.40000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="C282" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="C1608X5R1C475K080AC" x="108.25" y="33.4" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.5" x="108.25000000" y="33.40000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="NAME"  x="106.70000000" y="34.90000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="106.69000000" y="34.62000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="C283" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="EMK107ABJ475KA-T" x="104.2" y="26" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.5" x="104.20000000" y="26.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="C283" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="C1608X5R1C475K080AC" x="104.2" y="26" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.5" x="104.20000000" y="26.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="NAME"  x="103.40000000" y="27.60000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="105.42000000" y="27.56000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
@@ -3986,15 +4006,15 @@ design rules under a new name.</description>
 <element name="U18" library="qualified_1" package="LFCSPWQ16" value="ADP1740ACPZ-1.2-R7" x="99" y="22.95" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="NAME"  x="96.46000000" y="21.68000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="102.81000000" y="21.68000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="C158" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="GRM185R60J475ME15D" x="99.35" y="19.95" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.5" x="106.05000000" y="12.20000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="C158" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="CGB3B1X5R1A475K055AC" x="99.35" y="19.95" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.5" x="106.05000000" y="12.20000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="NAME"  x="100.95000000" y="19.15000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="100.91000000" y="21.17000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="C167" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="GRM185R60J475ME15D" x="99" y="25.8" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.5" x="111.10000000" y="21.50000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="C167" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0603" value="CGB3B1X5R1A475K055AC" x="99" y="25.8" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.5" x="111.10000000" y="21.50000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="NAME"  x="97.30000000" y="26.20000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="100.56000000" y="27.02000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="R47" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0201" value="CRCW0201100KFNED" x="101.65" y="21.35" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="105.95000000" y="28.05000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="R47" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" package="0201" value="RC0201FR-07100KL" x="101.65" y="21.35" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="0.25" x="105.95000000" y="28.05000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="NAME"  x="101.15000000" y="20.75000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="100.75000000" y="22.05000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
@@ -4002,10 +4022,10 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="103.10000000" y="20.65000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="100.70000000" y="23.50000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="K1" library="qualified_1" package="61400826021" value="CNU079S-008-A101" x="10.1" y="51" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="NAME"  x="14.14200000" y="43.58150000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
+<element name="K1" library="qualified_1" package="61400826021" value="61400826021" x="10.1" y="51" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="NAME"  x="14.14200000" y="43.58150000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="17.27460000" y="48.72200000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="FB11" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BKP1005HM121-T" x="1.35" y="56" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="54.000" x="-12.30000000" y="64.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="FB11" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BLM15PX121SN1D" x="1.35" y="56" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="54.000" x="-12.30000000" y="64.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="38.400" x="-12.30000000" y="64.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DM"  value="0" x="-12.30000000" y="64.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="-12.30000000" y="64.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -4014,7 +4034,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="1.80000000" y="55.85000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="2.42000000" y="56.99000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="C275" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0603" value="C1608X5R0J106M080AB" x="2.2" y="54.2" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="DX"  value="56.200" x="2.20000000" y="43.70000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="C275" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0603" value="C1608X5R1A106M080AC" x="2.2" y="54.2" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="DX"  value="56.200" x="2.20000000" y="43.70000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DY"  value="38.400" x="2.20000000" y="43.70000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DM"  value="0" x="2.20000000" y="43.70000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="2.20000000" y="43.70000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
@@ -4023,7 +4043,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="0.60000000" y="53.40000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="0.64000000" y="55.42000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="FB12" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BKP1005HM121-T" x="5.4" y="57.2" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="49.400" x="-1.55000000" y="61.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="FB12" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BLM15PX121SN1D" x="5.4" y="57.2" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="49.400" x="-1.55000000" y="61.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="38.400" x="-1.55000000" y="61.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DM"  value="0" x="-1.55000000" y="61.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="-1.55000000" y="61.00000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -4032,7 +4052,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="5.85000000" y="58.35000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="6.47000000" y="58.19000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="C274" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0201" value="C0603X5R1A103K030BA" x="4.2" y="57.2" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="DX"  value="47.400" x="11.55000000" y="57.20000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="C274" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0201" value="GRM033R61C103KA12D" x="4.2" y="57.2" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="DX"  value="47.400" x="11.55000000" y="57.20000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DY"  value="38.400" x="11.55000000" y="57.20000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DM"  value="0" x="11.55000000" y="57.20000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="11.55000000" y="57.20000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
@@ -4106,7 +4126,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="5.80000000" y="51.00000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="10.00000000" y="50.65000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="FB13" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BKP1005HM121-T" x="7.05" y="57.55" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="7.05000000" y="57.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="FB13" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BLM15PX121SN1D" x="7.05" y="57.55" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="7.05000000" y="57.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="38.400" x="7.05000000" y="57.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="HEIGHT"  value="0.35" x="7.05000000" y="57.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DM"  value="0" x="7.05000000" y="57.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -4115,7 +4135,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="5.90000000" y="58.75000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="8.04000000" y="56.48000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="FB14" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BKP1005HM121-T" x="5.6" y="45.55" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="5.60000000" y="45.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="FB14" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" package="0402" value="BLM15PX121SN1D" x="5.6" y="45.55" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="5.60000000" y="45.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="38.400" x="5.60000000" y="45.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="HEIGHT"  value="0.35" x="5.60000000" y="45.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DM"  value="0" x="5.60000000" y="45.55000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -4128,7 +4148,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="54.81000000" y="37.97000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="52.15000000" y="44.51000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="C313" library="qualified_1" package="0402" value="GRM155R61A105KE01D" x="53" y="43.65" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.35" x="53.00000000" y="43.65000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="C313" library="qualified_1" package="0402" value="CL05A105KO5NNNC" x="53" y="43.65" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.35" x="53.00000000" y="43.65000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="NAME"  x="52.80000000" y="44.15000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="52.01000000" y="44.72000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
@@ -4141,7 +4161,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="51.25000000" y="44.40000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="52.62000000" y="44.59000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="C15" library="qualified_1" package="0402" value="GRM155R61A105KE01D" x="54.1" y="36.45" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.35" x="54.10000000" y="36.45000000" size="1.77800000" layer="27" display="off"/> 
+<element name="C15" library="qualified_1" package="0402" value="CL05A105KO5NNNC" x="54.1" y="36.45" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.35" x="54.10000000" y="36.45000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="NAME"  x="55.20000000" y="36.20000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="53.11000000" y="35.38000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
@@ -4154,7 +4174,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="55.15000000" y="36.75000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="53.11000000" y="37.52000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="R63" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="47.35" y="38" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="SHEETNO"  value="9" x="47.35000000" y="38.00000000" size="1.77800000" layer="27" display="off"/> 
+<element name="R63" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="47.35" y="38" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="SHEETNO"  value="9" x="47.35000000" y="38.00000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DX"  value="-20.800" x="47.35000000" y="38.00000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DY"  value="8.200" x="47.35000000" y="38.00000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DR"  value="-270.000" x="47.35000000" y="38.00000000" size="1.77800000" layer="27" display="off"/> 
@@ -4163,7 +4183,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="45.90000000" y="38.45000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="46.36000000" y="36.93000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="R64" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="46.15" y="39.3" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="SHEETNO"  value="9" x="46.15000000" y="39.30000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
+<element name="R64" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="46.15" y="39.3" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="SHEETNO"  value="9" x="46.15000000" y="39.30000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="DX"  value="-20.800" x="46.15000000" y="39.30000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="DY"  value="8.200" x="46.15000000" y="39.30000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="DR"  value="-270.000" x="46.15000000" y="39.30000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
@@ -4190,7 +4210,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="47.65000000" y="40.80000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="48.07000000" y="38.31000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="R5" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="47.1" y="40.5" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="SHEETNO"  value="9" x="47.10000000" y="40.50000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="R5" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="47.1" y="40.5" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="SHEETNO"  value="9" x="47.10000000" y="40.50000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DX"  value="-20.800" x="47.10000000" y="40.50000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DY"  value="8.200" x="47.10000000" y="40.50000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DR"  value="-270.000" x="47.10000000" y="40.50000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
@@ -4199,7 +4219,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="47.50000000" y="40.95000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="46.11000000" y="41.57000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="R6" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="46.9" y="39.65" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="SHEETNO"  value="9" x="46.90000000" y="39.65000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="R6" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="46.9" y="39.65" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="SHEETNO"  value="9" x="46.90000000" y="39.65000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DX"  value="-20.800" x="46.90000000" y="39.65000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DY"  value="8.200" x="46.90000000" y="39.65000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DR"  value="-270.000" x="46.90000000" y="39.65000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
@@ -4208,7 +4228,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="47.50000000" y="38.55000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="45.91000000" y="40.72000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="R7" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="49.55" y="37.65" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="9" x="49.55000000" y="37.65000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="R7" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="49.55" y="37.65" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="9" x="49.55000000" y="37.65000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DX"  value="-20.800" x="49.55000000" y="37.65000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="8.200" x="49.55000000" y="37.65000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DR"  value="-270.000" x="49.55000000" y="37.65000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -4217,7 +4237,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="48.45000000" y="37.40000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="50.54000000" y="36.58000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="R8" library="qualified_1" package="0201" value="CRCW0201100KFNED" x="47.85" y="42.45" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="SHEETNO"  value="9" x="47.85000000" y="42.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="R8" library="qualified_1" package="0201" value="RC0201FR-07100KL" x="47.85" y="42.45" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="SHEETNO"  value="9" x="47.85000000" y="42.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DX"  value="-20.800" x="47.85000000" y="42.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="8.200" x="47.85000000" y="42.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DR"  value="-270.000" x="47.85000000" y="42.45000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -4280,11 +4300,11 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="54.90000000" y="38.40000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="53.70000000" y="37.40000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="C299" library="qualified_1" package="0402" value="GRM155R61A105KE01D" x="49.05" y="43.65" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.35" x="49.05000000" y="43.65000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="C299" library="qualified_1" package="0402" value="CL05A105KO5NNNC" x="49.05" y="43.65" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.35" x="49.05000000" y="43.65000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="NAME"  x="48.00000000" y="43.40000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="50.04000000" y="42.58000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="C300" library="qualified_1" package="0603" value="GRM185R60J475ME15D" x="48" y="44.95" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="4" x="48.00000000" y="44.95000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="C300" library="qualified_1" package="0603" value="CGB3B1X5R1A475K055AC" x="48" y="44.95" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="4" x="48.00000000" y="44.95000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DX"  value="66.900" x="48.00000000" y="44.95000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="11.100" x="48.00000000" y="44.95000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DR"  value="0.000" x="48.00000000" y="44.95000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -4293,7 +4313,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="49.60000000" y="45.75000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="49.56000000" y="43.73000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="C301" library="qualified_1" package="0201" value="CC0201JRNPO9BN220" x="51.15" y="38.3" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="SHEETNO"  value="9" x="51.15000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="C301" library="qualified_1" package="0201" value="GRM0335C1H220JA01D" x="51.15" y="38.3" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="SHEETNO"  value="9" x="51.15000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DX"  value="-17.200" x="51.15000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DY"  value="6.600" x="51.15000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DR"  value="-270.000" x="51.15000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
@@ -4302,7 +4322,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="50.75000000" y="39.10000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="50.08000000" y="37.31000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="C302" library="qualified_1" package="0201" value="CC0201JRNPO9BN220" x="52.3" y="38.3" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="SHEETNO"  value="9" x="52.30000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="C302" library="qualified_1" package="0201" value="GRM0335C1H220JA01D" x="52.3" y="38.3" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="SHEETNO"  value="9" x="52.30000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DX"  value="-20.800" x="52.30000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DY"  value="6.600" x="52.30000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DR"  value="-90.000" x="52.30000000" y="38.30000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
@@ -4311,7 +4331,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="51.85000000" y="39.10000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="51.23000000" y="37.31000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="R62" library="qualified_1" package="0201" value="RMCF0201FT1M00" x="51.7" y="36.45" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="SHEETNO"  value="9" x="51.70000000" y="36.45000000" size="1.77800000" layer="27" display="off"/> 
+<element name="R62" library="qualified_1" package="0201" value="1M0" x="51.7" y="36.45" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="SHEETNO"  value="9" x="51.70000000" y="36.45000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DX"  value="-20.800" x="51.70000000" y="36.45000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DY"  value="8.200" x="51.70000000" y="36.45000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DR"  value="-270.000" x="51.70000000" y="36.45000000" size="1.77800000" layer="27" display="off"/> 
@@ -4320,7 +4340,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="52.45000000" y="36.00000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="50.71000000" y="35.38000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="Y1" library="qualified_1" package="CRYSTAL-3225" value="ABM8G-24-18-D2Y-T" x="50.9" y="35.15" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.8" x="50.90000000" y="35.15000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="Y1" library="qualified_1" package="CRYSTAL-3225" value="ABM8G-24.000MHZ-18-D2Y-T" x="50.9" y="35.15" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.8" x="50.90000000" y="35.15000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="NAME"  x="48.72000000" y="33.56000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="48.93000000" y="37.43000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
@@ -4337,7 +4357,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="55.31000000" y="42.65000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="57.00000000" y="39.26000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="R60" library="qualified_1" package="0201" value="ERJ-1GE0R00C" x="56.6" y="39.2" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="-20.800" x="56.60000000" y="39.20000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="R60" library="qualified_1" package="0201" value="RC0201JR-070RL" x="56.6" y="39.2" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="-20.800" x="56.60000000" y="39.20000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="8.200" x="56.60000000" y="39.20000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="56.60000000" y="39.20000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DM"  value="0" x="56.60000000" y="39.20000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -4349,7 +4369,7 @@ design rules under a new name.</description>
 <element name="U15" library="qualified_1" package="VQFN56" value="USB5744/2G" x="79.75" y="27.75" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="NAME"  x="75.30000000" y="24.81000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="75.77000000" y="24.23000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="C17" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0603" value="GRM185R60J475ME15D" x="84.3" y="19.6" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DY"  value="17.350" x="84.30000000" y="29.35000000" size="1.77800000" layer="27" display="off"/> 
+<element name="C17" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0603" value="CGB3B1X5R1A475K055AC" x="84.3" y="19.6" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DY"  value="17.350" x="84.30000000" y="29.35000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="SHEETNO"  value="5" x="84.30000000" y="29.35000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DM"  value="0" x="84.30000000" y="29.35000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DR"  value="180.000" x="84.30000000" y="29.35000000" size="1.77800000" layer="27" display="off"/> 
@@ -4366,7 +4386,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="85.40000000" y="20.70000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="84.05000000" y="21.80000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="C19" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0805" value="CL21A226MQCLQNC" x="85.6" y="20.85" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.51" x="85.90000000" y="25.25000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="C19" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0805" value="22uF" x="85.6" y="20.85" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.51" x="85.90000000" y="25.25000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="NAME"  x="86.70000000" y="19.35000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="87.01000000" y="22.50000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
@@ -4378,7 +4398,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="81.00000000" y="21.20000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 <attribute name="VALUE"  x="82.60000000" y="22.45000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="C20" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="CC0201JRNPO9BN220" x="87.2" y="31.17" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="DY"  value="6.600" x="83.05000000" y="28.57000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
+<element name="C20" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="GRM0335C1H220JA01D" x="87.2" y="31.17" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="DY"  value="6.600" x="83.05000000" y="28.57000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="SHEETNO"  value="9" x="83.05000000" y="28.57000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="83.05000000" y="28.57000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="DM"  value="0" x="83.05000000" y="28.57000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
@@ -4387,7 +4407,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="88.40000000" y="30.28000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="88.10000000" y="30.47000000" size="0.40640000" layer="27" font="vector" rot="R90" display="value"/> 
 </element>
-<element name="C21" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="CC0201JRNPO9BN220" x="85.65" y="30.85" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DY"  value="6.600" x="85.65000000" y="32.20000000" size="1.77800000" layer="27" display="off"/> 
+<element name="C21" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="GRM0335C1H220JA01D" x="85.65" y="30.85" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DY"  value="6.600" x="85.65000000" y="32.20000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="SHEETNO"  value="9" x="85.65000000" y="32.20000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="85.65000000" y="32.20000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DM"  value="0" x="85.65000000" y="32.20000000" size="1.77800000" layer="27" display="off"/> 
@@ -4396,7 +4416,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="86.15000000" y="31.20000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="84.95000000" y="29.95000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="Y2" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="CS10" value="25.000MHz" x="86.55" y="26.55" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="DY"  value="7.600" x="80.70000000" y="26.55000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="Y2" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="CS10" value="ABM7-25.000MHZ-D2Y-T" x="86.55" y="26.55" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="DY"  value="7.600" x="80.70000000" y="26.55000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="SHEETNO"  value="9" x="80.70000000" y="26.55000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="HEIGHT"  value="1.5" x="80.70000000" y="26.55000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="DM"  value="-1" x="80.70000000" y="26.55000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
@@ -4414,7 +4434,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="86.45000000" y="29.30000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="86.35000000" y="30.80000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="R13" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="RMCF0201FT1M00" x="84.2" y="29.45" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="DY"  value="8.200" x="89.75000000" y="29.45000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
+<element name="R13" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="1M0" x="84.2" y="29.45" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="DY"  value="8.200" x="89.75000000" y="29.45000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="SHEETNO"  value="9" x="89.75000000" y="29.45000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="89.75000000" y="29.45000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="DM"  value="0" x="89.75000000" y="29.45000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
@@ -4469,7 +4489,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="85.55000000" y="24.05000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="84.05000000" y="23.40000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="C25" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0603" value="GRM185R60J475ME15D" x="83.9" y="25.85" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.5" x="83.90000000" y="25.85000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<element name="C25" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0603" value="CGB3B1X5R1A475K055AC" x="83.9" y="25.85" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.5" x="83.90000000" y="25.85000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
 <attribute name="NAME"  x="82.40000000" y="25.65000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="82.68000000" y="24.29000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
@@ -4505,7 +4525,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="78.30000000" y="24.45000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="79.65000000" y="24.40000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="C34" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0603" value="GRM185R60J475ME15D" x="78.55" y="31.45" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.5" x="78.55000000" y="31.45000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="C34" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0603" value="CGB3B1X5R1A475K055AC" x="78.55" y="31.45" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.5" x="78.55000000" y="31.45000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="NAME"  x="80.20000000" y="32.30000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="76.99000000" y="32.67000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
@@ -4525,7 +4545,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="86.45000000" y="28.45000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="86.35000000" y="29.85000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="R65" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="ERJ-1GE0R00C" x="80.8" y="24.05" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DY"  value="8.200" x="80.80000000" y="24.05000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
+<element name="R65" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="RC0201JR-070RL" x="80.8" y="24.05" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DY"  value="8.200" x="80.80000000" y="24.05000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="DM"  value="0" x="80.80000000" y="24.05000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="80.80000000" y="24.05000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="DR"  value="-270.000" x="80.80000000" y="24.05000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
@@ -4534,7 +4554,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="80.45000000" y="24.80000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
 <attribute name="VALUE"  x="81.70000000" y="24.75000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="R69" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="ERJ-1GE0R00C" x="79.9" y="22.4" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DY"  value="8.200" x="79.90000000" y="22.40000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
+<element name="R69" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="RC0201JR-070RL" x="79.9" y="22.4" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DY"  value="8.200" x="79.90000000" y="22.40000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="DM"  value="0" x="79.90000000" y="22.40000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="79.90000000" y="22.40000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="DR"  value="-270.000" x="79.90000000" y="22.40000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
@@ -4543,7 +4563,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="79.45000000" y="23.05000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="80.80000000" y="23.10000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="R3" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="ERJ-1GE0R00C" x="77.1" y="22.2" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DY"  value="8.200" x="77.10000000" y="22.20000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
+<element name="R3" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" package="0201" value="RC0201JR-070RL" x="77.1" y="22.2" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DY"  value="8.200" x="77.10000000" y="22.20000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="DM"  value="0" x="77.10000000" y="22.20000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="HEIGHT"  value="0.25" x="77.10000000" y="22.20000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
 <attribute name="DR"  value="-270.000" x="77.10000000" y="22.20000000" size="0.66040000" layer="28" font="vector" rot="MR270" display="off"/> 
@@ -4552,7 +4572,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="77.35000000" y="21.50000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="78.00000000" y="22.90000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="FB16" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BKP1005HM121-T" x="1" y="37.35" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="54.000" x="-12.65000000" y="45.80000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="FB16" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BLM15PX121SN1D" x="1" y="37.35" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="DX"  value="54.000" x="-12.65000000" y="45.80000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="38.400" x="-12.65000000" y="45.80000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DM"  value="0" x="-12.65000000" y="45.80000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="-12.65000000" y="45.80000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -4561,14 +4581,14 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="1.65000000" y="37.15000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="2.07000000" y="38.34000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="C3" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0603" value="C1608X5R0J106M080AB" x="1.85" y="35.5" locked="no" populate="yes" smashed="no" rot="MR180"> <attribute name="DX"  value="56.200" x="1.85000000" y="25.00000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="C3" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0603" value="C1608X5R1A106M080AC" x="1.85" y="35.5" locked="no" populate="yes" smashed="no" rot="MR180"> <attribute name="DX"  value="56.200" x="1.85000000" y="25.00000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DY"  value="38.400" x="1.85000000" y="25.00000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DM"  value="0" x="1.85000000" y="25.00000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="1.85000000" y="25.00000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DR"  value="90.000" x="1.85000000" y="25.00000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="HEIGHT"  value="0.5" x="1.85000000" y="35.50000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 </element>
-<element name="FB15" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BKP1005HM121-T" x="21.05" y="25.6" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="DX"  value="49.400" x="24.85000000" y="18.65000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="FB15" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BLM15PX121SN1D" x="21.05" y="25.6" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="DX"  value="49.400" x="24.85000000" y="18.65000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DY"  value="38.400" x="24.85000000" y="18.65000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DM"  value="0" x="24.85000000" y="18.65000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="24.85000000" y="18.65000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
@@ -4577,7 +4597,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="21.95000000" y="25.25000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="22.04000000" y="26.67000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="C305" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0201" value="C0603X5R1A103K030BA" x="20.75" y="26.7" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DX"  value="47.400" x="20.75000000" y="34.05000000" size="1.77800000" layer="27" display="off"/> 
+<element name="C305" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0201" value="GRM033R61C103KA12D" x="20.75" y="26.7" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DX"  value="47.400" x="20.75000000" y="34.05000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DY"  value="38.400" x="20.75000000" y="34.05000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DM"  value="0" x="20.75000000" y="34.05000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="20.75000000" y="34.05000000" size="1.77800000" layer="27" display="off"/> 
@@ -4611,7 +4631,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="4.65000000" y="27.55000000" size="0.66040000" layer="26" font="vector" rot="MR270" display="value"/> 
 <attribute name="VALUE"  x="6.90000000" y="27.25000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="FB17" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BKP1005HM121-T" x="6.8" y="27.1" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="6.80000000" y="27.10000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="FB17" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BLM15PX121SN1D" x="6.8" y="27.1" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="6.80000000" y="27.10000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="38.400" x="6.80000000" y="27.10000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="HEIGHT"  value="0.35" x="6.80000000" y="27.10000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DM"  value="0" x="6.80000000" y="27.10000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -4620,7 +4640,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="7.65000000" y="25.75000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="7.79000000" y="26.03000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="FB4" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BKP1005HM121-T" x="6.8" y="37.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="6.80000000" y="37.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="FB4" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" package="0402" value="BLM15PX121SN1D" x="6.8" y="37.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="DX"  value="49.400" x="6.80000000" y="37.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DY"  value="38.400" x="6.80000000" y="37.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="HEIGHT"  value="0.35" x="6.80000000" y="37.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 <attribute name="DM"  value="0" x="6.80000000" y="37.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
@@ -4671,7 +4691,7 @@ design rules under a new name.</description>
 <attribute name="VALUE"  x="25.35000000" y="35.75000000" size="0.40640000" layer="27" font="vector" rot="R180" display="value"/> 
 </element>
 <element name="J7" library="qualified_1" package="1X03_90_TH_SHROUD" value="70553-0002" x="105.4" y="82.2" locked="no" populate="yes" smashed="no" rot="R0"> </element>
-<element name="FB18" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BKP1005HM121-T" x="31.45" y="4.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="2" x="31.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="FB18" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BLM15PX121SN1D" x="31.45" y="4.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="2" x="31.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DX"  value="11.200" x="31.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="28.400" x="31.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DR"  value="90.000" x="31.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -4680,7 +4700,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="30.40000000" y="5.80000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="32.44000000" y="3.43000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="IC9" library="qualified_1" package="SC70-5" value="SN74LVC1G126DCKR" x="37.4" y="1.35" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="1.1" x="37.40000000" y="1.35000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="IC9" library="qualified_1" package="SC70-5" value="SN74LV1T126DCKR" x="37.4" y="1.35" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="1.1" x="37.40000000" y="1.35000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="NAME"  x="39.30000000" y="0.51000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="35.81000000" y="2.05000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
@@ -4714,7 +4734,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="29.88000000" y="5.17000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="30.85000000" y="3.70000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="FB19" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BKP1005HM121-T" x="33.55" y="1.7" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DX"  value="11.200" x="33.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
+<element name="FB19" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BLM15PX121SN1D" x="33.55" y="1.7" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DX"  value="11.200" x="33.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DY"  value="28.400" x="33.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DM"  value="0" x="33.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="33.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
@@ -4732,7 +4752,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="27.25000000" y="2.37000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="27.61000000" y="2.79000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="FB20" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BKP1005HM121-T" x="31.5" y="1.7" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.35" x="31.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="FB20" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BLM15PX121SN1D" x="31.5" y="1.7" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.35" x="31.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DR"  value="90.000" x="31.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DX"  value="11.200" x="31.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DY"  value="28.400" x="31.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
@@ -4757,7 +4777,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="25.80000000" y="11.15000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="25.45000000" y="12.50000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="FB1" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BKP1005HM121-T" x="51.45" y="4.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="2" x="51.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="FB1" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BLM15PX121SN1D" x="51.45" y="4.5" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="SHEETNO"  value="2" x="51.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DX"  value="11.200" x="51.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DY"  value="28.400" x="51.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 <attribute name="DR"  value="90.000" x="51.45000000" y="4.50000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
@@ -4766,7 +4786,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="50.40000000" y="5.80000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
 <attribute name="VALUE"  x="52.44000000" y="3.43000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
-<element name="IC2" library="qualified_1" package="SC70-5" value="SN74LVC1G126DCKR" x="57.4" y="1.35" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="1.1" x="57.40000000" y="1.35000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="IC2" library="qualified_1" package="SC70-5" value="SN74LV1T126DCKR" x="57.4" y="1.35" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="1.1" x="57.40000000" y="1.35000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="NAME"  x="59.30000000" y="0.51000000" size="0.66040000" layer="25" font="vector" rot="R90" display="value"/> 
 <attribute name="VALUE"  x="55.81000000" y="2.05000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
@@ -4800,7 +4820,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="49.88000000" y="5.17000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="50.85000000" y="3.70000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="FB2" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BKP1005HM121-T" x="53.55" y="1.7" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DX"  value="11.200" x="53.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
+<element name="FB2" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BLM15PX121SN1D" x="53.55" y="1.7" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="DX"  value="11.200" x="53.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DY"  value="28.400" x="53.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="DM"  value="0" x="53.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="SHEETNO"  value="2" x="53.55000000" y="1.70000000" size="1.77800000" layer="27" display="off"/> 
@@ -4818,7 +4838,7 @@ design rules under a new name.</description>
 <attribute name="NAME"  x="47.25000000" y="2.37000000" size="0.66040000" layer="25" font="vector" rot="R270" display="value"/> 
 <attribute name="VALUE"  x="47.61000000" y="2.79000000" size="0.40640000" layer="27" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="FB3" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BKP1005HM121-T" x="51.5" y="1.7" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.35" x="51.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
+<element name="FB3" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" package="0402" value="BLM15PX121SN1D" x="51.5" y="1.7" locked="no" populate="yes" smashed="yes" rot="R180"> <attribute name="HEIGHT"  value="0.35" x="51.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DR"  value="90.000" x="51.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DX"  value="11.200" x="51.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
 <attribute name="DY"  value="28.400" x="51.50000000" y="1.70000000" size="1.77800000" layer="27" rot="R180" display="off"/> 
@@ -4846,25 +4866,25 @@ design rules under a new name.</description>
 <element name="R68" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0805" value="CR0805-J/-000ELF" x="54.6" y="29.4" locked="no" populate="yes" smashed="no" rot="MR0"> <attribute name="HEIGHT"  value="0.51" x="54.60000000" y="29.40000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 </element>
 <element name="U1" library="qualified_1" package="8SO_POWERPAD" value="TPS5450QDDARQ1" x="58.7" y="25" locked="no" populate="yes" smashed="no" rot="MR0"> </element>
-<element name="C13" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="1206" value="GRM31CR61H106KA12L" x="53.6" y="25.05" locked="no" populate="yes" smashed="no" rot="MR270"> <attribute name="HEIGHT"  value="0.51" x="53.60000000" y="25.05000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<element name="C13" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="1206" value="CL31A106KBHNNNE" x="53.6" y="25.05" locked="no" populate="yes" smashed="no" rot="MR270"> <attribute name="HEIGHT"  value="0.51" x="53.60000000" y="25.05000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
 </element>
 <element name="C30" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0603" value="C0603C103K5RACTU" x="54.4" y="21.15" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.5" x="54.40000000" y="21.15000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="NAME"  x="54.55000000" y="19.65000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
 <attribute name="VALUE"  x="52.84000000" y="22.37000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="C52" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="C0603X5R1A103K030BA" x="59.55" y="28.5" locked="no" populate="yes" smashed="no" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="59.55000000" y="28.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<element name="C52" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="GRM033R61C103KA12D" x="59.55" y="28.5" locked="no" populate="yes" smashed="no" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="59.55000000" y="28.50000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
 </element>
-<element name="L2" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="3232DZ" value="IHLP3232DZER100M01" x="49.5" y="25" locked="no" populate="yes" smashed="no" rot="R270"> <attribute name="DX"  value="76.000" x="25.85000000" y="25.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<element name="L2" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="3232DZ" value="IHLP3232DZER100M11" x="49.5" y="25" locked="no" populate="yes" smashed="no" rot="R270"> <attribute name="DX"  value="76.000" x="25.85000000" y="25.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="DY"  value="17.000" x="25.85000000" y="25.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="DM"  value="0" x="25.85000000" y="25.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="SHEETNO"  value="1" x="25.85000000" y="25.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 <attribute name="DR"  value="180.000" x="25.85000000" y="25.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
 </element>
-<element name="C78" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="C0603X5R1A103K030BA" x="61.5" y="20" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.25" x="61.50000000" y="20.00000000" size="1.77800000" layer="27" display="off"/> 
+<element name="C78" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="GRM033R61C103KA12D" x="61.5" y="20" locked="no" populate="yes" smashed="yes" rot="R0"> <attribute name="HEIGHT"  value="0.25" x="61.50000000" y="20.00000000" size="1.77800000" layer="27" display="off"/> 
 <attribute name="NAME"  x="62.20000000" y="19.65000000" size="0.66040000" layer="25" font="vector" display="value"/> 
 <attribute name="VALUE"  x="60.51000000" y="18.93000000" size="0.40640000" layer="27" font="vector" display="value"/> 
 </element>
-<element name="R12" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="CRCW0201100KFNED" x="60.35" y="21.5" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="DX"  value="-20.800" x="45.55000000" y="33.10000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<element name="R12" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" package="0201" value="RC0201FR-07100KL" x="60.35" y="21.5" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="DX"  value="-20.800" x="45.55000000" y="33.10000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DY"  value="8.200" x="45.55000000" y="33.10000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="DM"  value="0" x="45.55000000" y="33.10000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
 <attribute name="SHEETNO"  value="9" x="45.55000000" y="33.10000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
@@ -4889,43 +4909,43 @@ design rules under a new name.</description>
 <element name="TP1" library="qualified_1" package="TP0500" value="DNP" x="55.55" y="29.85" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="0" x="55.55000000" y="29.85000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
 <attribute name="NAME"  x="54.05000000" y="30.20000000" size="0.66040000" layer="25" font="vector" rot="R180" display="value"/> 
 </element>
-<element name="S2" library="qualified_1" package="EVQP-4" value="EVQ-P7C01P" x="1.75" y="19.5" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="2.5" x="1.75000000" y="19.50000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
-<attribute name="NAME"  x="3.44000000" y="20.67000000" size="0.66040000" layer="21" font="vector" rot="R270" display="value"/> 
+<element name="S2" library="qualified_1" package="EVQP-4" value="EVQ-P7C01P" x="1.75" y="15" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="2.5" x="1.75000000" y="15.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
+<attribute name="NAME"  x="3.44000000" y="16.17000000" size="0.66040000" layer="21" font="vector" rot="R270" display="value"/> 
 </element>
-<element name="R70" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="RC0201FR-0710KL" x="0.88" y="21.2" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="0.88000000" y="21.20000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
-<attribute name="NAME"  x="0.56000000" y="22.05000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
-<attribute name="VALUE"  x="-0.02000000" y="20.50000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
+<element name="R70" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="RC0201FR-0710KL" x="0.88" y="16.7" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="0.88000000" y="16.70000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<attribute name="NAME"  x="0.56000000" y="17.55000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
+<attribute name="VALUE"  x="-0.02000000" y="16.00000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="C319" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="C0603C0G1H470J030BA" x="2.54" y="21.53" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="2.54000000" y="21.53000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
-<attribute name="NAME"  x="3.32000000" y="21.93000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
-<attribute name="VALUE"  x="1.84000000" y="22.43000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
+<element name="C319" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="GRM0335C1E470JA01D" x="2.54" y="17.03" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="2.54000000" y="17.03000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<attribute name="NAME"  x="3.32000000" y="17.43000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
+<attribute name="VALUE"  x="1.84000000" y="17.93000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="D19" library="qualified_1" package="D0402" value="B72590D0050A060" x="1.94" y="17.92" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.35" x="1.94000000" y="17.92000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
-<attribute name="NAME"  x="3.36000000" y="18.19000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
-<attribute name="VALUE"  x="3.58000000" y="19.01000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
+<element name="D19" library="qualified_1" package="D0402" value="B72590D0050A060" x="1.94" y="13.42" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.35" x="1.94000000" y="13.42000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
+<attribute name="NAME"  x="3.36000000" y="13.69000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
+<attribute name="VALUE"  x="3.58000000" y="14.51000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
 </element>
-<element name="R71" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="ERJ-1GEF1500C" x="2.04" y="20.64" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="2.04000000" y="20.64000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
-<attribute name="NAME"  x="2.94000000" y="20.94000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
-<attribute name="VALUE"  x="1.05000000" y="21.71000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
+<element name="R71" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="ERJ-1GNJ151C" x="2.04" y="16.14" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="2.04000000" y="16.14000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<attribute name="NAME"  x="2.94000000" y="16.44000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
+<attribute name="VALUE"  x="1.05000000" y="17.21000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="S1" library="qualified_1" package="EVQP-4" value="EVQ-P7C01P" x="1.75" y="13" locked="no" populate="yes" smashed="yes" rot="R270"> <attribute name="HEIGHT"  value="2.5" x="1.75000000" y="13.00000000" size="1.77800000" layer="27" rot="R270" display="off"/> 
-<attribute name="NAME"  x="3.44000000" y="14.17000000" size="0.66040000" layer="21" font="vector" rot="R270" display="value"/> 
+<element name="S1" library="qualified_1" package="EVQ" value="EVQ-PLDA15" x="11.75" y="16.75" locked="no" populate="yes" smashed="yes" rot="R90"> <attribute name="HEIGHT"  value="2" x="11.75000000" y="16.75000000" size="1.77800000" layer="27" rot="R90" display="off"/> 
+<attribute name="NAME"  x="9.33000000" y="19.34000000" size="0.66040000" layer="21" font="vector" display="value"/> 
 </element>
-<element name="R1" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="RC0201FR-0710KL" x="0.88" y="14.7" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="0.88000000" y="14.70000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
-<attribute name="NAME"  x="0.56000000" y="15.55000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
-<attribute name="VALUE"  x="-0.02000000" y="14.00000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
+<element name="R1" library="qualified_1" package="0201" value="RC0201FR-0710KL" x="13.35" y="16.22" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="13.35000000" y="16.22000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
+<attribute name="NAME"  x="12.50000000" y="15.79000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
+<attribute name="VALUE"  x="12.65000000" y="17.12000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
 </element>
-<element name="C1" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="C0603C0G1H470J030BA" x="2.54" y="15.03" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="2.54000000" y="15.03000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
-<attribute name="NAME"  x="3.32000000" y="15.43000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
-<attribute name="VALUE"  x="1.84000000" y="15.93000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
+<element name="C1" library="qualified_1" package="0201" value="GRM0335C1E470JA01D" x="10.27" y="16.44" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.25" x="10.27000000" y="16.44000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<attribute name="NAME"  x="9.87000000" y="17.22000000" size="0.66040000" layer="26" font="vector" rot="MR90" display="value"/> 
+<attribute name="VALUE"  x="9.37000000" y="15.74000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="D1" library="qualified_1" package="D0402" value="B72590D0050A060" x="1.94" y="11.42" locked="no" populate="yes" smashed="yes" rot="MR270"> <attribute name="HEIGHT"  value="0.35" x="1.94000000" y="11.42000000" size="1.77800000" layer="28" rot="MR270" display="off"/> 
-<attribute name="NAME"  x="3.36000000" y="11.69000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
-<attribute name="VALUE"  x="3.58000000" y="12.51000000" size="0.40640000" layer="28" font="vector" rot="MR270" display="value"/> 
+<element name="D1" library="qualified_1" package="D0402" value="B72590D0050A060" x="11.86" y="17.28" locked="no" populate="yes" smashed="yes" rot="MR90"> <attribute name="HEIGHT"  value="0.35" x="11.86000000" y="17.28000000" size="1.77800000" layer="28" rot="MR90" display="off"/> 
+<attribute name="NAME"  x="10.96000000" y="18.64000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
+<attribute name="VALUE"  x="10.22000000" y="16.19000000" size="0.40640000" layer="28" font="vector" rot="MR90" display="value"/> 
 </element>
-<element name="R2" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" package="0201" value="ERJ-1GEF1500C" x="2.04" y="14.14" locked="no" populate="yes" smashed="yes" rot="MR180"> <attribute name="HEIGHT"  value="0.25" x="2.04000000" y="14.14000000" size="1.77800000" layer="28" rot="MR180" display="off"/> 
-<attribute name="NAME"  x="2.94000000" y="14.44000000" size="0.66040000" layer="26" font="vector" rot="MR180" display="value"/> 
-<attribute name="VALUE"  x="1.05000000" y="15.21000000" size="0.40640000" layer="28" font="vector" rot="MR180" display="value"/> 
+<element name="R2" library="qualified_1" package="0201" value="ERJ-1GNJ151C" x="11.66" y="16.11" locked="no" populate="yes" smashed="yes" rot="MR0"> <attribute name="HEIGHT"  value="0.25" x="11.66000000" y="16.11000000" size="1.77800000" layer="28" rot="MR0" display="off"/> 
+<attribute name="NAME"  x="12.26000000" y="15.01000000" size="0.66040000" layer="26" font="vector" rot="MR0" display="value"/> 
+<attribute name="VALUE"  x="12.65000000" y="15.04000000" size="0.40640000" layer="28" font="vector" rot="MR0" display="value"/> 
 </element>
 </elements>
 <signals>
@@ -6038,43 +6058,36 @@ design rules under a new name.</description>
 <contactref element="S2" pad="A@1" route="all" routetag=""/>
 <contactref element="D19" pad="P1" route="all" routetag=""/>
 <contactref element="C319" pad="2" route="all" routetag=""/>
-<via x="3.00000000" y="20.45000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
-<wire x1="2.83210000" y1="21.53000000" x2="3.00000000" y2="21.36210000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="3.00000000" y1="21.36210000" x2="3.00000000" y2="20.45000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="2.50000000" y1="21.30000000" x2="3.00000000" y2="20.80000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="3.00000000" y1="20.80000000" x2="3.00000000" y2="20.45000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
+<via x="3.00000000" y="15.95000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
+<wire x1="2.83210000" y1="17.03000000" x2="3.00000000" y2="16.86210000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="3.00000000" y1="16.86210000" x2="3.00000000" y2="15.95000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="2.50000000" y1="16.80000000" x2="3.00000000" y2="16.30000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="3.00000000" y1="16.30000000" x2="3.00000000" y2="15.95000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
 <polygon width="0.25400000" layer="1"  spacing="1.27000000" pour="solid"  orphans="no" thermals="yes">
-<vertex x="0.50000000" y="17.00000000" curve="0.00000000"/> 
-<vertex x="3.60000000" y="17.00000000" curve="0.00000000"/> 
-<vertex x="3.60000000" y="22.00000000" curve="0.00000000"/> 
-<vertex x="0.50000000" y="22.00000000" curve="0.00000000"/> 
+<vertex x="0.50000000" y="12.50000000" curve="0.00000000"/> 
+<vertex x="3.60000000" y="12.50000000" curve="0.00000000"/> 
+<vertex x="3.60000000" y="17.50000000" curve="0.00000000"/> 
+<vertex x="0.50000000" y="17.50000000" curve="0.00000000"/> 
 </polygon>
 <polygon width="0.25400000" layer="16"  spacing="1.27000000" pour="solid"  orphans="no" thermals="yes">
-<vertex x="3.60000000" y="22.00000000" curve="0.00000000"/> 
-<vertex x="0.50000000" y="22.00000000" curve="0.00000000"/> 
-<vertex x="0.50000000" y="17.00000000" curve="0.00000000"/> 
-<vertex x="3.60000000" y="17.00000000" curve="0.00000000"/> 
+<vertex x="3.60000000" y="17.50000000" curve="0.00000000"/> 
+<vertex x="0.50000000" y="17.50000000" curve="0.00000000"/> 
+<vertex x="0.50000000" y="12.50000000" curve="0.00000000"/> 
+<vertex x="3.60000000" y="12.50000000" curve="0.00000000"/> 
 </polygon>
 <contactref element="S1" pad="A@1" route="all" routetag=""/>
 <contactref element="D1" pad="P1" route="all" routetag=""/>
 <contactref element="C1" pad="2" route="all" routetag=""/>
-<via x="3.00000000" y="13.95000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
-<wire x1="2.83210000" y1="15.03000000" x2="3.00000000" y2="14.86210000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="3.00000000" y1="14.86210000" x2="3.00000000" y2="13.95000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="2.50000000" y1="14.80000000" x2="3.00000000" y2="14.30000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="3.00000000" y1="14.30000000" x2="3.00000000" y2="13.95000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
-<polygon width="0.25400000" layer="1"  spacing="1.27000000" pour="solid"  orphans="no" thermals="yes">
-<vertex x="0.50000000" y="10.50000000" curve="0.00000000"/> 
-<vertex x="3.60000000" y="10.50000000" curve="0.00000000"/> 
-<vertex x="3.60000000" y="15.50000000" curve="0.00000000"/> 
-<vertex x="0.50000000" y="15.50000000" curve="0.00000000"/> 
-</polygon>
-<polygon width="0.25400000" layer="16"  spacing="1.27000000" pour="solid"  orphans="no" thermals="yes">
-<vertex x="3.60000000" y="15.50000000" curve="0.00000000"/> 
-<vertex x="0.50000000" y="15.50000000" curve="0.00000000"/> 
-<vertex x="0.50000000" y="10.50000000" curve="0.00000000"/> 
-<vertex x="3.60000000" y="10.50000000" curve="0.00000000"/> 
-</polygon>
+<via x="9.55000000" y="15.55000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
+<via x="11.29000000" y="18.10000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
+<wire x1="9.55000000" y1="14.90000000" x2="9.55000000" y2="15.55000000" width="0.25400000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="9.55000000" y1="15.55000000" x2="9.55000000" y2="16.50000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="10.27000000" y1="16.73210000" x2="9.78210000" y2="16.73210000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="9.78210000" y1="16.73210000" x2="9.55000000" y2="16.50000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="11.31000000" y1="17.28000000" x2="10.81790000" y2="17.28000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="10.81790000" y1="17.28000000" x2="10.27000000" y2="16.73210000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="11.31000000" y1="17.28000000" x2="11.31000000" y2="18.08000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="11.31000000" y1="18.08000000" x2="11.29000000" y2="18.10000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
 </signal>
 
 <signal name="13.UART2_TXD">
@@ -7523,6 +7536,9 @@ design rules under a new name.</description>
 <contactref element="R49" pad="1" route="all" routetag=""/>
 <contactref element="R70" pad="2" route="all" routetag=""/>
 <contactref element="R1" pad="2" route="all" routetag=""/>
+<via x="14.11000000" y="15.81000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
+<wire x1="13.64210000" y1="16.22000000" x2="13.70000000" y2="16.22000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="13.70000000" y1="16.22000000" x2="14.11000000" y2="15.81000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
 </signal>
 
 <signal name="CON_5V0$12" class="1">
@@ -8176,18 +8192,21 @@ design rules under a new name.</description>
 
 <signal name="14.nRESET_NRESET">
 <contactref element="J5" pad="92" route="all" routetag=""/>
-<contactref element="C1" pad="1" route="all" routetag=""/>
-<contactref element="R2" pad="2" route="all" routetag=""/>
-<wire x1="2.33210000" y1="14.14000000" x2="2.24790000" y2="14.14000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="2.24790000" y1="14.14000000" x2="2.24790000" y2="15.03000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<contactref element="C319" pad="1" route="all" routetag=""/>
+<contactref element="R71" pad="2" route="all" routetag=""/>
+<wire x1="2.33210000" y1="16.14000000" x2="2.24790000" y2="16.14000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="2.24790000" y1="16.14000000" x2="2.24790000" y2="17.03000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
 </signal>
 
 <signal name="14.USB3_CC1_GPIO">
 <contactref element="J5" pad="94" route="all" routetag=""/>
-<contactref element="C319" pad="1" route="all" routetag=""/>
-<contactref element="R71" pad="2" route="all" routetag=""/>
-<wire x1="2.33210000" y1="20.64000000" x2="2.24790000" y2="20.64000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="2.24790000" y1="20.64000000" x2="2.24790000" y2="21.53000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<contactref element="C1" pad="1" route="all" routetag=""/>
+<contactref element="R2" pad="2" route="all" routetag=""/>
+<via x="11.72000000" y="15.37000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
+<wire x1="10.27000000" y1="16.14790000" x2="11.33000000" y2="16.14790000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="11.33000000" y1="16.14790000" x2="11.36790000" y2="16.11000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="11.36790000" y1="16.11000000" x2="11.36790000" y2="15.72210000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="11.36790000" y1="15.72210000" x2="11.72000000" y2="15.37000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
 </signal>
 
 <signal name="14.1000BaseT_LINK_100">
@@ -11009,31 +11028,34 @@ design rules under a new name.</description>
 <contactref element="D19" pad="P2" route="all" routetag=""/>
 <contactref element="R71" pad="1" route="all" routetag=""/>
 <contactref element="R70" pad="1" route="all" routetag=""/>
-<wire x1="1.74790000" y1="20.64000000" x2="0.88000000" y2="20.64000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="0.88000000" y1="20.64000000" x2="0.88000000" y2="20.90790000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.74790000" y1="20.64000000" x2="1.75000000" y2="20.64000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<via x="1.75000000" y="18.95000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
-<wire x1="1.75000000" y1="18.95000000" x2="1.00000000" y2="18.20000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.00000000" y1="18.20000000" x2="1.00000000" y2="17.70000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.39000000" y1="17.92000000" x2="1.39000000" y2="18.59000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.39000000" y1="18.59000000" x2="1.75000000" y2="18.95000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.75000000" y1="20.64000000" x2="1.75000000" y2="18.95000000" width="0.20000000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="1.74790000" y1="16.14000000" x2="0.88000000" y2="16.14000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="0.88000000" y1="16.14000000" x2="0.88000000" y2="16.40790000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="1.74790000" y1="16.14000000" x2="1.75000000" y2="16.14000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<via x="1.75000000" y="14.45000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
+<wire x1="1.75000000" y1="14.45000000" x2="1.00000000" y2="13.70000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="1.00000000" y1="13.70000000" x2="1.00000000" y2="13.20000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="1.39000000" y1="13.42000000" x2="1.39000000" y2="14.09000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="1.39000000" y1="14.09000000" x2="1.75000000" y2="14.45000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="1.75000000" y1="16.14000000" x2="1.75000000" y2="14.45000000" width="0.20000000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
 </signal>
 
 <signal name="BTN_A$26">
 <contactref element="S1" pad="B@2" route="all" routetag=""/>
 <contactref element="D1" pad="P2" route="all" routetag=""/>
 <contactref element="R2" pad="1" route="all" routetag=""/>
+<wire x1="13.95000000" y1="18.60000000" x2="13.96000000" y2="18.60000000" width="0.25400000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="13.96000000" y1="18.60000000" x2="13.96000000" y2="17.99000000" width="0.25400000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
+<via x="13.96000000" y="17.99000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
 <contactref element="R1" pad="1" route="all" routetag=""/>
-<wire x1="1.74790000" y1="14.14000000" x2="0.88000000" y2="14.14000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="0.88000000" y1="14.14000000" x2="0.88000000" y2="14.40790000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.74790000" y1="14.14000000" x2="1.75000000" y2="14.14000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<via x="1.75000000" y="12.45000000" extent="1-16" drill="0.20320000" diameter="0.00000000" shape="round" alwaysstop="no"/>
-<wire x1="1.75000000" y1="12.45000000" x2="1.00000000" y2="11.70000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.00000000" y1="11.70000000" x2="1.00000000" y2="11.20000000" width="0.30480000" layer="1" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.39000000" y1="11.42000000" x2="1.39000000" y2="12.09000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.39000000" y1="12.09000000" x2="1.75000000" y2="12.45000000" width="0.30480000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
-<wire x1="1.75000000" y1="14.14000000" x2="1.75000000" y2="12.45000000" width="0.20000000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="12.41000000" y1="17.28000000" x2="13.25000000" y2="17.28000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="13.25000000" y1="17.28000000" x2="13.96000000" y2="17.99000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="13.05790000" y1="16.22000000" x2="12.73000000" y2="16.22000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="12.73000000" y1="16.22000000" x2="12.57500000" y2="16.37500000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="12.57500000" y1="16.37500000" x2="12.45000000" y2="16.50000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="12.45000000" y1="16.50000000" x2="12.45000000" y2="17.24000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="12.45000000" y1="17.24000000" x2="12.41000000" y2="17.28000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="11.95210000" y1="16.11000000" x2="12.31000000" y2="16.11000000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
+<wire x1="12.31000000" y1="16.11000000" x2="12.57500000" y2="16.37500000" width="0.25400000" layer="16" style="continuous" curve="0.00000000" cap="round"/> 
 </signal>
 
 </signals>

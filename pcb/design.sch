@@ -14781,88 +14781,6 @@ Source: http://www.semiconductors.philips.com/acrobat_download/datasheets/74HC_H
 </device>
 </devices>
 </deviceset>
-<deviceset name="FT232R" prefix="IC"> <description language="en">Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</description>
-<gates>
-<gate name="1" symbol="FT232R" x="0.00000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
-</gates>
-<devices>
-<device name="L" package="SSOP28"> <connects>
-<connect gate="1" pin="!CTS" pad="11" route="all"/> 
-<connect gate="1" pin="!DCD" pad="10" route="all"/> 
-<connect gate="1" pin="!DSR" pad="9" route="all"/> 
-<connect gate="1" pin="!DTR" pad="2" route="all"/> 
-<connect gate="1" pin="!RESET" pad="19" route="all"/> 
-<connect gate="1" pin="!RI" pad="6" route="all"/> 
-<connect gate="1" pin="!RTS" pad="3" route="all"/> 
-<connect gate="1" pin="3V3OUT" pad="17" route="all"/> 
-<connect gate="1" pin="CBUS0" pad="23" route="all"/> 
-<connect gate="1" pin="CBUS1" pad="22" route="all"/> 
-<connect gate="1" pin="CBUS2" pad="13" route="all"/> 
-<connect gate="1" pin="CBUS3" pad="14" route="all"/> 
-<connect gate="1" pin="CBUS4" pad="12" route="all"/> 
-<connect gate="1" pin="GND" pad="7" route="all"/> 
-<connect gate="1" pin="GND@1" pad="18" route="all"/> 
-<connect gate="1" pin="GND@2" pad="21" route="all"/> 
-<connect gate="1" pin="GND@A" pad="25" route="all"/> 
-<connect gate="1" pin="OSCI" pad="27" route="all"/> 
-<connect gate="1" pin="OSCO" pad="28" route="all"/> 
-<connect gate="1" pin="RXD" pad="5" route="all"/> 
-<connect gate="1" pin="TEST" pad="26" route="all"/> 
-<connect gate="1" pin="TXD" pad="1" route="all"/> 
-<connect gate="1" pin="USBDM" pad="16" route="all"/> 
-<connect gate="1" pin="USBDP" pad="15" route="all"/> 
-<connect gate="1" pin="VCC" pad="20" route="all"/> 
-<connect gate="1" pin="VCCIO" pad="4" route="all"/> 
-</connects>
-<technologies>
-<technology name="">
-<attribute name="MF"  constant="no"/> 
-<attribute name="MPN"  value="FT232RL" constant="no"/> 
-<attribute name="OC_FARNELL"  value="1146032" constant="no"/> 
-<attribute name="OC_NEWARK"  value="91K9918" constant="no"/> 
-</technology>
-</technologies>
-</device>
-<device name="Q" package="QFN32"> <connects>
-<connect gate="1" pin="!CTS" pad="8" route="all"/> 
-<connect gate="1" pin="!DCD" pad="7" route="all"/> 
-<connect gate="1" pin="!DSR" pad="6" route="all"/> 
-<connect gate="1" pin="!DTR" pad="31" route="all"/> 
-<connect gate="1" pin="!RESET" pad="18" route="all"/> 
-<connect gate="1" pin="!RI" pad="3" route="all"/> 
-<connect gate="1" pin="!RTS" pad="32" route="all"/> 
-<connect gate="1" pin="3V3OUT" pad="16" route="all"/> 
-<connect gate="1" pin="CBUS0" pad="22" route="all"/> 
-<connect gate="1" pin="CBUS1" pad="21" route="all"/> 
-<connect gate="1" pin="CBUS2" pad="10" route="all"/> 
-<connect gate="1" pin="CBUS3" pad="11" route="all"/> 
-<connect gate="1" pin="CBUS4" pad="9" route="all"/> 
-<connect gate="1" pin="GND" pad="4" route="all"/> 
-<connect gate="1" pin="GND@1" pad="17" route="all"/> 
-<connect gate="1" pin="GND@2" pad="20" route="all"/> 
-<connect gate="1" pin="GND@A" pad="24" route="all"/> 
-<connect gate="1" pin="OSCI" pad="27" route="all"/> 
-<connect gate="1" pin="OSCO" pad="28" route="all"/> 
-<connect gate="1" pin="RXD" pad="2" route="all"/> 
-<connect gate="1" pin="TEST" pad="26" route="all"/> 
-<connect gate="1" pin="TXD" pad="30" route="all"/> 
-<connect gate="1" pin="USBDM" pad="15" route="all"/> 
-<connect gate="1" pin="USBDP" pad="14" route="all"/> 
-<connect gate="1" pin="VCC" pad="19" route="all"/> 
-<connect gate="1" pin="VCCIO" pad="1" route="all"/> 
-</connects>
-<technologies>
-<technology name="">
-<attribute name="HEIGHT"  value="0.9" constant="no"/> 
-<attribute name="MF"  constant="no"/> 
-<attribute name="MPN"  value="FT232RQ" constant="no"/> 
-<attribute name="OC_FARNELL"  value="1146033" constant="no"/> 
-<attribute name="OC_NEWARK"  value="91K9919" constant="no"/> 
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="GND" prefix="SUPPLY"> <description language="en">&lt;b&gt;SUPPLY SYMBOL&lt;/b&gt;</description>
 <gates>
 <gate name="GND" symbol="GND-2" x="0.00000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
@@ -15309,6 +15227,32 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
+<deviceset name="61400826021" prefix="K"> <description language="en">WR-COM Horizontal Dual Stacked USB Type A</description>
+<gates>
+<gate name="G$1" symbol="4X2_USB" x="2.54000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
+</gates>
+<devices>
+<device package="61400826021"> <connects>
+<connect gate="G$1" pin="D+@1" pad="A3" route="all"/> 
+<connect gate="G$1" pin="D+@2" pad="B3" route="all"/> 
+<connect gate="G$1" pin="D-@1" pad="A2" route="all"/> 
+<connect gate="G$1" pin="D-@2" pad="B2" route="all"/> 
+<connect gate="G$1" pin="GND@1" pad="A4" route="all"/> 
+<connect gate="G$1" pin="GND@2" pad="B4" route="all"/> 
+<connect gate="G$1" pin="SHIELD_A1" pad="5" route="all"/> 
+<connect gate="G$1" pin="SHIELD_A2" pad="6" route="all"/> 
+<connect gate="G$1" pin="SHIELD_B1" pad="7" route="all"/> 
+<connect gate="G$1" pin="SHIELD_B2" pad="8" route="all"/> 
+<connect gate="G$1" pin="VCC@1" pad="A1" route="all"/> 
+<connect gate="G$1" pin="VCC@2" pad="B1" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
 <deviceset name="GRM033R60J104KE19D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
@@ -15325,7 +15269,52 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="SN74LVC1G126DCKR" prefix="IC"> <description language="en">Single Bus &lt;b&gt;Buffer&lt;/b&gt; Gate With 3-State Outputs</description>
+<deviceset name="FT232RQ-REEL" prefix="IC"> <description language="en">Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</description>
+<gates>
+<gate name="1" symbol="FT232R" x="0.00000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
+</gates>
+<devices>
+<device package="QFN32"> <connects>
+<connect gate="1" pin="!CTS" pad="8" route="all"/> 
+<connect gate="1" pin="!DCD" pad="7" route="all"/> 
+<connect gate="1" pin="!DSR" pad="6" route="all"/> 
+<connect gate="1" pin="!DTR" pad="31" route="all"/> 
+<connect gate="1" pin="!RESET" pad="18" route="all"/> 
+<connect gate="1" pin="!RI" pad="3" route="all"/> 
+<connect gate="1" pin="!RTS" pad="32" route="all"/> 
+<connect gate="1" pin="3V3OUT" pad="16" route="all"/> 
+<connect gate="1" pin="CBUS0" pad="22" route="all"/> 
+<connect gate="1" pin="CBUS1" pad="21" route="all"/> 
+<connect gate="1" pin="CBUS2" pad="10" route="all"/> 
+<connect gate="1" pin="CBUS3" pad="11" route="all"/> 
+<connect gate="1" pin="CBUS4" pad="9" route="all"/> 
+<connect gate="1" pin="GND" pad="4" route="all"/> 
+<connect gate="1" pin="GND@1" pad="17" route="all"/> 
+<connect gate="1" pin="GND@2" pad="20" route="all"/> 
+<connect gate="1" pin="GND@A" pad="24" route="all"/> 
+<connect gate="1" pin="OSCI" pad="27" route="all"/> 
+<connect gate="1" pin="OSCO" pad="28" route="all"/> 
+<connect gate="1" pin="RXD" pad="2" route="all"/> 
+<connect gate="1" pin="TEST" pad="26" route="all"/> 
+<connect gate="1" pin="TXD" pad="30" route="all"/> 
+<connect gate="1" pin="USBDM" pad="15" route="all"/> 
+<connect gate="1" pin="USBDP" pad="14" route="all"/> 
+<connect gate="1" pin="VCC" pad="19" route="all"/> 
+<connect gate="1" pin="VCCIO" pad="1" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.9" constant="no"/> 
+<attribute name="MF"  constant="no"/> 
+<attribute name="MPN"  value="FT232RQ" constant="no"/> 
+<attribute name="OC_FARNELL"  value="1146033" constant="no"/> 
+<attribute name="OC_NEWARK"  value="91K9919" constant="no"/> 
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="SN74LV1T126DCKR" prefix="IC"> <description language="en">Single Bus &lt;b&gt;Buffer&lt;/b&gt; Gate With 3-State Outputs</description>
 <gates>
 <gate name="A" symbol="74126" x="17.78000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
 <gate name="P" symbol="PWRN" x="-5.08000000" y="-5.08000000" addlevel="must" swaplevel="0"/> 
@@ -15355,7 +15344,7 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="GRM185R60J475ME15D" prefix="C" uservalue="yes"> <gates>
+<deviceset name="CGB3B1X5R1A475K055AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -15371,7 +15360,7 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="BKP1005HM121-T" prefix="FB" uservalue="yes"> <gates>
+<deviceset name="BLM15PX121SN1D" prefix="FB" uservalue="yes"> <gates>
 <gate name="G$1" symbol="FB" x="-15.24000000" y="38.10000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -15425,7 +15414,7 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="TPS62111RSAR" uservalue="yes"> <gates>
+<deviceset name="TPS62111RSAT" uservalue="yes"> <gates>
 <gate name="G$1" symbol="TPS62111" x="0.00000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -15556,7 +15545,7 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="CRCW0201100KFNED" prefix="R" uservalue="yes"> <gates>
+<deviceset name="RC0201FR-07100KL" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -15662,7 +15651,7 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="ERJ-1GE0R00C" prefix="R" uservalue="yes"> <gates>
+<deviceset name="RC0201JR-070RL" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -15678,7 +15667,7 @@ xHCI Host Controller</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="685-119-134-923"> <gates>
+<deviceset name="685119134923"> <gates>
 <gate name="G$1" symbol="HDMI" x="0.00000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -16003,32 +15992,6 @@ Source: &lt;a href=&quot;http://www.ti.com/lit/ds/symlink/ts3a5223.pdf&quot;&gt;
 </device>
 </devices>
 </deviceset>
-<deviceset name="CNU079S-008-A101" prefix="K"> <description language="en">WR-COM Horizontal Dual Stacked USB Type A</description>
-<gates>
-<gate name="G$1" symbol="4X2_USB" x="2.54000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
-</gates>
-<devices>
-<device package="61400826021"> <connects>
-<connect gate="G$1" pin="D+@1" pad="A3" route="all"/> 
-<connect gate="G$1" pin="D+@2" pad="B3" route="all"/> 
-<connect gate="G$1" pin="D-@1" pad="A2" route="all"/> 
-<connect gate="G$1" pin="D-@2" pad="B2" route="all"/> 
-<connect gate="G$1" pin="GND@1" pad="A4" route="all"/> 
-<connect gate="G$1" pin="GND@2" pad="B4" route="all"/> 
-<connect gate="G$1" pin="SHIELD_A1" pad="5" route="all"/> 
-<connect gate="G$1" pin="SHIELD_A2" pad="6" route="all"/> 
-<connect gate="G$1" pin="SHIELD_B1" pad="7" route="all"/> 
-<connect gate="G$1" pin="SHIELD_B2" pad="8" route="all"/> 
-<connect gate="G$1" pin="VCC@1" pad="A1" route="all"/> 
-<connect gate="G$1" pin="VCC@2" pad="B1" route="all"/> 
-</connects>
-<technologies>
-<technology name="">
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="TPS2052BDGNR" uservalue="yes"> <gates>
 <gate name="G$1" symbol="TPS2052" x="0.00000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
 </gates>
@@ -16103,7 +16066,7 @@ Source: &lt;a href=&quot;http://www.ti.com/lit/ds/symlink/ts3a5223.pdf&quot;&gt;
 </device>
 </devices>
 </deviceset>
-<deviceset name="GRM155R61A105KE01D" prefix="C" uservalue="yes"> <gates>
+<deviceset name="CL05A105KO5NNNC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -16135,7 +16098,7 @@ Source: &lt;a href=&quot;http://www.ti.com/lit/ds/symlink/ts3a5223.pdf&quot;&gt;
 </device>
 </devices>
 </deviceset>
-<deviceset name="CC0201JRNPO9BN220" prefix="C" uservalue="yes"> <gates>
+<deviceset name="GRM0335C1H220JA01D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -16151,23 +16114,7 @@ Source: &lt;a href=&quot;http://www.ti.com/lit/ds/symlink/ts3a5223.pdf&quot;&gt;
 </device>
 </devices>
 </deviceset>
-<deviceset name="RMCF0201FT1M00" prefix="R" uservalue="yes"> <gates>
-<gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
-</gates>
-<devices>
-<device package="0201"> <connects>
-<connect gate="G$1" pin="1" pad="1" route="all"/> 
-<connect gate="G$1" pin="2" pad="2" route="all"/> 
-</connects>
-<technologies>
-<technology name="">
-<attribute name="HEIGHT"  value="0.25" constant="no"/> 
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="ABM8G-24-18-D2Y-T" prefix="Y" uservalue="yes"> <gates>
+<deviceset name="ABM8G-24.000MHZ-18-D2Y-T" prefix="Y" uservalue="yes"> <gates>
 <gate name="G$1" symbol="Y4" x="0.00000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -16451,6 +16398,56 @@ Source: &lt;a href=&quot;http://www.ti.com/lit/ds/symlink/ts3a5223.pdf&quot;&gt;
 <technologies>
 <technology name="">
 <attribute name="HEIGHT"  value="2.5" constant="no"/> 
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="EVQ-PLDA15" uservalue="yes"> <gates>
+<gate name="G$1" symbol="TS-" x="2.54000000" y="0.00000000" addlevel="next" swaplevel="0"/> 
+</gates>
+<devices>
+<device package="EVQ"> <connects>
+<connect gate="G$1" pin="A" pad="A@1" route="all"/> 
+<connect gate="G$1" pin="A'" pad="A@2" route="all"/> 
+<connect gate="G$1" pin="B" pad="B@1" route="all"/> 
+<connect gate="G$1" pin="B'" pad="B@2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="2" constant="no"/> 
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="GRM0335C1E470JA01D" prefix="C" uservalue="yes"> <gates>
+<gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
+</gates>
+<devices>
+<device package="0201"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.25" constant="no"/> 
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="ERJ-1GNJ151C" prefix="R" uservalue="yes"> <gates>
+<gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
+</gates>
+<devices>
+<device package="0201"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.25" constant="no"/> 
 </technology>
 </technologies>
 </device>
@@ -17120,7 +17117,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="GRM31CR61H106KA12L" prefix="C" uservalue="yes"> <gates>
+<deviceset name="CL31A106KBHNNNE" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -17152,7 +17149,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C0603X5R1A103K030BA" prefix="C" uservalue="yes"> <gates>
+<deviceset name="GRM033R61C103KA12D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -17168,7 +17165,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="IHLP3232DZER100M01" prefix="L" uservalue="yes"> <gates>
+<deviceset name="IHLP3232DZER100M11" prefix="L" uservalue="yes"> <gates>
 <gate name="G$1" symbol="L-US" x="0.00000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -17183,7 +17180,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="CRCW0201100KFNED" prefix="R" uservalue="yes"> <gates>
+<deviceset name="RC0201FR-07100KL" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -17884,6 +17881,189 @@ molded</description>
 </symbol>
 </symbols>
 <devicesets>
+<deviceset name="C" prefix="C" uservalue="yes"> <gates>
+<gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
+</gates>
+<devices>
+<device name="1210" package="1210"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="2.8" constant="no"/> 
+</technology>
+</technologies>
+</device>
+<device name="0402" package="0402"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.35" constant="no"/> 
+</technology>
+</technologies>
+</device>
+<device name="0603" package="0603"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.5" constant="no"/> 
+</technology>
+</technologies>
+</device>
+<device name="0805" package="0805"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.51" constant="no"/> 
+</technology>
+</technologies>
+</device>
+<device name="1206" package="1206"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.51" constant="no"/> 
+</technology>
+</technologies>
+</device>
+<device name="BZ02" package="CBZ02"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="G@2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="BZ05" package="CBZ05"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="G@2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="0201" package="0201"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.25" constant="no"/> 
+</technology>
+</technologies>
+</device>
+<device name="PANASONIC_F" package="PANASONIC_F"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="PANASONIC_D" package="PANASONIC_D"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R100UF" package="CPOL-RADIAL-100UF-25V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R10UF" package="CPOL-RADIAL-10UF-25V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R1000UF" package="CPOL-RADIAL-1000UF-25V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R1000UF63V" package="CPOL-RADIAL-1000UF-63V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="CPOL-D" package="CAN"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="PANASONIC_C" package="PANASONIC_C"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="CA1000UF-50V" package="CAN-SMD"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="1UF-FILM-250V" package="CAP_6054"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="PANASONIC_H" package="PANASONIC_H"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
 <deviceset name="R" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
@@ -17990,22 +18170,6 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="CL21A226MQCLQNC" prefix="C" uservalue="yes"> <gates>
-<gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
-</gates>
-<devices>
-<device package="0805"> <connects>
-<connect gate="G$1" pin="1" pad="1" route="all"/> 
-<connect gate="G$1" pin="2" pad="2" route="all"/> 
-</connects>
-<technologies>
-<technology name="">
-<attribute name="HEIGHT"  value="0.51" constant="no"/> 
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="LQH44PN6R8MP0L" prefix="L" uservalue="yes"> <gates>
 <gate name="G$1" symbol="L-US" x="0.00000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
@@ -18022,7 +18186,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="RC0402JR-7D0RL" prefix="R" uservalue="yes"> <gates>
+<deviceset name="RC1005J000CS" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -18038,7 +18202,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="UMK063CG100DTHF" prefix="C" uservalue="yes"> <gates>
+<deviceset name="UMK063CG100DTF" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -18054,23 +18218,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="RMCF0201FT1M00" prefix="R" uservalue="yes"> <gates>
-<gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
-</gates>
-<devices>
-<device package="0201"> <connects>
-<connect gate="G$1" pin="1" pad="1" route="all"/> 
-<connect gate="G$1" pin="2" pad="2" route="all"/> 
-</connects>
-<technologies>
-<technology name="">
-<attribute name="HEIGHT"  value="0.25" constant="no"/> 
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="GRM155R61A105KE01D" prefix="C" uservalue="yes"> <gates>
+<deviceset name="CL05A105KO5NNNC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -18086,7 +18234,7 @@ molded</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="ERJ-1GE0R00C" prefix="R" uservalue="yes"> <gates>
+<deviceset name="RC0201JR-070RL" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -18500,7 +18648,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="RC0603F331CS" prefix="R" uservalue="yes"> <gates>
+<deviceset name="ERJ-1GEJ331C" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -18548,7 +18696,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C1608X5R0J106M080AB" prefix="C" uservalue="yes"> <gates>
+<deviceset name="C1608X5R1A106M080AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -18564,7 +18712,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="GRM155R61A105KE01D" prefix="C" uservalue="yes"> <gates>
+<deviceset name="CL05A105KO5NNNC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -18580,7 +18728,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="BKP1005HM121-T" prefix="FB" uservalue="yes"> <gates>
+<deviceset name="BLM15PX121SN1D" prefix="FB" uservalue="yes"> <gates>
 <gate name="G$1" symbol="FB" x="-15.24000000" y="38.10000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -19004,7 +19152,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C0603X5R1A103K030BA" prefix="C" uservalue="yes"> <gates>
+<deviceset name="GRM033R61C103KA12D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -19405,7 +19553,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="ERJ-1GE0R00C" prefix="R" uservalue="yes"> <gates>
+<deviceset name="RC0201JR-070RL" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -20481,7 +20629,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="UMK063CG100DTHF" prefix="C" uservalue="yes"> <gates>
+<deviceset name="UMK063CG100DTF" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -20497,7 +20645,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C1608X5R0J106M080AB" prefix="C" uservalue="yes"> <gates>
+<deviceset name="C1608X5R1A106M080AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -20513,7 +20661,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="EMK107ABJ475KA-T" prefix="C" uservalue="yes"> <gates>
+<deviceset name="C1608X5R1C475K080AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -20529,7 +20677,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="GRM185R60J475ME15D" prefix="C" uservalue="yes"> <gates>
+<deviceset name="CGB3B1X5R1A475K055AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -21065,7 +21213,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C1608X5R0J106M080AB" prefix="C" uservalue="yes"> <gates>
+<deviceset name="C1608X5R1A106M080AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -21081,7 +21229,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C0603X5R1A103K030BA" prefix="C" uservalue="yes"> <gates>
+<deviceset name="GRM033R61C103KA12D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -21591,45 +21739,47 @@ chip</description>
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="X2" uservalue="yes"> <gates>
-<gate name="G$1" symbol="Q1" x="0.00000000" y="45.72000000" addlevel="next" swaplevel="0"/> 
+<deviceset name="C" prefix="C" uservalue="yes"> <gates>
+<gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
-<device name="SM49" package="SM49"> <connects>
+<device name="1210" package="1210"> <connects>
 <connect gate="G$1" pin="1" pad="1" route="all"/> 
 <connect gate="G$1" pin="2" pad="2" route="all"/> 
 </connects>
 <technologies>
 <technology name="">
+<attribute name="HEIGHT"  value="2.8" constant="no"/> 
 </technology>
 </technologies>
 </device>
-<device name="CS10" package="CS10"> <connects>
+<device name="0402" package="0402"> <connects>
 <connect gate="G$1" pin="1" pad="1" route="all"/> 
 <connect gate="G$1" pin="2" pad="2" route="all"/> 
 </connects>
 <technologies>
 <technology name="">
-<attribute name="HEIGHT"  value="1.5" constant="no"/> 
+<attribute name="HEIGHT"  value="0.35" constant="no"/> 
 </technology>
 </technologies>
 </device>
-<device name="CM415" package="CM415"> <connects>
+<device name="0603" package="0603"> <connects>
 <connect gate="G$1" pin="1" pad="1" route="all"/> 
 <connect gate="G$1" pin="2" pad="2" route="all"/> 
 </connects>
 <technologies>
 <technology name="">
-<attribute name="HEIGHT"  value="1" constant="no"/> 
+<attribute name="HEIGHT"  value="0.5" constant="no"/> 
 </technology>
 </technologies>
 </device>
-<device name="FOX" package="FQ1045A"> <connects>
+<device name="0805" package="0805"> <connects>
 <connect gate="G$1" pin="1" pad="1" route="all"/> 
 <connect gate="G$1" pin="2" pad="2" route="all"/> 
 </connects>
 <technologies>
 <technology name="">
+<attribute name="HEIGHT"  value="0.51" constant="no"/> 
 </technology>
 </technologies>
 </device>
@@ -21643,9 +21793,127 @@ chip</description>
 </technology>
 </technologies>
 </device>
+<device name="BZ02" package="CBZ02"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="G@2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="BZ05" package="CBZ05"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="G@2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="0201" package="0201"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="0.25" constant="no"/> 
+</technology>
+</technologies>
+</device>
+<device name="PANASONIC_F" package="PANASONIC_F"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="PANASONIC_D" package="PANASONIC_D"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R100UF" package="CPOL-RADIAL-100UF-25V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R10UF" package="CPOL-RADIAL-10UF-25V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R1000UF" package="CPOL-RADIAL-1000UF-25V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="R1000UF63V" package="CPOL-RADIAL-1000UF-63V"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="CPOL-D" package="CAN"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="PANASONIC_C" package="PANASONIC_C"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="CA1000UF-50V" package="CAN-SMD"> <connects>
+<connect gate="G$1" pin="1" pad="+" route="all"/> 
+<connect gate="G$1" pin="2" pad="-" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
+<device name="1UF-FILM-250V" package="CAP_6054"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+</technology>
+</technologies>
+</device>
 </devices>
 </deviceset>
-<deviceset name="GRM185R60J475ME15D" prefix="C" uservalue="yes"> <gates>
+<deviceset name="CGB3B1X5R1A475K055AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -21677,23 +21945,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="CL21A226MQCLQNC" prefix="C" uservalue="yes"> <gates>
-<gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
-</gates>
-<devices>
-<device package="0805"> <connects>
-<connect gate="G$1" pin="1" pad="1" route="all"/> 
-<connect gate="G$1" pin="2" pad="2" route="all"/> 
-</connects>
-<technologies>
-<technology name="">
-<attribute name="HEIGHT"  value="0.51" constant="no"/> 
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="CC0201JRNPO9BN220" prefix="C" uservalue="yes"> <gates>
+<deviceset name="GRM0335C1H220JA01D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -21704,6 +21956,22 @@ chip</description>
 <technologies>
 <technology name="">
 <attribute name="HEIGHT"  value="0.25" constant="no"/> 
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="ABM7-25.000MHZ-D2Y-T" uservalue="yes"> <gates>
+<gate name="G$1" symbol="Q1" x="0.00000000" y="45.72000000" addlevel="next" swaplevel="0"/> 
+</gates>
+<devices>
+<device package="CS10"> <connects>
+<connect gate="G$1" pin="1" pad="1" route="all"/> 
+<connect gate="G$1" pin="2" pad="2" route="all"/> 
+</connects>
+<technologies>
+<technology name="">
+<attribute name="HEIGHT"  value="1.5" constant="no"/> 
 </technology>
 </technologies>
 </device>
@@ -22085,7 +22353,7 @@ chip</description>
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="BKP1005HM121-T" prefix="FB" uservalue="yes"> <gates>
+<deviceset name="BLM15PX121SN1D" prefix="FB" uservalue="yes"> <gates>
 <gate name="G$1" symbol="FB" x="-15.24000000" y="38.10000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -22101,7 +22369,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C1608X5R0J106M080AB" prefix="C" uservalue="yes"> <gates>
+<deviceset name="C1608X5R1A106M080AC" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -22117,7 +22385,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C0603X5R1A103K030BA" prefix="C" uservalue="yes"> <gates>
+<deviceset name="GRM033R61C103KA12D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -22559,7 +22827,7 @@ chip</description>
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="BKP1005HM121-T" prefix="FB" uservalue="yes"> <gates>
+<deviceset name="BLM15PX121SN1D" prefix="FB" uservalue="yes"> <gates>
 <gate name="G$1" symbol="FB" x="-15.24000000" y="38.10000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -22994,7 +23262,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="C0603C0G1H470J030BA" prefix="C" uservalue="yes"> <gates>
+<deviceset name="GRM0335C1E470JA01D" prefix="C" uservalue="yes"> <gates>
 <gate name="G$1" symbol="C-US" x="-2.54000000" y="30.48000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -23010,7 +23278,7 @@ chip</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="ERJ-1GEF1500C" prefix="R" uservalue="yes"> <gates>
+<deviceset name="ERJ-1GNJ151C" prefix="R" uservalue="yes"> <gates>
 <gate name="G$1" symbol="R-US" x="-7.62000000" y="15.24000000" addlevel="next" swaplevel="0"/> 
 </gates>
 <devices>
@@ -23068,25 +23336,25 @@ chip</description>
 <attribute name="DY"  value="12.650"/> 
 <attribute name="SHEETNO"  value="4"/> 
 </part>
-<part name="IC6" library="qualified_1" deviceset="FT232R" device="Q" technology="" > <attribute name="DM"  value="0"/> 
+<part name="IC6" library="qualified_1" deviceset="FT232RQ-REEL" device="" technology="" value="FT232RQ-REEL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="0.000"/> 
 <attribute name="DX"  value="61.700"/> 
 <attribute name="DY"  value="13.850"/> 
 <attribute name="SHEETNO"  value="4"/> 
 </part>
-<part name="IC3" library="qualified_1" deviceset="SN74LVC1G126DCKR" device="" technology="" value="SN74LVC1G126DCKR"> <attribute name="DM"  value="0"/> 
+<part name="IC3" library="qualified_1" deviceset="SN74LV1T126DCKR" device="" technology="" value="SN74LV1T126DCKR"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="58.050"/> 
 <attribute name="DY"  value="17.100"/> 
 <attribute name="SHEETNO"  value="4"/> 
 </part>
-<part name="C81" library="qualified_1" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> <attribute name="DM"  value="0"/> 
+<part name="C81" library="qualified_1" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="0.000"/> 
 <attribute name="DX"  value="66.900"/> 
 <attribute name="DY"  value="11.100"/> 
 <attribute name="SHEETNO"  value="4"/> 
 </part>
-<part name="FB10" library="qualified_1" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB10" library="qualified_1" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="0.000"/> 
 <attribute name="DX"  value="56.400"/> 
 <attribute name="DY"  value="28.200"/> 
@@ -23110,18 +23378,18 @@ chip</description>
 <part name="R18" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="CR0805-J/-000ELF" device="" technology="" value="CR0805-J/-000ELF"> </part>
 <part name="U17" library="qualified_1" deviceset="TPS5450QDDARQ1" device="" technology="" value="TPS5450QDDARQ1"> </part>
 <part name="SUPPLY132" library="supply2" deviceset="GND" device="" technology="" > </part>
-<part name="C262" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="GRM31CR61H106KA12L" device="" technology="" value="GRM31CR61H106KA12L"> </part>
+<part name="C262" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="CL31A106KBHNNNE" device="" technology="" value="CL31A106KBHNNNE"> </part>
 <part name="C255" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="C0603C103K5RACTU" device="" technology="" value="C0603C103K5RACTU"> </part>
-<part name="C315" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> </part>
-<part name="L14" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="IHLP3232DZER100M01" device="" technology="" value="IHLP3232DZER100M01"> <attribute name="DM"  value="0"/> 
+<part name="C315" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> </part>
+<part name="L14" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="IHLP3232DZER100M11" device="" technology="" value="IHLP3232DZER100M11"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="180.000"/> 
 <attribute name="DX"  value="76.000"/> 
 <attribute name="DY"  value="17.000"/> 
 <attribute name="SHEETNO"  value="1"/> 
 </part>
-<part name="C316" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> </part>
+<part name="C316" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> </part>
 <part name="SUPPLY188" library="supply2" deviceset="GND" device="" technology="" > </part>
-<part name="R59" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R59" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
@@ -23152,20 +23420,20 @@ chip</description>
 <attribute name="DY"  value="25.600"/> 
 <attribute name="SHEETNO"  value="1"/> 
 </part>
-<part name="C92" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="CL21A226MQCLQNC" device="" technology="" value="CL21A226MQCLQNC"> <attribute name="DM"  value="0"/> 
+<part name="C92" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="C" device="0805" technology="" value="22uF"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="270.000"/> 
 <attribute name="DX"  value="71.300"/> 
 <attribute name="DY"  value="21.800"/> 
 <attribute name="SHEETNO"  value="1"/> 
 </part>
-<part name="IC4" library="qualified_1" deviceset="TPS62111RSAR" device="" technology="" value="TPS62111RSAR"> <attribute name="DM"  value="0"/> 
+<part name="IC4" library="qualified_1" deviceset="TPS62111RSAT" device="" technology="" value="TPS62111RSAT"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="180.000"/> 
 <attribute name="DX"  value="74.800"/> 
 <attribute name="DY"  value="22.000"/> 
 <attribute name="SHEETNO"  value="1"/> 
 </part>
 <part name="L15" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="LQH44PN6R8MP0L" device="" technology="" value="LQH44PN6R8MP0L"> </part>
-<part name="R19" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="RC0402JR-7D0RL" device="" technology="" value="RC0402JR-7D0RL"> <attribute name="DM"  value="0"/> 
+<part name="R19" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="RC1005J000CS" device="" technology="" value="RC1005J000CS"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="270.000"/> 
 <attribute name="DX"  value="72.800"/> 
 <attribute name="DY"  value="18.400"/> 
@@ -23182,18 +23450,18 @@ chip</description>
 <part name="SUPPLY117" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY97" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY98" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="C93" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="UMK063CG100DTHF" device="" technology="" value="UMK063CG100DTHF"> </part>
-<part name="R20" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="RMCF0201FT1M00" device="" technology="" value="RMCF0201FT1M00"> </part>
-<part name="C87" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="GRM155R61A105KE01D" device="" technology="" value="GRM155R61A105KE01D"> </part>
-<part name="R21" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> </part>
+<part name="C93" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="UMK063CG100DTF" device="" technology="" value="UMK063CG100DTF"> </part>
+<part name="R20" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="R" device="0201" technology="" value="1M0"> </part>
+<part name="C87" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="CL05A105KO5NNNC" device="" technology="" value="CL05A105KO5NNNC"> </part>
+<part name="R21" library="qualified_1@eagle_src_repo_825e5973c79738778b249d35b895f4444d985c7a" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> </part>
 <part name="U$9" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 <part name="J4" library="qualified_1" deviceset="7499111447" device="" technology="" value="7499111447"> </part>
 <part name="C88" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C90" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="SUPPLY94" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY100" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="R25" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="RC0603F331CS" device="" technology="" value="RC0603F331CS"> </part>
-<part name="R24" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="RC0603F331CS" device="" technology="" value="RC0603F331CS"> </part>
+<part name="R25" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="ERJ-1GEJ331C" device="" technology="" value="ERJ-1GEJ331C"> </part>
+<part name="R24" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="ERJ-1GEJ331C" device="" technology="" value="ERJ-1GEJ331C"> </part>
 <part name="SUPPLY107" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY101" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="R41" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="ERJ-1GNF10R0C" device="" technology="" value="ERJ-1GNF10R0C"> </part>
@@ -23204,11 +23472,11 @@ chip</description>
 <part name="C91" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="SUPPLY102" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="C63" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
-<part name="C64" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="C1608X5R0J106M080AB" device="" technology="" value="C1608X5R0J106M080AB"> </part>
-<part name="C65" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="GRM155R61A105KE01D" device="" technology="" value="GRM155R61A105KE01D"> </part>
+<part name="C64" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="C1608X5R1A106M080AC" device="" technology="" value="C1608X5R1A106M080AC"> </part>
+<part name="C65" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="CL05A105KO5NNNC" device="" technology="" value="CL05A105KO5NNNC"> </part>
 <part name="C66" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="SUPPLY92" library="supply2" deviceset="GND" device="" technology="" > </part>
-<part name="FB9" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> </part>
+<part name="FB9" library="qualified_1@eagle_src_repo_635c6cefb04d901352cb5cab0982b753f09e9156" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> </part>
 <part name="SUPPLY93" library="supply2" deviceset="GND" device="" technology="" > </part>
 <part name="U16" library="qualified_1" deviceset="TPD4E02B04DQAR" device="" technology="" value="TPD4E02B04DQAR"> </part>
 <part name="U8" library="qualified_1" deviceset="TPD4E02B04DQAR" device="" technology="" value="TPD4E02B04DQAR"> </part>
@@ -23222,14 +23490,14 @@ chip</description>
 <part name="SUPPLY95" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="R26" library="qualified_1" deviceset="P1.0KAGTR-ND" device="" technology="" value="P1.0KAGTR-ND"> </part>
 <part name="R45" library="qualified_1" deviceset="ERJ-2RKF3000X" device="" technology="" value="ERJ-2RKF3000X"> </part>
-<part name="R28" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> </part>
+<part name="R28" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> </part>
 <part name="U$19" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 <part name="D8" library="qualified_1" deviceset="150060GS75000" device="" technology="" value="150060GS75000"> </part>
 <part name="Q5" library="qualified_1" deviceset="BSS138" device="" technology="" value="BSS138"> </part>
 <part name="SUPPLY96" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="R40" library="qualified_1" deviceset="P1.0KAGTR-ND" device="" technology="" value="P1.0KAGTR-ND"> </part>
 <part name="R29" library="qualified_1" deviceset="ERJ-2RKF3000X" device="" technology="" value="ERJ-2RKF3000X"> </part>
-<part name="R30" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> </part>
+<part name="R30" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> </part>
 <part name="U$20" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 <part name="D10" library="qualified_1" deviceset="PS04LTVA1" device="" technology="" value="PS04LTVA1"> </part>
 <part name="D9" library="qualified_1" deviceset="PS04LTVA1" device="" technology="" value="PS04LTVA1"> </part>
@@ -23238,11 +23506,11 @@ chip</description>
 <part name="SUPPLY69" library="supply2" deviceset="GND" device="" technology="" > </part>
 <part name="L7" library="qualified_1" deviceset="DLP11SN900HL2L" device="" technology="" value="DLP11SN900HL2L"> </part>
 <part name="J3" library="qualified_1" deviceset="10118192-0001LF" device="" technology="" value="10118192-0001LF"> </part>
-<part name="C89" library="qualified_1" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> </part>
+<part name="C89" library="qualified_1" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> </part>
 <part name="SUPPLY135" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="R31" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> </part>
+<part name="R31" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> </part>
 <part name="U$22" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
-<part name="U14" library="qualified_1" deviceset="685-119-134-923" device="" technology="" value="685 119 134 923"> </part>
+<part name="U14" library="qualified_1" deviceset="685119134923" device="" technology="" value="685119134923"> </part>
 <part name="C271" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="0.000"/> 
 <attribute name="DX"  value="30.550"/> 
@@ -23262,13 +23530,13 @@ chip</description>
 </part>
 <part name="R43" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" deviceset="CRCW040275R0FKEDC" device="" technology="" value="CRCW040275R0FKEDC"> </part>
 <part name="SUPPLY111" library="supply2" deviceset="GND" device="" technology="" > </part>
-<part name="C257" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> <attribute name="DM"  value="0"/> 
+<part name="C257" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="0.000"/> 
 <attribute name="DX"  value="30.550"/> 
 <attribute name="DY"  value="33.500"/> 
 <attribute name="SHEETNO"  value="6"/> 
 </part>
-<part name="C261" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> <attribute name="DM"  value="0"/> 
+<part name="C261" library="qualified_1@eagle_src_repo_08f38ff5c3a3a6fa35c93a02bac883b74ea519d0" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="0.000"/> 
 <attribute name="DX"  value="30.550"/> 
 <attribute name="DY"  value="33.500"/> 
@@ -23295,7 +23563,7 @@ chip</description>
 <part name="R38" library="qualified_1@eagle_src_repo_83354d0c2c11c8ce792d5cc032a7091e5ff73f00" deviceset="RC0201FR-0710KL" device="" technology="" value="RC0201FR-0710KL"> </part>
 <part name="SUPPLY110" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="U19" library="qualified_1" deviceset="TS3A5223RSWR" device="" technology="" value="TS3A5223RSWR"> </part>
-<part name="R39" library="qualified_1@eagle_src_repo_83354d0c2c11c8ce792d5cc032a7091e5ff73f00" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> </part>
+<part name="R39" library="qualified_1@eagle_src_repo_83354d0c2c11c8ce792d5cc032a7091e5ff73f00" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> </part>
 <part name="U$25" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 <part name="SUPPLY120" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="J5" library="qualified_1" deviceset="DF40C-100DS-0.4V(51)" device="" technology="" value="DF40C-100DS-0.4V(51)"> </part>
@@ -23310,9 +23578,9 @@ chip</description>
 <part name="SUPPLY122" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="U$2" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 <part name="IC5" library="qualified_1" deviceset="CAT24C256YI-GT3" device="" technology="" value="CAT24C256YI-GT3"> </part>
-<part name="R52" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> </part>
-<part name="R53" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> </part>
-<part name="R54" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> </part>
+<part name="R52" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> </part>
+<part name="R53" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> </part>
+<part name="R54" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> </part>
 <part name="C260" library="qualified_1@eagle_src_repo_23ecad3ae72028015427fba7d2ea5a80aee78817" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="SUPPLY123" library="supply2" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY124" library="supply2" deviceset="GND" device="" technology="" > </part>
@@ -23321,10 +23589,10 @@ chip</description>
 <part name="SUPPLY129" library="supply2" deviceset="GND" device="" technology="" > </part>
 <part name="R56" library="qualified_1" deviceset="ERJ-1GNJ152C" device="" technology="" value="ERJ-1GNJ152C"> </part>
 <part name="R57" library="qualified_1" deviceset="ERJ-1GNJ152C" device="" technology="" value="ERJ-1GNJ152C"> </part>
-<part name="R44" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> </part>
+<part name="R44" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> </part>
 <part name="R48" library="qualified_1" deviceset="R" device="0201" technology="" value="DNP"> </part>
-<part name="R49" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> </part>
-<part name="R50" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> </part>
+<part name="R49" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> </part>
+<part name="R50" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> </part>
 <part name="Q1" library="qualified_1" deviceset="BSS138" device="" technology="" value="BSS138"> </part>
 <part name="Q2" library="qualified_1" deviceset="FDN360P" device="" technology="" value="FDN360P"> </part>
 <part name="Q3" library="qualified_1" deviceset="FDN360P" device="" technology="" value="FDN360P"> </part>
@@ -23341,7 +23609,7 @@ chip</description>
 <part name="R32" library="qualified_1" deviceset="RC0201FR-0712K1L" device="" technology="" value="RC0201FR-0712K1L"> </part>
 <part name="SUPPLY163" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="Y3" library="qualified_1" deviceset="ABM8G-20.000MHZ-18-D2Y-T" device="" technology="" value="ABM8G-20.000MHZ-18-D2Y-T"> </part>
-<part name="C285" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="UMK063CG100DTHF" device="" technology="" value="UMK063CG100DTHF"> </part>
+<part name="C285" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="UMK063CG100DTF" device="" technology="" value="UMK063CG100DTF"> </part>
 <part name="C286" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C287" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C288" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
@@ -23350,8 +23618,8 @@ chip</description>
 <part name="C42" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C43" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C44" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
-<part name="C45" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="C1608X5R0J106M080AB" device="" technology="" value="C1608X5R0J106M080AB"> </part>
-<part name="C46" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="C1608X5R0J106M080AB" device="" technology="" value="C1608X5R0J106M080AB"> </part>
+<part name="C45" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="C1608X5R1A106M080AC" device="" technology="" value="C1608X5R1A106M080AC"> </part>
+<part name="C46" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="C1608X5R1A106M080AC" device="" technology="" value="C1608X5R1A106M080AC"> </part>
 <part name="SUPPLY164" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY165" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="R55" library="qualified_1" deviceset="RC0201FR-0710KL" device="" technology="" value="RC0201FR-0710KL"> </part>
@@ -23364,40 +23632,40 @@ chip</description>
 <part name="C268" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C280" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C281" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
-<part name="C282" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="EMK107ABJ475KA-T" device="" technology="" value="EMK107ABJ475KA-T"> </part>
-<part name="C283" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="EMK107ABJ475KA-T" device="" technology="" value="EMK107ABJ475KA-T"> </part>
+<part name="C282" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="C1608X5R1C475K080AC" device="" technology="" value="C1608X5R1C475K080AC"> </part>
+<part name="C283" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="C1608X5R1C475K080AC" device="" technology="" value="C1608X5R1C475K080AC"> </part>
 <part name="C263" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C273" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="U18" library="qualified_1" deviceset="ADP1740ACPZ-1.2-R7" device="" technology="" value="ADP1740ACPZ-1.2-R7"> </part>
-<part name="C158" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> </part>
-<part name="C167" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> </part>
-<part name="R47" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> </part>
+<part name="C158" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> </part>
+<part name="C167" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> </part>
+<part name="R47" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> </part>
 <part name="SUPPLY84" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY87" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY99" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="C270" library="qualified_1@eagle_src_repo_701dee95a4f0c9d27f896634bd535ea9ef5a137e" deviceset="GRM033R71A682KA01D" device="" technology="" value="GRM033R71A682KA01D"> </part>
 <part name="SUPPLY141" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="U$30" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
-<part name="K1" library="qualified_1" deviceset="CNU079S-008-A101" device="" technology="" value="CNU079S-008-A101"> </part>
-<part name="FB11" library="qualified_1" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="K1" library="qualified_1" deviceset="61400826021" device="" technology="" value="61400826021"> </part>
+<part name="FB11" library="qualified_1" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="54.000"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="C275" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" deviceset="C1608X5R0J106M080AB" device="" technology="" value="C1608X5R0J106M080AB"> <attribute name="DM"  value="0"/> 
+<part name="C275" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" deviceset="C1608X5R1A106M080AC" device="" technology="" value="C1608X5R1A106M080AC"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="56.200"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="FB12" library="qualified_1" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB12" library="qualified_1" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="49.400"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="C274" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> <attribute name="DM"  value="0"/> 
+<part name="C274" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="47.400"/> 
 <attribute name="DY"  value="38.400"/> 
@@ -23429,13 +23697,13 @@ chip</description>
 <part name="C278" library="qualified_1@eagle_src_repo_8819a94826fe107100c913d4ec412d3185f90c61" deviceset="C" device="1206" technology="" value="DNP"> </part>
 <part name="SUPPLY150" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY148" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="FB13" library="qualified_1" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB13" library="qualified_1" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="49.400"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="FB14" library="qualified_1" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB14" library="qualified_1" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="49.400"/> 
 <attribute name="DY"  value="38.400"/> 
@@ -23446,27 +23714,27 @@ chip</description>
 <part name="SUPPLY152" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY153" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="U13" library="qualified_1" deviceset="USB2513B-AEZG" device="" technology="" value="USB2513B-AEZG"> </part>
-<part name="C313" library="qualified_1" deviceset="GRM155R61A105KE01D" device="" technology="" value="GRM155R61A105KE01D"> </part>
+<part name="C313" library="qualified_1" deviceset="CL05A105KO5NNNC" device="" technology="" value="CL05A105KO5NNNC"> </part>
 <part name="C14" library="qualified_1" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="5.600"/> 
 <attribute name="DY"  value="28.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="C15" library="qualified_1" deviceset="GRM155R61A105KE01D" device="" technology="" value="GRM155R61A105KE01D"> </part>
+<part name="C15" library="qualified_1" deviceset="CL05A105KO5NNNC" device="" technology="" value="CL05A105KO5NNNC"> </part>
 <part name="C290" library="qualified_1" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="5.600"/> 
 <attribute name="DY"  value="28.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="R63" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R63" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R64" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R64" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
@@ -23484,25 +23752,25 @@ chip</description>
 <attribute name="DY"  value="28.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="R5" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R5" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R6" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R6" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R7" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R7" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R8" library="qualified_1" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R8" library="qualified_1" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
@@ -23544,32 +23812,32 @@ chip</description>
 <attribute name="DY"  value="28.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="C299" library="qualified_1" deviceset="GRM155R61A105KE01D" device="" technology="" value="GRM155R61A105KE01D"> </part>
-<part name="C300" library="qualified_1" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> <attribute name="DM"  value="0"/> 
+<part name="C299" library="qualified_1" deviceset="CL05A105KO5NNNC" device="" technology="" value="CL05A105KO5NNNC"> </part>
+<part name="C300" library="qualified_1" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="0.000"/> 
 <attribute name="DX"  value="66.900"/> 
 <attribute name="DY"  value="11.100"/> 
 <attribute name="SHEETNO"  value="4"/> 
 </part>
-<part name="C301" library="qualified_1" deviceset="CC0201JRNPO9BN220" device="" technology="" value="CC0201JRNPO9BN220"> <attribute name="DM"  value="0"/> 
+<part name="C301" library="qualified_1" deviceset="GRM0335C1H220JA01D" device="" technology="" value="GRM0335C1H220JA01D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-17.200"/> 
 <attribute name="DY"  value="6.600"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="C302" library="qualified_1" deviceset="CC0201JRNPO9BN220" device="" technology="" value="CC0201JRNPO9BN220"> <attribute name="DM"  value="0"/> 
+<part name="C302" library="qualified_1" deviceset="GRM0335C1H220JA01D" device="" technology="" value="GRM0335C1H220JA01D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-90.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="6.600"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R62" library="qualified_1" deviceset="RMCF0201FT1M00" device="" technology="" value="RMCF0201FT1M00"> <attribute name="DM"  value="0"/> 
+<part name="R62" library="qualified_1" deviceset="R" device="0201" technology="" value="1M0"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="Y1" library="qualified_1" deviceset="ABM8G-24-18-D2Y-T" device="" technology="" value="ABM8G-24-18-D2Y-T"> </part>
+<part name="Y1" library="qualified_1" deviceset="ABM8G-24.000MHZ-18-D2Y-T" device="" technology="" value="ABM8G-24.000MHZ-18-D2Y-T"> </part>
 <part name="U$29" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 <part name="SUPPLY169" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY171" library="qualified_1" deviceset="GND" device="" technology="" > </part>
@@ -23592,7 +23860,7 @@ chip</description>
 </part>
 <part name="IC8" library="qualified_1" deviceset="SN74LVC1G126" device="DCKR" technology="" value="DNP"> </part>
 <part name="SUPPLY14" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="R60" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> <attribute name="DM"  value="0"/> 
+<part name="R60" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
@@ -23600,7 +23868,7 @@ chip</description>
 </part>
 <part name="U$15" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 <part name="U15" library="qualified_1" deviceset="USB5744/2G" device="" technology="" value="USB5744/2G"> </part>
-<part name="C17" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> <attribute name="DM"  value="0"/> 
+<part name="C17" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="180.000"/> 
 <attribute name="DX"  value="70.250"/> 
 <attribute name="DY"  value="17.350"/> 
@@ -23608,7 +23876,7 @@ chip</description>
 </part>
 <part name="IC7" library="qualified_1" deviceset="EP5368QI" device="" technology="" value="EP5368QI"> </part>
 <part name="C18" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
-<part name="C19" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="CL21A226MQCLQNC" device="" technology="" value="CL21A226MQCLQNC"> </part>
+<part name="C19" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="C" device="0805" technology="" value="22uF"> </part>
 <part name="SUPPLY15" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY16" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY17" library="qualified_1" deviceset="GND" device="" technology="" > </part>
@@ -23621,19 +23889,19 @@ chip</description>
 <part name="SUPPLY22" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="V3" library="qualified_1" deviceset="GND" device="" technology="" > <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="C20" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="CC0201JRNPO9BN220" device="" technology="" value="CC0201JRNPO9BN220"> <attribute name="DM"  value="0"/> 
+<part name="C20" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM0335C1H220JA01D" device="" technology="" value="GRM0335C1H220JA01D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-17.200"/> 
 <attribute name="DY"  value="6.600"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="C21" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="CC0201JRNPO9BN220" device="" technology="" value="CC0201JRNPO9BN220"> <attribute name="DM"  value="0"/> 
+<part name="C21" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM0335C1H220JA01D" device="" technology="" value="GRM0335C1H220JA01D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-90.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="6.600"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="Y2" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="X2" device="CS10" technology="" value="25.000MHz"> <attribute name="DM"  value="-1"/> 
+<part name="Y2" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="ABM7-25.000MHZ-D2Y-T" device="" technology="" value="ABM7-25.000MHZ-D2Y-T"> <attribute name="DM"  value="-1"/> 
 <attribute name="DR"  value="-90.000"/> 
 <attribute name="DX"  value="-19.200"/> 
 <attribute name="DY"  value="7.600"/> 
@@ -23645,7 +23913,7 @@ chip</description>
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R13" library="qualified_1" deviceset="RMCF0201FT1M00" device="" technology="" value="RMCF0201FT1M00"> <attribute name="DM"  value="0"/> 
+<part name="R13" library="qualified_1" deviceset="R" device="0201" technology="" value="1M0"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
@@ -23674,7 +23942,7 @@ chip</description>
 <part name="C22" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C23" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C24" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
-<part name="C25" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> </part>
+<part name="C25" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> </part>
 <part name="V1" library="qualified_1" deviceset="GND" device="" technology="" > <attribute name="SHEETNO"  value="9"/> 
 </part>
 <part name="C26" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
@@ -23685,51 +23953,51 @@ chip</description>
 <part name="C31" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C32" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C33" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
-<part name="C34" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM185R60J475ME15D" device="" technology="" value="GRM185R60J475ME15D"> </part>
+<part name="C34" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="CGB3B1X5R1A475K055AC" device="" technology="" value="CGB3B1X5R1A475K055AC"> </part>
 <part name="V2" library="qualified_1" deviceset="GND" device="" technology="" > <attribute name="SHEETNO"  value="9"/> 
 </part>
 <part name="C296" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C295" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C294" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C303" library="qualified_1@eagle_src_repo_b39d46a5feff4f7ade7f2a4f70c4d4847a03ea32" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
-<part name="R65" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> <attribute name="DM"  value="0"/> 
+<part name="R65" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-17.200"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R69" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> <attribute name="DM"  value="0"/> 
+<part name="R69" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-17.200"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
-<part name="R3" library="qualified_1" deviceset="ERJ-1GE0R00C" device="" technology="" value="ERJ-1GE0R00C"> <attribute name="DM"  value="0"/> 
+<part name="R3" library="qualified_1" deviceset="RC0201JR-070RL" device="" technology="" value="RC0201JR-070RL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-17.200"/> 
 <attribute name="DY"  value="8.200"/> 
 <attribute name="SHEETNO"  value="9"/> 
 </part>
 <part name="U$31" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
-<part name="FB16" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB16" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="54.000"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="C3" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="C1608X5R0J106M080AB" device="" technology="" value="C1608X5R0J106M080AB"> <attribute name="DM"  value="0"/> 
+<part name="C3" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="C1608X5R1A106M080AC" device="" technology="" value="C1608X5R1A106M080AC"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="56.200"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="FB15" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB15" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="49.400"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="C305" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> <attribute name="DM"  value="0"/> 
+<part name="C305" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="47.400"/> 
 <attribute name="DY"  value="38.400"/> 
@@ -23752,13 +24020,13 @@ chip</description>
 <part name="C7" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="GRM31CR60J227ME11L" device="" technology="" value="GRM31CR60J227ME11L"> </part>
 <part name="SUPPLY173" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY193" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="FB17" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB17" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="49.400"/> 
 <attribute name="DY"  value="38.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="FB4" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB4" library="qualified_1@eagle_src_repo_d00aa7e5b0aed880e2479218df7f64b10b504166" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="49.400"/> 
 <attribute name="DY"  value="38.400"/> 
@@ -23783,13 +24051,13 @@ chip</description>
 <part name="J7" library="qualified_1" deviceset="70553-0002" device="" technology="" value="70553-0002"> </part>
 <part name="SUPPLY192" library="supply2" deviceset="GND" device="" technology="" > </part>
 <part name="U$33" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
-<part name="FB18" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB18" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="11.200"/> 
 <attribute name="DY"  value="28.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="IC9" library="qualified_1" deviceset="SN74LVC1G126DCKR" device="" technology="AHC" value="SN74LVC1G126DCKR"> </part>
+<part name="IC9" library="qualified_1" deviceset="SN74LV1T126DCKR" device="" technology="AHC" value="SN74LV1T126DCKR"> </part>
 <part name="L19" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="DLP11SN900HL2L" device="" technology="" value="DLP11SN900HL2L"> </part>
 <part name="IC10" library="qualified_1" deviceset="TPS2065CDGNR" device="" technology="" value="TPS2065CDGNR"> </part>
 <part name="C308" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
@@ -23811,7 +24079,7 @@ chip</description>
 <attribute name="SHEETNO"  value="2"/> 
 </part>
 <part name="SUPPLY185" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="FB19" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB19" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="11.200"/> 
 <attribute name="DY"  value="28.400"/> 
@@ -23821,7 +24089,7 @@ chip</description>
 <part name="U22" library="qualified_1" deviceset="TPD4E02B04DQAR" device="" technology="" value="TPD4E02B04DQAR"> </part>
 <part name="U23" library="qualified_1" deviceset="TPD4E02B04DQAR" device="" technology="" value="TPD4E02B04DQAR"> </part>
 <part name="D16" library="qualified_1" deviceset="PS04LTVA1" device="" technology="" value="PS04LTVA1"> </part>
-<part name="FB20" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB20" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="11.200"/> 
 <attribute name="DY"  value="28.400"/> 
@@ -23833,13 +24101,13 @@ chip</description>
 <part name="C311" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="C312" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
 <part name="U$34" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
-<part name="FB1" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB1" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="11.200"/> 
 <attribute name="DY"  value="28.400"/> 
 <attribute name="SHEETNO"  value="2"/> 
 </part>
-<part name="IC2" library="qualified_1" deviceset="SN74LVC1G126DCKR" device="" technology="AHC" value="SN74LVC1G126DCKR"> </part>
+<part name="IC2" library="qualified_1" deviceset="SN74LV1T126DCKR" device="" technology="AHC" value="SN74LV1T126DCKR"> </part>
 <part name="L1" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="DLP11SN900HL2L" device="" technology="" value="DLP11SN900HL2L"> </part>
 <part name="IC1" library="qualified_1" deviceset="TPS2065CDGNR" device="" technology="" value="TPS2065CDGNR"> </part>
 <part name="C4" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="GRM033R60J104KE19D" device="" technology="" value="GRM033R60J104KE19D"> </part>
@@ -23861,7 +24129,7 @@ chip</description>
 <attribute name="SHEETNO"  value="2"/> 
 </part>
 <part name="SUPPLY8" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="FB2" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB2" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="11.200"/> 
 <attribute name="DY"  value="28.400"/> 
@@ -23871,7 +24139,7 @@ chip</description>
 <part name="U3" library="qualified_1" deviceset="TPD4E02B04DQAR" device="" technology="" value="TPD4E02B04DQAR"> </part>
 <part name="U4" library="qualified_1" deviceset="TPD4E02B04DQAR" device="" technology="" value="TPD4E02B04DQAR"> </part>
 <part name="D17" library="qualified_1" deviceset="PS04LTVA1" device="" technology="" value="PS04LTVA1"> </part>
-<part name="FB3" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BKP1005HM121-T" device="" technology="" value="BKP1005HM121-T"> <attribute name="DM"  value="0"/> 
+<part name="FB3" library="qualified_1@eagle_src_repo_0b5741b5d4abbb92614c593c71c49b300549e5ff" deviceset="BLM15PX121SN1D" device="" technology="" value="BLM15PX121SN1D"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="90.000"/> 
 <attribute name="DX"  value="11.200"/> 
 <attribute name="DY"  value="28.400"/> 
@@ -23886,18 +24154,18 @@ chip</description>
 <part name="R68" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="CR0805-J/-000ELF" device="" technology="" value="CR0805-J/-000ELF"> </part>
 <part name="U1" library="qualified_1" deviceset="TPS5450QDDARQ1" device="" technology="" value="TPS5450QDDARQ1"> </part>
 <part name="SUPPLY24" library="supply2" deviceset="GND" device="" technology="" > </part>
-<part name="C13" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="GRM31CR61H106KA12L" device="" technology="" value="GRM31CR61H106KA12L"> </part>
+<part name="C13" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="CL31A106KBHNNNE" device="" technology="" value="CL31A106KBHNNNE"> </part>
 <part name="C30" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="C0603C103K5RACTU" device="" technology="" value="C0603C103K5RACTU"> </part>
-<part name="C52" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> </part>
-<part name="L2" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="IHLP3232DZER100M01" device="" technology="" value="IHLP3232DZER100M01"> <attribute name="DM"  value="0"/> 
+<part name="C52" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> </part>
+<part name="L2" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="IHLP3232DZER100M11" device="" technology="" value="IHLP3232DZER100M11"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="180.000"/> 
 <attribute name="DX"  value="76.000"/> 
 <attribute name="DY"  value="17.000"/> 
 <attribute name="SHEETNO"  value="1"/> 
 </part>
-<part name="C78" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="C0603X5R1A103K030BA" device="" technology="" value="C0603X5R1A103K030BA"> </part>
+<part name="C78" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="GRM033R61C103KA12D" device="" technology="" value="GRM033R61C103KA12D"> </part>
 <part name="SUPPLY25" library="supply2" deviceset="GND" device="" technology="" > </part>
-<part name="R12" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="CRCW0201100KFNED" device="" technology="" value="CRCW0201100KFNED"> <attribute name="DM"  value="0"/> 
+<part name="R12" library="qualified_1@eagle_src_repo_f26ba765df9be4aea4dc36b2b99244de1327d3cb" deviceset="RC0201FR-07100KL" device="" technology="" value="RC0201FR-07100KL"> <attribute name="DM"  value="0"/> 
 <attribute name="DR"  value="-270.000"/> 
 <attribute name="DX"  value="-20.800"/> 
 <attribute name="DY"  value="8.200"/> 
@@ -23920,26 +24188,26 @@ chip</description>
 <part name="SUPPLY195" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY196" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="R70" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="RC0201FR-0710KL" device="" technology="" value="RC0201FR-0710KL"> </part>
-<part name="C319" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="C0603C0G1H470J030BA" device="" technology="" value="C0603C0G1H470J030BA"> </part>
+<part name="C319" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="GRM0335C1E470JA01D" device="" technology="" value="GRM0335C1E470JA01D"> </part>
 <part name="D19" library="qualified_1" deviceset="B72590D0050A060" device="" technology="" value="B72590D0050A060"> </part>
 <part name="SUPPLY197" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="R71" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="ERJ-1GEF1500C" device="" technology="" value="ERJ-1GEF1500C"> </part>
+<part name="R71" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="ERJ-1GNJ151C" device="" technology="" value="ERJ-1GNJ151C"> </part>
 <part name="U$1" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
-<part name="S1" library="qualified_1" deviceset="EVQ-P7C01P" device="" technology="" value="EVQ-P7C01P"> </part>
+<part name="S1" library="qualified_1" deviceset="EVQ-PLDA15" device="" technology="" value="EVQ-PLDA15"> </part>
 <part name="SUPPLY1" library="qualified_1" deviceset="GND" device="" technology="" > </part>
 <part name="SUPPLY3" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="R1" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="RC0201FR-0710KL" device="" technology="" value="RC0201FR-0710KL"> </part>
-<part name="C1" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="C0603C0G1H470J030BA" device="" technology="" value="C0603C0G1H470J030BA"> </part>
+<part name="R1" library="qualified_1" deviceset="RC0201FR-0710KL" device="" technology="" value="RC0201FR-0710KL"> </part>
+<part name="C1" library="qualified_1" deviceset="GRM0335C1E470JA01D" device="" technology="" value="GRM0335C1E470JA01D"> </part>
 <part name="D1" library="qualified_1" deviceset="B72590D0050A060" device="" technology="" value="B72590D0050A060"> </part>
 <part name="SUPPLY2" library="qualified_1" deviceset="GND" device="" technology="" > </part>
-<part name="R2" library="qualified_1@eagle_src_repo_c6614e3cc11e779d3ff6357e0a9e972de604ed16" deviceset="ERJ-1GEF1500C" device="" technology="" value="ERJ-1GEF1500C"> </part>
+<part name="R2" library="qualified_1" deviceset="ERJ-1GNJ151C" device="" technology="" value="ERJ-1GNJ151C"> </part>
 <part name="TOC" library="qualified_1" deviceset="A3-L-GUMSTIX" device="" technology="" > </part>
 </parts>
 <sheets>
 <sheet>
 <plain>
 <text x="25.40000000" y="228.60000000" size="12.70000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >Table of Contents</text>
-<text x="332.74000000" y="19.05000000" size="2.54000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >HurraCloud v0.3</text>
+<text x="332.74000000" y="19.05000000" size="2.54000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >HurraCloud v0.4</text>
 <text x="25.40000000" y="195.58000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >2) USB to UART </text>
 <text x="25.40000000" y="187.96000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >3) 5V/5A Regulator </text>
 <text x="25.40000000" y="180.34000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >4) 3.3V 1500mA Buck </text>
@@ -23962,7 +24230,7 @@ chip</description>
 <text x="25.40000000" y="50.80000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >21) USB 3.0 HOST (Vertical) </text>
 <text x="25.40000000" y="43.18000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >22) 5V/5A Regulator </text>
 <text x="25.40000000" y="35.56000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >23) Pushbutton R/A </text>
-<text x="25.40000000" y="27.94000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >24) Pushbutton R/A </text>
+<text x="25.40000000" y="27.94000000" size="5.08000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >24) Pushbutton </text>
 </plain>
 <moduleinsts>
 </moduleinsts>
@@ -32150,7 +32418,7 @@ chip</description>
 </segment>
 </net>
 
-<net name="14.USB3_CC1_GPIO">
+<net name="14.nRESET_NRESET">
 <segment>
 <wire x1="213.99500000" y1="130.17500000" x2="234.31500000" y2="130.17500000" width="0.15240000" layer="91" style="continuous" curve="0.00000000" cap="round"/> 
 <label x="221.61500000" y="130.17500000" size="1.77800000" layer="95" font="proportional" ratio="8" rot="R0" xref="no"/> 
@@ -32189,7 +32457,7 @@ chip</description>
 </sheet>
 <sheet>
 <plain>
-<text x="332.74000000" y="19.05000000" size="2.54000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >Pushbutton R/A </text>
+<text x="332.74000000" y="19.05000000" size="2.54000000" layer="91" font="proportional" ratio="8" rot="R0" align="bottom-left" distance="50" >Pushbutton </text>
 </plain>
 <moduleinsts>
 </moduleinsts>
@@ -32226,7 +32494,7 @@ chip</description>
 </segment>
 </net>
 
-<net name="14.nRESET_NRESET">
+<net name="14.USB3_CC1_GPIO">
 <segment>
 <wire x1="213.99500000" y1="130.17500000" x2="234.31500000" y2="130.17500000" width="0.15240000" layer="91" style="continuous" curve="0.00000000" cap="round"/> 
 <label x="221.61500000" y="130.17500000" size="1.77800000" layer="95" font="proportional" ratio="8" rot="R0" xref="no"/> 

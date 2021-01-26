@@ -1,0 +1,18 @@
+DRC Rules Export File for PCB: c:\net\data\arkservice\09a3fddd-3a0d-462e-9b8c-d6980ea5bf50\s\e\design.PcbDoc
+RuleKind=Clearance|RuleName=Clearance_for_PolygonClass_Isolate_10|Scope=Board|Minimum=10.00
+RuleKind=SolderMaskExpansion|RuleName=Expansion_SMDSolder_OFF|Scope=Board|Minimum=0.00
+RuleKind=Clearance|RuleName=Clearance (Same Net)|Scope=Board|Minimum=4.00
+RuleKind=Width|RuleName=Width_For_NetClass_xxwide|Scope=Board|Minimum=8.00
+RuleKind=Width|RuleName=Width_For_NetClass_battery|Scope=Board|Minimum=99999.00
+RuleKind=Width|RuleName=Width_For_NetClass_50_OHM|Scope=Board|Minimum=10.00
+RuleKind=Clearance|RuleName=Clearance_for_NetClass_50_OHM|Scope=Board|Minimum=11.81
+RuleKind=Width|RuleName=Width_For_NetClass_HDMI|Scope=Board|Minimum=7.87
+RuleKind=Clearance|RuleName=Clearance_for_NetClass_HDMI|Scope=Board|Minimum=11.81
+RuleKind=Width|RuleName=Width_For_NetClass_USB|Scope=Board|Minimum=7.87
+RuleKind=Clearance|RuleName=Clearance_for_NetClass_USB|Scope=Board|Minimum=7.87
+RuleKind=Width|RuleName=Width_For_NetClass_analog|Scope=Board|Minimum=7.00
+RuleKind=Width|RuleName=Width_For_NetClass_supply|Scope=Board|Minimum=10.00
+RuleKind=SolderMaskExpansion|RuleName=mlMinStopFrame|Scope=Board|Minimum=3.00
+RuleKind=Width|RuleName=Width|Scope=Board|Minimum=4.00
+RuleKind=Clearance|RuleName=Clearance|Scope=Board|Minimum=4.00
+RuleKind=ShortCircuit|RuleName=ShortCircuit|Scope=Board|Allowed=0
