@@ -1,6 +1,6 @@
 ### Dev Environment Setup (macOS)
 
-#### Pre-requisites
+#### 0. Pre-requisites
 
 1. Checkout code
 
@@ -12,7 +12,7 @@
         brew install go vagrant virtualbox leveldb
 
 
-#### Samaa (UI)
+#### 1. Samaa (UI)
 
 1. Install node-modules
 
@@ -26,13 +26,13 @@
         docker-compose up
 
 
-#### Jawhar (core)
+#### 2. Jawhar (core)
 1. Create data directory (one-time)
 
         cd src/jawhar
         mkdir data # first time
 
-2. Start Application: two options:  
+2. Start Application - two options:  
 
 - Using Local Souq service (have to start Souq service - see below)
 
@@ -44,7 +44,7 @@
         go run cmd/jawhar/jawhar.go 
 
 
-#### HAgent (agent)
+#### 3. HAgent (agent)
 1. Create Linux box
 
         cd vagrant
@@ -56,16 +56,16 @@
         go run server.go
 
 
-#### Zahif (files indexer)
+#### 4. Zahif (files indexer)
 *Optional:* Needed for search and indexing functionalities
 ```
 go run cmd/zahif/zahif.go
 ```
 
-#### Souq (App Store service)
+#### 5. Souq (App Store service)
 *Optional:* Needed for App Store functionality
 ```
 go run cmd/souq/souq.go
 ```
 
-### Access the UI at http://localhost:8080/
+### Access the UI at [http://localhost:8080/](http://localhost:8080)
