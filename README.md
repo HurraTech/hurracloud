@@ -4,9 +4,8 @@
 
 1. Checkout code
 
-    ```
-    git clone --recurse-submodules git@bitbucket.org:aimannajjar/hurracloud.git
-    ```
+        git clone --recurse-submodules git@bitbucket.org:aimannajjar/hurracloud.git
+
 
 2. Install dependencies
 
