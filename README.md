@@ -33,11 +33,13 @@
         mkdir data # first time
 
 2. Start Application: two options:  
-2.1. Using Local Souq service (have to start Souq service - see below)
+
+- Using Local Souq service (have to start Souq service - see below)
 
         go run cmd/jawhar/jawhar.go -S http://127.0.0.1:5060
 
-2.2. Or using Production Souq (https://souq.hurracloud.io - currently down ):
+
+- Or using Production Souq (https://souq.hurracloud.io - currently down ):
 
         go run cmd/jawhar/jawhar.go 
 
