@@ -7,8 +7,6 @@ services:
       - ./src/samaa:/home/node/
     command: npm run-script start
     stdin_open: true
-    networks:
-      - hurracloud
     environment:
       - NODE_ENV=development
       - PORT=80
