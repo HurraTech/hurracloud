@@ -53,7 +53,7 @@
 2. Run application
 
         vagrant ssh
-        go run server.go
+        go run server.go -listen 0.0.0.0
 
 
 #### 4. Zahif (files indexer)
