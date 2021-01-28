@@ -1,39 +1,52 @@
 [submodule "yocto/poky"]
 	path = yocto/poky
-	url = git://git.yoctoproject.org/poky
+    url = git://git.yoctoproject.org/poky
+    update = merge
 [submodule "yocto/meta-openembedded"]
 	path = yocto/meta-openembedded
 	url = https://github.com/openembedded/meta-openembedded.git
+    update = merge
 [submodule "yocto/meta-raspberrypi"]
 	path = yocto/meta-raspberrypi
 	url = git@bitbucket.org:aimannajjar/meta-raspberrypi.git
+    update = merge
 [submodule "yocto/meta-virtualization"]
 	path = yocto/meta-virtualization
 	url = git://git.yoctoproject.org/meta-virtualization
+    update = merge
 [submodule "yocto/openembedded-core"]
 	path = yocto/openembedded-core
 	url = https://github.com/openembedded/openembedded-core.git
+    update = merge
 [submodule "docker-openvpn"]
 	path = docker-openvpn
 	url = git@bitbucket.org:aimannajjar/docker-openvpn.git
+    update = merge
 [submodule "yocto/meta-mender-community"]
 	path = yocto/meta-mender-community
 	url = https://github.com/mendersoftware/meta-mender-community
+    update = merge
 [submodule "yocto/meta-mender"]
 	path = yocto/meta-mender
 	url = https://github.com/mendersoftware/meta-mender
+    update = merge
 [submodule "src/samaa"]
 	path = src/samaa
 	url = git@bitbucket.org:aimannajjar/samaa.git
+    update = merge
 [submodule "src/jawhar"]
 	path = src/jawhar
 	url = git@bitbucket.org:aimannajjar/jawhar.git
+    update = merge
 [submodule "src/zahif"]
 	path = src/zahif
 	url = git@bitbucket.org:aimannajjar/zahif.git
+    update = merge
 [submodule "src/souq"]
 	path = src/souq
 	url = git@bitbucket.org:aimannajjar/souq.git
+    update = merge
 [submodule "src/hagent"]
 	path = src/hagent
-	url = git@bitbucket.org:aimannajjar/hagent.git
+    update = merge
+    url = git@bitbucket.org:aimannajjar/hagent.git
