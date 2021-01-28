@@ -1,0 +1,11 @@
+---
+
+#  - hosts: all
+#    sudo: true
+
+
+  - name: install Yocto Documentation tools
+    apt:
+      name:  ['make', 'xsltproc', 'docbook-utils', 'fop', 'dblatex', 'xmlto']
+      state: latest
+

@@ -1,0 +1,7 @@
+---
+
+  - name: install Yocto Essentials
+    apt:
+      name: ['gawk', 'wget', 'git-core', 'diffstat', 'unzip', 'texinfo', 'gcc-multilib', 'build-essential', 'chrpath','socat']
+      state: latest
+

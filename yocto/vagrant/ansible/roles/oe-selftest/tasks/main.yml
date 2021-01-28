@@ -1,0 +1,7 @@
+---
+
+  - name: install OpenEmbedded Self-Test (oe-selftest) tools
+    apt: 
+      name: python-git
+      state: latest
+

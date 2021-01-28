@@ -1,0 +1,9 @@
+---
+  - name: Update packages
+    apt: update_cache=yes
+    become: true
+
+  - name: install misc packages
+    apt:
+      name: ['git-core', 'curl', 'unzip', 'vim']
+      state: latest
