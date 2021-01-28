@@ -3,6 +3,7 @@
 1. Install dependencies
 
         brew install go vagrant virtualbox ansible
+        vagrant plugin install vagrant-disksize
 
 2. Run Vagarnt Box and SSH into it
 
