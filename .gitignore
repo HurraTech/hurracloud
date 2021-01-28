@@ -42,6 +42,9 @@ poky/build-rpi3/sstate-cache
 poky/build-rpi3/downloads
 bitbake-cookerdaemon.log
 yocto/build-rpi3/bitbake.lock
+yocto/vagrant/*.log
+yocto/*.sdimg
+yocto/*.bmap
 
 # Runtime data
 database.sqlite
