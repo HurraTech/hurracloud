@@ -7,12 +7,13 @@ then
 fi
 
 if [ ! "$TMUX" ]; then
-        tmux attach -t main || tmux new -s main
+        echo "You are not in a tmux session; please start session by running 'tmux' first";
+        exit -1;
 fi
 
 echo "Enter sudo password (used for hagent only)"
 sudo --validate; # pre-auth sudo for hagent command
-tmux send-keys "src/hagent; sudo go run server.go" C-m; 
+tmux send-keys "cd src/hagent; sudo go run server.go" C-m; 
 tmux split-window -v; 
 tmux split-window -h; 
 tmux split-window -h; 
@@ -22,10 +23,10 @@ tmux select-pane -t 1;
 tmux split-window -h;
 tmux select-pane -t 1; 
 tmux select-pane -t 2; 
-tmux send-keys "src/jawhar; go run cmd/jawhar/jawhar.go -S http://127.0.0.1:5060" C-m; 
+tmux send-keys "cd src/jawhar; go run cmd/jawhar/jawhar.go -S http://127.0.0.1:5060" C-m; 
 tmux select-pane -t 3; 
-tmux send-keys "src/samaa; docker-compose up" C-m; 
+tmux send-keys "cd src/samaa; docker-compose up" C-m; 
 tmux select-pane -t 4; 
-tmux send-keys "src/zahif; go run cmd/zahif/zahif.go" C-m;
+tmux send-keys "cd src/zahif; go run cmd/zahif/zahif.go" C-m;
 tmux select-pane -t 5;
-tmux send-keys "src/souq; go run cmd/souq/souq.go" C-m;
+tmux send-keys "cd src/souq; go run cmd/souq/souq.go" C-m;
