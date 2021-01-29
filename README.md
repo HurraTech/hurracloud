@@ -9,8 +9,25 @@
 
 2. Install dependencies
 
-        brew install go vagrant virtualbox leveldb
+        brew install go vagrant virtualbox leveldb tmux
 
+
+### Option A: Start All in one command using tmux
+
+1. Install node-modules (only needed first time or when pacakge.json has changed)
+
+        cd src/samaa
+        docker run -it -v $(pwd):/app node:14.8.0 bash
+        npm install
+        exit
+
+
+2. This will split the terminal windows for you and start all applications (you need to tmux for this, availabla view brew) 
+
+        ./start-all.sh
+
+
+### Option B: Start Components Individually
 
 #### 1. Samaa (UI)
 
