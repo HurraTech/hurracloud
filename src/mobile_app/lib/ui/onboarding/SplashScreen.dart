@@ -5,13 +5,11 @@ import 'package:mobile_app/HurraStyle.dart';
 class SplashScreen extends StatefulWidget {
   SplashScreen({Key key}) : super(key: key);
 
-
   @override
   SplashScreenState createState() => SplashScreenState();
 }
 
 class SplashScreenState extends State<SplashScreen> {
-
 
   @override
   Widget build(BuildContext context) {
