@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/HurraStyle.dart';
+import 'package:mobile_app/ui/onboarding/ServerPairScreen.dart';
 
 class ServerTypeScreen extends StatefulWidget {
   ServerTypeScreen({Key key}) : super(key: key);
@@ -13,14 +14,22 @@ class ServerTypeScreenState extends State<ServerTypeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0.0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         backgroundColor: Color(0xfff2f2f2),
         body: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.only(left:20, right:20),
           child: Center(
             heightFactor: 1,
             child: Column(
               children: [
-                SizedBox(height: 100),
+                SizedBox(height: 20),
                 Text("Where do you want to host your cloud ?",
                     textAlign: TextAlign.start,
                     style:
@@ -69,7 +78,13 @@ class ServerTypeScreenState extends State<ServerTypeScreen> {
                             ],
                           ),
                         ),
-                        onPressed: () {})),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            CupertinoPageRoute(
+                              builder: (context) => ServerPairScreen(),
+                            ),
+                          );
+                        })),
                 SizedBox(height: 20,),
                 SizedBox(
                     width: double.infinity,

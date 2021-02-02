@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/HurraStyle.dart';
+import 'package:mobile_app/ui/onboarding/ServerTypeScreen.dart';
 
 class SplashScreen extends StatefulWidget {
   SplashScreen({Key key}) : super(key: key);
@@ -65,7 +66,13 @@ class SplashScreenState extends State<SplashScreen> {
                         child: Padding(
                           padding: const EdgeInsets.only(top:12,left:16,right:16, bottom: 12),
                           child: Text("SET UP NEW HURRA CLOUD"),
-                        ), textColor: hurraMainColor, onPressed: () {  }
+                        ), textColor: hurraMainColor, onPressed: () {
+                            Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                  builder: (context) => ServerTypeScreen()),
+                            );
+                      }
                         ),
                       SizedBox(height:5),
                       FlatButton(onPressed: (){},
@@ -81,17 +88,6 @@ class SplashScreenState extends State<SplashScreen> {
                 ),
               ),
             )
-            // Expanded(
-            //   child: Align(
-            //     alignment: Alignment.bottomCenter,
-            //     child: Stack(
-            //       children: [
-            //         Align(alignment: Alignment.bottomCenter, child: Image(image: AssetImage('assets/splashbg.png'))),
-            //
-            //       ],
-            //     ),
-            //   ),
-            // )
           ],
         ),
       ),
