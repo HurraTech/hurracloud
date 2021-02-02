@@ -22,6 +22,7 @@ class ServerTypeScreenState extends State<ServerTypeScreen> {
               children: [
                 SizedBox(height: 100),
                 Text("Where do you want to host your cloud ?",
+                    textAlign: TextAlign.start,
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
                 SizedBox(height: 20),
