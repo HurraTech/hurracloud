@@ -1,16 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/HurraStyle.dart';
-import 'package:mobile_app/ui/onboarding/ServerPairScreen.dart';
+import 'package:mobile_app/ui/onboarding/pairing/ServerPairScreen.dart';
 
-class ServerTypeScreen extends StatefulWidget {
-  ServerTypeScreen({Key key}) : super(key: key);
+class ServerTypeScreen extends StatelessWidget {
 
-  @override
-  ServerTypeScreenState createState() => ServerTypeScreenState();
-}
-
-class ServerTypeScreenState extends State<ServerTypeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
