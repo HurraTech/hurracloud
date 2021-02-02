@@ -4,41 +4,18 @@ import 'package:flutter_nsd/flutter_nsd.dart';
 import 'package:mobile_app/HurraStyle.dart';
 
 
-class FindDeviceCard extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => FindDeviceCardState();
-}
+class FindDeviceCard extends StatelessWidget {
 
-enum SearchState { INITIAL, FINDING, PAIR_CODE, PAIRING }
-
-
-class FindDeviceCardState extends State<FindDeviceCard> {
-  SearchState currentState = SearchState.INITIAL;
-  final flutterNsd = FlutterNsd();
-
-  Future<void> find() async {
-    final stream = flutterNsd.stream;
-
-    await for (final nsdServiceInfo in stream) {
-      print('Discovered service name: ${nsdServiceInfo.name}');
-      print('Discovered service hostname/IP: ${nsdServiceInfo.hostname}');
-      print('Discovered service port: ${nsdServiceInfo.port}');
-    }
-
-  }
-  @override
-  void initState() {
-    super.initState();
-    find();
-  }
+  final VoidCallback onSearchClicked;
+  FindDeviceCard({this.onSearchClicked});
 
   @override
   Widget build(BuildContext context)  => Card(
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          SizedBox(height: 15),
           FractionallySizedBox(
               widthFactor: 0.5,
               child: Image(
@@ -73,9 +50,7 @@ class FindDeviceCardState extends State<FindDeviceCard> {
                   child: Text("Start Searching"),
                 ),
                 textColor: Colors.white,
-                onPressed: () {
-                  flutterNsd.discoverServices('_ipp._tcp');
-                }),
+                onPressed: onSearchClicked),
           ),
           SizedBox(height: 15),
           FlatButton(

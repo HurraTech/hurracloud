@@ -1,10 +1,64 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_nsd/flutter_nsd.dart';
 import 'package:mobile_app/HurraStyle.dart';
 import 'package:mobile_app/ui/onboarding/pairing/FindDeviceInstructionsCard.dart';
-import 'FindDeviceCard.dart';
 
-class ServerPairScreen extends StatelessWidget {
+import 'EnterPairCodeCard.dart';
+import 'FindDeviceCard.dart';
+import 'SearchingDeviceCard.dart';
+
+
+enum SearchState { INITIAL, FINDING, DISCOVERED, PAIR_CODE, PAIRING, PAIR_ERROR }
+class DiscoveredDevice {
+  final String name;
+  final String hostname;
+  final int port;
+
+  DiscoveredDevice({this.name, this.hostname, this.port});
+}
+
+class ServerPairScreen extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => ServerPairScreenState();
+}
+
+
+class ServerPairScreenState extends State<ServerPairScreen> {
+
+  SearchState currentState = SearchState.INITIAL;
+
+  final flutterNsd = FlutterNsd();
+  List<DiscoveredDevice> discoveredDevices = [];
+  DiscoveredDevice selectedDevice;
+
+  void initNsd() async {
+    final stream = flutterNsd.stream;
+    await for (final nsdServiceInfo in stream) {
+      print('Discovered service name: ${nsdServiceInfo.name}');
+      print('Discovered service hostname/IP: ${nsdServiceInfo.hostname}');
+      print('Discovered service port: ${nsdServiceInfo.port}');
+    }
+  }
+
+  void onSearchClicked() {
+    setState(() {
+      currentState = SearchState.PAIR_CODE;
+    });
+  }
+
+  void onCodeEntered(code) async {
+    setState((){
+      currentState = SearchState.PAIRING;
+    });
+    await Future.delayed(Duration(seconds: 5));
+    setState((){
+      currentState = SearchState.PAIR_ERROR;
+    });
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
@@ -29,7 +83,12 @@ class ServerPairScreen extends StatelessWidget {
                 SizedBox(height: 15),
                 FindDeviceInstructionsCard(),
                 SizedBox(height: 20),
-                Expanded(child: FindDeviceCard()),
+                Expanded(child: currentState == SearchState.INITIAL ? FindDeviceCard(onSearchClicked:onSearchClicked) :
+                [SearchState.PAIR_CODE, SearchState.PAIRING, SearchState.PAIR_ERROR].contains(currentState)  ?  EnterPairCodeCard(onCodeEntered: onCodeEntered, pairStatus:
+                      currentState == SearchState.PAIR_CODE ? PairStatus.INPUTTING :
+                      currentState == SearchState.PAIRING ? PairStatus.PAIRING : PairStatus.PAIR_ERROR)
+                  : SizedBox(height:30)
+                ),
                 SizedBox(height: 40),
               ],
             ),
