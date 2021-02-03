@@ -9,8 +9,8 @@
 
 2. Install dependencies
 
-        brew install go vagrant virtualbox leveldb tmux
-
+        brew install go vagrant virtualbox leveldb tmux protoc-gen-go protoc-gen-go-grpc
+        curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b /usr/local/bin
 
 ### Option A: Start All in one command using tmux
 
@@ -28,6 +28,12 @@
 
 
 ### Option B: Start Components Individually
+
+All Go components can be started manually using Go commands as shown below, or using Air tool, in each go submodule there is a config file `.air.toml` which can be used to run the app as follows:
+
+        air -c .air.toml
+
+The command above should work for all Go submodules. For non-Go submodules (such as Samaa), please see the following subsections.
 
 #### 1. Samaa (UI)
 
@@ -54,6 +60,8 @@
 - Using Local Souq service (have to start Souq service - see below)
 
         go run cmd/jawhar/jawhar.go -S http://127.0.0.1:5060
+        # Or simply use air (tool that auto-build and reload whenever Go source code change):
+        air -c .air.toml
 
 
 - Or using Production Souq (https://souq.hurracloud.io - currently down ):
@@ -62,27 +70,33 @@
 
 
 #### 3. HAgent (agent)
-1. Create Linux box
 
-        cd vagrant
-        vagrant up
+1. Run application
 
-2. Run application
+        cd src/hagent
+        sudo go run server.go # sudo is needed for Disk and other privileged operations to work
 
-        vagrant ssh
-        go run server.go -listen 0.0.0.0
+        # Or simply use air (tool that auto-build and reload whenever Go source code change):
+        sudo air -c .air.toml
 
 
 #### 4. Zahif (files indexer)
 *Optional:* Needed for search and indexing functionalities
-```
-go run cmd/zahif/zahif.go
-```
 
-#### 5. Souq (App Store service)
+        cd src/zahif
+        go run cmd/zahif/zahif.go
+
+        # Or simply use air (tool that auto-build and reload whenever Go source code change):
+        sudo air -c .air.toml
+
+
+#### 5. Souq (App Store and Update service)
 *Optional:* Needed for App Store functionality
-```
-go run cmd/souq/souq.go
-```
+
+        cd src/souq
+        go run cmd/souq/souq.go
+
+        # Or simply use air (tool that auto-build and reload whenever Go source code change):
+        sudo air -c .air.toml
 
 ### Access the UI at [http://localhost:8080/](http://localhost:8080)
