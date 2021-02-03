@@ -3,14 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile_app/HurraStyle.dart';
 import 'package:mobile_app/ui/onboarding/ServerTypeScreen.dart';
 
-class SplashScreen extends StatefulWidget {
-  SplashScreen({Key key}) : super(key: key);
+class SplashScreen extends StatelessWidget {
 
-  @override
-  SplashScreenState createState() => SplashScreenState();
-}
-
-class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

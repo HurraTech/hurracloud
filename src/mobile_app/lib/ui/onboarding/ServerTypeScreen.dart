@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/HurraStyle.dart';
-import 'package:mobile_app/ui/onboarding/pairing/ServerPairScreen.dart';
+import 'package:mobile_app/ui/onboarding/ServerPairScreen.dart';
 
 class ServerTypeScreen extends StatelessWidget {
 

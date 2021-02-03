@@ -4,11 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nsd/flutter_nsd.dart';
 import 'package:mobile_app/HurraStyle.dart';
+import 'package:mobile_app/ui/onboarding/OnboardingCompleteScreen.dart';
 import 'package:mobile_app/ui/onboarding/pairing/FindDeviceInstructionsCard.dart';
 
-import 'EnterPairCodeCard.dart';
-import 'FindDeviceCard.dart';
-import 'SearchingDeviceCard.dart';
+import 'pairing/EnterPairCodeCard.dart';
+import 'pairing/FindDeviceCard.dart';
+import 'pairing/SearchingDeviceCard.dart';
 
 
 enum SearchState { INITIAL, FINDING, DISCOVERED, PAIR_CODE, PAIRING, PAIR_ERROR }
@@ -53,10 +54,15 @@ class ServerPairScreenState extends State<ServerPairScreen> {
     setState((){
       currentState = SearchState.PAIRING;
     });
-    await Future.delayed(Duration(seconds: 5));
-    setState((){
-      currentState = SearchState.PAIR_ERROR;
-    });
+    await Future.delayed(Duration(seconds: 1));
+    // setState((){
+    //   currentState = SearchState.PAIR_ERROR;
+    // });
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+          builder: (context) => OnboardingCompleteScreen()),
+    );
   }
 
   Widget build(BuildContext context) {
