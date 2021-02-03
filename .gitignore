@@ -45,6 +45,7 @@ yocto/build-rpi3/bitbake.lock
 yocto/vagrant/*.log
 yocto/*.sdimg
 yocto/*.bmap
+yocto/*.mender
 
 # Runtime data
 database.sqlite
