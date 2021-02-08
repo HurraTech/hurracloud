@@ -28,7 +28,9 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (BuildContext context) => Observer(
-              builder: (context)  =>  userStore.isLoggedIn ? HomeScreen() : SplashScreen()
+            // THIS IS FOR TESTING. CHANGE TO
+            // builder: (context)  =>  userStore.isLoggedIn ? HomeScreen() : SplashScreen()
+              builder: (context)  =>  userStore.isLoggedIn ? HomeScreen() : HomeScreen()
           ),
         },
       ),
