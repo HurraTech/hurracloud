@@ -47,9 +47,14 @@ class StatItemWidget extends StatelessWidget {
             width: 5,
           ),
           Text(
-            "${stat.label}: ${stat.value}",
+            "${stat.label}: ",
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            "${stat.value}",
+            style: TextStyle(color: Color(0xff444444), fontSize: 14, fontWeight: FontWeight.w600),
           )
+
         ],
       );
 }
