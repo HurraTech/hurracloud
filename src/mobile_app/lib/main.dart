@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobile_app/store/UserStore.dart';
 import 'package:mobile_app/ui/home/HomeScreen.dart';
+import 'package:mobile_app/ui/home/MainTabView.dart';
 import 'package:mobile_app/ui/onboarding/SplashScreen.dart';
 import 'package:provider/provider.dart';
 
@@ -29,8 +30,8 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (BuildContext context) => Observer(
             // THIS IS FOR TESTING. CHANGE TO
-            // builder: (context)  =>  userStore.isLoggedIn ? HomeScreen() : SplashScreen()
-              builder: (context)  =>  userStore.isLoggedIn ? HomeScreen() : HomeScreen()
+            // builder: (context)  =>  userStore.isLoggedIn ? MainTabView() : SplashScreen()
+              builder: (context)  =>  userStore.isLoggedIn ? MainTabView() : MainTabView()
           ),
         },
       ),

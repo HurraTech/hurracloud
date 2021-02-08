@@ -14,20 +14,19 @@ class SearchWidget extends StatelessWidget {
           decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
-                  top:BorderSide(color:Color(0xffcccccc)),
-                  bottom:BorderSide(color:Color(0xffcccccc))
+                  top:BorderSide(color:Color(0xffe0e0e0e0)),
+                  bottom:BorderSide(color:Color(0xffe0e0e0e0))
               )
           ),
           child: TextField(
             decoration: InputDecoration(
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Image.asset("assets/search.png",scale: 1.7),
+                  child: Image.asset("assets/search.png",scale: 2),
                 ),
                 border: InputBorder.none,
-                hintText: "Type to search your cloud for files, photos, data, apps",
-                contentPadding:
-                EdgeInsets.only(left: 20, right: 10,top:14)),
+                hintText: "Type to search your cloud",
+                contentPadding: EdgeInsets.only(left: 20, right: 10,top:14)),
           ),
         ));
   }

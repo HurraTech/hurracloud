@@ -18,7 +18,7 @@ class RecommendationListItem extends StatelessWidget {
         decoration: BoxDecoration(
             color: Colors.white,
             border: Border(
-                top: BorderSide(color: Color(0xffddddddd)),
+                top: BorderSide(color: Color(0xffefefefef)),
                 )),
         child: Padding(
           padding: const EdgeInsets.all(18.0),
@@ -26,7 +26,7 @@ class RecommendationListItem extends StatelessWidget {
             children: [
               SizedBox(width: 5),
               SizedBox(
-                  width: 60,
+                  width: 40,
                   child: Image.asset("assets/${recommendation.image}.png")),
               SizedBox(width: 20),
               Expanded(
@@ -36,14 +36,14 @@ class RecommendationListItem extends StatelessWidget {
                     Text(
                       recommendation.title,
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     SizedBox(
-                      height: 7,
+                      height: 5,
                     ),
                     Text(
                       recommendation.description,
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(fontSize: 13),
                     )
                   ],
                 ),

@@ -17,8 +17,8 @@ class StatsWidget extends StatelessWidget {
         decoration: BoxDecoration(
             color: Colors.white,
             border: Border(
-                top: BorderSide(color: Color(0xffcccccc)),
-                bottom: BorderSide(color: Color(0xffcccccc)))),
+                top: BorderSide(color: Color(0xffe0e0e0e0)),
+                bottom: BorderSide(color: Color(0xffe0e0e0e0)))),
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Wrap(
@@ -42,17 +42,17 @@ class StatItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          SizedBox(width: 25, child: Image.asset("assets/${stat.image}.png")),
+          SizedBox(width: 20, child: Image.asset("assets/${stat.image}.png")),
           SizedBox(
             width: 5,
           ),
           Text(
             "${stat.label}: ",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
           Text(
             "${stat.value}",
-            style: TextStyle(color: Color(0xff444444), fontSize: 14, fontWeight: FontWeight.w600),
+            style: TextStyle(color: Color(0xff444444), fontSize: 12, fontWeight: FontWeight.w600),
           )
 
         ],
