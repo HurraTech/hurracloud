@@ -13,7 +13,7 @@ fi
 
 echo "Enter sudo password (used for hagent only)"
 sudo --validate; # pre-auth sudo for hagent command
-tmux send-keys "cd src/hagent; sudo go run server.go" C-m; 
+tmux send-keys "cd src/hagent; sudo air -c .air.toml" C-m; 
 tmux split-window -v; 
 tmux split-window -h; 
 tmux split-window -h; 
