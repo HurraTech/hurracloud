@@ -4,6 +4,7 @@ import 'package:mobile_app/ui/files/FilesScreen.dart';
 import 'package:mobile_app/ui/home/HomeScreen.dart';
 import 'package:mobile_app/ui/souq/SouqScreen.dart';
 
+import '../HurraStyle.dart';
 import 'widgets/SearchWidget.dart';
 
 final GlobalKey<NavigatorState> firstTabNavKey = GlobalKey<NavigatorState>();
@@ -22,7 +23,7 @@ class MainTabView extends StatelessWidget {
         centerTitle: false,
         title: SizedBox(height: 40, child: Image.asset("assets/logo.png")),
       ),
-      backgroundColor: Color(0xfff2f2f2),
+      backgroundColor: hurraAppBackgroundColor,
       body: Center(
         child: Column(
           children: [
@@ -30,7 +31,9 @@ class MainTabView extends StatelessWidget {
             SearchWidget(),
             Expanded(
               child: CupertinoTabScaffold(
+                backgroundColor: hurraAppBackgroundColor,
                 tabBar: CupertinoTabBar(
+                  backgroundColor: hurraTabBackgroundColor,
                   border: Border(
                     top:BorderSide(color: Color(0xffe0e0e0e0),width: 1.0)
                   ),

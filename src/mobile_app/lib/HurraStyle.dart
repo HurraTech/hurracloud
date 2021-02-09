@@ -1,10 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-int hurraMainColorHex = 0xff792333;
-Color hurraMainColor = Color(hurraMainColorHex);
+const int hurraMainColorHex = 0xff792333;
+const Color hurraMainColor = Color(hurraMainColorHex);
 
-Map<int, Color> color =
+const Color hurraAppBackgroundColor = Color(0xffeeeeee);
+const  Color hurraTabBackgroundColor = Color(0xffffffff);
+const double horizontalContentPadding = 10.0;
+
+const  Map<int, Color> color =
 {
   50:Color.fromRGBO(121,35,51, .1),
   100:Color.fromRGBO(121,35,51, .2),

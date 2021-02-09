@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../../HurraStyle.dart';
+
 class ListHeaderWidget extends StatelessWidget {
   String title;
   String description;
@@ -14,7 +16,7 @@ class ListHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(
-          top: 30, left: 10, bottom: 10),
+          top: 30, left: horizontalContentPadding, bottom: 10,right:horizontalContentPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
