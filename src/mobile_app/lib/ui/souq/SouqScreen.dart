@@ -7,7 +7,7 @@ import 'SouqListItems.dart';
 
 class SouqScreen extends StatelessWidget {
   List<SouqCollection> collections = [
-    SouqCollection(name: "Featured Apps", description: "Apps featured by souq", apps: [
+    SouqCollection(name: "Featured Apps", description: null, apps: [
       SouqApp(imageUrl: "https://s3.amazonaws.com/public.guestbot.co/plex.png", name :"Plex Media Server", description: "Turn your Hurra cloud into a media server. Stream all your downloaded files to your phone directly from Hurra cloud using Plex"),
       SouqApp(imageUrl: "https://s3.amazonaws.com/public.guestbot.co/plex.png", name :"Plex Media Server", description: "Turn your Hurra cloud into a media server. Stream all your downloaded files to your phone directly from Hurra cloud using Plex"),
       SouqApp(imageUrl: "https://s3.amazonaws.com/public.guestbot.co/plex.png", name :"Plex Media Server", description: "Turn your Hurra cloud into a media server. Stream all your downloaded files to your phone directly from Hurra cloud using Plex"),
