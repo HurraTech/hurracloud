@@ -11,6 +11,7 @@ class SearchWidget extends StatelessWidget {
     return SizedBox(
         width: double.infinity,
         child: Container(
+          padding: EdgeInsets.all(0),
           decoration: BoxDecoration(
               color: Colors.white,
               border: Border(

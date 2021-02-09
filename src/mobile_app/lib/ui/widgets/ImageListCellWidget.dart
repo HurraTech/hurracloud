@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-class Recommendation {
+class CellData {
   String title;
   String image;
   String description;
 
-  Recommendation({this.image, this.title, this.description});
+  CellData({this.image, this.title, this.description});
 }
 
-class RecommendationListItem extends StatelessWidget {
-  Recommendation recommendation;
+class ImageListCellWidget extends StatelessWidget {
+  CellData cellData;
 
-  RecommendationListItem({Key key, this.recommendation}) : super(key: key);
+  ImageListCellWidget({Key key, this.cellData}) : super(key: key);
 
   @override
   Widget build(BuildContext context) => Container(
@@ -27,14 +27,14 @@ class RecommendationListItem extends StatelessWidget {
               SizedBox(width: 5),
               SizedBox(
                   width: 40,
-                  child: Image.asset("assets/${recommendation.image}.png")),
+                  child: Image.asset("assets/${cellData.image}.png")),
               SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      recommendation.title,
+                      cellData.title,
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
@@ -42,7 +42,7 @@ class RecommendationListItem extends StatelessWidget {
                       height: 5,
                     ),
                     Text(
-                      recommendation.description,
+                      cellData.description,
                       style: TextStyle(fontSize: 13),
                     )
                   ],
