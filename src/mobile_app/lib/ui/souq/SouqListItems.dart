@@ -5,7 +5,7 @@ import 'package:mobile_app/ui/widgets/BaseListItemWidget.dart';
 import 'package:mobile_app/ui/widgets/ImageListCellWidget.dart';
 import 'package:mobile_app/ui/widgets/ListHeaderWidget.dart';
 
-class SouqApp extends BaseListItemWidget {
+class SouqApp extends BaseListItem {
   String imageUrl;
   String backgroundColor;
   String foregroundColor;
@@ -19,7 +19,7 @@ class SouqApp extends BaseListItemWidget {
 
 }
 
-class SouqCollection extends BaseListItemWidget{
+class SouqCollection extends BaseListItem{
   String name;
   String description;
   List<SouqApp> apps;

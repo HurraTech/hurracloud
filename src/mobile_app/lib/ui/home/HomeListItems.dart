@@ -5,7 +5,7 @@ import 'package:mobile_app/ui/widgets/ImageListCellWidget.dart';
 import 'package:mobile_app/ui/widgets/StatsWidget.dart';
 import 'package:mobile_app/ui/widgets/BaseListItemWidget.dart';
 
-class RecommendedItem extends BaseListItemWidget {
+class RecommendedItem extends BaseListItem {
   String title;
   String image;
   String description;
@@ -18,7 +18,7 @@ class RecommendedItem extends BaseListItemWidget {
 }
 
 
-class HomeStatsListItem extends BaseListItemWidget {
+class HomeStatsListItem extends BaseListItem {
   List<HurraStat> stats = [];
   HomeStatsListItem({this.stats});
 

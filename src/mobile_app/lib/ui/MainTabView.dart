@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/ui/files/FilesScreen.dart';
 import 'package:mobile_app/ui/home/HomeScreen.dart';
+import 'package:mobile_app/ui/settings/SettingsScreen.dart';
 import 'package:mobile_app/ui/souq/SouqScreen.dart';
 
 import '../HurraStyle.dart';
@@ -87,7 +88,7 @@ class MainTabView extends StatelessWidget {
                   } else {
                     return CupertinoTabView(
                       navigatorKey: fourthTabNavKey,
-                      builder: (BuildContext context) => HomeScreen(),
+                      builder: (BuildContext context) => SettingsScreen(),
                     );
                   }
                 },

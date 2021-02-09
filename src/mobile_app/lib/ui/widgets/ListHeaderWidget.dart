@@ -6,10 +6,12 @@ import '../../HurraStyle.dart';
 class ListHeaderWidget extends StatelessWidget {
   String title;
   String description;
+  bool lightCell;
   ListHeaderWidget({
     Key key,
     @required this.title,
-    this.description
+    this.description,
+    this.lightCell = false
   }) : super(key: key);
 
   @override
@@ -22,7 +24,7 @@ class ListHeaderWidget extends StatelessWidget {
         children: <Widget>[
           Text(title,
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 20),
+                fontWeight: FontWeight.bold, fontSize: lightCell ? 18: 20),
           ),
         ] + (this.description != null ? [
           Padding(

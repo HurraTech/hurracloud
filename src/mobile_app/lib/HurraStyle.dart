@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 const int hurraMainColorHex = 0xff792333;
 const Color hurraMainColor = Color(hurraMainColorHex);
+const Color settingIconsColor = Color(hurraMainColorHex);
 
 const Color hurraAppBackgroundColor = Color(0xffeeeeee);
 const  Color hurraTabBackgroundColor = Color(0xffffffff);

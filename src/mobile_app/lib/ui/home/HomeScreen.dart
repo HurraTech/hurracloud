@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/HurraStyle.dart';
 import 'package:mobile_app/ui/widgets/BaseListItemWidget.dart';
-import 'package:mobile_app/ui/widgets/ImageListCellWidget.dart';
-import 'package:mobile_app/ui/widgets/ListHeaderWidget.dart';
-import 'package:mobile_app/ui/widgets/SearchWidget.dart';
 import 'package:mobile_app/ui/widgets/StatsWidget.dart';
 
 import 'HomeListItems.dart';
 
 
-
 class HomeScreen extends StatelessWidget {
 
-  final List<BaseListItemWidget> itemsList = [
+  final List<BaseListItem> itemsList = [
     HomeStatsListItem(stats: [
       HurraStat(image: "cpu", label: "CPU Load", value: "56%"),
       HurraStat(image: "hdd", label: "Disk", value: "10gb/200gb"),

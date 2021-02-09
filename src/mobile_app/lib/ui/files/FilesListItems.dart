@@ -6,7 +6,7 @@ import 'package:mobile_app/ui/widgets/ImageListCellWidget.dart';
 
 enum FileType { HDD, DIR, FILE }
 
-class FileTreeItem extends BaseListItemWidget {
+class FileTreeItem extends BaseListItem {
   String name;
   FileType type;
   List<FileTreeItem> children = [];
@@ -16,6 +16,6 @@ class FileTreeItem extends BaseListItemWidget {
 
   @override
   Widget build(BuildContext context) => ImageListCellWidget(image: Image.asset("assets/file_${type.toString().split('.').last
-      .toLowerCase()}.png"), title: name,);
+      .toLowerCase()}.png"), title: name, lightCell: true,);
 }
 

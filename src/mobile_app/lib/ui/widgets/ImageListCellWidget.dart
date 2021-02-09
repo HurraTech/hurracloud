@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ImageListCellWidget extends StatelessWidget {
   String title;
-  Image image;
+  Widget image;
   String description;
   bool lightCell;
   ImageListCellWidget({Key key, @required this.image, @required this.title, this.description, this.lightCell = false}) : super(key: key);
@@ -18,9 +18,9 @@ class ImageListCellWidget extends StatelessWidget {
           padding: EdgeInsets.all(this.description != null ? 18.0 : 12.0),
           child: Row(
             children: [
-              SizedBox(width: 5),
+              SizedBox(width: lightCell ? 0: 5),
               SizedBox(
-                  width: lightCell ? 15 : (description != null ? 40 : 20),
+                  width: lightCell ? (image is Icon ? 30 : 15) : (description != null ? 40 : 30),
                   child: image),
               SizedBox(width: description != null ? 20 : 10),
               Expanded(

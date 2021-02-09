@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/ui/widgets/ImageListCellWidget.dart';
 import 'package:mobile_app/ui/widgets/ListHeaderWidget.dart';
 
-abstract class BaseListItemWidget {
+abstract class BaseListItem {
   Widget build(BuildContext context);
 }
 
 
-class HeaderListItem extends BaseListItemWidget {
+class HeaderListItem extends BaseListItem {
   String title;
-  HeaderListItem({@required this.title});
+  bool lightCell;
+  HeaderListItem({@required this.title,this.lightCell = false});
 
   @override
-  Widget build(BuildContext context) => ListHeaderWidget(title: title);
+  Widget build(BuildContext context) => ListHeaderWidget(title: title,lightCell:lightCell);
+
+}
+
+
+class ImageListItem extends BaseListItem {
+  String title;
+  Widget image;
+  bool lightCell;
+
+  ImageListItem({@required this.title,this.image, this.lightCell = false});
+
+  @override
+  Widget build(BuildContext context) => ImageListCellWidget(title: title, image:image,lightCell: lightCell,);
 
 }

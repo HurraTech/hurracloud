@@ -25,7 +25,7 @@ class SouqScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<BaseListItemWidget> itemsList = [];
+    List<BaseListItem> itemsList = [];
     collections.forEach((element) {
       itemsList.add(element);
       itemsList.addAll(element.apps);

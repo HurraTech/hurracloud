@@ -40,21 +40,25 @@ class StatItemWidget extends StatelessWidget {
   StatItemWidget({key, this.stat}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) => Row(
-        children: [
-          SizedBox(width: 20, child: Image.asset("assets/${stat.image}.png")),
-          SizedBox(
-            width: 5,
-          ),
-          Text(
-            "${stat.label}: ",
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            "${stat.value}",
-            style: TextStyle(color: Color(0xff444444), fontSize: 12, fontWeight: FontWeight.w600),
-          )
+  Widget build(BuildContext context) => SizedBox(
+    height: 20,
+    child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(width: 20, child: Image.asset("assets/${stat.image}.png")),
+            SizedBox(
+              width: 5,
+            ),
+            Text(
+              "${stat.label}: ",
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              "${stat.value}",
+              style: TextStyle(color: Color(0xff444444), fontSize: 12, fontWeight: FontWeight.w600),
+            )
 
-        ],
-      );
+          ],
+        ),
+  );
 }
