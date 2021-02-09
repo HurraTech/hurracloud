@@ -15,7 +15,7 @@ class SouqApp extends BaseListItemWidget {
 
   @override
   Widget build(BuildContext context) =>
-      ImageListCellWidget(title: this.name, description: this.description, image: imageUrl, imageIsUrl: true,);
+      ImageListCellWidget(title: this.name, description: this.description, image: Image.network(imageUrl));
 
 }
 

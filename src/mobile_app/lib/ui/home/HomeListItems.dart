@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/basic.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:mobile_app/ui/widgets/ImageListCellWidget.dart';
@@ -12,7 +13,8 @@ class RecommendedItem extends BaseListItemWidget {
   RecommendedItem({this.image, this.title, this.description});
 
   @override
-  Widget build(BuildContext context) => ImageListCellWidget(title: this.title,description: this.description, image: this.image,);
+  Widget build(BuildContext context)
+    => ImageListCellWidget(title: this.title,description: this.description, image: Image.asset("assets/$image.png",));
 }
 
 

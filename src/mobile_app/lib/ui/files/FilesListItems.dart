@@ -15,7 +15,7 @@ class FileTreeItem extends BaseListItemWidget {
   FileTreeItem({@required this.name, @required this.type, this.children});
 
   @override
-  Widget build(BuildContext context) => ImageListCellWidget(image: "file_${type.toString().split('.').last
-      .toLowerCase()}", title: name,);
+  Widget build(BuildContext context) => ImageListCellWidget(image: Image.asset("assets/file_${type.toString().split('.').last
+      .toLowerCase()}.png"), title: name,);
 }
 
