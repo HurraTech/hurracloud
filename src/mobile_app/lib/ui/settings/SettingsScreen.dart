@@ -9,7 +9,7 @@ class SettingsScreen extends StatelessWidget {
     HeaderListItem(title: "Manage cloud", lightCell: true),
     ImageListItem(title: "Manage apps", image: Icon(Icons.apps,color: settingIconsColor,),lightCell: true),
     ImageListItem(title: "VPN Settings", image: Icon(Icons.vpn_lock,color: settingIconsColor,),lightCell: true),
-    ImageListItem(title: "Connected devices", image: Icon(Icons.devices,color: settingIconsColor,),lightCell: true),
+    ImageListItem(title: "Connected devices", image: Icon(Icons.devices,color: settingIconsColor,),lightCell: true,),
 
     HeaderListItem(title: "Manage Drives", lightCell: true),
     ImageListItem(title: "Internal Storage", image: Icon(Icons.sd_card,color: settingIconsColor,),lightCell: true),

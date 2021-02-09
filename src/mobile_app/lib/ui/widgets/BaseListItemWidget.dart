@@ -22,10 +22,11 @@ class ImageListItem extends BaseListItem {
   String title;
   Widget image;
   bool lightCell;
+  VoidCallback onPressed;
 
-  ImageListItem({@required this.title,this.image, this.lightCell = false});
+  ImageListItem({@required this.title,this.image, this.lightCell = false,this.onPressed = null});
 
   @override
-  Widget build(BuildContext context) => ImageListCellWidget(title: title, image:image,lightCell: lightCell,);
+  Widget build(BuildContext context) => ImageListCellWidget(title: title, image:image,lightCell: lightCell,onPressed: this.onPressed);
 
 }

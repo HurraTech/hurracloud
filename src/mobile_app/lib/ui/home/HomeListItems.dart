@@ -17,14 +17,13 @@ class RecommendedItem extends BaseListItem {
     => ImageListCellWidget(title: this.title,description: this.description, image: Image.asset("assets/$image.png",));
 }
 
-
 class HomeStatsListItem extends BaseListItem {
   List<HurraStat> stats = [];
   HomeStatsListItem({this.stats});
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 30.0),
-    child: StatsWidget(stats: stats),
-  );
+        padding: const EdgeInsets.only(top: 30.0),
+        child: StatsWidget(stats: stats),
+      );
 }
