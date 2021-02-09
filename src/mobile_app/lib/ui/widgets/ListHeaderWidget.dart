@@ -24,7 +24,7 @@ class ListHeaderWidget extends StatelessWidget {
         children: <Widget>[
           Text(title,
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: lightCell ? 18: 20),
+                fontWeight: FontWeight.bold, fontSize: lightCell ? 15: 18),
           ),
         ] + (this.description != null ? [
           Padding(
