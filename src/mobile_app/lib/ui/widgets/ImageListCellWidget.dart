@@ -33,14 +33,14 @@ class ImageListCellWidget extends StatelessWidget {
           top: BorderSide(color: Color(0xffefefefef)),
         )),
         child: Padding(
-          padding: EdgeInsets.all(this.description != null ? 18.0 : 12.0),
+          padding: EdgeInsets.all(this.description != null ? 18.0 : 10.0),
           child: Row(
             children: [
               SizedBox(width: lightCell ? 0 : 5),
               SizedBox(
                   width: lightCell
                       ? (image is Icon ? 30 : 15)
-                      : (description != null ? 40 : 30),
+                      : (description != null ? 40 : (image is Icon ? 30 : 20)),
                   child: image),
               SizedBox(width: description != null ? 20 : 10),
               Expanded(
