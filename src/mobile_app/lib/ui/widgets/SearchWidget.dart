@@ -20,7 +20,9 @@ class SearchWidget extends StatelessWidget {
               )
           ),
           child: TextField(
+            maxLines: 1,
             decoration: InputDecoration(
+                isDense: true,
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: Image.asset("assets/search.png",scale: 2),

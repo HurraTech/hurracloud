@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/ui/widgets/ListHeaderWidget.dart';
-import 'package:mobile_app/ui/widgets/SearchWidget.dart';
 
 enum FileType { HDD, DIR, FILE }
 

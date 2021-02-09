@@ -2,8 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/ui/files/FilesScreen.dart';
 import 'package:mobile_app/ui/home/HomeScreen.dart';
+import 'package:mobile_app/ui/souq/SouqScreen.dart';
 
-import '../widgets/SearchWidget.dart';
+import 'widgets/SearchWidget.dart';
 
 final GlobalKey<NavigatorState> firstTabNavKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> secondTabNavKey = GlobalKey<NavigatorState>();
@@ -78,7 +79,7 @@ class MainTabView extends StatelessWidget {
                   } else if (index == 2) {
                     return CupertinoTabView(
                       navigatorKey: thirdTabNavKey,
-                      builder: (BuildContext context) => HomeScreen(),
+                      builder: (BuildContext context) => SouqScreen(),
                     );
                   } else {
                     return CupertinoTabView(
