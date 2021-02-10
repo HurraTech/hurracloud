@@ -29,9 +29,7 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (BuildContext context) => Observer(
-            // THIS IS FOR TESTING. CHANGE TO
-            // builder: (context)  =>  userStore.isLoggedIn ? MainTabView() : SplashScreen()
-              builder: (context)  =>  userStore.isLoggedIn ? MainTabView() : MainTabView()
+              builder: (context)  =>  userStore.isLoggedIn ? MainTabView() : SplashScreen()
           ),
         },
       ),

@@ -1,12 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/HurraStyle.dart';
+import 'package:mobile_app/store/UserStore.dart';
 import 'package:mobile_app/ui/onboarding/ServerTypeScreen.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userStore = Provider.of<UserStore>(context);
+
     return Scaffold(
       body: Center(
         heightFactor: 1,
@@ -80,7 +84,10 @@ class SplashScreen extends StatelessWidget {
                             }),
                         SizedBox(height: 5),
                         FlatButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              userStore.setLoggedIn();
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            },
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18.0),
                             ),
