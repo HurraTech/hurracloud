@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/ui/nav/ScreenWrapper.dart';
 import 'package:mobile_app/ui/widgets/BaseListItemWidget.dart';
 
 import 'SouqListItems.dart';
@@ -30,10 +31,12 @@ class SouqScreen extends StatelessWidget {
       itemsList.add(element);
       itemsList.addAll(element.apps);
     });
-    return ListView.builder(
+    return ScreenWrapper(
+        isRootScreen: true,
+        screen:ListView.builder(
         itemCount: itemsList.length,
         itemBuilder: (context, index) => itemsList[index].build(context)
-    );
+    ));
   }
 }
 

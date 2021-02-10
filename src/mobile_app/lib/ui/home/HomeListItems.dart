@@ -9,12 +9,12 @@ class RecommendedItem extends BaseListItem {
   String title;
   String image;
   String description;
-
-  RecommendedItem({this.image, this.title, this.description});
+  void Function(BuildContext) onPressed;
+  RecommendedItem({this.image, this.title, this.description, this.onPressed});
 
   @override
   Widget build(BuildContext context)
-    => ImageListCellWidget(title: this.title,description: this.description, image: Image.asset("assets/$image.png",));
+    => ImageListCellWidget(title: this.title,description: this.description, image: Image.asset("assets/$image.png",), onPressed: onPressed,);
 }
 
 class HomeStatsListItem extends BaseListItem {

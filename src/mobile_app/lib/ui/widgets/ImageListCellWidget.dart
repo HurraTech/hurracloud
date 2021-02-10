@@ -5,7 +5,7 @@ class ImageListCellWidget extends StatelessWidget {
   Widget image;
   String description;
   bool lightCell;
-  VoidCallback onPressed;
+  void Function(BuildContext) onPressed;
 
   ImageListCellWidget(
       {Key key,
@@ -13,7 +13,7 @@ class ImageListCellWidget extends StatelessWidget {
       @required this.title,
       this.description,
       this.lightCell = false,
-      this.onPressed = null})
+      this.onPressed})
       : super(key: key);
 
   @override
@@ -21,7 +21,7 @@ class ImageListCellWidget extends StatelessWidget {
       ? FlatButton(
           padding: EdgeInsets.all(0),
           color: Colors.white,
-          onPressed: this.onPressed,
+          onPressed: () { this.onPressed(context); },
           child: buildContent(context),
         )
       : buildContent(context);

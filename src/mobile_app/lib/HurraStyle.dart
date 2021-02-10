@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -23,3 +24,5 @@ const  Map<int, Color> color =
   900:Color.fromRGBO(121,35,51, 1),
 };
 MaterialColor hurraColor = MaterialColor(hurraMainColorHex, color);
+
+bool isiOSStyle = !Platform.isAndroid;
