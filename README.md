@@ -18,7 +18,7 @@
 
         cd src/samaa
         docker run -it -v $(pwd):/app node:14.8.0 bash
-        npm install
+        cd /app && npm install
         exit
 
 
