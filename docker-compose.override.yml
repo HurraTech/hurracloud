@@ -10,6 +10,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=80
+      - REACT_APP_DEMO_MODE=${DEMO_MODE:-no}
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
