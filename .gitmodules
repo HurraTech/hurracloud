@@ -32,21 +32,21 @@
     update = merge
 [submodule "src/samaa"]
 	path = src/samaa
-	url = git@bitbucket.org:aimannajjar/samaa.git
+	url = https://github.com/HurraTech/samaa.git
     update = merge
 [submodule "src/jawhar"]
 	path = src/jawhar
-	url = git@bitbucket.org:aimannajjar/jawhar.git
+	url = https://github.com/HurraTech/jawhar.git
     update = merge
 [submodule "src/zahif"]
 	path = src/zahif
-	url = git@bitbucket.org:aimannajjar/zahif.git
+	url = https://github.com/HurraTech/zahif.git
     update = merge
 [submodule "src/souq"]
 	path = src/souq
-	url = git@bitbucket.org:aimannajjar/souq.git
+	url = https://github.com/HurraTech/souq.git
     update = merge
 [submodule "src/hagent"]
 	path = src/hagent
     update = merge
-    url = git@bitbucket.org:aimannajjar/hagent.git
+	url = https://github.com/HurraTech/hagent.git
