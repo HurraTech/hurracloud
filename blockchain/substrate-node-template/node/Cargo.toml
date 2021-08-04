@@ -22,6 +22,8 @@ substrate-build-script-utils = {version = '3.0.0', git = 'https://github.com/par
 jsonrpc-core = '15.1.0'
 structopt = '0.3.8'
 ring = '0.16.20'
+lazy_static = "1.4.0"
+once_cell = "1.8.0"
 
 pallet-contracts = { version = '3.0.0',  git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 pallet-contracts-rpc = { version = '3.0.0',  git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}

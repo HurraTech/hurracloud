@@ -4,6 +4,9 @@
 mod chain_spec;
 #[macro_use]
 mod service;
+#[macro_use]
+extern crate lazy_static;
+
 mod cli;
 mod command;
 mod rpc;
