@@ -52,14 +52,14 @@ pub fn init_keys() {
 
     // Nonce obj
     let nonce = Nonce::assume_unique_for_key(noncev);
-    let nonce2 = Nonce::assume_unique_for_key(noncev2);
+    let nonce2 = Nonce::assume_unique_for_key(noncev);
 
     // Encrypt data into in_out variable
     let output_size = sealing_key.seal_in_place_append_tag(nonce, Aad::empty(), &mut in_out).unwrap();
 
     // println!("Encrypted data's size {}", output_size);
 
-    let decrypted_data = opening_key.open_in_place(nonce, Aad::empty(), &mut in_out).unwrap();
+    let decrypted_data = opening_key.open_in_place(nonce2, Aad::empty(), &mut in_out).unwrap();
 
     println!("{:?}", String::from_utf8(decrypted_data.to_vec()).unwrap());
     assert_eq!(content, decrypted_data);
