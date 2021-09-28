@@ -8,7 +8,7 @@
     update = merge
 [submodule "yocto/meta-raspberrypi"]
 	path = yocto/meta-raspberrypi
-	url = git@bitbucket.org:aimannajjar/meta-raspberrypi.git
+	url = https://github.com/HurraTech/meta-raspberrypi.git
     update = merge
 [submodule "yocto/meta-virtualization"]
 	path = yocto/meta-virtualization
