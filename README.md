@@ -7,10 +7,10 @@
 2. Install dependencies
 
         # macOS
-        brew install go vagrant virtualbox leveldb tmux protoc-gen-go protoc-gen-go-grpc
+        brew install go leveldb tmux protoc-gen-go protoc-gen-go-grpc
 
         # Linux (Fedora)
-        dnf install leveldb leveldb-devel tmux protoc-gen-go protoc-gen-go-grpc
+        dnf install go leveldb leveldb-devel tmux protoc-gen-go
 
 3. Install Air tool (allows hot reload of Golang app)
 

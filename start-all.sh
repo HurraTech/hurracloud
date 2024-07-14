@@ -27,7 +27,7 @@ tmux select-pane -t 1;
 tmux select-pane -t 2; 
 tmux send-keys "cd src/jawhar; air -c .air.toml" C-m;
 tmux select-pane -t 3; 
-tmux send-keys "cd src/samaa; sudo docker compose up" C-m; 
+tmux send-keys "cd src/samaa; docker compose up" C-m; 
 tmux select-pane -t 4; 
 tmux send-keys "cd src/zahif; air -c .air.toml" C-m;
 tmux select-pane -t 5;
