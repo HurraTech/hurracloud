@@ -1,20 +1,23 @@
-### Dev Environment Setup (macOS)
-
-#### 0. Pre-requisites
+### Dev Environment Setup 
 
 1. Checkout code
 
         git clone --recurse-submodules https://github.com/hurratech/hurracloud.git
 
-
 2. Install dependencies
 
+        # macOS
         brew install go vagrant virtualbox leveldb tmux protoc-gen-go protoc-gen-go-grpc
+
+        # Linux (Fedora)
+        dnf install leveldb leveldb-devel tmux protoc-gen-go protoc-gen-go-grpc
+
+3. Install Air tool (allows hot reload of Golang app)
+
         curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b /usr/local/bin
 
-### Option A: Start All in one command using tmux
 
-1. Install node-modules (only needed first time or when pacakge.json has changed)
+3. Install node-modules (only needed first time or when pacakge.json has changed)
 
         cd src/samaa
         docker run -it -v $(pwd):/app node:14.8.0 bash
@@ -22,10 +25,11 @@
         exit
 
 
-2. This will split the terminal windows for you and start all applications (you need to tmux for this, availabla view brew) 
+4. This will split the terminal windows for you and start all applications (you need to tmux for this, availabla view standard package managers) 
 
         ./start-all.sh
 
+5. Access the UI at [http://localhost:8080/](http://localhost:8080)
 
 ### Option B: Start Components Individually
 
@@ -46,7 +50,7 @@ The command above should work for all Go submodules. For non-Go submodules (such
 
 2. Run Docker container
 
-        docker-compose up
+        docker compose up
 
 
 #### 2. Jawhar (core)
@@ -98,5 +102,3 @@ The command above should work for all Go submodules. For non-Go submodules (such
 
         # Or simply use air (tool that auto-build and reload whenever Go source code change):
         sudo air -c .air.toml
-
-### Access the UI at [http://localhost:8080/](http://localhost:8080)
