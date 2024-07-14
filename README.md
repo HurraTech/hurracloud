@@ -25,7 +25,7 @@
         exit
 
 
-4. This will split the terminal windows for you and start all applications (you need to tmux for this, availabla view standard package managers) 
+4. This will split the terminal windows for you and start all applications (you need to tmux for this, availabla via standard package managers) 
 
         ./start-all.sh
 
