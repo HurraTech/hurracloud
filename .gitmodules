@@ -5,20 +5,25 @@
 [submodule "src/samaa"]
 	path = src/samaa
 	url = https://github.com/HurraTech/samaa.git
+	branch = master
     update = merge
 [submodule "src/jawhar"]
 	path = src/jawhar
 	url = https://github.com/HurraTech/jawhar.git
+	branch = master
     update = merge
 [submodule "src/zahif"]
 	path = src/zahif
 	url = https://github.com/HurraTech/zahif.git
+	branch = master
     update = merge
 [submodule "src/souq"]
 	path = src/souq
 	url = https://github.com/HurraTech/souq.git
+	branch = master
     update = merge
 [submodule "src/hagent"]
 	path = src/hagent
     update = merge
+	branch = master
 	url = https://github.com/HurraTech/hagent.git
