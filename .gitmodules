@@ -1,34 +1,6 @@
-[submodule "yocto/poky"]
-	path = yocto/poky
-    url = git://git.yoctoproject.org/poky
-    update = merge
-[submodule "yocto/meta-openembedded"]
-	path = yocto/meta-openembedded
-	url = https://github.com/openembedded/meta-openembedded.git
-    update = merge
-[submodule "yocto/meta-raspberrypi"]
-	path = yocto/meta-raspberrypi
-	url = https://github.com/HurraTech/meta-raspberrypi.git
-    update = merge
-[submodule "yocto/meta-virtualization"]
-	path = yocto/meta-virtualization
-	url = git://git.yoctoproject.org/meta-virtualization
-    update = merge
-[submodule "yocto/openembedded-core"]
-	path = yocto/openembedded-core
-	url = https://github.com/openembedded/openembedded-core.git
-    update = merge
 [submodule "docker-openvpn"]
 	path = docker-openvpn
 	url = git@bitbucket.org:aimannajjar/docker-openvpn.git
-    update = merge
-[submodule "yocto/meta-mender-community"]
-	path = yocto/meta-mender-community
-	url = https://github.com/mendersoftware/meta-mender-community
-    update = merge
-[submodule "yocto/meta-mender"]
-	path = yocto/meta-mender
-	url = https://github.com/mendersoftware/meta-mender
     update = merge
 [submodule "src/samaa"]
 	path = src/samaa

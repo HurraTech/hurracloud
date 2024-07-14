@@ -1,9 +1,0 @@
-cluster.name: hurracloud
-bootstrap.memory_lock: true
-discovery.type: single-node
-network.host: 127.0.0.1
-http.cors.enabled: true
-cluster.routing.allocation.disk.threshold_enabled: false
-http.cors.allow-origin: "*"
-path.data: /data/es/data
-path.logs: /data/es/logs
