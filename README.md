@@ -3,6 +3,8 @@
 1. Checkout code
 
         git clone --recurse-submodules https://github.com/hurratech/hurracloud.git
+        git submodule foreach --recursive git checkout master
+        git submodule foreach --recursive git pull origin master
 
 2. Install dependencies
 
