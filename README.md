@@ -25,6 +25,7 @@
         docker run -it -v $(pwd):/app node:14.8.0 bash
         cd /app && npm install
         exit
+        cd ../..
 
 
 4. This will split the terminal windows for you and start all applications (you need to tmux for this, availabla via standard package managers) 
